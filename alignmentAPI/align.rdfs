@@ -1,0 +1,87 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE rdf:RDF [
+	 <!ENTITY rdf 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'>
+	 <!ENTITY alignment 'http://knowledgeweb.semanticweb.org/heterogeneity/alignment'>
+	 <!ENTITY rdfs 'http://www.w3.org/2000/01/rdf-schema#'>
+]>
+
+<!-- Contributed by Natasha Noy, 2004 -->
+<!-- improved by Antoine Isaac -->
+<!-- $Id: align.rdfs 334 2006-10-05 08:55:22Z euzenat $ -->
+
+<rdf:RDF xmlns:rdf="&rdf;"
+	 xmlns:rdfs="&rdfs;"
+	 xmlns:alignment="&alignment;">
+
+<rdfs:Class rdf:about="&alignment;Alignment"
+	 rdfs:label="Alignment">
+	<rdfs:subClassOf rdf:resource="&rdfs;Resource"/>
+</rdfs:Class>
+<rdf:Property rdf:about="&alignment;level"
+	 rdfs:label="level">
+	<rdfs:domain rdf:resource="&alignment;Alignment"/>
+	<rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+<rdf:Property rdf:about="&alignment;type"
+	 rdfs:label="type">
+	<rdfs:domain rdf:resource="&alignment;Alignment"/>
+	<rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+<rdf:Property rdf:about="&alignment;xml"
+	 rdfs:label="xml">
+	<rdfs:domain rdf:resource="&alignment;Alignment"/>
+	<rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+<rdf:Property rdf:about="&alignment;uri1"
+	 rdfs:label="uri1">
+	<rdfs:domain rdf:resource="&alignment;Alignment"/>
+	<rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+<rdf:Property rdf:about="&alignment;uri2"
+	 rdfs:label="uri2">
+	<rdfs:domain rdf:resource="&alignment;Alignment"/>
+	<rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+<rdf:Property rdf:about="&alignment;onto1"
+	 rdfs:label="onto1">
+	<rdfs:domain rdf:resource="&alignment;Alignment"/>
+	<rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+<rdf:Property rdf:about="&alignment;onto2"
+	 rdfs:label="onto2">
+	<rdfs:domain rdf:resource="&alignment;Alignment"/>
+	<rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+<rdf:Property rdf:about="&alignment;map"
+	 rdfs:label="map">
+	<rdfs:domain rdf:resource="&alignment;Alignment"/>
+	<rdfs:range rdf:resource="&alignment;Cell"/>
+</rdf:Property>
+
+
+<rdfs:Class rdf:about="&alignment;Cell"
+	 rdfs:label="Cell">
+	<rdfs:subClassOf rdf:resource="&rdfs;Resource"/>
+</rdfs:Class>
+<rdf:Property rdf:about="&alignment;entity1"
+	 rdfs:label="entity1">
+	<rdfs:domain rdf:resource="&alignment;Cell"/>
+	<rdfs:range rdf:resource="&rdfs;Resource"/>
+</rdf:Property>
+<rdf:Property rdf:about="&alignment;entity2"
+	 rdfs:label="entity2">
+	<rdfs:domain rdf:resource="&alignment;Cell"/>
+	<rdfs:range rdf:resource="&rdfs;Resource"/>
+</rdf:Property>
+<rdf:Property rdf:about="&alignment;measure"
+	 rdfs:label="measure">
+	<rdfs:domain rdf:resource="&alignment;Cell"/>
+	<rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+<rdf:Property rdf:about="&alignment;relation"
+	 rdfs:label="relation">
+	<rdfs:domain rdf:resource="&alignment;Cell"/>
+	<rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+
+</rdf:RDF>

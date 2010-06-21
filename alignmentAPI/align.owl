@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- $Id: align.owl 334 2006-10-05 08:55:22Z euzenat $
+ !
+ ! Copyright (C) 2003-2004, 2006 INRIA Rhône-Alpes.
+ !
+ ! This program is free software; you can redistribute it and/or
+ ! modify it under the terms of the GNU Lesser General Public License
+ ! as published by the Free Software Foundation; either version 2.1
+ ! of the License, or (at your option) any later version.
+ ! 
+ ! This program is distributed in the hope that it will be useful,
+ ! but WITHOUT ANY WARRANTY; without even the implied warranty of
+ ! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ ! GNU Lesser General Public License for more details.
+ ! 
+ ! You should have received a copy of the GNU Lesser General Public License
+ ! along with this program; if not, write to the Free Software
+ ! Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ -->
+
+<rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/"
+    xmlns:owl="http://www.w3.org/2002/07/owl#"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+    xml:base="http://knowledgeweb.semanticweb.org/heterogeneity/alignment"
+    xmlns="http://knowledgeweb.semanticweb.org/heterogeneity/alignment">
+
+<owl:Ontology rdf:about="">
+  <owl:versionInfo>$Id: align.owl 334 2006-10-05 08:55:22Z euzenat $</owl:versionInfo>
+  <rdfs:comment>Ontology for Ontology alignments</rdfs:comment>
+</owl:Ontology>
+
+<!-- First define all the properties -->
+
+<owl:DatatypeProperty rdf:ID="xml">
+  <rdfs:domain rdf:resource="#Alignment"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+</owl:DatatypeProperty>
+
+<owl:DatatypeProperty rdf:ID="onto1">
+  <rdfs:comment>This string is the URl at whitch the ontology can be fetched</rdfs:comment>
+  <rdfs:domain rdf:resource="Alignment"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+</owl:DatatypeProperty>
+
+<owl:DatatypeProperty rdf:ID="onto2">
+  <rdfs:comment>This string is the URl at whitch the ontology can be fetched</rdfs:comment>
+  <rdfs:domain rdf:resource="Alignment"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+</owl:DatatypeProperty>
+
+<owl:DatatypeProperty rdf:ID="type">
+  <rdfs:comment>This is indeed a 2 letter string on the alphabet 1 ? + *</rdfs:comment>
+  <rdfs:domain rdf:resource="#Alignment"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+</owl:DatatypeProperty>
+
+<owl:ObjectProperty rdf:ID="map">
+  <rdfs:domain rdf:resource="#Alignment"/>
+  <rdfs:range rdf:resource="#Cell"/>
+</owl:ObjectProperty>
+
+<owl:DatatypeProperty rdf:ID="measure">
+  <rdfs:domain rdf:resource="#Cell"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
+</owl:DatatypeProperty>
+
+<owl:DatatypeProperty rdf:ID="relation">
+  <rdfs:comment>This is currently a string but should be upgraded soon</rdfs:comment>
+  <rdfs:domain rdf:resource="#Cell"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+</owl:DatatypeProperty>
+
+<owl:ObjectProperty rdf:ID="entity1">
+  <rdfs:domain rdf:resource="#Cell"/>
+  <rdfs:range rdf:resource="#OWLEntity"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:ID="entity2">
+  <rdfs:domain rdf:resource="#Cell"/>
+  <rdfs:range rdf:resource="#OWLEntity"/>
+</owl:ObjectProperty>
+
+<!-- Then define three classes which specify the cardinality of properties -->
+
+<owl:Class rdf:ID="Alignment">
+  <rdfs:subClassOf>
+    <owl:Restriction>
+      <owl:onProperty rdf:resource="#xml" />
+      <owl:cardinality>1</owl:cardinality>
+    </owl:Restriction>
+  </rdfs:subClassOf>
+  <rdfs:subClassOf>
+    <owl:Restriction>
+      <owl:onProperty rdf:resource="#onto1" />
+      <owl:cardinality>1</owl:cardinality>
+    </owl:Restriction>
+  </rdfs:subClassOf>
+  <rdfs:subClassOf>
+    <owl:Restriction>
+      <owl:onProperty rdf:resource="#onto2" />
+      <owl:cardinality>1</owl:cardinality>
+    </owl:Restriction>
+  </rdfs:subClassOf>
+  <rdfs:subClassOf>
+    <owl:Restriction>
+      <owl:onProperty rdf:resource="#type" />
+      <owl:cardinality>1</owl:cardinality>
+    </owl:Restriction>
+  </rdfs:subClassOf>
+  <rdfs:subClassOf>
+    <owl:Restriction>
+      <owl:onProperty rdf:resource="#map" />
+      <owl:allValuesFrom rdf:resource="#Cell" />
+    </owl:Restriction>
+  </rdfs:subClassOf>
+</owl:Class>
+
+<owl:Class rdf:ID="Cell">
+  <rdfs:subClassOf>
+    <owl:Restriction>
+      <owl:onProperty rdf:resource="#entity1" />
+      <owl:cardinality>1</owl:cardinality>
+    </owl:Restriction>
+  </rdfs:subClassOf>
+  <rdfs:subClassOf>
+    <owl:Restriction>
+      <owl:onProperty rdf:resource="#entity2" />
+      <owl:cardinality>1</owl:cardinality>
+    </owl:Restriction>
+  </rdfs:subClassOf>
+  <rdfs:subClassOf>
+    <owl:Restriction>
+      <owl:onProperty rdf:resource="#measure" />
+      <owl:cardinality>1</owl:cardinality>
+    </owl:Restriction>
+  </rdfs:subClassOf>
+  <rdfs:subClassOf>
+    <owl:Restriction>
+      <owl:onProperty rdf:resource="#relation" />
+      <owl:cardinality>1</owl:cardinality>
+    </owl:Restriction>
+  </rdfs:subClassOf>
+</owl:Class>
+
+<!--
+<owl:Class rdf:ID="Relation"/>
+-->
+
+<owl:Class rdf:ID="OWLEntity">
+  <rdfs:comment>This is a place holder for the real OWL entity which bears the same URI</rdfs:comment>
+</owl:Class>
+
+</rdf:RDF>
+
