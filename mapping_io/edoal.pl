@@ -6,8 +6,8 @@
 % http://alignapi.gforge.inria.fr/edoal.html
 
 :-module(edoal, [
-		 create_alignment/2,
-		 create_cell/3
+		 create_alignment/2, 	% +URI, +OptionList
+		 create_cell/3 		% +E1, +E2, +OptionList
 		]
 	).
 
@@ -44,11 +44,11 @@ create_alignment(URI, Options) :-
 
 	rdf_assert(URI, align:onto1, O1, Graph),
         rdf_assert(URI, align:onto2, O2, Graph),
-        rdf_assert(URI, align:method, literal(Method)),
-	rdf_assert(URI, align:type, literal(Type)),
+        rdf_assert(URI, align:method, literal(Method), Graph),
+	rdf_assert(URI, align:type, literal(Type), Graph),
 
-	rdf_assert(O1, align:location, literal(L1)),
-	rdf_assert(O2, align:location, literal(L2)),
+	rdf_assert(O1, align:location, literal(L1), Graph),
+	rdf_assert(O2, align:location, literal(L2), Graph),
 
 	true.
 
@@ -66,8 +66,8 @@ create_alignment(URI, Options) :-
 create_cell(C1, C2, Options) :-
         option(alignment(A), Options),
         option(graph(Graph), Options, align),
-	option(measure(M), 1.0),
-	option(relation(R), '='),
+	option(measure(M),   Options, 1.0),
+	option(relation(R),  Options, '='),
         rdf_bnode(Cell),
         rdf_assert(A, align:map, Cell),
         rdf_assert(Cell, rdf:type, align:'Cell', Graph),
