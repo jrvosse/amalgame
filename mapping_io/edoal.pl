@@ -31,12 +31,12 @@
 
 create_alignment(URI, Options) :-
 	option(method(Method), Options),
-	option(ontology1(O1), Options),
-	option(ontology2(O2), Options),
-	option(location1(L1), Options, O1),
-	option(location2(L2), Options, O2),
-	option(graph(Graph), Options, align),
-	option(type(Type), Options, '**'),
+	option(ontology1(O1),  Options),
+	option(ontology2(O2),  Options),
+	option(location1(L1),  Options, O1),
+	option(location2(L2),  Options, O2),
+	option(graph(Graph),   Options, align),
+	option(type(Type),     Options, '**'),
 
 	rdf_assert(O1,  rdf:type, align:'Ontology', Graph),
         rdf_assert(O2,  rdf:type, align:'Ontology', Graph),
@@ -69,7 +69,7 @@ create_cell(C1, C2, Options) :-
 	option(measure(M),   Options, 1.0),
 	option(relation(R),  Options, '='),
         rdf_bnode(Cell),
-        rdf_assert(A, align:map, Cell),
+        rdf_assert(A, align:map, Cell, Graph),
         rdf_assert(Cell, rdf:type, align:'Cell', Graph),
         rdf_assert(Cell, align:entity1, C1, Graph),
         rdf_assert(Cell, align:entity2, C2, Graph),
