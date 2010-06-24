@@ -61,7 +61,9 @@ create_alignment(URI, Options) :-
 %	Optionally, it can also define:
 %	- graph(G) the named graph of the cell (G defaults to 'align')
 %	- measure(M) the confidence level (M defaults to 1.0).
-%	= relation(R) the type of relation (R defaults to '=')
+%	- relation(R) the type of relation (R defaults to '=')
+%	- method(M) method used if different from method set for
+%	  aligmnent A (default: none)
 
 create_cell(C1, C2, Options) :-
         option(alignment(A), Options),
@@ -74,4 +76,9 @@ create_cell(C1, C2, Options) :-
         rdf_assert(Cell, align:entity1, C1, Graph),
         rdf_assert(Cell, align:entity2, C2, Graph),
         rdf_assert(Cell, align:measure, literal(M), Graph),
-        rdf_assert(Cell, align:relation, literal(R), Graph).
+        rdf_assert(Cell, align:relation, literal(R), Graph),
+	(   option(method(Method), Options)
+	->  rdf_assert(Cell, align:method, literal(Method), Graph)
+	;   true
+	).
+
