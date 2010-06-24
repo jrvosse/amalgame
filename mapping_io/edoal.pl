@@ -6,8 +6,9 @@
 % http://alignapi.gforge.inria.fr/edoal.html
 
 :-module(edoal, [
-		 create_alignment/2, 	% +URI, +OptionList
-		 create_cell/3 		% +E1, +E2, +OptionList
+		 assert_alignment/2, 	% +URI, +OptionList
+		 assert_cell/3,		% +E1, +E2, +OptionList
+		 create_cell/4 		% +E1, +E2, +OptionList, -Cell
 		]
 	).
 
@@ -15,9 +16,9 @@
 
 :- rdf_register_ns(align, 'http://knowledgeweb.semanticweb.org/heterogeneity/alignment#').
 
-%%	create_alignment(+URI, +OptionList) is det.
+%%	assert_alignment(+URI, +OptionList) is det.
 %
-%	Create an alignment with uri URI.
+%	Create and assert an alignment with uri URI.
 %	OptionList must contain:
 %	- method(String),
 %	- ontology1(URL),
@@ -29,7 +30,7 @@
 %	- graph(G) defaults to 'align'
 %	- type(T) default to '**'
 
-create_alignment(URI, Options) :-
+assert_alignment(URI, Options) :-
 	option(method(Method), Options),
 	option(ontology1(O1),  Options),
 	option(ontology2(O2),  Options),
@@ -53,7 +54,7 @@ create_alignment(URI, Options) :-
 	true.
 
 
-%%	create_cell(+Entity1, +Entity2, +OptionList) is det.
+%%	create_cell(+Entity1, +Entity2, +OptionList, -Cell) is det.
 %
 %	Creates an EDOAL map cel defining a mapping
 %       between Entity 1 and 2.
@@ -65,20 +66,40 @@ create_alignment(URI, Options) :-
 %	- method(M) method used if different from method set for
 %	  aligmnent A (default: none)
 
-create_cell(C1, C2, Options) :-
+create_cell(C1, C2, Options, TripleList) :-
         option(alignment(A), Options),
-        option(graph(Graph), Options, align),
 	option(measure(M),   Options, 1.0),
 	option(relation(R),  Options, '='),
         rdf_bnode(Cell),
-        rdf_assert(A, align:map, Cell, Graph),
-        rdf_assert(Cell, rdf:type, align:'Cell', Graph),
-        rdf_assert(Cell, align:entity1, C1, Graph),
-        rdf_assert(Cell, align:entity2, C2, Graph),
-        rdf_assert(Cell, align:measure, literal(M), Graph),
-        rdf_assert(Cell, align:relation, literal(R), Graph),
+        L = [
+	     rdf(A, align:map, Cell),
+	     rdf(Cell, rdf:type, align:'Cell'),
+	     rdf(Cell, align:entity1, C1),
+	     rdf(Cell, align:entity2, C2),
+	     rdf(Cell, align:measure, literal(M)),
+	     rdf(Cell, align:relation, literal(R))
+	    ],
 	(   option(method(Method), Options)
-	->  rdf_assert(Cell, align:method, literal(Method), Graph)
-	;   true
+	->  append(L, [rdf(Cell, align:method, literal(Method))], TripleList)
+	;   TripleList = L
 	).
+
+
+assert_cell(C1, C2, Options) :-
+        option(graph(Graph), Options, align),
+	create_cell(C1, C2, Options, TripleList),
+	rdf_assert_list(TripleList, Graph).
+
+rdf_assert_list([], _).
+rdf_assert_list([rdf(S,P,O)|Tail], Graph) :-
+	rdf_assert(S,P,O,Graph),
+	rdf_assert_list(Tail, Graph).
+
+
+
+
+
+
+
+
 
