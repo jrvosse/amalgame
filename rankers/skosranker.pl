@@ -1,6 +1,6 @@
 :- module(skosranker,
 	  [
-	   rank_candidates/2
+	   rank_candidates/3
 	  ]
 	 ).
 
@@ -11,8 +11,14 @@ match_property(propmatch:def,  P):- rdf_equal(skos:definition, P).
 match_property(propmatch:pref, P):- rdf_equal(skos:prefLabel, P).
 match_property(propmatch:alt,  P):- rdf_equal(skos:altLabel, P).
 
-rank_candidates(C1, Options) :-
-	edoal_match([entity(C1)], Options, Candidates),
+rank_candidates(C1, S2, Options) :-
+	findall(Cand,
+		(   rdf_has(Cand, align:entity1, C1),
+		    rdf_has(Cand, align:entity2, C2),
+		    rdf_has(C2, skos:inScheme, S2)
+		),
+		Candidates
+	       ),
 	findall(Justifications,
 		(   member(Cand, Candidates),
 		    justify(Cand, Options, Justifications)
@@ -29,18 +35,35 @@ justify(Cand, Options, Justifications) :-
 		Justifications).
 
 
-justification(Cell, Options, MatchType) :-
+justification(Cell, _Options, MatchType) :-
 	match_property(MatchType, Property),
-	edoal_match([cell(Cell), entity1(E1), entity2(E2)], Options),
+	rdf_has(Cell, align:entity1, E1),
+	rdf_has(Cell, align:entity2, E2),
 	rdf_has(E1, Property, Value),
 	rdf_has(E2, Property, Value).
 
-justification(Cell, Options, MatchType) :-
+justification(Cell, _Options, MatchType) :-
 	match_property(MatchType, Property),
-	edoal_match([cell(Cell), entity1(E1), entity2(E2)], Options),
+	rdf_has(Cell, align:entity1, E1),
+	rdf_has(Cell, align:entity2, E2),
 	rdf_has(E1, Property, literal(lang(Lang1, Value))),
 	rdf_has(E2, Property, literal(lang(Lang2, Value))),
-	lang_matches(Lang1, Lang2).
+	lang_equiv(Lang1, Lang2).
+
+lang_equiv(L1, L2) :-
+	atom_chars(L1, L1chars),
+	atom_chars(L2, L2chars),
+	lowercase_chars(L1chars, Lower),
+	lowercase_chars(L2chars, Lower).
+
+lowercase_chars([],[]).
+lowercase_chars([HU|Upper], [HL|Lower]) :-
+	to_lower(HU,HL),
+	lowercase_chars(Upper, Lower).
+
+
+
+
 
 
 
