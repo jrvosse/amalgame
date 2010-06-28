@@ -1,13 +1,13 @@
 :- module(skosranker,
 	  [
-	   rank_candidates/3
+	   rank_candidates/2
 	  ]
 	 ).
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module('../mapping_io/edoal').
 
-rank_candidates(_Concept, Candidates, Options) :-
+rank_candidates(Candidates, Options) :-
 	findall(Justifications,
 		(   member(Cand, Candidates),
 		    justify(Cand, Options, Justifications)
@@ -15,7 +15,8 @@ rank_candidates(_Concept, Candidates, Options) :-
 	       JustList),
 	rank_just_list(JustList, _Results).
 
-rank_just_list(JustList, JustList).
+rank_just_list(JustList, JustList):-
+	debug(rank, 'Ranking still to be implemented ~w', [JustList]).
 
 justify(Cand, Options, Justifications) :-
 	findall(Justification,
