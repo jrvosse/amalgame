@@ -51,15 +51,8 @@ justification(Cell, _Options, MatchType) :-
 	lang_equiv(Lang1, Lang2).
 
 lang_equiv(L1, L2) :-
-	atom_chars(L1, L1chars),
-	atom_chars(L2, L2chars),
-	lowercase_chars(L1chars, Lower),
-	lowercase_chars(L2chars, Lower).
-
-lowercase_chars([],[]).
-lowercase_chars([HU|Upper], [HL|Lower]) :-
-	to_lower(HU,HL),
-	lowercase_chars(Upper, Lower).
+	downcase_atom(L1, Lower),
+	downcase_atom(L2, Lower).
 
 
 
