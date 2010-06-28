@@ -8,13 +8,13 @@
 :- use_module('../matchers/skosmatcher').
 :- use_module('../rankers/skosranker').
 
-align_schemes(S1, S2, Options) :-
-	rdf_transaction(
-			(   rdf_has(C1, skos:inScheme, S1),
-			    skos_find_candidates(C1, S2, [labels_must_match(true)|Options])
-			)
-		       ),
-	rdf_transaction(
-			    rank_candidates(C1, Options)
-			).
+align_schemes(Scheme1, Scheme2, Options) :-
+	findall(Concept, rdf_has(Concept, skos:inScheme, Scheme1), SourceConcepts),
+	forall(member(Concept, SourceConcepts),
+	       align_concept(Concept, Scheme2, [labels_must_match(true)|Options])
+	      ).
+
+align_concept(SourceConcept, TargetScheme, Options) :-
+	rdf_transaction(skos_find_candidates(SourceConcept, TargetScheme, Options)),
+	rdf_transaction(     rank_candidates(SourceConcept, TargetScheme, Options)).
 
