@@ -7,9 +7,7 @@
 
 :-module(edoal, [
 		 assert_alignment/2, 	% +URI, +OptionList
-		 assert_cell/3,		% +E1, +E2, +OptionList
-		 edoal_match/2,	        % +Q, +Options
-		 edoal_match/3          % +Q, +Options, -Matches
+		 assert_cell/3	        % +E1, +E2, +OptionList
 		]
 	).
 
@@ -92,25 +90,4 @@ assert_cell(C1, C2, Options) :-
 	;   true
 	).
 
-%%	edoal_match(+Query, +Options, -Matches) is nondet.
-%
-%	find matches match Query
 
-edoal_match(Query, Options, Matches) :-
-	option(graph(Graph), Options, align),
-	option(entity1(E1), Query, E1),
-	option(entity2(E2), Query, E2),
-	findall(Match,
-		(   rdf(Match, align:entity1, E1, Graph),
-		    rdf(Match, align:entity2, E2, Graph)
-		),
-		Matches).
-
-
-edoal_match(Query, Options) :-
-	option(graph(Graph), Options, align),
-	option(entity1(E1), Query, E1),
-	option(entity2(E2), Query, E2),
-	option(cell(Cell),  Query, Cell),
-	rdf(Cell, align:entity1, E1, Graph),
-	rdf(Cell, align:entity2, E2, Graph).
