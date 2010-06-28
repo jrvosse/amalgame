@@ -45,7 +45,7 @@ candidate(SourceConcept, TargetConceptScheme, Options, Correspondence) :-
 	rdf_has(SourceConcept, rdfs:label, literal(lang(_, Label)), RealLabel1Predicate),
 	rdf_has(TargetConcept, rdfs:label, literal(lang(_, Label)), RealLabel2Predicate),
 	rdf_has(TargetConcept, skos:inScheme, TargetConceptScheme),
-	format(atom(Method), '~p-~p', [RealLabel1Predicate, RealLabel2Predicate]),
+	format(atom(Method), 'exact match: ~p-~p', [RealLabel1Predicate, RealLabel2Predicate]),
 	CellOptions = [measure(0.001), % Only label match, this is just a candidate
 		       method(Method)
 		       |Options
