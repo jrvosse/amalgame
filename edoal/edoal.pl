@@ -8,7 +8,8 @@
 :-module(edoal, [
 		 assert_alignment/2, 	% +URI, +OptionList
 		 assert_cell/3,		% +E1, +E2, +OptionList
-		 create_cell/4 		% +E1, +E2, +OptionList, -Cell
+		 edoal_match/2,	        % +Q, +Options
+		 edoal_match/3          % +Q, +Options, -Matches
 		]
 	).
 
@@ -53,8 +54,15 @@ assert_alignment(URI, Options) :-
 
 	true.
 
-
-%%	create_cell(+Entity1, +Entity2, +OptionList, -Cell) is det.
+%%	assert_cell(+C1,+C2,+OptionList) is det.
+%
+%	Asserts a correspondence between C1 and C2.
+%
+%       OptionList must contain the
+%       - alignment(A) this cell belongs to.
+%
+%       It may also define:
+%	- graph(G), named graph to assert to, defaults to 'align'
 %
 %	Creates an EDOAL map cel defining a mapping
 %       between Entity 1 and 2.
@@ -64,50 +72,45 @@ assert_alignment(URI, Options) :-
 %	- method(M) method used if different from method set for
 %	- aligmnent A (default: none)
 
-create_cell(C1, C2, Options, TripleList) :-
+assert_cell(C1, C2, Options) :-
+        option(graph(Graph), Options, align),
 	option(measure(M),   Options, 0.00001),
 	option(relation(R),  Options, '='),
         rdf_bnode(Cell),
-        L0 = [
-	     rdf(Cell, rdf:type, align:'Cell'),
-	     rdf(Cell, align:entity1, C1),
-	     rdf(Cell, align:entity2, C2),
-	     rdf(Cell, align:measure, literal(M)),
-	     rdf(Cell, align:relation, literal(R))
-	    ],
+	rdf_assert(Cell, rdf:type, align:'Cell', Graph),
+	rdf_assert(Cell, align:entity1, C1, Graph),
+	rdf_assert(Cell, align:entity2, C2, Graph),
+	rdf_assert(Cell, align:measure, literal(M), Graph),
+	rdf_assert(Cell, align:relation, literal(R), Graph),
+
 	(   option(alignment(A), Options)
-	->  append(L0, [rdf(A, align:map, Cell)], L1)
-	;   L0 = L1
+	->  rdf_assert(A, align:map, Cell, Graph)
+	;   debug(edoal, 'Warning: asserting EDOAL cell without parent alignment', [])
 	),
 	(   option(method(Method), Options)
-	->  append(L1, [rdf(Cell, align:method, literal(Method))], TripleList)
-	;   TripleList = L1
+	->  rdf_assert(Cell, align:method, literal(Method), Graph)
+	;   true
 	).
 
-%%	assert_cell(+C1,+C2,+OptionList) is det.
+%%	edoal_match(+Query, +Options, -Matches) is nondet.
 %
-%	Creates and asserts a possibly empty
-%	correspondence between C1 and C2.
-%
-%       OptionList must contain the -
-%	alignment(A) this cell belongs to. It may also define: -
-%	graph(G), named graph to assert to, defaults to 'align'
+%	find matches match Query
 
-assert_cell(C1, C2, Options) :-
-        option(graph(Graph), Options, align),
-	create_cell(C1, C2, Options, TripleList),
-	rdf_assert_list(TripleList, Graph).
-
-rdf_assert_list([], _).
-rdf_assert_list([rdf(S,P,O)|Tail], Graph) :-
-	rdf_assert(S,P,O,Graph),
-	rdf_assert_list(Tail, Graph).
+edoal_match(Query, Options, Matches) :-
+	option(graph(Graph), Options, align),
+	option(entity1(E1), Query, E1),
+	option(entity2(E2), Query, E2),
+	findall(Match,
+		(   rdf(Match, align:entity1, E1, Graph),
+		    rdf(Match, align:entity2, E2, Graph)
+		),
+		Matches).
 
 
-
-
-
-
-
-
-
+edoal_match(Query, Options) :-
+	option(graph(Graph), Options, align),
+	option(entity1(E1), Query, E1),
+	option(entity2(E2), Query, E2),
+	option(cell(Cell),  Query, Cell),
+	rdf(Cell, align:entity1, E1, Graph),
+	rdf(Cell, align:entity2, E2, Graph).

@@ -1,10 +1,10 @@
 :- module(skosmatcher,
-	  [skos_find_candidates/4 % +SourceConcept, +TargetScheme, +Options, -Results
+	  [skos_find_candidates/3 % +SourceConcept, +TargetScheme, +Options, -Results
 	  ]
 	 ).
 
 :- use_module(library(semweb/rdf_db)).
-:- use_module('../mapping_io/edoal').
+:- use_module('../edoal/edoal').
 
 %%	skos_find_candidates(+C, +S, +Options, -Result) is det.
 %
@@ -15,17 +15,16 @@
 %	- labels_must_match(true):
 %           Find candidates with match labels (cheap)
 
-skos_find_candidates(SourceConcept, TargetConceptScheme, Options, Correspondences):-
-	findall(Correspondence,
-		candidate(SourceConcept, TargetConceptScheme, Options, Correspondence),
-		Correspondences
-	       ).
+skos_find_candidates(SourceConcept, TargetConceptScheme, Options):-
+	forall(candidate(SourceConcept, TargetConceptScheme, Options),
+	       true
+	      ).
 
-%%	candidate(+C, +S, +Options, -Correspondence) is det.
+%%	candidate(+C, +S, +Options) is det.
 %
-%	Evaluates to true if Correspondence describes an EDOAL cell
-%	with a match from SourceConcept to a target concept from
-%	TargetConceptScheme
+%	Asserts a correspondence as an EDOAL cell
+%	describing a match from C to a target concept from
+%	ConceptScheme S.
 %
 %       Correspondence has a low confidence level,
 %       to indicate that further checking will be needed to
@@ -36,7 +35,7 @@ skos_find_candidates(SourceConcept, TargetConceptScheme, Options, Correspondence
 %
 %       For descriptions of possible Options, see above.
 
-candidate(SourceConcept, TargetConceptScheme, Options, Correspondence) :-
+candidate(SourceConcept, TargetConceptScheme, Options) :-
 	ground(SourceConcept),
 	ground(TargetConceptScheme),
 	ground(Options),
@@ -50,4 +49,4 @@ candidate(SourceConcept, TargetConceptScheme, Options, Correspondence) :-
 		       method(Method)
 		       |Options
 		      ],
-	create_cell(SourceConcept, TargetConcept, CellOptions, Correspondence).
+	assert_cell(SourceConcept, TargetConcept, CellOptions).

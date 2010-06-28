@@ -9,6 +9,12 @@
 :- use_module('../rankers/skosranker').
 
 align_schemes(S1, S2, Options) :-
-	rdf_has(C1, skos:inScheme, S1),
-	skos_find_candidates(C1, S2, [labels_must_match(true)|Options], Candidates),
-	rank_candidates(Candidates, Options).
+	rdf_transaction(
+			(   rdf_has(C1, skos:inScheme, S1),
+			    skos_find_candidates(C1, S2, [labels_must_match(true)|Options])
+			)
+		       ),
+	rdf_transaction(
+			    rank_candidates(C1, Options)
+			).
+
