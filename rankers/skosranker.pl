@@ -29,21 +29,21 @@ justify_candidates(C1, S2, Options) :-
 justify(Cand, Options, Justifications) :-
 	findall(Justification,
 		justification(Cand, Options, Justification),
-		Justifications),
-	format(atom(JustificationLit), '~w', [Justifications]),
-	rdf_assert(Cand, amalgame:justification, literal(JustificationLit)).
+		Justifications).
 
 
-justification(Cell, _Options, MatchType:(Freq1/Freq2)) :-
-	match_property(MatchType, Property),
+
+justification(Cell, Options, Justification) :-
+	option(graph(Graph), Options, align),
+	match_property(_MatchType, Property),
 	rdf_has(Cell, align:entity1, E1),
 	rdf_has(Cell, align:entity2, E2),
 
-	(   rdf_has(E1, Property, Value),
-	    rdf_has(E2, Property, Value)
+	(   rdf_has(E1, Property, Value, RealProp1),
+	    rdf_has(E2, Property, Value, RealProp2)
 	->  Value = TestValue1, Value = TestValue2
-	;   rdf_has(E1, Property, literal(lang(Lang1, Value))),
-	    rdf_has(E2, Property, literal(lang(Lang2, Value))),
+	;   rdf_has(E1, Property, literal(lang(Lang1, Value)), RealProp1),
+	    rdf_has(E2, Property, literal(lang(Lang2, Value)), RealProp2),
 	    lang_equiv(Lang1, Lang2),
 	    TestValue1 = literal(lang(Lang1, Value)),
 	    TestValue2 = literal(lang(Lang2, Value))
@@ -62,7 +62,11 @@ justification(Cell, _Options, MatchType:(Freq1/Freq2)) :-
 		),
 		Occurences2),
 	length(Occurences1, Freq1),
-	length(Occurences2, Freq2).
+	length(Occurences2, Freq2),
+
+	format(atom(Justification), 'exact match: ~p:~w/~p:~w',
+	       [RealProp1,Freq1,RealProp2, Freq2]),
+	rdf_assert(Cell, amalgame:justification, literal(Justification), Graph).
 
 
 
