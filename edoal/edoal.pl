@@ -85,7 +85,7 @@ assert_cell(C1, C2, Options) :-
 	;   debug(edoal, 'Warning: asserting EDOAL cell without parent alignment', [])
 	),
 	(   option(method(Method), Options)
-	->  rdf_assert(Cell, align:method, literal(Method), Graph)
+	->  rdf_assert(Cell, amalgame:method, literal(Method), Graph)
 	;   true
 	).
 
