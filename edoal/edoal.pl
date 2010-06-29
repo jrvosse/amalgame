@@ -12,8 +12,7 @@
 	).
 
 :- use_module(library(semweb/rdf_db)).
-
-:- rdf_register_ns(align, 'http://knowledgeweb.semanticweb.org/heterogeneity/alignment#').
+:- use_module('../namespaces.pl').
 
 %%	assert_alignment(+URI, +OptionList) is det.
 %

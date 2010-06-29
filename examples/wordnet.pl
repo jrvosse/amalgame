@@ -5,6 +5,7 @@
 	 ]).
 
 :- use_module(amalgame(align/skosalign)).
+:- use_module(amalgame(edoal/edoal)).
 
 wn20schema('http://www.w3.org/2006/03/wn/wn20/schema/').
 wn20('http://www.w3.org/2006/03/wn/wn20/').
@@ -12,11 +13,30 @@ wn30('http://purl.org/vocabularies/princeton/wn30/').
 glossmatches(F) :- wn30(WN30), atom_concat(WN30,'glossmatches-m.ttl', F).
 
 run:-
+	profile(run0).
+
+run0:-
+	Graph=wn3020,
+	rdf_retractall(_,_,_,Graph),
+
 	wn30(WN30),
 	wn20(WN20),
 	prepare_data(WN30),
 	prepare_data(WN20),
-	align_schemes(WN30, WN20, []).
+
+	align_schemes(WN30, WN20,
+		      [graph(Graph),
+		       alignment(Graph),
+		       labels_must_match(true)
+		      ]),
+	assert_alignment(Graph,
+			 [
+			  ontology1(WN30),
+			  ontology2(WN20),
+			  graph(Graph),
+			  method('amalgame hybrid')
+			 ]),
+	rdf_save('wn2030.rdf', [graph(wn3020)]).
 
 :- dynamic
 	prepare_cache/1.
