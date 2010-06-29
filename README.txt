@@ -9,3 +9,5 @@ rankers/		built-in rankers that to (re)rank lists of candidate correspondeces
 
 mapping_io		Predicates to simplify reading & writing of mapping formats
 alignmentAPI/		RDF/OWL Schema for http://knowledgeweb.semanticweb.org/heterogeneity/alignment
+
+test for GIT
