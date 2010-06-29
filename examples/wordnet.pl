@@ -1,7 +1,9 @@
 % Example alignment, aligning wn30 to wn20 using amalgame
 
 :- module(wnalign,
-	 [run/0
+	 [
+	  run/0,
+	  prun/0
 	 ]).
 
 :- use_module(amalgame(align/skosalign)).
@@ -12,10 +14,9 @@ wn20('http://www.w3.org/2006/03/wn/wn20/').
 wn30('http://purl.org/vocabularies/princeton/wn30/').
 glossmatches(F) :- wn30(WN30), atom_concat(WN30,'glossmatches-m.ttl', F).
 
-run:-
-	profile(run0).
+prun:- profile(run).
 
-run0:-
+run:-
 	Graph=wn3020,
 	rdf_retractall(_,_,_,Graph),
 
@@ -79,7 +80,7 @@ fix_gloss:-
 			       ,
 			       (   sub_atom(Gloss,1,_,1,NewGloss),
 				   rdf_retractall(S, wn20schema:gloss, literal(lang(Lang, Gloss))),
-				   rdf_assert(S, wn20schema:gloss, literal(lang(Lang, NewGloss)))
+				   rdf_assert(S, wn20schema:gloss, literal(lang(Lang, NewGloss)), fixgloss)
 			       )
 			      )
 		       ).
