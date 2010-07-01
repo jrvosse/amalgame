@@ -8,9 +8,12 @@
 :- use_module('../edoal/edoal').
 :- use_module('../namespaces.pl').
 
-match_property(propmatch/def,  P):- rdf_equal(skos:definition, P).
-match_property(propmatch/pref, P):- rdf_equal(skos:prefLabel, P).
-match_property(propmatch/alt,  P):- rdf_equal(skos:altLabel, P).
+match_type(propmatch/def,  P):- rdf_equal(skos:definition, P).
+match_type(propmatch/pref, P):- rdf_equal(skos:prefLabel, P).
+match_type(propmatch/alt,  P):- rdf_equal(skos:altLabel, P).
+
+match_type(hiermatch/broad,  P) :- rdf_equal(skos:broader, P).
+match_type(hiermatch/narrow, P) :- rdf_equal(skos:narrow, P).
 
 justify_candidates(C1, S2, Options) :-
 	findall(Cand,
@@ -32,10 +35,14 @@ justify(Cand, Options, Justifications) :-
 		Justifications).
 
 
+%%	justification(+Cell, +Option, -Justification) is nondet.
+%
+%	Finds a single justification for the mapping described in Cell
 
 justification(Cell, Options, Justification) :-
-	option(graph(Graph), Options, align),
-	match_property(_MatchType, Property),
+	option(justifiers(Justifiers), Options),
+	member(propmatch/MatchType, Justifiers),
+	match_type(propmatch/MatchType, Property),
 	rdf_has(Cell, align:entity1, E1),
 	rdf_has(Cell, align:entity2, E2),
 
@@ -64,11 +71,26 @@ justification(Cell, Options, Justification) :-
 	length(Occurences1, Freq1),
 	length(Occurences2, Freq2),
 
+	option(graph(Graph), Options, align),
 	format(atom(Justification), 'exact match: ~p:~w/~p:~w',
 	       [RealProp1,Freq1,RealProp2, Freq2]),
 	rdf_assert(Cell, amalgame:justification, literal(Justification), Graph).
 
-
+justification(Cell, Options, Justification) :-
+	option(justifiers(Justifiers), Options),
+	member(hiermatch/MatchType, Justifiers),
+	match_type(hiermatch/MatchType, Property),
+	rdf_has(Cell, align:entity1, E1),
+	rdf_has(Cell, align:entity2, E2),
+	rdf_has(E1, Property, Shared1, RealProp1),
+	rdf_has(E2, Property, Shared2, RealProp2),
+	rdf(Cell, align:entity1, Shared1),
+	rdf(Cell, align:entity2, Shared2),
+	rdf(Cell, align:relattion, literal('=')),
+	option(graph(Graph), Options, align),
+	format(atom(Justification), 'hier match: ~p/~p',
+	       [RealProp1,RealProp2]),
+	rdf_assert(Cell, amalgame:justification, literal(Justification), Graph).
 
 
 lang_equiv(L1, L2) :-
