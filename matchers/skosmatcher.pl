@@ -39,8 +39,9 @@ candidate(SourceConcept, TargetConceptScheme, Options) :-
 	ground(SourceConcept),
 	ground(TargetConceptScheme),
 	ground(Options),
-	option(labels_must_match(LabelMatch), Options, true),
-	LabelMatch = true,
+	option(candidate_matchers(Matchers), Options, []),
+	memberchk(labelmatch, Matchers),
+
 	rdf_has(SourceConcept, rdfs:label, literal(lang(_, Label)), RealLabel1Predicate),
 	rdf_has(TargetConcept, rdfs:label, literal(lang(_, Label)), RealLabel2Predicate),
 	rdf_has(TargetConcept, skos:inScheme, TargetConceptScheme),
