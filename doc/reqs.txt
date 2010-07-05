@@ -1,0 +1,20 @@
+AMALGAME motivation.
+
+In every alignment tool several trade trade-offs to be made. Below, we make these trade-offs explicit along with the design decisions we took in developing the AMALGAME framework. 
+
+1) Generic versus specific
+Most alignment tools are hybrid tools that combine multiple alignment techniques to create alignments.  When combining techniques one can use a fixed built-in combination or let the system decide at run-time what combination is best. In both cases the result is a highly generic system that can be directly employed on any data-set that meets the required specifications.  The price for being generic is that it is very hard to exploit vocabulary-specific knowledge into the alignment process.  We prefer a generic platform that consists of generic and plug-in modules that together can be combined into an alignment tool that is highly specific for a given alignment task.  We assume that the resulting alignments will be better at the expense of more (configuration) work that needs to be done by the user of the tool.
+
+2) Deep, complex and slow versus shallow, simple and fast
+Many alignment tools aim at finding hard to find alignments in relatively small but complex ontologies.  We aim at a system that uses the "easy" alignments in relatively large and simply structured (SKOS) vocabularies. 
+
+Many systems are "black box" that output an alignment based on the two ontologies given as the input.  How exactly the output is derived from the input remains often unclear to the end user. This makes it hard for end users to predict, before the (often expensive) alignment process has been carried out, how well the system will perform on what parts of the vocabularies.  It also makes it hard for users to estimate, after the results have been generated, what the quality is of the potentially 100.000s of correspondences generated.  The confidence measure, a number between [0..1] that many systems generate for each correspondence, is in practice often hard to predict and off little value when evaluating large alignments.  We aim at a system that generates a clear justification for every correspondence that it has found, a justification that is also interpretable by the end-user.  In order to achieve a usable level of predictability and transparency, we refrain from using techniques that are too complex to explain, potentially at the loss of precision and recall.
+
+The resulting key requirements for AMALGAME are thus:
+
+- Scope: focus on SKOS i.s.o. OWL/RDFS subsumption hierarchies
+- Scalable: system should be able to effectively align vocabularies > 100.000 concepts
+- Configurable: system should be able to exploit vocabulary-specific knowledge
+- Predictable: users should be able to predict outcome of alignment process
+- Transparent: users should be able to understand why a concept has been or not been mapped
+- Interactive: users should be able to run alignments interactively (via a web-based interface).
