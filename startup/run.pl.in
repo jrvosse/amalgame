@@ -1,0 +1,94 @@
+#!@SWIPL@ -g cp_server -s
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+This file provides a skeleton startup file.  It can be localized by running
+
+    % ./configure			(Unix)
+    % Double-clicking setup.pl		(Windows)
+
+After that, the created run.pl can be   edited to suit your installation
+requirements.  See comments in the file.
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+% Setup search paths.  Adding cliopatria allows using this script from
+% any directory and adding ontology makes RDF files visible in the
+% interface.  Vizualization of graphs requires graphviz in the search
+% path.  This is default on Unix systems.  On Windows, either add the
+% folder holding dot.exe to %PATH% or uncomment and localise the path-line
+% below.
+
+file_search_path(cliopatria, './ClioPatria').		% (*)
+file_search_path(ontology,   '../../demo/vocs/').
+% file_search_path(path,       'C:/Program Files/Graphviz2.26.3/bin').
+% file_search_path(path,       'C:/Program Files/Git/bin').
+% file_search_path(path,       'C:/Program Files (x86)/Graphviz2.26.3/bin').
+% file_search_path(path,       'C:/Program Files (x86)/Git/bin').
+
+% Make loading files silent.
+
+:- set_prolog_flag(verbose, silent).
+
+		 /*******************************
+		 *	      LOAD CODE		*
+		 *******************************/
+
+% Use the ClioPatria help system.  If used, it must be loaded first!
+
+:- use_module(cliopatria('applications/help/load')).
+
+% Load ClioPatria itself.  Better keep this line.
+
+:- use_module(cliopatria(cliopatria)).				% (*)
+
+% Log HTTP traffic to httpd.log.
+
+:- use_module(library(http/http_log)).
+
+% Turn uncaught exceptions into a 500 error-page that includes a stack-dump.
+
+:- use_module(library(http/http_error)).
+
+% Make the toplevel and debugger print RDF resources as prefix:local.
+
+:- use_module(library(semweb/rdf_portray)).
+
+% Load the core RDF store.  Needed to register namespaces and to allow for
+% ?- rdf(Subject, Predicate, Object). from the toplevel.
+
+:- use_module(library(semweb/rdf_db)).
+
+% Register additional namespaces that we want to be able to use in code
+% and from the toplevel.  If you do this, you also need the line above.
+
+:- rdf_register_ns(cornetto, 'http://purl.org/vocabularies/cornetto/').
+
+		 /*******************************
+		 *	  CHANGE SETTINGS	*
+		 *******************************/
+
+% Change defaults for settings for your application.  To see what settings
+% are available, use the web-interface or ?- list_settings.
+
+:- use_module(library(settings)).
+
+% :- set_setting_default(http:port, 8080).
+
+
+		 /*******************************
+		 *     LOAD YOUR CODE BELOW	*
+		 *******************************/
+
+% :- use_module(...).
+
+
+		 /*******************************
+		 *     SET CONSOLE VERBOSITY	*
+		 *******************************/
+
+% Print HTTP requests to the console
+
+:- debug(http(request)).
+
+% Get back normal verbosity of the toplevel.
+
+:- set_prolog_flag(verbose, normal).
