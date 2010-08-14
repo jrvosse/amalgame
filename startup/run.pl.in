@@ -78,7 +78,8 @@ file_search_path(ontology,   '../../demo/vocs/').
 		 *     LOAD YOUR CODE BELOW	*
 		 *******************************/
 
-% :- use_module(...).
+:- use_module(library(semweb/rdf_zlib_plugin)).
+:- use_module(load).
 
 
 		 /*******************************
