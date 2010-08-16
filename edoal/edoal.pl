@@ -1,15 +1,20 @@
-%
-% Set of convenience predicates to generate mappings in the EDOAL
-% format.
-%
-% EDOAL: Expressive and Declarative Ontology Alignment Language
-% http://alignapi.gforge.inria.fr/edoal.html
+/** <module> Generate EDOAL
+
+Set of convenience predicates to generate mappings in the EDOAL format.
+
+EDOAL: Expressive and Declarative Ontology Alignment Language
+http://alignapi.gforge.inria.fr/edoal.html
+
+*/
+
 
 :-module(edoal, [
 		 assert_alignment/2, 	% +URI, +OptionList
 		 assert_cell/3	        % +E1, +E2, +OptionList
 		]
 	).
+
+
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module('../namespaces.pl').
@@ -73,17 +78,18 @@ assert_cell(C1, C2, Options) :-
         option(graph(Graph), Options, align),
 	option(measure(M),   Options, 0.00001),
 	option(relation(R),  Options, '='),
-        rdf_bnode(Cell),
+	rdf_bnode(Cell),
 	rdf_assert(Cell, rdf:type, align:'Cell', Graph),
 	rdf_assert(Cell, align:entity1, C1, Graph),
 	rdf_assert(Cell, align:entity2, C2, Graph),
 	rdf_assert(Cell, align:measure, literal(M), Graph),
 	rdf_assert(Cell, align:relation, literal(R), Graph),
 
-	(   option(alignment(A), Options)
-	->  rdf_assert(A, align:map, Cell, Graph)
-	;   debug(edoal, 'Warning: asserting EDOAL cell without parent alignment', [])
-	),
+	% FIXME. Jan, asserting this triple slows things down dramatically
+	%(   option(alignment(A), Options)
+	%->  rdf_assert(A, align:map, Cell, Graph)
+	%;   debug(edoal, 'Warning: asserting EDOAL cell without parent alignment', [])
+	%).
 	(   option(method(Method), Options)
 	->  rdf_assert(Cell, amalgame:method, literal(Method), Graph)
 	;   true
