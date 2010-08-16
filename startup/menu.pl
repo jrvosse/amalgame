@@ -8,5 +8,6 @@ cliopatria:menu_popup_order(amalgame, 1500).
 
 cliopatria:menu_item(amalgame/list_skos_vocs,  'SKOS Vocabularies').
 cliopatria:menu_item(amalgame/list_alignments, 'List alignments').
+cliopatria:menu_item(amalgame/find_overlap,    'Alignment overlap').
 
 

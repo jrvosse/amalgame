@@ -1,6 +1,5 @@
 :- module(ag_compare,
 	  [
-	   find_overlap/1
 	  ]
 	 ).
 
@@ -23,26 +22,27 @@ It assumes matchers assert mappings in different name graphs.
 
 
 :- http_handler(amalgame(list_alignments),    list_alignments,     []).
+:- http_handler(amalgame(find_overlap),       find_overlap,        []).
 
-%%	has_map(+E1, +E2, -Graph) is non_det.
+%%	has_map(+E1, +E2, -Format, -Graph) is non_det.
 %
 %	Intended to be used to find graphs that contain a mapping from
 %	E1 to E2 in one of the following formats:
-%	* Alignment map format (EDOAL)
-%	* SKOS Mapping Relation
-%	* dc:replaces
+%	* edoal: Alignment map format (EDOAL)
+%	* skos:  SKOS Mapping Relation
+%	* dc:    dc:replaces
 %
 %	@see EDOAL: http://alignapi.gforge.inria.fr/edoal.html
 
-has_map([E1, E2], Graph) :-
+has_map([E1, E2], edoal, Graph) :-
 	rdf(Cell, align:entity1, E1, Graph),
 	rdf(Cell, align:entity2, E2, Graph).
 
-has_map([E1, E2], Graph) :-
+has_map([E1, E2], skos, Graph) :-
 	rdf_has(E1, skos:mappingRelation, E2, RealProp),
 	rdf(E1, RealProp, E2, Graph).
 
-has_map([E1, E2], Graph) :-
+has_map([E1, E2], dc, Graph) :-
 	rdf_has(E1, dcterms:replaces, E2, RealProp),
 	rdf(E1, RealProp, E2, Graph).
 
@@ -54,7 +54,7 @@ has_map([E1, E2], Graph) :-
 %	TBD: make this configurable over a web interface
 
 map_iterator([E1,E2]) :-
-	has_map([E1, E2], _).
+	has_map([E1, E2], _, _).
 
 
 %%	find_graphs(+Map, -Graphs) is det.
@@ -63,26 +63,24 @@ map_iterator([E1,E2]) :-
 
 find_graphs(Map, Graphs) :-
 	findall(Graph,
-		has_map(Map, Graph:_),
+		has_map(Map, _, Graph:_),
 		Graphs).
 
+count_alignments(Format, Graph, Count) :-
+	findall(Map, has_map(Map, Format, Graph), Graphs),
+	length(Graphs, Count).
 
-%%	find_overlap(-Statistics) is det.
-%
-%	Find overlap statistics for a predefined mapping.
-
-find_overlap([TotalNr, CountList]) :-
-	find_overlap(TotalNr, ResultAssoc),
-	assoc_to_keys(ResultAssoc, KeyList),
-	maplist(count_mappings(ResultAssoc), KeyList, CountList).
+count_alignments(_,_,-1).
 
 find_overlap(TotalNr, ResultAssoc) :-
 	findall(Map, map_iterator(Map), AllMaps),
 	length(AllMaps, TotalNr),
+	debug(compare, 'Found ~w mappings', [TotalNr]),
 	empty_assoc(EmptyAssoc),
 	find_overlap(AllMaps, EmptyAssoc, ResultAssoc).
 
-find_overlap([], Assoc, Assoc).
+spyme.
+find_overlap([], Assoc, Assoc) :- spyme.
 
 find_overlap([Map|Tail], In, Out) :-
 	find_graphs(Map, Graphs),
@@ -90,8 +88,6 @@ find_overlap([Map|Tail], In, Out) :-
 	->  append(OldMappings, [Map], NewMappings)
 	;   NewMappings = [Map]
 	),
-	Map = [E1, E2],
-	debug(compare, '~p ~p: ~w', [E1, E2, Graphs]),
 	put_assoc(Graphs, In, NewMappings, NewAssoc),
 	find_overlap(Tail, NewAssoc, Out).
 
@@ -100,21 +96,60 @@ count_mappings(Assoc, Key, Key:Count) :-
 	length(MapList, Count).
 
 list_alignments(_Request) :-
-	findall(Graph, has_map(_, Graph:_), Graphs),
+	findall(Format:Graph, has_map(_, Format,Graph:_), Graphs),
 	sort(Graphs, SortedGraphs),
 	reply_html_page(cliopatria(default),
 			title('Alignments'),
 			[ h4('Alignments in the RDF store'),
-			  ol([\show_alignments(SortedGraphs)])
+			  table([tr([th(format),
+				     th('# maps'),
+				     th('named graph')
+				    ]),
+				 \show_alignments(SortedGraphs)])
 			]).
 
 
 show_alignments([]) --> !.
-show_alignments([H|Tail]) -->
+show_alignments([Format:Graph|Tail]) -->
 	{
-	 http_link_to_id(list_graph, [graph(H)], VLink)
+	 count_alignments(Format, Graph, Count)
 	},
-	html(li(a([href(VLink)],\turtle_label(H)))),
+	html(tr([td(Format),
+		 td(Count),
+		 td(\show_graph(Graph))
+		])),
 	show_alignments(Tail).
 
 
+show_graph(Graph) -->
+	{
+	 http_link_to_id(list_graph, [graph(Graph)], VLink)
+	},
+	html(a([href(VLink)],\turtle_label(Graph))).
+
+%%	find_overlap(+Request) is det.
+%
+%	Find overlap statistics for a predefined mapping.
+
+find_overlap(_Request) :-
+	find_overlap(TotalNr, ResultAssoc),
+	assoc_to_keys(ResultAssoc, KeyList),
+	maplist(count_mappings(ResultAssoc), KeyList, CountList),
+	reply_html_page(cliopatria(default),
+			title('Alignment overlap'),
+			[
+			 h4('Alignment overlap'),
+			 p([TotalNr]),
+			 table(\show_countlist(CountList))
+			]).
+
+show_countlist([]) --> !.
+show_countlist([L:C|T]) -->
+	html(tr([td(C), td(\show_graphs(L))])),
+	show_countlist(T).
+
+
+show_graphs([]) --> !.
+show_graphs([H|T]) -->
+	show_graph(H),
+	show_graphs(T).
