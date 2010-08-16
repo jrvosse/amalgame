@@ -6,14 +6,23 @@
 
 /** <module> Amalgame compare mapping module
 
-This module compares mappings as they are found by different matchers
+This module compares mappings as they are found by different matchers.
 It assumes matchers assert mappings in different name graphs.
 
+@author Jacco van Ossenbruggen
+@license GPL
 */
 
-:- use_module(library(semweb/rdf_db)).
 :- use_module(library(assoc)).
+:- use_module(library(http/http_dispatch)).
+:- use_module(library(http/html_write)).
+:- use_module(library(semweb/rdf_db)).
+
+:- use_module(components(label)).
 :- use_module('../namespaces').
+
+
+:- http_handler(amalgame(list_alignments),    list_alignments,     []).
 
 %%	has_map(+E1, +E2, -Graph) is non_det.
 %
@@ -22,6 +31,8 @@ It assumes matchers assert mappings in different name graphs.
 %	* Alignment map format (EDOAL)
 %	* SKOS Mapping Relation
 %	* dc:replaces
+%
+%	@see EDOAL: http://alignapi.gforge.inria.fr/edoal.html
 
 has_map([E1, E2], Graph) :-
 	rdf(Cell, align:entity1, E1, Graph),
@@ -38,7 +49,8 @@ has_map([E1, E2], Graph) :-
 %%	map_iterator(-Map) is non_det.
 %
 %	Iterates over all maps to be compared.
-%	This is a sub implementation
+%
+%	This is a stub implementation.
 %	TBD: make this configurable over a web interface
 
 map_iterator([E1,E2]) :-
@@ -54,6 +66,10 @@ find_graphs(Map, Graphs) :-
 		has_map(Map, Graph:_),
 		Graphs).
 
+
+%%	find_overlap(-Statistics) is det.
+%
+%	Find overlap statistics for a predefined mapping.
 
 find_overlap([TotalNr, CountList]) :-
 	find_overlap(TotalNr, ResultAssoc),
@@ -74,6 +90,8 @@ find_overlap([Map|Tail], In, Out) :-
 	->  append(OldMappings, [Map], NewMappings)
 	;   NewMappings = [Map]
 	),
+	Map = [E1, E2],
+	debug(compare, '~p ~p: ~w', [E1, E2, Graphs]),
 	put_assoc(Graphs, In, NewMappings, NewAssoc),
 	find_overlap(Tail, NewAssoc, Out).
 
@@ -81,9 +99,22 @@ count_mappings(Assoc, Key, Key:Count) :-
 	get_assoc(Key, Assoc, MapList),
 	length(MapList, Count).
 
+list_alignments(_Request) :-
+	findall(Graph, has_map(_, Graph:_), Graphs),
+	sort(Graphs, SortedGraphs),
+	reply_html_page(cliopatria(default),
+			title('Alignments'),
+			[ h4('Alignments in the RDF store'),
+			  ol([\show_alignments(SortedGraphs)])
+			]).
 
 
-
-
+show_alignments([]) --> !.
+show_alignments([H|Tail]) -->
+	{
+	 http_link_to_id(list_graph, [graph(H)], VLink)
+	},
+	html(li(a([href(VLink)],\turtle_label(H)))),
+	show_alignments(Tail).
 
 
