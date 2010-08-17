@@ -7,6 +7,6 @@ matchers/		built-in matchers to find (candidate) correspondences
 rankers/		built-in rankers that to (re)rank lists of candidate correspondeces
 
 edoal/			Predicates to simplify reading & writing of the EDAOL mapping format
-alignmentAPI/		RDF/OWL Schema for http://knowledgeweb.semanticweb.org/heterogeneity/alignment
+ontologies/		includes RDF/OWL Schema for http://knowledgeweb.semanticweb.org/heterogeneity/alignment
 
 examples		Examples to demonstrate use of above modules
