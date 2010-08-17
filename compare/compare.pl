@@ -2,7 +2,7 @@
 	  [
 	   % HTTP entry points:
 	   http_list_alignments/1, % +Request
-	   http_find_overlap/1,    % +Request
+	   http_list_overlap/1,    % +Request
 
 	   % misc hand predicates:
 	   map_iterator/1,	   % -Map
@@ -31,7 +31,7 @@ It assumes matchers assert mappings in different name graphs.
 
 
 :- http_handler(amalgame(list_alignments),    http_list_alignments,     []).
-:- http_handler(amalgame(find_overlap),       http_find_overlap,        []).
+:- http_handler(amalgame(find_overlap),       http_list_overlap,        []).
 
 %%	http_list_alignments(+Request) is det.
 %
@@ -40,36 +40,33 @@ It assumes matchers assert mappings in different name graphs.
 http_list_alignments(_Request) :-
 	clear_nicknames,
 	reply_html_page(cliopatria(default),
-			title('Alignments'),
+			[title('Alignments'),
+			 style('#finalrow td { border-top: solid #AAAAAA; }')
+			],
 			[ h4('Alignments in the RDF store'),
 			  \show_alignments
 			]).
 
 
-%%	http_find_overlap(+Request) is det.
+%%	http_list_overlap(+Request) is det.
 %
 %	HTTP handler generating a page with mapping overlap statistics.
 
-http_find_overlap(_Request) :-
-	find_overlap(TotalNr, CountList),
+http_list_overlap(_Request) :-
 	reply_html_page(cliopatria(default),
 			[
 			     title('Alignment overlap'),
 			     style([type('text/css')],
 				   ['#aligntable { padding: .3%; border: solid grey;  float: left }',
 				    '#nicktable  { padding: .3%; border: dashed grey; float: left; margin-left: 5% }',
-				    '#totals td  { border-top: solid grey; font-weight: bold }'
+				    '#totals td  { border-top: solid grey; font-weight: bold }',
+				    '#finalrow td { border-top: solid #AAAAAA; }'
 				   ])
 			],
 			[
 			 h4('Alignment overlap'),
-			 table([id(aligntable)],
-			       [
-				\show_countlist(CountList),
-				tr([id(totals)],[td(TotalNr), td('Total')])
-				]
-			      ),
-			 table([id(nicktable)],\show_alignments)
+			 \show_overlap,
+			 \show_alignments
 			]).
 
 %%	map_iterator(-Map) is non_det.
@@ -128,9 +125,8 @@ count_alignments(Format, Graph, Count) :-
 
 count_alignments(_,_,-1).
 
-find_overlap(TotalNr, ResultsSorted) :-
+find_overlap(ResultsSorted) :-
 	findall(Map, map_iterator(Map), AllMaps),
-	length(AllMaps, TotalNr),
 	find_overlaps(AllMaps, [], Overlaps),
 	count_overlaps(Overlaps, [], Results),
 	sort(Results, ResultsSorted).
@@ -141,15 +137,13 @@ find_overlaps([Map|Tail], Accum, Out) :-
 	find_overlaps(Tail, [Graphs:Map|Accum], Out).
 
 count_overlaps([], Results, Results).
-count_overlaps([Graphs:_|T], Accum, Results) :-
-	member(_:Graphs, Accum),!,
-	count_overlaps(T, Accum, Results).
-count_overlaps([Graphs:_|Tail], Accum, Results) :-
-	findall(Graphs, member(Graphs:_, Tail), Members),
-	length(Members, NrMembers),
-	Count is NrMembers + 1,
-	debug(compare, '~w: ~w', [Count, Graphs]),
-	count_overlaps(Tail, [Count:Graphs|Accum], Results).
+count_overlaps([Graphs:Map|Tail], Accum, Results) :-
+	(   selectchk(Count:Graphs:Example, Accum, NewAccum)
+	->  true
+	;   Count = 0, NewAccum = Accum, Example=Map
+	),
+	NewCount is Count + 1,
+	count_overlaps(Tail, [NewCount:Graphs:Example|NewAccum], Results).
 
 
 clear_nicknames :-
@@ -183,11 +177,30 @@ show_graph(Graph, _Options) -->
 	},
 	html(a([href(VLink)],\turtle_label(Graph))).
 
-show_countlist([]) --> !.
-show_countlist([C:L|T]) -->
-	html(tr([td(C), td(\show_graphs(L, [nick(true)]))])),
-	show_countlist(T).
+show_countlist([], Total) -->
+	html(tr([id(finalrow)],
+		[td([style('text-align: right')], Total),
+		 td('Total')
+		])).
 
+show_countlist([Count:L:Example|T], Number) -->
+	{
+	  NewNumber is Number + Count
+	},
+	html(tr([
+		 td([style('text-align: right')],Count),
+		 td(\show_graphs(L, [nick(true)])),
+		 \show_example(Example)
+		])),
+	show_countlist(T,NewNumber).
+
+show_example([E1, E2]) -->
+	{
+	 http_link_to_id(list_resource, [r(E1)], E1Link),
+	 http_link_to_id(list_resource, [r(E2)], E2Link)
+	},
+	html([td(a([href(E1Link)],\turtle_label(E1))),
+	      td(a([href(E2Link)],\turtle_label(E2)))]).
 
 show_graphs([],_) --> !.
 show_graphs([H|T], Options) -->
@@ -226,18 +239,41 @@ show_alignments -->
 			th('# maps'),
 			th('named graph')
 		       ]),
-		    \show_alignments(SortedGraphs)
+		    \show_alignments(SortedGraphs,0)
 		   ])).
 
-show_alignments([]) --> !.
-show_alignments([Count:Format:Graph|Tail]) -->
+show_alignments([],Total) -->
+	html(tr([id(finalrow)],
+		[td(''),
+		 td(''),
+		 td([style('text-align: right')],Total),
+		 td('Total')
+		])).
+
+show_alignments([Count:Format:Graph|Tail], Number) -->
+	{
+	  NewNumber is Number + Count
+	},
 	html(tr([
 		 td(\show_graph(Graph, [nick(true)])),
 		 td(Format),
-		 td(Count),
+		 td([style('text-align: right')],Count),
 		 td(\show_graph(Graph, [nick(false)]))
 		])),
-	show_alignments(Tail).
+	show_alignments(Tail, NewNumber).
+
+show_overlap -->
+	{
+	 find_overlap(CountList)
+	},
+	html(
+	     table([id(aligntable)],
+		   [
+		    \show_countlist(CountList,0)
+		   ]
+		  )).
+
+
 
 
 
