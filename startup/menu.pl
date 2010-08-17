@@ -3,11 +3,12 @@
 :- use_module(library(http/html_write)).
 :- use_module(cliopatria(hooks)).
 
-% Position amalgame menu between Cliopatria's File and Query menu.
-cliopatria:menu_popup_order(amalgame, 1500).
+/** <module> Amalgame menu.  
+  This module adds the amalgame functionality to the cliopatria menu.
+*/
 
-cliopatria:menu_item(amalgame/list_skos_vocs,  'SKOS Vocabularies').
-cliopatria:menu_item(amalgame/list_alignments, 'List alignments').
-cliopatria:menu_item(amalgame/find_overlap,    'Alignment overlap').
+cliopatria:menu_item(view/http_list_alignments, 'Alignments').
+cliopatria:menu_item(view/http_find_overlap,    'Overlaps').
+cliopatria:menu_item(view/http_list_skos_vocs,  'SKOS Vocabularies').
 
 

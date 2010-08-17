@@ -8,9 +8,9 @@
 
 :- use_module(components(label)).
 
-:- http_handler(amalgame(list_skos_vocs),     list_skos_vocs,     []).
+:- http_handler(amalgame(list_skos_vocs),     http_list_skos_vocs,     []).
 
-list_skos_vocs(_Request) :-
+http_list_skos_vocs(_Request) :-
 	findall(Scheme,
 		rdfs_individual_of(Scheme, skos:'ConceptScheme'),
 		Schemes),
