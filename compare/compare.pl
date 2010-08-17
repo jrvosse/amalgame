@@ -1,5 +1,14 @@
 :- module(ag_compare,
 	  [
+	   % HTTP entry points:
+	   http_list_alignments/1, % +Request
+	   http_find_overlap/1,    % +Request
+
+	   % misc hand predicates:
+	   map_iterator/1,	   % -Map
+	   has_map/3,              % +Map, -Format -Graph
+	   find_graphs/2           % +Map, -GraphList
+
 	  ]
 	 ).
 
@@ -63,13 +72,29 @@ http_find_overlap(_Request) :-
 			 table([id(nicktable)],\show_alignments)
 			]).
 
-%%	has_map(+E1, +E2, -Format, -Graph) is non_det.
+%%	map_iterator(-Map) is non_det.
 %
-%	Intended to be used to find graphs that contain a mapping from
-%	E1 to E2 in one of the following formats:
+%	Iterates over all maps to be compared. Map is currently of the
+%	form [C1, C2], simply meaning there is a mapping from C1 to C2.
+%	What other information is available about this mapping depends
+%	on the format it is stored in, see has_map/3 for details.
+%
+%	This is a stub implementation.
+%	@tbd make this configurable over a web interface so that we can
+%	restrict the source and target vocabulary.
+
+map_iterator([E1,E2]) :-
+	has_map([E1, E2], _, _).
+
+%%	has_map(+Map, -Format, -Graph) is non_det.
+%
+%	Intended to be used to find graphs that contain Map, and in what
+%	Format. Map can be stored in the triple store in several
+%	formats. We currently support the following formats:
+%
 %	* edoal: Alignment map format (EDOAL)
-%	* skos:  SKOS Mapping Relation
-%	* dc:    dc:replaces
+%	* skos: SKOS Mapping Relation
+%       * dc: dc:replaces
 %
 %	@see EDOAL: http://alignapi.gforge.inria.fr/edoal.html
 
@@ -87,17 +112,6 @@ has_map([E1, E2], skos, Graph) :-
 has_map([E1, E2], dc, Graph) :-
 	rdf_has(E1, dcterms:replaces, E2, RealProp),
 	rdf(E1, RealProp, E2, Graph).
-
-%%	map_iterator(-Map) is non_det.
-%
-%	Iterates over all maps to be compared.
-%
-%	This is a stub implementation.
-%	TBD: make this configurable over a web interface
-
-map_iterator([E1,E2]) :-
-	has_map([E1, E2], _, _).
-
 
 %%	find_graphs(+Map, -Graphs) is det.
 %
