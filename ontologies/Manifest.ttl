@@ -1,0 +1,18 @@
+@prefix     lib: <http://www.swi-prolog.org/rdf/library/> .
+@prefix     owl: <http://www.w3.org/2002/07/owl#> .
+@prefix	dcterms: <http://purl.org/dc/terms/> .
+@prefix	  align: <http://knowledgeweb.semanticweb.org/heterogeneity/alignment#> .
+
+:align
+        a lib:Namespace ;
+        lib:mnemonic "align" ;
+        lib:namespace align: .
+
+<alignmentschema>
+	a lib:Ontology ;
+	a lib:Virtual ;
+	dcterms:title "Schema for the Alignment format"@en ;
+	lib:source align: ;
+	owl:imports
+		<align.owl> ,
+		<align.rdfs> .
