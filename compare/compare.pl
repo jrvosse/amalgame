@@ -197,9 +197,9 @@ show_graph(Graph, _Options) -->
 
 show_countlist([], Total) -->
 	html(tr([id(finalrow)],
-		[td([style('text-align: right')], Total),
-		 td('Total'),
-		 td('(unique alignments)')
+		[td(''),
+		 td([style('text-align: right')], Total),
+		 td('Total (unique alignments)')
 		])).
 
 show_countlist([Count:L:Example|T], Number) -->
@@ -207,8 +207,8 @@ show_countlist([Count:L:Example|T], Number) -->
 	  NewNumber is Number + Count
 	},
 	html(tr([
-		 td([style('text-align: right')],Count),
 		 td(\show_graphs(L, [nick(true)])),
+		 td([style('text-align: right')],Count),
 		 \show_example(Example)
 		])),
 	show_countlist(T,NewNumber).
@@ -229,19 +229,6 @@ show_graphs([],_) --> !.
 show_graphs([H|T], Options) -->
 	show_graph(H, Options),
 	show_graphs(T, Options).
-
-show_nicknames -->
-	{
-	 findall(Nick:Graph, has_nickname(Graph,Nick), AllNicks),
-	 sort(AllNicks, Nicks)
-	},
-	html(tr([th('Legend'), th('Graph')])),
-	show_nicknames(Nicks).
-
-show_nicknames([]) --> !.
-show_nicknames([Nick:Graph|Tail]) -->
-	html(tr([td(Nick), td(\show_graph(Graph, [nick(false)]))])),
-	show_nicknames(Tail).
 
 show_alignments -->
 	{
@@ -270,7 +257,7 @@ show_alignments([],Total) -->
 		[td(''),
 		 td(''),
 		 td([style('text-align: right')],Total),
-		 td('Total (incl. double counting)')
+		 td('Total (double counting)')
 		])).
 
 show_alignments([Count:Format:Graph|Tail], Number) -->
@@ -292,6 +279,7 @@ show_overlap -->
 	html(
 	     table([id(aligntable)],
 		   [
+		    tr([th('Overlap'),th('# maps'), th('Example')]),
 		    \show_countlist(CountList,0)
 		   ]
 		  )).
