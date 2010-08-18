@@ -3,6 +3,7 @@
 	   % HTTP entry points:
 	   http_list_alignments/1, % +Request
 	   http_list_overlap/1,    % +Request
+	   http_clear_cache/1,     % +Request
 
 	   % misc hand predicates:
 	   map_iterator/1,	   % -Map
@@ -32,13 +33,13 @@ It assumes matchers assert mappings in different name graphs.
 
 :- http_handler(amalgame(list_alignments),    http_list_alignments,     []).
 :- http_handler(amalgame(find_overlap),       http_list_overlap,        []).
+:- http_handler(amalgame(clear_cache),        http_clear_cache,         []).
 
 %%	http_list_alignments(+Request) is det.
 %
 %	HTTP handler returning list of all alignments in HTML.
 
 http_list_alignments(_Request) :-
-	clear_nicknames,
 	style(Style),
 	reply_html_page(cliopatria(default),
 			[title('Alignments'),
@@ -72,6 +73,11 @@ http_list_overlap(_Request) :-
 			      \show_overlap
 			     ])
 			]).
+
+http_clear_cache(Request) :-
+	clear_nicknames,
+	clear_stats,
+	http_list_alignments(Request).
 
 %%	style(-Style) is det.
 %
@@ -164,10 +170,10 @@ count_overlaps([Graphs:Map|Tail], Accum, Results) :-
 	count_overlaps(Tail, [NewCount:Graphs:Example|NewAccum], Results).
 
 
+clear_stats :-
+	rdf_retractall(_, _, _, amalgame).
 clear_nicknames :-
-% work around bug in rdf/4
-	% rdf_retractall(_, amalgame:nickname, _, amalgame_nicknames).
-	rdf_retractall(_, amalgame:nickname, _).
+	rdf_retractall(_, _, _, amalgame_nicknames).
 has_nickname(Graph,Nick) :-
 	% work around bug in rdf/4
 	% rdf(Graph, amalgame:nickname, literal(Nick), amalgame_nicknames).
@@ -230,18 +236,42 @@ show_graphs([H|T], Options) -->
 	show_graph(H, Options),
 	show_graphs(T, Options).
 
+find_alignment_graphs(SortedGraphs) :-
+	rdf(G, rdf:type, amalgame:'Alignment'), % fix rdf(-+-+)
+	rdf(G, rdf:type, amalgame:'Alignment', amalgame),
+	!,
+	findall(Count:Format:Graph,
+		(   rdf(Graph, rdf:type, amalgame:'Alignment'),
+		    rdf(Graph, amalgame:format, literal(Format)),
+		    rdf(Graph, amalgame:count, literal(Count))
+		),
+		Graphs
+	       ),
+	sort(Graphs, SortedGraphs).
+
+find_alignment_graphs(SortedGraphs) :-
+	findall(Format:Graph,
+		has_map(_, Format,Graph:_),
+		DoubleGraphs),
+	sort(DoubleGraphs, Graphs),
+	findall(Count:Format:Graph,
+		(   member(Format:Graph, Graphs),
+		    count_alignments(Format, Graph, Count)
+		),
+		CountedGraphs),
+	sort(CountedGraphs, SortedGraphs),
+	assert_alignments(SortedGraphs).
+
+assert_alignments([]).
+assert_alignments([Count:Format:Graph|Tail]) :-
+	rdf_assert(Graph, rdf:type, amalgame:'Alignment',   amalgame),
+	rdf_assert(Graph, amalgame:format, literal(Format), amalgame),
+	rdf_assert(Graph, amalgame:count,  literal(Count),  amalgame),
+	assert_alignments(Tail).
+
 show_alignments -->
 	{
-	 findall(Format:Graph,
-		 has_map(_, Format,Graph:_),
-		 Graphs),
-	 sort(Graphs, UniqueGraphs),
-	 findall(Count:Format:Graph,
-		 (   member(Format:Graph, UniqueGraphs),
-		     count_alignments(Format, Graph, Count)
-		 ),
-		 CountedGraphs),
-	 sort(CountedGraphs, SortedGraphs)
+	 find_alignment_graphs(Graphs)
 	},
 	html(table([id(aligntable)],[tr([
 			th('abbrev'),
@@ -249,7 +279,7 @@ show_alignments -->
 			th('# maps'),
 			th('named graph')
 		       ]),
-		    \show_alignments(SortedGraphs,0)
+		    \show_alignments(Graphs,0)
 		   ])).
 
 show_alignments([],Total) -->
