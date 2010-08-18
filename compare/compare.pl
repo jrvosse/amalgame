@@ -215,11 +215,15 @@ show_countlist([Count:L:Example|T], Number) -->
 
 show_example([E1, E2]) -->
 	{
+	 atom(E1), atom(E2),
 	 http_link_to_id(list_resource, [r(E1)], E1Link),
 	 http_link_to_id(list_resource, [r(E2)], E2Link)
 	},
 	html([td(a([href(E1Link)],\turtle_label(E1))),
 	      td(a([href(E2Link)],\turtle_label(E2)))]).
+
+show_example([E1, E2]) -->
+	html([td(E1),td(E2)]).
 
 show_graphs([],_) --> !.
 show_graphs([H|T], Options) -->
