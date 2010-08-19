@@ -6,7 +6,7 @@ http:location(amalgame, cliopatria(amalgame), []).
 
 :- [
     amalgame(namespaces),
-    amalgame(compare/compare),
+    amalgame(applications/align_stats),
     amalgame(skos/vocabularies),
     menu
    ].
