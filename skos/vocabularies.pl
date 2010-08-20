@@ -11,7 +11,6 @@
 :- http_handler(amalgame(list_skos_vocs),     http_list_skos_vocs,     []).
 
 http_list_skos_vocs(_Request) :-
-	skos_statistics(Schemes),
 	reply_html_page(cliopatria(default),
 			[title('SKOS vocabularies'),
 			 style('#skosvoctable { border-collapse: collapse; border: solid #CCCCCC; }'),
@@ -19,38 +18,87 @@ http_list_skos_vocs(_Request) :-
 			 style('#finalrow td { border-top: solid #AAAAAA; }')
 			],
 			[ h4('SKOS concept schemes in the RDF store'),
-			  table([id(skosvoctable)],
-				[
-				 tr([
-				     th('IRI'),
-				     th('Name'),
-				     th('# Concepts'),
-				     th('Example concept')
-				    ]),
-				 \show_schemes(Schemes,0)
-				])
+					 \show_schemes
 			]).
 
-skos_statistics(Schemes) :-
+skos_statistics(Stats) :-
 	findall(Scheme,
 		rdfs_individual_of(Scheme, skos:'ConceptScheme'),
 		Schemes),
-	skos_vocs_stats(Schemes).
+	skos_vocs_stats(Schemes, [], Stats).
 
-skos_vocs_stats([]).
-skos_vocs_stats([Voc|Tail]) :-
-	(   rdf(Voc, amalgame:numberOfConcepts, _)
-	->  true
-	;   count_concepts(Voc, Count),
-	    rdf_assert(Voc,amalgame:numberOfConcepts, literal(Count))
-	),
-	skos_vocs_stats(Tail).
+strip_sort_value(_:V:S, V:S).
+
+skos_vocs_stats([], Unsorted, Results) :-
+	sort(Unsorted, Sorted),
+	maplist(strip_sort_value, Sorted, Results).
+
+skos_vocs_stats([Voc|Tail], Accum, Stats) :-
+	skos_voc_stats(Voc, SortValue, VocStats),
+	skos_vocs_stats(Tail, [SortValue:Voc:VocStats|Accum], Stats).
+
+skos_voc_stats(Voc, Count, Stats) :-
+	rdf(Voc,amalgame:numberOfConcepts,   literal(Count), amalgame),
+	rdf(Voc,amalgame:numberOfPrefLabels, literal(PCount), amalgame),
+	rdf(Voc,amalgame:numberOfAltLabels,  literal(ACount), amalgame),
+	Stats = [numberOfConcepts(Count),
+		 numberOfPrefLabels(PCount),
+		  numberOfAltLabels(ACount)
+		].
+
+skos_voc_stats(Voc, Count, Stats) :-
+	count_concepts(Voc,   Count),
+	count_prefLabels(Voc, PCount),
+	count_altLabels(Voc,  ACount),
+	rdf_assert(Voc,amalgame:numberOfConcepts, literal(Count), amalgame),
+	rdf_assert(Voc,amalgame:numberOfPrefLabels, literal(PCount), amalgame),
+	rdf_assert(Voc,amalgame:numberOfAltLabels, literal(ACount), amalgame),
+	Stats = [numberOfConcepts(Count),
+		 numberOfPrefLabels(PCount),
+		 numberOfAltLabels(ACount)
+		].
 
 count_concepts(Voc, Count) :-
 	findall(Concept,
 		rdf(Concept, skos:inScheme, Voc),
 		Concepts),
 	length(Concepts, Count).
+
+count_prefLabels(Voc, Count) :-
+	findall(Label,
+		(   rdf(Concept, skos:inScheme, Voc),
+		    rdf_has(Concept, skos:prefLabel, literal(Label))
+		),
+		Labels),
+	length(Labels, Count).
+
+count_altLabels(Voc, Count) :-
+	findall(Label,
+		(   rdf(Concept, skos:inScheme, Voc),
+		    rdf_has(Concept, skos:altLabel, literal(Label))
+		),
+		Labels),
+	length(Labels, Count).
+
+show_schemes -->
+	{
+	 skos_statistics(Schemes)
+	},
+	html(
+	     table([
+		    id(skosvoctable)],
+		   [
+		    tr([
+			th('IRI'),
+			th('Name'),
+			th('# Concepts'),
+			th('# prefLabels'),
+			th('# altLabels'),
+			th('Example concept')
+		       ]),
+		    \show_schemes(Schemes,0)
+		   ])
+	    ).
 
 show_schemes([], Total) -->
 	html(tr([id(finalrow)],
@@ -60,10 +108,12 @@ show_schemes([], Total) -->
 		 td([style('text-align: right')],Total),
 		 td('')
 		])).
-show_schemes([H|Tail], Number) -->
+show_schemes([H:Stats|Tail], Number) -->
 	{
 	 http_link_to_id(list_resource, [r(H)], VLink),
-	 rdf(H, amalgame:numberOfConcepts, literal(Count)),
+	 member(numberOfConcepts(Count), Stats),
+	 member(numberOfPrefLabels(PCount), Stats),
+	 member(numberOfAltLabels(ACount), Stats),
 	 NewNumber is Number + Count,
 	 label_property(P),
 	 rdf_has(H, P, Value),
@@ -77,6 +127,8 @@ show_schemes([H|Tail], Number) -->
 		 td(a([href(VLink)],\turtle_label(H))),
 		 td(a([href(VLink)]), Label),
 		 td([style('text-align: right')],Count),
+		 td([style('text-align: right')],PCount),
+		 td([style('text-align: right')],ACount),
 		 td(a([href(ELink)],\turtle_label(Example)))
 		])),
 	show_schemes(Tail, NewNumber).
