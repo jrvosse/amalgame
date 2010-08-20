@@ -83,27 +83,31 @@ show_schemes -->
 			th('# altLabels'),
 			th('Example concept')
 		       ]),
-		    \show_schemes(Schemes,0)
+		    \show_schemes(Schemes, [0, 0, 0])
 		   ])
 	    ).
 
-show_schemes([], Total) -->
+show_schemes([], [C, P, A]) -->
 	html(tr([id(finalrow)],
 		[
 		 td(''),
 		 td('Total'),
-		 td([style('text-align: right')],Total),
+		 td([style('text-align: right')],C),
+		 td([style('text-align: right')],P),
+		 td([style('text-align: right')],A),
 		 td('')
 		])).
-show_schemes([H:Stats|Tail], Number) -->
+show_schemes([H:Stats|Tail], [C,P,A]) -->
 	{
 	 http_link_to_id(list_resource, [r(H)], VLink),
-	 member(numberOfConcepts(Count), Stats),
+	 member(numberOfConcepts(CCount), Stats),
 	 member(numberOfPrefLabels(PCount), Stats),
 	 member(numberOfAltLabels(ACount), Stats),
-	 NewNumber is Number + Count,
-	 label_property(P),
-	 rdf_has(H, P, Value),
+	 NewC is C + CCount,
+	 NewP is P + PCount,
+	 NewA is A + ACount,
+	 label_property(Prop),
+	 rdf_has(H, Prop, Value),
 	 text_of_literal(Value, Label),
 	 (   rdf(Example, skos:inScheme, H)
 	 ->  http_link_to_id(list_resource, [r(Example)], ELink)
@@ -113,12 +117,12 @@ show_schemes([H:Stats|Tail], Number) -->
 	html(tr([
 		 td(a([href(VLink)],\turtle_label(H))),
 		 td(a([href(VLink)]), Label),
-		 td([style('text-align: right')],Count),
+		 td([style('text-align: right')],CCount),
 		 td([style('text-align: right')],PCount),
 		 td([style('text-align: right')],ACount),
 		 td(a([href(ELink)],\turtle_label(Example)))
 		])),
-	show_schemes(Tail, NewNumber).
+	show_schemes(Tail, [NewC, NewP, NewA]).
 
 
 
