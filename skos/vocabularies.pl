@@ -1,13 +1,28 @@
 :- module(am_skosvocs,
-          [show_schemes/2
+          [skos_statistics/1
           ]).
 
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/html_write)).
 :- use_module(library(semweb/rdfs)).
 
-:- use_module(components(label)).
-
+%%	skos_statistics(-Stats) is det.
+%
+%	Return a list of all skos concept schemes with statistics.
+%	Stats is a list of the form URI:VocStat, where URI is the URI of
+%	the scheme, and VocStat is a list with statistics on that
+%	scheme.  Currently supported stats include:
+%	* numberOfConcepts(N)
+%	* numberOfPrefLabels(N)
+%	* numberOfAltLabels(N)
+%
+%	Side effect: These statistics will also be asserted as RDF
+%	triples to the 'amalgame' named graph, using similarly named
+%	properties with the 'amalgame:' namespace prefix. These asserted
+%	triples will be used in subsequent calls for efficiency reasons.
+%
+%	See also http_clear_cache/1.
+%
 skos_statistics(Stats) :-
 	findall(Scheme,
 		rdfs_individual_of(Scheme, skos:'ConceptScheme'),
@@ -67,62 +82,6 @@ count_altLabels(Voc, Count) :-
 		Labels),
 	length(Labels, Count).
 
-show_schemes -->
-	{
-	 skos_statistics(Schemes)
-	},
-	html(
-	     table([
-		    id(skosvoctable)],
-		   [
-		    tr([
-			th('IRI'),
-			th('Name'),
-			th('# Concepts'),
-			th('# prefLabels'),
-			th('# altLabels'),
-			th('Example concept')
-		       ]),
-		    \show_schemes(Schemes, [0, 0, 0])
-		   ])
-	    ).
-
-show_schemes([], [C, P, A]) -->
-	html(tr([id(finalrow)],
-		[
-		 td(''),
-		 td('Total'),
-		 td([style('text-align: right')],C),
-		 td([style('text-align: right')],P),
-		 td([style('text-align: right')],A),
-		 td('')
-		])).
-show_schemes([H:Stats|Tail], [C,P,A]) -->
-	{
-	 http_link_to_id(list_resource, [r(H)], VLink),
-	 member(numberOfConcepts(CCount), Stats),
-	 member(numberOfPrefLabels(PCount), Stats),
-	 member(numberOfAltLabels(ACount), Stats),
-	 NewC is C + CCount,
-	 NewP is P + PCount,
-	 NewA is A + ACount,
-	 label_property(Prop),
-	 rdf_has(H, Prop, Value),
-	 text_of_literal(Value, Label),
-	 (   rdf(Example, skos:inScheme, H)
-	 ->  http_link_to_id(list_resource, [r(Example)], ELink)
-	 ;   Example = '-', ELink = ''
-	 )
-	},
-	html(tr([
-		 td(a([href(VLink)],\turtle_label(H))),
-		 td(a([href(VLink)]), Label),
-		 td([style('text-align: right')],CCount),
-		 td([style('text-align: right')],PCount),
-		 td([style('text-align: right')],ACount),
-		 td(a([href(ELink)],\turtle_label(Example)))
-		])),
-	show_schemes(Tail, [NewC, NewP, NewA]).
 
 
 

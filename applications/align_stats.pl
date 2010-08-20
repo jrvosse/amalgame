@@ -54,10 +54,23 @@ http_list_overlap(_Request) :-
 			     ])
 			]).
 
-http_clear_cache(Request) :-
+%%	http_clear_cache(+Request) is det.
+%
+%	Clears named graphs with cached amalgame results.
+%	@tbd: authorisation
+
+http_clear_cache(_Request) :-
 	clear_nicknames,
 	clear_stats,
-	http_list_alignments(Request).
+	reply_html_page(cliopatria(default),
+			title('Amalgame caches cleared'),
+			[h3('Amalgame caches cleared'),
+			 p('The following caches have been cleared:'),
+			 ul([
+			     li('Amalgame alignment abbreviation cache'),
+			     li('Amalgame statistics cache')
+			    ])
+			]).
 
 %%	style(-Style) is det.
 %
