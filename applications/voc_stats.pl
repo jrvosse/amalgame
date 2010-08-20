@@ -21,7 +21,7 @@ http_list_skos_vocs(_Request) :-
 	reply_html_page(cliopatria(default),
 			[title('SKOS vocabularies'),
 			 style('#skosvoctable { border-collapse: collapse; border: solid #CCCCCC; }'),
-			 style('#skosvoctable td, th { border-left: solid #CCCCCC; }'),
+			 style('#skosvoctable td, th { border: solid #CCCCCC; }'),
 			 style('#finalrow td { border-top: solid #AAAAAA; }')
 			],
 			[ h4('SKOS concept schemes in the RDF store'),
@@ -31,35 +31,38 @@ http_list_skos_vocs(_Request) :-
 
 show_schemes -->
 	{
-	 skos_statistics(Schemes)
+	 skos_statistics(Schemes),
+	 length(Schemes, Count)
 	},
-	html(
-	     table([
-		    id(skosvoctable)],
-		   [
-		    tr([
-			th('IRI'),
-			th('Name'),
-			th('# Concepts'),
-			th('# prefLabels'),
-			th('# altLabels'),
-			th('Example concept')
-		       ]),
-		    \show_schemes(Schemes, [0, 0, 0])
-		   ])
-	    ).
+	html([
+	      div([Count, ' SKOS concept schemes have been uploaded:']),
+	      table([
+		     id(skosvoctable)],
+		    [
+		     tr([td('Nr'),
+			 th('IRI'),
+			 th('Name'),
+			 th('# Concepts'),
+			 th('# prefLabels'),
+			 th('# altLabels'),
+			 th('Example concept'),
+			 th('Copyrights & licenses')
+			]),
+		     \show_schemes(Schemes, 1, [0, 0, 0])
+		    ])
+	     ]).
 
-show_schemes([], [C, P, A]) -->
+show_schemes([], _, [C, P, A]) -->
 	html(tr([id(finalrow)],
 		[
-		 td(''),
+		 td(''), td(''),
 		 td('Total'),
 		 td([style('text-align: right')],C),
 		 td([style('text-align: right')],P),
 		 td([style('text-align: right')],A),
-		 td('')
+		 td(''),td('')
 		])).
-show_schemes([H:Stats|Tail], [C,P,A]) -->
+show_schemes([H:Stats|Tail], Nr, [C,P,A]) -->
 	{
 	 member(numberOfConcepts(CCount), Stats),
 	 member(numberOfPrefLabels(PCount), Stats),
@@ -67,6 +70,7 @@ show_schemes([H:Stats|Tail], [C,P,A]) -->
 	 NewC is C + CCount,
 	 NewP is P + PCount,
 	 NewA is A + ACount,
+	 NewNr is Nr + 1,
 	 (rdf_has(Example, skos:inScheme, H)
 	 ->  true
 	 ;   Example = '-'
@@ -76,7 +80,7 @@ show_schemes([H:Stats|Tail], [C,P,A]) -->
 	 ;   Rights = '-'
 	 )
 	},
-	html(tr([
+	html(tr([td(Nr),
 		 td(\rdf_link(H, [resource_format(plain)])),
 		 td(\rdf_link(H, [resource_format(label)])),
 		 td([style('text-align: right')],CCount),
@@ -85,4 +89,4 @@ show_schemes([H:Stats|Tail], [C,P,A]) -->
 		 td(\rdf_link(Example)),
 		 td(Rights)
 		])),
-	show_schemes(Tail, [NewC, NewP, NewA]).
+	show_schemes(Tail, NewNr, [NewC, NewP, NewA]).

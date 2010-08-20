@@ -44,7 +44,7 @@ http_list_overlap(_Request) :-
 			[
 			 div([class(lfloat)],
 			     [
-			      h4('Alignments analyzed'),
+			      h4('Alignments in the RDF store'),
 			      \show_alignments
 			     ]),
 			 div([class(lfloat)],

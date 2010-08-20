@@ -9,6 +9,7 @@
 
 cliopatria:menu_item(view/http_list_alignments, 'Alignments').
 cliopatria:menu_item(view/http_list_overlap,    'Overlaps').
+cliopatria:menu_item(view/http_clear_cache,     'Clear Amalgame cache').
 cliopatria:menu_item(view/http_list_skos_vocs,  'SKOS Vocabularies').
 
 

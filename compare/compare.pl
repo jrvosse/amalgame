@@ -90,18 +90,31 @@ count_alignments(Format, Graph, Count) :-
 
 count_alignments(_,_,-1).
 
-find_overlap(ResultsSorted) :-
+find_overlap(ResultsSorted, [cached(true)]) :-
+	rdf(_, amalgame:member, _),
+	!, % assume overlap stats have been computed already and can be gathered from the RDF
+	findall(C:G:E, is_overlap(G,C,E), Results),
+	sort(Results, ResultsSorted).
+find_overlap(ResultsSorted, [cached(false)]) :-
 	findall(Map, map_iterator(Map), AllMaps),
 	find_overlaps(AllMaps, [], Overlaps),
 	count_overlaps(Overlaps, [], Results),
 	sort(Results, ResultsSorted).
+
+is_overlap(G, C, [E1,E2]) :-
+	rdf(Overlap, rdf:type, amalgame:'Overlap', amalgame),
+	rdf(Overlap, amalgame:count, literal(C), amalgame),
+	rdf(Overlap, amalgame:entity1, E1, amalgame),
+	rdf(Overlap, amalgame:entity2, E2, amalgame),
+	findall(M, rdf(Overlap, amalgame:member, M), G).
 
 find_overlaps([], Doubles, Uniques) :- sort(Doubles, Uniques).
 find_overlaps([Map|Tail], Accum, Out) :-
 	find_graphs(Map, Graphs),
 	find_overlaps(Tail, [Graphs:Map|Accum], Out).
 
-count_overlaps([], Results, Results).
+count_overlaps([], Results, Results) :-
+	assert_overlaps(Results).
 count_overlaps([Graphs:Map|Tail], Accum, Results) :-
 	(   selectchk(Count:Graphs:Example, Accum, NewAccum)
 	->  true
@@ -110,11 +123,30 @@ count_overlaps([Graphs:Map|Tail], Accum, Results) :-
 	NewCount is Count + 1,
 	count_overlaps(Tail, [NewCount:Graphs:Example|NewAccum], Results).
 
+assert_overlaps([]).
+assert_overlaps([C:G:E|Tail]) :-
+	E = [E1,E2],
+	term_hash(G, Hash),
+	rdf_equal(amalgame:'', NS),
+	format(atom(URI), '~wamalgame_overlap_~w', [NS,Hash]),
+	debug(uri, 'URI: ~w', [URI]),
+	assert_overlap_members(URI, G),
+	rdf_assert(URI, rdf:type, amalgame:'Overlap', amalgame),
+	rdf_assert(URI, amalgame:count, literal(C), amalgame),
+	rdf_assert(URI, amalgame:entity1, E1, amalgame),
+	rdf_assert(URI, amalgame:entity2, E2, amalgame),
+	assert_overlaps(Tail).
+
+assert_overlap_members(_URI, []).
+assert_overlap_members(URI, [G|T]) :-
+	rdf_assert(URI, amalgame:member, G, amalgame),
+	assert_overlap_members(URI, T).
 
 clear_stats :-
 	rdf_retractall(_, _, _, amalgame).
 clear_nicknames :-
 	rdf_retractall(_, _, _, amalgame_nicknames).
+
 has_nickname(Graph,Nick) :-
 	% work around bug in rdf/4
 	% rdf(Graph, amalgame:nickname, literal(Nick), amalgame_nicknames).
@@ -177,7 +209,7 @@ show_graphs([H|T], Options) -->
 	show_graph(H, Options),
 	show_graphs(T, Options).
 
-find_alignment_graphs(SortedGraphs) :-
+find_alignment_graphs(SortedGraphs, [cached(true)]) :-
 	rdf(G, rdf:type, amalgame:'Alignment'), % fix rdf(-+-+)
 	rdf(G, rdf:type, amalgame:'Alignment', amalgame),
 	!,
@@ -190,7 +222,7 @@ find_alignment_graphs(SortedGraphs) :-
 	       ),
 	sort(Graphs, SortedGraphs).
 
-find_alignment_graphs(SortedGraphs) :-
+find_alignment_graphs(SortedGraphs, [cached(fail)]) :-
 	findall(Format:Graph,
 		has_map(_, Format,Graph:_),
 		DoubleGraphs),
@@ -212,16 +244,23 @@ assert_alignments([Count:Format:Graph|Tail]) :-
 
 show_alignments -->
 	{
-	 find_alignment_graphs(Graphs)
+	 find_alignment_graphs(Graphs, [cached(Cached)]),
+	 (   Cached
+	 ->  http_link_to_id(http_clear_cache, [], CacheLink),
+	     Note = ['These are cached results, ', a([href(CacheLink)], 'clear cache'), ' to recompute']
+	 ;   Note = 'Recomputed results'
+	 )
 	},
-	html(table([id(aligntable)],[tr([
+	html([div([id(cachenote)], Note),
+	      table([id(aligntable)],[tr([
 			th('abbrev'),
 			th(format),
 			th('# maps'),
 			th('named graph')
 		       ]),
 		    \show_alignments(Graphs,0)
-		   ])).
+		   ])
+	     ]).
 
 show_alignments([],Total) -->
 	html(tr([id(finalrow)],
@@ -245,15 +284,22 @@ show_alignments([Count:Format:Graph|Tail], Number) -->
 
 show_overlap -->
 	{
-	 find_overlap(CountList)
+	 find_overlap(CountList, [cached(Cached)]),
+	 (   Cached
+	 ->  http_link_to_id(http_clear_cache, [], CacheLink),
+	     Note = ['These are cached results, ', a([href(CacheLink)], 'clear cache'), ' to recompute']
+	 ;   Note = 'Recomputed results'
+	 )
 	},
-	html(
-	     table([id(aligntable)],
-		   [
-		    tr([th('Overlap'),th('# maps'), th('Example')]),
-		    \show_countlist(CountList,0)
-		   ]
-		  )).
+	html([
+	      div([id(cachenote)], Note),
+	      table([id(aligntable)],
+		    [
+		     tr([th('Overlap'),th('# maps'), th('Example')]),
+		     \show_countlist(CountList,0)
+		    ]
+		  )
+	     ]).
 
 
 
