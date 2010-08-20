@@ -248,7 +248,7 @@ show_alignments -->
 	 (   Cached
 	 ->  http_link_to_id(http_clear_cache, [], CacheLink),
 	     Note = ['These are cached results, ', a([href(CacheLink)], 'clear cache'), ' to recompute']
-	 ;   Note = 'Recomputed results'
+	 ;   Note = ''
 	 )
 	},
 	html([div([id(cachenote)], Note),
@@ -287,8 +287,8 @@ show_overlap -->
 	 find_overlap(CountList, [cached(Cached)]),
 	 (   Cached
 	 ->  http_link_to_id(http_clear_cache, [], CacheLink),
-	     Note = ['These are cached results, ', a([href(CacheLink)], 'clear cache'), ' to recompute']
-	 ;   Note = 'Recomputed results'
+	     Note = ['These are results from the cache, ', a([href(CacheLink)], 'clear cache'), ' to recompute']
+	 ;   Note = ''
 	 )
 	},
 	html([
