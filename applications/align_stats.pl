@@ -9,6 +9,7 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/html_write)).
 :- use_module(library(semweb/rdf_db)).
+:- use_module(auth(user_db)).
 :- use_module('../compare/compare').
 
 :- http_handler(amalgame(list_alignments),    http_list_alignments,     []).
@@ -60,6 +61,7 @@ http_list_overlap(_Request) :-
 %	@tbd: authorisation
 
 http_clear_cache(_Request) :-
+	authorized(write(amalgame_cache, clear)),
 	clear_nicknames,
 	clear_stats,
 	reply_html_page(cliopatria(default),
