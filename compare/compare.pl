@@ -55,8 +55,9 @@ map_iterator([E1,E2]) :-
 %	formats. We currently support the following formats:
 %
 %	* edoal: Alignment map format (EDOAL)
-%	* skos: SKOS Mapping Relation
-%       * dc: dc:replaces
+%	* skos:  SKOS Mapping Relation
+%       * dc:    dc:replaces
+%       * owl:   owl:sameAs
 %
 %	@see EDOAL: http://alignapi.gforge.inria.fr/edoal.html
 
@@ -73,6 +74,10 @@ has_map([E1, E2], skos, Graph) :-
 
 has_map([E1, E2], dc, Graph) :-
 	rdf_has(E1, dcterms:replaces, E2, RealProp),
+	rdf(E1, RealProp, E2, Graph).
+
+has_map([E1, E2], owl, Graph) :-
+	rdf_has(E1, owl:sameAs, E2, RealProp),
 	rdf(E1, RealProp, E2, Graph).
 
 %%	find_graphs(+Map, -Graphs) is det.
@@ -101,20 +106,19 @@ find_overlap(ResultsSorted, [cached(false)]) :-
 	count_overlaps(Overlaps, [], Results),
 	sort(Results, ResultsSorted).
 
-is_overlap(G, C, [E1,E2]) :-
+is_overlap(Overlap, C, [E1,E2]) :-
 	rdf(Overlap, rdf:type, amalgame:'Overlap', amalgame),
 	rdf(Overlap, amalgame:count, literal(C), amalgame),
 	rdf(Overlap, amalgame:entity1, E1, amalgame),
-	rdf(Overlap, amalgame:entity2, E2, amalgame),
-	findall(M, rdf(Overlap, amalgame:member, M), G).
+	rdf(Overlap, amalgame:entity2, E2, amalgame).
 
 find_overlaps([], Doubles, Uniques) :- sort(Doubles, Uniques).
 find_overlaps([Map|Tail], Accum, Out) :-
 	find_graphs(Map, Graphs),
 	find_overlaps(Tail, [Graphs:Map|Accum], Out).
 
-count_overlaps([], Results, Results) :-
-	assert_overlaps(Results).
+count_overlaps([], Accum, Results) :-
+	assert_overlaps(Accum, [], Results).
 count_overlaps([Graphs:Map|Tail], Accum, Results) :-
 	(   selectchk(Count:Graphs:Example, Accum, NewAccum)
 	->  true
@@ -123,8 +127,8 @@ count_overlaps([Graphs:Map|Tail], Accum, Results) :-
 	NewCount is Count + 1,
 	count_overlaps(Tail, [NewCount:Graphs:Example|NewAccum], Results).
 
-assert_overlaps([]).
-assert_overlaps([C:G:E|Tail]) :-
+assert_overlaps([], Accum, Accum).
+assert_overlaps([C:G:E|Tail], Accum, Results) :-
 	E = [E1,E2],
 	term_hash(G, Hash),
 	rdf_equal(amalgame:'', NS),
@@ -135,7 +139,7 @@ assert_overlaps([C:G:E|Tail]) :-
 	rdf_assert(URI, amalgame:count, literal(C), amalgame),
 	rdf_assert(URI, amalgame:entity1, E1, amalgame),
 	rdf_assert(URI, amalgame:entity2, E2, amalgame),
-	assert_overlaps(Tail).
+	assert_overlaps(Tail, [C:URI:E|Accum], Results).
 
 assert_overlap_members(_URI, []).
 assert_overlap_members(URI, [G|T]) :-
@@ -181,12 +185,12 @@ show_countlist([], Total) -->
 		 td('Total (unique alignments)')
 		])).
 
-show_countlist([Count:L:Example|T], Number) -->
+show_countlist([Count:O:Example|T], Number) -->
 	{
 	  NewNumber is Number + Count
 	},
 	html(tr([
-		 td(\show_graphs(L, [nick(true)])),
+		 td(\show_overlap_graphs(O, [nick(true)])),
 		 td([style('text-align: right')],Count),
 		 \show_example(Example)
 		])),
@@ -204,19 +208,34 @@ show_example([E1, E2]) -->
 show_example([E1, E2]) -->
 	html([td(E1),td(E2)]).
 
-show_graphs([],_) --> !.
-show_graphs([H|T], Options) -->
-	show_graph(H, Options),
-	show_graphs(T, Options).
+show_overlap_graphs(Overlap, _Options) -->
+	{
+	 findall(Nick,
+		 (   rdf(Overlap, amalgame:member, M),
+		     rdf(M, amalgame:nickname, literal(Nick), amalgame_nicknames)
+		 ), Graphs),
+	 sort(Graphs, Sorted),
+	 atom_chars(Nicks, Sorted),
+	 http_link_to_id(list_resource, [r(Overlap)], Olink)
+	},
+	html([a([href(Olink)], Nicks)]).
+
+collect_props_from_rdf(Graph, Count, Props) :-
+	rdf(Graph, amalgame:count, literal(Count), amalgame),
+	findall([PropLn, Value],
+		(   rdf(Graph, Prop, Value, amalgame),
+		    rdf_global_id(amalgame:PropLn, Prop)
+		),
+		GraphProps
+	       ),
+	maplist(=.., Props, GraphProps).
 
 find_alignment_graphs(SortedGraphs, [cached(true)]) :-
-	rdf(G, rdf:type, amalgame:'Alignment'), % fix rdf(-+-+)
-	rdf(G, rdf:type, amalgame:'Alignment', amalgame),
+	rdf(_, rdf:type, amalgame:'Alignment', amalgame),
 	!,
-	findall(Count:Format:Graph,
-		(   rdf(Graph, rdf:type, amalgame:'Alignment'),
-		    rdf(Graph, amalgame:format, literal(Format)),
-		    rdf(Graph, amalgame:count, literal(Count))
+	findall(Count:Graph:Props,
+		(   rdf(Graph, rdf:type, amalgame:'Alignment', amalgame),
+		    collect_props_from_rdf(Graph, Count, Props)
 		),
 		Graphs
 	       ),
@@ -227,19 +246,64 @@ find_alignment_graphs(SortedGraphs, [cached(fail)]) :-
 		has_map(_, Format,Graph:_),
 		DoubleGraphs),
 	sort(DoubleGraphs, Graphs),
-	findall(Count:Format:Graph,
+	findall(Count:Graph:Props,
 		(   member(Format:Graph, Graphs),
+		    find_align_props(Format, Graph, Props),
 		    count_alignments(Format, Graph, Count)
 		),
 		CountedGraphs),
 	sort(CountedGraphs, SortedGraphs),
 	assert_alignments(SortedGraphs).
 
+mapped_concepts(Format, Graph, MapCounts) :-
+	findall(M1, has_map([M1, _], Format, Graph), M1s),
+	findall(M2, has_map([_, M2], Format, Graph), M2s),
+	sort(M1s, MappedSourceConcepts),
+	sort(M2s, MappedTargetConcepts),
+	length(MappedSourceConcepts, NrMappedSourceConcepts),
+	length(MappedTargetConcepts, NrMappedTargetConcepts),
+	MapCounts = [
+		     mappedSourceConcepts(literal(NrMappedSourceConcepts)),
+		     mappedTargetConcepts(literal(NrMappedTargetConcepts))
+		    ].
+
+find_align_props(edoal, Graph, Props) :-
+	rdf(Alignment, rdf:type, align:'Alignment', Graph),
+	rdf(Alignment, align:onto1, O1, Graph),
+	rdf(Alignment, align:onto2, O2, Graph),
+	Props1 = [
+		 format(literal(edoal)),
+		 alignment(Alignment),
+		 source(O1),
+		 target(O2)
+		],
+	!,
+	mapped_concepts(edoal, Graph, MapCounts),
+	append(Props1, MapCounts, Props).
+
+find_align_props(Format, Graph, Props) :-
+	Props1 = [
+		 format(literal(Format)),
+		 source(Source),
+		 target(Target)
+		],
+	has_map([E1, E2], Format, Graph),
+	rdf_has(E1, skos:inScheme, Source),
+	rdf_has(E2, skos:inScheme, Target),
+	!,
+	mapped_concepts(Format, Graph, MapCounts),
+	append(Props1, MapCounts, Props).
+
 assert_alignments([]).
-assert_alignments([Count:Format:Graph|Tail]) :-
+assert_alignments([Count:Graph:Props|Tail]) :-
+	rdf_equal(amalgame:'', NS),
 	rdf_assert(Graph, rdf:type, amalgame:'Alignment',   amalgame),
-	rdf_assert(Graph, amalgame:format, literal(Format), amalgame),
 	rdf_assert(Graph, amalgame:count,  literal(Count),  amalgame),
+	forall(member(M,Props),
+	       (   M =.. [PropName, Value],
+		   format(atom(URI), '~w~w', [NS,PropName]),
+		   rdf_assert(Graph, URI, Value, amalgame)
+	       )),
 	assert_alignments(Tail).
 
 show_alignments -->
@@ -252,11 +316,17 @@ show_alignments -->
 	 )
 	},
 	html([div([id(cachenote)], Note),
-	      table([id(aligntable)],[tr([
-			th('abbrev'),
-			th(format),
-			th('# maps'),
-			th('named graph')
+	      table([id(aligntable)],
+		    [tr([
+			 th('Abr'),
+			 th('Source'),
+			 th('# mapped'),
+			 th('Target'),
+			 th('# mapped'),
+			 th('Format'),
+			 th('# maps'),
+			 th('Named Graph URI')
+
 		       ]),
 		    \show_alignments(Graphs,0)
 		   ])
@@ -266,17 +336,34 @@ show_alignments([],Total) -->
 	html(tr([id(finalrow)],
 		[td(''),
 		 td(''),
+		 td(''),
+		 td(''),
+		 td(''),
+		 td(''),
 		 td([style('text-align: right')],Total),
 		 td('Total (double counting)')
 		])).
 
-show_alignments([Count:Format:Graph|Tail], Number) -->
+show_alignments([Count:Graph:Props|Tail], Number) -->
 	{
-	  NewNumber is Number + Count
+	 NewNumber is Number + Count,
+	 memberchk(format(Format), Props),
+	 memberchk(source(Source), Props),
+	 memberchk(target(Target), Props),
+	 memberchk(mappedSourceConcepts(SourcesMapped), Props),
+	 memberchk(mappedTargetConcepts(TargetsMapped), Props),
+	 (   memberchk(alignment(A), Props)
+	 ->  http_link_to_id(list_resource, [r(A)], AlignLink),
+	     FormatLink = a([href(AlignLink)], Format)
+	 ;   FormatLink = Format)
 	},
 	html(tr([
 		 td(\show_graph(Graph, [nick(true)])),
-		 td(Format),
+		 td(\rdf_link(Source, [resource_format(label)])),
+		 td([style('text-align: right')],SourcesMapped),
+		 td(\rdf_link(Target, [resource_format(label)])),
+		 td([style('text-align: right')],TargetsMapped),
+		 td(FormatLink),
 		 td([style('text-align: right')],Count),
 		 td(\show_graph(Graph, [nick(false)]))
 		])),

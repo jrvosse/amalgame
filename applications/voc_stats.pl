@@ -86,7 +86,7 @@ show_schemes([H:Stats|Tail], Nr, [C,P,A]) -->
 		 td([style('text-align: right')],CCount),
 		 td([style('text-align: right')],PCount),
 		 td([style('text-align: right')],ACount),
-		 td(\rdf_link(Example)),
+		 td(\rdf_link(Example, [resource_format(label)])),
 		 td(Rights)
 		])),
 	show_schemes(Tail, NewNr, [NewC, NewP, NewA]).
