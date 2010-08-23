@@ -1,0 +1,53 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE rdf:RDF [
+    <!ENTITY aat 'http://purl.org/vocabularies/getty/aat#'>
+    <!ENTITY tgn 'http://purl.org/vocabularies/getty/tgn#'>
+    <!ENTITY ulan 'http://purl.org/vocabularies/getty/ulan#'>
+    <!ENTITY vp 'http://purl.org/vocabularies/getty/vp#'>
+    <!ENTITY rdf 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'>
+    <!ENTITY rdfs 'http://www.w3.org/2000/01/rdf-schema#'>
+    <!ENTITY skos 'http://www.w3.org/2004/02/skos/core#'>
+]>
+
+<rdf:RDF
+    xmlns:aat="&aat;"
+    xmlns:tgn="&tgn;"
+    xmlns:ulan="&ulan;"
+    xmlns:vp="&vp;"
+    xmlns:rdf="&rdf;"
+    xmlns:rdfs="&rdfs;"
+    xmlns:skos="&skos;"
+>
+<rdf:Description rdf:about="&aat;association">
+  <rdfs:subPropertyOf rdf:resource="&skos;related"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="&vp;Subject">
+  <rdfs:subClassOf rdf:resource="&skos;Concept"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="&vp;descriptiveNote">
+  <rdfs:subPropertyOf rdf:resource="&skos;scopeNote"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="&vp;labelNonPreferred">
+  <rdfs:subPropertyOf rdf:resource="&skos;altLabel"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="&vp;labelPreferred">
+  <rdfs:subPropertyOf rdf:resource="&skos;prefLabel"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="&vp;parent">
+  <rdfs:subPropertyOf rdf:resource="&skos;broader"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="&tgn;parent">
+  <rdfs:subPropertyOf rdf:resource="&skos;broader"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="&ulan;parent">
+  <rdfs:subPropertyOf rdf:resource="&skos;broader"/>
+</rdf:Description>
+
+</rdf:RDF>

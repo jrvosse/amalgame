@@ -1,0 +1,242 @@
+<?xml version='1.0' encoding='ISO-8859-1'?>
+<!--
+  todo:
+  Event
+  Role
+  (check)
+-->
+<!DOCTYPE rdf:RDF [
+    <!ENTITY rdf 	"http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+    <!ENTITY rdfs 	"http://www.w3.org/2000/01/rdf-schema#">
+    <!ENTITY owl  	"http://www.w3.org/2002/07/owl#" >
+    <!ENTITY xsd 	"http://www.w3.org/2001/XMLSchema#">
+    <!ENTITY vp     "http://purl.org/vocabularies/getty/vp#">
+    <!ENTITY ulan   "http://purl.org/vocabularies/getty/ulan#">
+    <!ENTITY tgn    "http://purl.org/vocabularies/getty/tgn#">
+    <!ENTITY skos	'http://www.w3.org/2004/02/skos/core#'>
+]>
+
+<rdf:RDF 
+    xml:base		="http://purl.org/vocabularies/getty/ulan"
+    xmlns			="&ulan;"
+    xmlns:tgn		="&tgn;"
+    xmlns:vp		="&vp;"
+    xmlns:rdf		="&rdf;"
+    xmlns:rdfs		="&rdfs;"
+    xmlns:xsd       ="&xsd;"
+    xmlns:owl		="&owl;"
+    xmlns:skos		="&skos;"
+>
+
+<owl:Ontology rdf:about=""
+  rdfs:label="Getty ULAN">
+  <rdf:type rdf:resource="&skos;ConceptScheme"/>
+  <rdfs:seeAlso rdf:resource="http://www.getty.edu/research/conducting_research/vocabularies/ulan/ulan_xml_dd04.pdf"/>
+  <rdfs:comment>
+    This ontology contains the ULAN-specific classes and properties 
+    of the Getty thesaurus ULAN. The schema is derived from the XML Schema 
+    file at the Getty website (see the seeAlso link), Revision and 
+    source information is not included. 
+  </rdfs:comment>
+</owl:Ontology>
+
+<rdfs:Class rdf:ID="Subject"
+	rdfs:label="Subject (ULAN)">
+  <rdfs:subClassOf rdf:resource="&vp;Subject"/>
+</rdfs:Class>
+
+<rdfs:Class rdf:ID="Person"
+	rdfs:label="Person (ULAN)">
+  <rdfs:subClassOf rdf:resource="#Subject"/>
+</rdfs:Class>
+
+<rdfs:Class rdf:ID="CorporateBody"
+	rdfs:label="Corporate Body (ULAN)">
+  <rdfs:subClassOf rdf:resource="#Subject"/>
+</rdfs:Class>
+
+<rdfs:Class rdf:ID="Facet"
+	rdfs:label="Facet (ULAN)">
+  <rdfs:subClassOf rdf:resource="#Subject"/>
+</rdfs:Class>
+
+<rdf:Property rdf:ID="biography">
+   <rdfs:label xml:lang="en">biography</rdfs:label>
+  <rdfs:domain rdf:resource="#Subject"/>
+  <rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+
+<rdf:Property rdf:ID="biographyPreferred">
+   <rdfs:label xml:lang="en">preferred biography</rdfs:label>
+  <rdfs:subPropertyOf rdf:resource="#biography"/>
+</rdf:Property>
+
+<rdf:Property rdf:ID="biographyNonPreferred">
+   <rdfs:label xml:lang="en">alternative biography</rdfs:label>
+  <rdfs:subPropertyOf rdf:resource="#biography"/>
+</rdf:Property>
+
+<rdf:Property rdf:ID="birthDate">
+   <rdfs:label xml:lang="en">date of birth</rdfs:label>
+  <rdfs:domain rdf:resource="#Subject"/>
+  <rdfs:range rdf:resource="&xsd;gYear"/>
+</rdf:Property>
+
+<rdf:Property rdf:ID="deathDate">
+   <rdfs:label xml:lang="en">death date</rdfs:label>
+  <rdfs:domain rdf:resource="#Subject"/>
+  <rdfs:range rdf:resource="&xsd;gYear"/>
+</rdf:Property>
+
+<rdf:Property rdf:ID="birthPlace">
+   <rdfs:label xml:lang="en">place of birth</rdfs:label>
+  <rdfs:domain rdf:resource="#Subject"/>
+  <rdfs:range rdf:resource="&tgn;Subject"/>
+</rdf:Property>
+
+<rdf:Property rdf:ID="deathPlace">
+   <rdfs:label xml:lang="en">place of death</rdfs:label>
+  <rdfs:domain rdf:resource="#Subject"/>
+  <rdfs:range rdf:resource="&tgn;Subject"/>
+</rdf:Property>
+
+<rdf:Property rdf:ID="gender">
+   <rdfs:label xml:lang="en">gender</rdfs:label>
+  <rdfs:domain rdf:resource="#Subject"/>
+  <rdfs:range rdf:resource="#GenderValue"/>
+</rdf:Property>
+
+<rdfs:Class rdf:ID="GenderValue">
+   <rdfs:label xml:lang="en">gender value</rdfs:label>
+  <owl:oneOf rdf:parseType="Collection">
+    <rdfs:Class rdf:ID="Male"   rdfs:label="Male"/>
+    <rdfs:Class rdf:ID="Female" rdfs:label="Female"/>
+  </owl:oneOf>
+</rdfs:Class>
+
+<rdfs:Class rdf:ID="Event">
+  <rdfs:label xml:lang="en">event class</rdfs:label>
+  <rdfs:comment>
+    Events are typed from Event_ID.
+  </rdfs:comment>
+	<rdfs:subClassOf rdf:resource="#Subject"/>
+</rdfs:Class>
+
+<rdf:Property rdf:ID="event">
+  <rdfs:label xml:lang="en">event</rdfs:label>
+  <rdfs:domain rdf:resource="#Subject"/>
+  <rdfs:range rdf:resource="#Event"/>
+</rdf:Property>
+
+<rdf:Property rdf:ID="eventPreferred">
+  <rdfs:label xml:lang="en">preferred event</rdfs:label>
+  <rdfs:subPropertyOf rdf:resource="#event"/>
+</rdf:Property>
+
+<rdf:Property rdf:ID="eventNonPreferred">
+  <rdfs:label xml:lang="en">alternative event</rdfs:label>
+  <rdfs:subPropertyOf rdf:resource="#event"/>
+</rdf:Property>
+
+<rdf:Property rdf:ID="eventPlace">
+  <rdfs:label xml:lang="en">place of event</rdfs:label>
+  <rdfs:domain rdf:resource="#Event"/>
+  <rdfs:range rdf:resource="&tgn;Subject"/>
+</rdf:Property>
+
+<rdf:Property rdf:ID="eventStartDate">
+  <rdfs:label xml:lang="en">start year of event</rdfs:label>
+  <rdfs:domain rdf:resource="#Event"/>
+  <rdfs:range rdf:resource="&xsd;gYear"/>
+</rdf:Property>
+
+<rdf:Property rdf:ID="eventEndDate">
+  <rdfs:label xml:lang="en">end year of event</rdfs:label>
+  <rdfs:domain rdf:resource="#Event"/>
+  <rdfs:range rdf:resource="&xsd;gYear"/>
+</rdf:Property>
+
+<rdfs:Class rdf:ID="Role"
+	rdfs:label="Role">
+  <rdfs:comment>
+    Individuals: active, location (in sample file)
+  </rdfs:comment>
+	<rdfs:subClassOf rdf:resource="#Subject"/>
+</rdfs:Class>
+
+<rdf:Property rdf:ID="role">
+  <rdfs:label xml:lang="en">role</rdfs:label>
+  <rdfs:domain rdf:resource="#Subject"/>
+  <rdfs:range rdf:resource="#Role"/>
+</rdf:Property>
+
+<rdf:Property rdf:ID="rolePreferred">
+  <rdfs:label xml:lang="en">preferred role</rdfs:label>
+  <rdfs:subPropertyOf rdf:resource="#role"/>
+</rdf:Property>
+
+<rdf:Property rdf:ID="roleNonPreferred">
+  <rdfs:label xml:lang="en">alternative role</rdfs:label>
+  <rdfs:subPropertyOf rdf:resource="#role"/>
+</rdf:Property>
+
+<rdfs:Class rdf:ID="Nationality"
+	rdfs:label="Nationality">
+  <rdfs:comment>
+    Taken from ulan_nationalities.xml.  Must be linked to tgn:Subject.
+  </rdfs:comment>
+	<rdfs:subClassOf rdf:resource="#Subject"/>
+</rdfs:Class>
+
+<rdf:Property rdf:ID="nation">
+  <rdfs:label xml:lang="en">nation</rdfs:label>
+  <rdfs:domain rdf:resource="#Nationality"/>
+  <rdfs:range rdf:resource="&tgn;Subject"/>
+</rdf:Property>
+
+<rdf:Property rdf:ID="nationality">
+  <rdfs:label xml:lang="en">nationality</rdfs:label>
+  <rdfs:domain rdf:resource="#Subject"/>
+  <rdfs:range rdf:resource="#Nationality"/>
+</rdf:Property>
+
+<rdf:Property rdf:ID="nationalityPreferred">
+  <rdfs:label xml:lang="en">preferred nationality</rdfs:label>
+  <rdfs:subPropertyOf rdf:resource="#nationality"/>
+</rdf:Property>
+
+<rdf:Property rdf:ID="nationalityNonPreferred">
+  <rdfs:label xml:lang="en">alternative nationality</rdfs:label>
+  <rdfs:subPropertyOf rdf:resource="#nationality"/>
+</rdf:Property>
+
+<rdf:Property rdf:ID="association"
+  rdfs:label="association">
+  <rdfs:domain rdf:resource="#Subject"/>
+  <rdfs:range rdf:resource="#Subject"/>
+</rdf:Property>
+
+<rdf:Property rdf:ID="parent"
+	rdfs:label="ULAN parent">
+  <rdfs:comment>
+This is an instantiation relation.  Possibly we should use this
+as a replacement of rdf:type?
+  </rdfs:comment>
+  <rdfs:subPropertyOf rdf:resource="&vp;parent"/>
+</rdf:Property>
+
+<rdf:Property rdf:ID="parentPreferred"
+	rdfs:label="ULAN preferred parent">
+  <rdfs:subPropertyOf rdf:resource="#parent"/>
+  <rdfs:subPropertyOf rdf:resource="&vp;parentPreferred"/>
+</rdf:Property>
+
+<rdf:Property rdf:ID="parentNonPreferred"
+	rdfs:label="ULAN non preferred parent">
+  <rdfs:subPropertyOf rdf:resource="#parent"/>
+  <rdfs:subPropertyOf rdf:resource="&vp;parentNonPreferred"/>
+</rdf:Property>
+
+
+</rdf:RDF>
+
