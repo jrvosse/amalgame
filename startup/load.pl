@@ -2,7 +2,11 @@
 
 user:file_search_path(amalgame, '../../amalgame/').
 
+http:location(amalgame, cliopatria(amalgame), []).
+
 :- [
     amalgame(namespaces),
-    amalgame(compare/compare)
+    amalgame(applications/align_stats),
+    amalgame(applications/voc_stats),
+    menu
    ].
