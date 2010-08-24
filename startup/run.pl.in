@@ -21,6 +21,7 @@ file_search_path(cliopatria, './ClioPatria').		% (*)
 file_search_path(ontology,   '../ontologies/').
 file_search_path(ontology,   '../../demo/vocs/').
 file_search_path(ontology,   '../../demo/metadata/').
+
 % file_search_path(path,       'C:/Program Files/Graphviz2.26.3/bin').
 % file_search_path(path,       'C:/Program Files/Git/bin').
 % file_search_path(path,       'C:/Program Files (x86)/Graphviz2.26.3/bin').
