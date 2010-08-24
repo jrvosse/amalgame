@@ -2,19 +2,25 @@
 	  [
 	   % HTTP entry points:
 	   http_list_alignments/1, % +Request
+	   http_list_alignment/1, % +Request
 	   http_list_overlap/1,    % +Request
 	   http_clear_cache/1      % +Request
 	  ]).
 
 :- use_module(library(http/http_dispatch)).
+:- use_module(library(http/http_parameters)).
 :- use_module(library(http/html_write)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(auth(user_db)).
+:- use_module(components(label)).
+
 :- use_module('../compare/compare').
 
 :- http_handler(amalgame(list_alignments),    http_list_alignments,     []).
+:- http_handler(amalgame(list_alignment),     http_list_alignment,      []).
 :- http_handler(amalgame(find_overlap),       http_list_overlap,        []).
 :- http_handler(amalgame(clear_cache),        http_clear_cache,         []).
+:- http_handler(amalgame(split_alignment),    http_split_alignment,     []).
 
 %%	http_list_alignments(+Request) is det.
 %
@@ -30,6 +36,35 @@ http_list_alignments(_Request) :-
 			  \show_alignments
 			]).
 
+%%	http_list_alignment(+Request) is det.
+%
+%	HTTP handler returning list of all alignments in HTML.
+
+http_list_alignment(Request) :-
+	style(Style),
+	http_parameters(Request, [graph(Graph, [])]),
+	reply_html_page(cliopatria(default),
+			[title('Alignment'),
+			 Style
+			],
+			[ h4('Alignment overview'),
+			  \show_alignment_overview(Graph)
+			]).
+
+http_split_alignment(Request) :-
+	http_parameters(Request,
+			[graph(Graph, []),
+			 condition(Condition, [])
+			]),
+	style(Style),
+	split_alignment(Graph, Condition, OutGraphs),
+		reply_html_page(cliopatria(default),
+			[title('Alignment splitted'),
+			 Style
+			],
+			[ h4('Alignment splitted'),
+			  div([],OutGraphs)
+			]).
 
 %%	http_list_overlap(+Request) is det.
 %
@@ -87,3 +122,173 @@ style(style(
 	     '.lfloat { float: left; margin-right: 2% }'
 	    ])
      ).
+
+
+show_alignment_overview(Graph) -->
+	{
+	 http_link_to_id(list_graph, [graph=Graph], URI),
+	 http_link_to_id(http_split_alignment,
+			 [graph=Graph, condition=sourceType], STLink),
+	 http_link_to_id(http_split_alignment,
+			 [graph=Graph, condition=targetType], TTLink),
+	 rdf(Graph, amalgame:source, Source),
+	 rdf(Graph, amalgame:target, Target),
+	 rdf(Graph, amalgame:mappedSourceConcepts, literal(MSC)),
+	 rdf(Graph, amalgame:mappedTargetConcepts, literal(MTC))
+	},
+	html([div(['Alignment graph: ',
+		  a([href(URI)], Graph)
+		 ]),
+	      table([
+		     tr([td('Source voc:'),
+			 td(\rdf_link(Source)),
+			 td(a([href(STLink)], 'split on source type')),
+			 td([style('text-align:right')],[MSC])
+			]),
+		     tr([td('Target voc:'),
+			 td(\rdf_link(Target)),
+			 td(a([href(TTLink)], 'split on target type')),
+			 td([style('text-align:right')],[MTC])
+			])
+		    ]
+		   )
+	     ]
+	    ).
+
+show_alignment(Graph) -->
+	{
+	 nickname(Graph, Nick),
+	 http_link_to_id(http_list_alignment, [graph(Graph)], VLink)
+	},
+	html(a([href(VLink),title(Graph)],[Nick, ' '])).
+
+show_graph(Graph) -->
+	{
+	 http_link_to_id(list_graph, [graph(Graph)], VLink)
+	},
+	html(a([href(VLink)],\turtle_label(Graph))).
+
+show_countlist([], Total) -->
+	html(tr([id(finalrow)],
+		[td(''),
+		 td([style('text-align: right')], Total),
+		 td('Total (unique alignments)')
+		])).
+
+show_countlist([Count:O:Example|T], Number) -->
+	{
+	  NewNumber is Number + Count
+	},
+	html(tr([
+		 td(\show_overlap_graphs(O, [nick(true)])),
+		 td([style('text-align: right')],Count),
+		 \show_example(Example)
+		])),
+	show_countlist(T,NewNumber).
+
+show_example([E1, E2]) -->
+	{
+	 atom(E1), atom(E2),
+	 http_link_to_id(list_resource, [r(E1)], E1Link),
+	 http_link_to_id(list_resource, [r(E2)], E2Link)
+	},
+	html([td(a([href(E1Link)],\turtle_label(E1))),
+	      td(a([href(E2Link)],\turtle_label(E2)))]).
+
+show_example([E1, E2]) -->
+	html([td(E1),td(E2)]).
+
+show_overlap_graphs(Overlap, _Options) -->
+	{
+	 findall(Nick,
+		 (   rdf(Overlap, amalgame:member, M),
+		     rdf(M, amalgame:nickname, literal(Nick), amalgame_nicknames)
+		 ), Graphs),
+	 sort(Graphs, Sorted),
+	 atom_chars(Nicks, Sorted),
+	 http_link_to_id(list_resource, [r(Overlap)], Olink)
+	},
+	html([a([href(Olink)], Nicks)]).
+
+show_alignments -->
+	{
+	 find_alignment_graphs(Graphs, [cached(Cached)]),
+	 (   Cached
+	 ->  http_link_to_id(http_clear_cache, [], CacheLink),
+	     Note = ['These are cached results, ', a([href(CacheLink)], 'clear cache'), ' to recompute']
+	 ;   Note = ''
+	 )
+	},
+	html([div([id(cachenote)], Note),
+	      table([id(aligntable)],
+		    [tr([
+			 th('Abr'),
+			 th('Source'),
+			 th('# mapped'),
+			 th('Target'),
+			 th('# mapped'),
+			 th('Format'),
+			 th('# maps'),
+			 th('Named Graph URI')
+
+		       ]),
+		    \show_alignments(Graphs,0)
+		   ])
+	     ]).
+
+show_alignments([],Total) -->
+	html(tr([id(finalrow)],
+		[td(''),
+		 td(''),
+		 td(''),
+		 td(''),
+		 td(''),
+		 td(''),
+		 td([style('text-align: right')],Total),
+		 td('Total (double counting)')
+		])).
+
+show_alignments([Count:Graph:Props|Tail], Number) -->
+	{
+	 NewNumber is Number + Count,
+	 memberchk(format(Format), Props),
+	 memberchk(source(Source), Props),
+	 memberchk(target(Target), Props),
+	 memberchk(mappedSourceConcepts(SourcesMapped), Props),
+	 memberchk(mappedTargetConcepts(TargetsMapped), Props),
+	 (   memberchk(alignment(A), Props)
+	 ->  http_link_to_id(list_resource, [r(A)], AlignLink),
+	     FormatLink = a([href(AlignLink)], Format)
+	 ;   FormatLink = Format)
+	},
+	html(tr([
+		 td(\show_alignment(Graph)),
+		 td(\rdf_link(Source, [resource_format(label)])),
+		 td([style('text-align: right')],SourcesMapped),
+		 td(\rdf_link(Target, [resource_format(label)])),
+		 td([style('text-align: right')],TargetsMapped),
+		 td(FormatLink),
+		 td([style('text-align: right')],Count),
+		 td(\show_graph(Graph))
+		])),
+	show_alignments(Tail, NewNumber).
+
+show_overlap -->
+	{
+	 find_overlap(CountList, [cached(Cached)]),
+	 (   Cached
+	 ->  http_link_to_id(http_clear_cache, [], CacheLink),
+	     Note = ['These are results from the cache, ', a([href(CacheLink)], 'clear cache'), ' to recompute']
+	 ;   Note = ''
+	 )
+	},
+	html([
+	      div([id(cachenote)], Note),
+	      table([id(aligntable)],
+		    [
+		     tr([th('Overlap'),th('# maps'), th('Example')]),
+		     \show_countlist(CountList,0)
+		    ]
+		  )
+	     ]).
+

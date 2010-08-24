@@ -2,8 +2,10 @@
 	  [
 	   clear_stats/0,
 	   clear_nicknames/0,
-	   show_alignments/2,
-	   show_overlap/2,
+	   nickname/2,
+	   find_overlap/2,
+	   find_alignment_graphs/2,
+	   split_alignment/3,
 
 	   % misc comparison predicates:
 	   map_iterator/1,	   % -Map
@@ -26,8 +28,11 @@ It assumes matchers assert mappings in different name graphs.
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_dispatch)).
+:- use_module(library(semweb/rdfs)).
 
 :- use_module(components(label)).
+
+:- use_module('../edoal/edoal').
 :- use_module('../namespaces').
 
 
@@ -164,61 +169,6 @@ coin_nickname(_Graph, Nick) :-
 	char_type(Nick, alpha),
 	\+ has_nickname(_, Nick).
 
-show_graph(Graph, Options) -->
-	{
-	 member(nick(true), Options),!,
-	 nickname(Graph, Nick),
-	 http_link_to_id(list_graph, [graph(Graph)], VLink)
-	},
-	html(a([href(VLink),title(Graph)],[Nick, ' '])).
-
-show_graph(Graph, _Options) -->
-	{
-	 http_link_to_id(list_graph, [graph(Graph)], VLink)
-	},
-	html(a([href(VLink)],\turtle_label(Graph))).
-
-show_countlist([], Total) -->
-	html(tr([id(finalrow)],
-		[td(''),
-		 td([style('text-align: right')], Total),
-		 td('Total (unique alignments)')
-		])).
-
-show_countlist([Count:O:Example|T], Number) -->
-	{
-	  NewNumber is Number + Count
-	},
-	html(tr([
-		 td(\show_overlap_graphs(O, [nick(true)])),
-		 td([style('text-align: right')],Count),
-		 \show_example(Example)
-		])),
-	show_countlist(T,NewNumber).
-
-show_example([E1, E2]) -->
-	{
-	 atom(E1), atom(E2),
-	 http_link_to_id(list_resource, [r(E1)], E1Link),
-	 http_link_to_id(list_resource, [r(E2)], E2Link)
-	},
-	html([td(a([href(E1Link)],\turtle_label(E1))),
-	      td(a([href(E2Link)],\turtle_label(E2)))]).
-
-show_example([E1, E2]) -->
-	html([td(E1),td(E2)]).
-
-show_overlap_graphs(Overlap, _Options) -->
-	{
-	 findall(Nick,
-		 (   rdf(Overlap, amalgame:member, M),
-		     rdf(M, amalgame:nickname, literal(Nick), amalgame_nicknames)
-		 ), Graphs),
-	 sort(Graphs, Sorted),
-	 atom_chars(Nicks, Sorted),
-	 http_link_to_id(list_resource, [r(Overlap)], Olink)
-	},
-	html([a([href(Olink)], Nicks)]).
 
 collect_props_from_rdf(Graph, Count, Props) :-
 	rdf(Graph, amalgame:count, literal(Count), amalgame),
@@ -288,9 +238,16 @@ find_align_props(Format, Graph, Props) :-
 		 target(Target)
 		],
 	has_map([E1, E2], Format, Graph),
-	rdf_has(E1, skos:inScheme, Source),
-	rdf_has(E2, skos:inScheme, Target),
+	(   rdf_has(E1, skos:inScheme, Source)
+	->  true
+	;   iri_xml_namespace(E1, Source)
+	),
+	(   rdf_has(E2, skos:inScheme, Target)
+	->  true
+	;   iri_xml_namespace(E2, Target)
+	),
 	!,
+
 	mapped_concepts(Format, Graph, MapCounts),
 	append(Props1, MapCounts, Props).
 
@@ -306,93 +263,35 @@ assert_alignments([Count:Graph:Props|Tail]) :-
 	       )),
 	assert_alignments(Tail).
 
-show_alignments -->
-	{
-	 find_alignment_graphs(Graphs, [cached(Cached)]),
-	 (   Cached
-	 ->  http_link_to_id(http_clear_cache, [], CacheLink),
-	     Note = ['These are cached results, ', a([href(CacheLink)], 'clear cache'), ' to recompute']
-	 ;   Note = ''
-	 )
-	},
-	html([div([id(cachenote)], Note),
-	      table([id(aligntable)],
-		    [tr([
-			 th('Abr'),
-			 th('Source'),
-			 th('# mapped'),
-			 th('Target'),
-			 th('# mapped'),
-			 th('Format'),
-			 th('# maps'),
-			 th('Named Graph URI')
-
-		       ]),
-		    \show_alignments(Graphs,0)
-		   ])
-	     ]).
-
-show_alignments([],Total) -->
-	html(tr([id(finalrow)],
-		[td(''),
-		 td(''),
-		 td(''),
-		 td(''),
-		 td(''),
-		 td(''),
-		 td([style('text-align: right')],Total),
-		 td('Total (double counting)')
-		])).
-
-show_alignments([Count:Graph:Props|Tail], Number) -->
-	{
-	 NewNumber is Number + Count,
-	 memberchk(format(Format), Props),
-	 memberchk(source(Source), Props),
-	 memberchk(target(Target), Props),
-	 memberchk(mappedSourceConcepts(SourcesMapped), Props),
-	 memberchk(mappedTargetConcepts(TargetsMapped), Props),
-	 (   memberchk(alignment(A), Props)
-	 ->  http_link_to_id(list_resource, [r(A)], AlignLink),
-	     FormatLink = a([href(AlignLink)], Format)
-	 ;   FormatLink = Format)
-	},
-	html(tr([
-		 td(\show_graph(Graph, [nick(true)])),
-		 td(\rdf_link(Source, [resource_format(label)])),
-		 td([style('text-align: right')],SourcesMapped),
-		 td(\rdf_link(Target, [resource_format(label)])),
-		 td([style('text-align: right')],TargetsMapped),
-		 td(FormatLink),
-		 td([style('text-align: right')],Count),
-		 td(\show_graph(Graph, [nick(false)]))
-		])),
-	show_alignments(Tail, NewNumber).
-
-show_overlap -->
-	{
-	 find_overlap(CountList, [cached(Cached)]),
-	 (   Cached
-	 ->  http_link_to_id(http_clear_cache, [], CacheLink),
-	     Note = ['These are results from the cache, ', a([href(CacheLink)], 'clear cache'), ' to recompute']
-	 ;   Note = ''
-	 )
-	},
-	html([
-	      div([id(cachenote)], Note),
-	      table([id(aligntable)],
-		    [
-		     tr([th('Overlap'),th('# maps'), th('Example')]),
-		     \show_countlist(CountList,0)
-		    ]
-		  )
-	     ]).
 
 
 
+split_alignment(SourceGraph, Condition, SplittedGraphs) :-
+	findall(Map:Format, has_map(Map, Format, SourceGraph), Maps),
+	reassert(Maps, SourceGraph, Condition, [], SplittedGraphs).
 
+reassert([], _ , _, Graphs, Graphs).
+reassert([Map:_Format|Tail], OldGraph, Condition, Accum, Results) :-
+	target_graph(Map, OldGraph, Condition, NewGraph),
+	Map = [E1,E2],
+	Options = [graph(NewGraph),
+		   method(OldGraph)
+		  ],
+	assert_cell(E1, E2, Options),
+	reassert(Tail, OldGraph, Condition, Accum, Results).
 
-
-
+target_graph([E1, E2], OldGraph, Condition, Graph) :-
+	(   Condition = sourceType
+	->  findall(Type, rdf(E1, rdf:type, Type), Types)
+	;   findall(Type, rdf(E2, rdf:type, Type), Types)
+	),
+	sort(Types, STypes),
+	rdf_equal(skos:'Concept', SkosConcept),
+	(   selectchk(SkosConcept, STypes, GTypes)
+	->  true
+	;   GTypes = STypes
+	),
+	GTypes = [FirstType|_],
+	format(atom(Graph), '~p_~p', [OldGraph, FirstType]).
 
 
