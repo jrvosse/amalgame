@@ -67,11 +67,19 @@ map_iterator([E1,E2]) :-
 %	@see EDOAL: http://alignapi.gforge.inria.fr/edoal.html
 
 has_map([E1, E2], edoal, Graph) :-
-	% FIXME: workaround rdf/4 index bug
-	rdf(Cell, align:entity1, E1),
-	rdf(Cell, align:entity1, E1, Graph),
-	rdf(Cell, align:entity2, E2),
-	rdf(Cell, align:entity2, E2, Graph).
+	(   ground(E1)
+	->  rdf(Cell, align:entity1, E1, Graph),
+	    rdf(Cell, align:entity2, E2, Graph)
+	;   ground(E2)
+	->  rdf(Cell, align:entity2, E2, Graph),
+	    rdf(Cell, align:entity1, E1, Graph)
+	;   var(Graph)
+	->  rdf(Cell, align:entity1, E1, Graph),
+	    rdf(Cell, align:entity2, E2, Graph)
+	;   rdf(Cell, align:entity1, E1),
+	    rdf(Cell, align:entity1, E1, Graph),
+	    rdf(Cell, align:entity2, E2, Graph)
+	).
 
 has_map([E1, E2], skos, Graph) :-
 	rdf_has(E1, skos:mappingRelation, E2, RealProp),
@@ -105,9 +113,14 @@ find_overlap(ResultsSorted, [cached(true)]) :-
 	!, % assume overlap stats have been computed already and can be gathered from the RDF
 	findall(C:G:E, is_overlap(G,C,E), Results),
 	sort(Results, ResultsSorted).
+
 find_overlap(ResultsSorted, [cached(false)]) :-
 	findall(Map, map_iterator(Map), AllMaps),
+	length(AllMaps, L1),
+	print_message(informational, map(found, maps, L1)),
 	find_overlaps(AllMaps, [], Overlaps),
+	length(Overlaps, L2),
+	print_message(informational, map(found, overlaps, L2)),
 	count_overlaps(Overlaps, [], Results),
 	sort(Results, ResultsSorted).
 
@@ -294,4 +307,9 @@ target_graph([E1, E2], OldGraph, Condition, Graph) :-
 	GTypes = [FirstType|_],
 	format(atom(Graph), '~p_~p', [OldGraph, FirstType]).
 
+
+prolog:message(map(found,What, Number)) -->
+        [
+          'Found ', Number, ' ', What, ' to process'
+        ].
 
