@@ -1,3 +1,10 @@
+:-module(edoal, [
+		 assert_alignment/2, 	% +URI, +OptionList
+		 assert_cell/3	        % +E1, +E2, +OptionList
+		]
+	).
+
+
 /** <module> Generate EDOAL
 
 Set of convenience predicates to generate mappings in the EDOAL format.
@@ -6,13 +13,6 @@ EDOAL: Expressive and Declarative Ontology Alignment Language
 http://alignapi.gforge.inria.fr/edoal.html
 
 */
-
-
-:-module(edoal, [
-		 assert_alignment/2, 	% +URI, +OptionList
-		 assert_cell/3	        % +E1, +E2, +OptionList
-		]
-	).
 
 
 

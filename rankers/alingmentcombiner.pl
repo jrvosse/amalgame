@@ -5,8 +5,8 @@
 	 ).
 
 :- use_module(library(semweb/rdf_db)).
-:- use_module('../edoal/edoal').
-:- use_module('../namespaces.pl').
+:- use_module(amalgame(mappings/edoal).
+:- use_module(amalgame(namespaces).
 
 
 % Assert the intersection of two edoal graphs as a new graph

@@ -12,7 +12,7 @@
 :- use_module(library(semweb/rdf_persistency)).
 :- use_module(amalgame(matchers/skosmatcher)).
 :- use_module(amalgame(rankers/skosranker)).
-:- use_module(amalgame(edoal/edoal)).
+:- use_module(amalgame(mappings/edoal)).
 
 load:-
 	load_bibliopolis,

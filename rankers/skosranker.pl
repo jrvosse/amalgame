@@ -5,8 +5,8 @@
 	 ).
 
 :- use_module(library(semweb/rdf_db)).
-:- use_module('../edoal/edoal').
-:- use_module('../namespaces.pl').
+:- use_module(amalgame(mappings/edoal).
+:- use_module(amalgame(namespaces)).
 
 match_type(propmatch/def,  P):- rdf_equal(skos:definition, P).
 match_type(propmatch/pref, P):- rdf_equal(skos:prefLabel, P).

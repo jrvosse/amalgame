@@ -4,8 +4,8 @@
 	 ).
 
 :- use_module(library(semweb/rdf_db)).
-:- use_module('../edoal/edoal').
-:- use_module('./levenshtein').
+:- use_module(amalgame(mappings/edoal)).
+:- use_module(levenshtein).
 
 %%	skos_find_candidates(+C, +S, +Options, -Result) is det.
 %

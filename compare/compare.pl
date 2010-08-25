@@ -32,8 +32,8 @@ It assumes matchers assert mappings in different name graphs.
 
 :- use_module(components(label)).
 
-:- use_module('../edoal/edoal').
-:- use_module('../namespaces').
+:- use_module(amalgame('mappings/edoal')).
+:- use_module(amalgame(namespaces)).
 
 
 
@@ -173,8 +173,8 @@ clear_nicknames :-
 
 has_nickname(Graph,Nick) :-
 	% work around bug in rdf/4
-	% rdf(Graph, amalgame:nickname, literal(Nick), amalgame_nicknames).
 	rdf(Graph, amalgame:nickname, literal(Nick)).
+	% rdf(Graph, amalgame:nickname, literal(Nick), amalgame_nicknames).
 nickname(Graph, Nick) :-
 	has_nickname(Graph,Nick), !.
 nickname(Graph, Nick) :-
@@ -182,7 +182,7 @@ nickname(Graph, Nick) :-
 	rdf_assert(Graph, amalgame:nickname, literal(Nick), amalgame_nicknames).
 coin_nickname(_Graph, Nick) :-
 	char_type(Nick, alpha),
-	\+ has_nickname(_, Nick).
+	\+ has_nickname(_, Nick),!.
 
 
 collect_props_from_rdf(Graph, Count, Props) :-
@@ -212,13 +212,14 @@ find_alignment_graphs(SortedGraphs, [cached(fail)]) :-
 		DoubleGraphs),
 	sort(DoubleGraphs, Graphs),
 	findall(Count:Graph:Props,
-		(   member(Format:Graph, Graphs),
-		    find_align_props(Format, Graph, Props),
-		    count_alignments(Format, Graph, Count)
-		),
-		CountedGraphs),
+			(   member(Format:Graph, Graphs),
+	 	    find_align_props(Format, Graph, Props),
+	 	    count_alignments(Format, Graph, Count)
+	 	),
+	 	CountedGraphs),
 	sort(CountedGraphs, SortedGraphs),
-	assert_alignments(SortedGraphs).
+	assert_alignments(SortedGraphs),
+	true.
 
 mapped_concepts(Format, Graph, MapCounts) :-
 	findall(M1, has_map([M1, _], Format, Graph), M1s),
