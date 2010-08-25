@@ -104,7 +104,9 @@ find_graphs(Map, Graphs) :-
 
 count_alignments(Format, Graph, Count) :-
 	findall(Map, has_map(Map, Format, Graph), Graphs),
-	length(Graphs, Count),!.
+	length(Graphs, Count),
+	print_message(informational, map(found, maps, Graph, Count)),
+	!.
 
 count_alignments(_,_,-1).
 
@@ -117,10 +119,10 @@ find_overlap(ResultsSorted, [cached(true)]) :-
 find_overlap(ResultsSorted, [cached(false)]) :-
 	findall(Map, map_iterator(Map), AllMaps),
 	length(AllMaps, L1),
-	print_message(informational, map(found, maps, L1)),
+	print_message(informational, map(found, maps, total, L1)),
 	find_overlaps(AllMaps, [], Overlaps),
 	length(Overlaps, L2),
-	print_message(informational, map(found, overlaps, L2)),
+	print_message(informational, map(found, overlaps, total, L2)),
 	count_overlaps(Overlaps, [], Results),
 	sort(Results, ResultsSorted).
 
@@ -308,8 +310,8 @@ target_graph([E1, E2], OldGraph, Condition, Graph) :-
 	format(atom(Graph), '~p_~p', [OldGraph, FirstType]).
 
 
-prolog:message(map(found,What, Number)) -->
+prolog:message(map(found,What, From, Number)) -->
         [
-          'Found ', Number, ' ', What, ' to process'
+          'Found ', Number, ' ', What, ' (', From, ') to process'
         ].
 
