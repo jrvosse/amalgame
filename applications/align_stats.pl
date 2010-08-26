@@ -54,7 +54,8 @@ http_split_alignment(Request) :-
 			]),
 	style(Style),
 	split_alignment(Graph, Condition, OutGraphs),
-		reply_html_page(cliopatria(default),
+	clear_stats(found),
+	reply_html_page(cliopatria(default),
 			[title('Alignment splitted'),
 			 Style
 			],
