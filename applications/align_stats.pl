@@ -1,26 +1,22 @@
-:- module(align_stats,
-	  [
-	   % HTTP entry points:
-	   http_list_alignments/1, % +Request
-	   http_list_alignment/1, % +Request
-	   http_list_overlap/1,    % +Request
-	   http_clear_cache/1      % +Request
-	  ]).
+:- module(align_stats, []). % No exports, HTTP entry points only
 
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/html_write)).
 :- use_module(library(semweb/rdf_db)).
+
 :- use_module(auth(user_db)).
 :- use_module(components(label)).
 
-:- use_module('../compare/compare').
+:- use_module(amalgame(compare/compare)).
+:- use_module(amalgame(mappings/alignment)).
 
 :- http_handler(amalgame(list_alignments),    http_list_alignments,     []).
 :- http_handler(amalgame(list_alignment),     http_list_alignment,      []).
 :- http_handler(amalgame(find_overlap),       http_list_overlap,        []).
 :- http_handler(amalgame(clear_cache),        http_clear_cache,         []).
 :- http_handler(amalgame(split_alignment),    http_split_alignment,     []).
+:- http_handler(amalgame(compute_stats),      http_compute_stats,       []).
 
 %%	http_list_alignments(+Request) is det.
 %
@@ -65,6 +61,30 @@ http_split_alignment(Request) :-
 			[ h4('Alignment splitted'),
 			  div([],OutGraphs)
 			]).
+
+http_compute_stats(Request) :-
+	http_parameters(Request, [graph(all, [])]),
+	findall(G, is_alignment_graph(G,_), Graphs),!,
+	forall(member(G, Graphs),
+	       (   ensure_stats(totalcount(G)),
+		   ensure_stats(mapped(G)),
+		   ensure_stats(source(G)),
+		   ensure_stats(target(G))
+	       )
+	      ),
+	http_redirect(moved, location_by_id(http_list_alignments), Request).
+
+http_compute_stats(Request) :-
+	http_parameters(Request,
+			[graph(Graph, []),
+			 stat(Stats, [list(atom)])
+			]),
+	forall(member(Stat, Stats),
+	       (   Type =.. [Stat, Graph],
+		   ensure_stats(Type)
+	       )
+	      ),
+	http_redirect(moved, location_by_id(http_list_alignments), Request).
 
 %%	http_list_overlap(+Request) is det.
 %
@@ -212,12 +232,12 @@ show_overlap_graphs(Overlap, _Options) -->
 
 show_alignments -->
 	{
-	 find_alignment_graphs(Graphs, [cached(Cached)]),
-	 (   Cached
-	 ->  http_link_to_id(http_clear_cache, [], CacheLink),
-	     Note = ['These are cached results, ', a([href(CacheLink)], 'clear cache'), ' to recompute']
-	 ;   Note = ''
-	 )
+	 findall(Graph, is_alignment_graph(Graph,_), Graphs),
+	 http_link_to_id(http_clear_cache, [], CacheLink),
+	 http_link_to_id(http_compute_stats, [graph(all)], ComputeLink),
+	 Note = ['These are cached results, ',
+		 a([href(CacheLink)], 'clear cache'), ' or ',
+		 a([href(ComputeLink)], 'compute all'), ' missing statistics.' ]
 	},
 	html([div([id(cachenote)], Note),
 	      table([id(aligntable)],
@@ -248,24 +268,50 @@ show_alignments([],Total) -->
 		 td('Total (double counting)')
 		])).
 
-show_alignments([Count:Graph:Props|Tail], Number) -->
+show_alignments([Graph|Tail], Number) -->
 	{
-	 NewNumber is Number + Count,
-	 memberchk(format(Format), Props),
-	 memberchk(source(Source), Props),
-	 memberchk(target(Target), Props),
-	 memberchk(mappedSourceConcepts(SourcesMapped), Props),
-	 memberchk(mappedTargetConcepts(TargetsMapped), Props),
+	 http_link_to_id(http_compute_stats,
+			 [graph(Graph),
+			  stat(totalcount),
+			  stat(source),
+			  stat(target),
+			  stat(mapped)
+			 ],
+			 MissingLink),
+	 MissingValue = a([href(MissingLink)],'?'),
+	 is_alignment_graph(Graph, Format),
+	 get_computed_alignment_props(Graph, Props),
+	 (   memberchk(count(literal(type(_,Count))), Props)
+	 ->  NewNumber is Number + Count
+	 ;   NewNumber is Number, Count = MissingValue
+	 ),
 	 (   memberchk(alignment(A), Props)
 	 ->  http_link_to_id(list_resource, [r(A)], AlignLink),
 	     FormatLink = a([href(AlignLink)], Format)
-	 ;   FormatLink = Format)
+	 ;   FormatLink = Format
+	 ),
+	 (   memberchk(source(SourceGraph), Props)
+	 ->  Source = \rdf_link(SourceGraph, [resource_format(label)])
+	 ;   Source = MissingValue
+	 ),
+	 (   memberchk(target(TargetGraph), Props)
+	 ->  Target = \rdf_link(TargetGraph, [resource_format(label)])
+	 ;   Target = MissingValue
+	 ),
+	 (   memberchk(mappedSourceConcepts(MSC), Props)
+	 ->  SourcesMapped = literal(type(_,MSC))
+	 ;   SourcesMapped = MissingValue
+	 ),
+	 (   memberchk(mappedTargetConcepts(MTC), Props)
+	 ->  TargetsMapped = literal(type(_,MTC))
+	 ;   TargetsMapped = MissingValue
+	 )
 	},
 	html(tr([
 		 td(\show_alignment(Graph)),
-		 td(\rdf_link(Source, [resource_format(label)])),
+		 td(Source),
 		 td([style('text-align: right')],SourcesMapped),
-		 td(\rdf_link(Target, [resource_format(label)])),
+		 td(Target),
 		 td([style('text-align: right')],TargetsMapped),
 		 td(FormatLink),
 		 td([style('text-align: right')],Count),
