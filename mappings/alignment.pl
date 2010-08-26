@@ -21,7 +21,8 @@ is_alignment_graph(Graph, Format) :-
 	% Note: behaves as has_map(_,_,Graph), but this is very expensive due to the rdf/4 bug
 	ensure_stats(found),
 	rdf(Graph, rdf:type, amalgame:'Alignment', amalgame),
-	rdf(Graph, amalgame:format, literal(Format), amalgame).
+	rdf(Graph, amalgame:format, literal(Format), amalgame),
+	rdf_graph(Graph).
 
 %%	get_computed_alignment_props(+Graph, Props) is det.
 %
