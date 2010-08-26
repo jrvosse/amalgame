@@ -27,10 +27,9 @@ It assumes matchers assert mappings in different name graphs.
 :- use_module(components(label)).
 
 :- use_module(amalgame(mappings/map)).
+:- use_module(amalgame(mappings/alignment)).
 :- use_module(amalgame(mappings/edoal)).
 :- use_module(amalgame(namespaces)).
-
-
 
 
 %%	find_graphs(+Map, -Graphs) is det.
