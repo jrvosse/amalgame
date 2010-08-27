@@ -1,29 +1,42 @@
 @prefix amalgame: <http://purl.org/vocabularies/amalgame#> .
 @prefix align:    <http://knowledgeweb.semanticweb.org/heterogeneity/alignment#> .
+@prefix owl:	  <http://www.w3.org/2002/07/owl#> .
 @prefix rdfs:     <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix skos:	  <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd:      <http://www.w3.org/2001/XMLSchema#t> .
 
-amalgame:Alignment a rdfs:Class .
+amalgame:Alignment a rdfs:Class ;
+	rdfs:label "The class of all Named Graphs containing mappings and/or alignments."@en.
 
-amalgame:count a rdf:Property ;
+amalgame:Overlap a rdfs:Class;
+	rdfs:subClassOf amalgame:Alignment ;
+	rdfs:label "A Named Graph that describes the overlap of one or more other named graphs, these constituents are denoted by the amalgame:member property."@en .
+
+amalgame:member a rdf:Property ;
+	rdfs:label "Used to define the alignment graphs that define an Overlap."@en ;
+	rdfs:domain amalgame:Overlap ;
+	rdfs:range amalgame:Alignment .
+
+amalgame:count a rdf:Property, owl:FunctionalProperty ;
+	rdfs:label "The number of mappings in this Aligment" ;
 	rdfs:domain amalgame:Alignment ;
 	rdfs:range xsd:int .
 
-amalgame:format a rdf:Property ;
+amalgame:format a rdf:Property , owl:FunctionalProperty ;
+	rdfs:label "The format of the mappings in this Aligment, assuming a graph contains only one format." ;
 	rdfs:domain amalgame:Alignment ;
 	rdfs:range rdfs:Literal .
 
-amalgame:mappedSourceConcepts a rdf:Property ;
+amalgame:mappedSourceConcepts a rdf:Property, owl:FunctionalProperty ;
 	rdfs:domain amalgame:Alignment ;
 	rdfs:range xsd:int .
 
-amalgame:mappedTargetConcepts a rdf:Property ;
+amalgame:mappedTargetConcepts a rdf:Property, owl:FunctionalProperty ;
 	rdfs:domain amalgame:Alignment ;
 	rdfs:range xsd:int .
 
-amalgame:nickname a rdf:Property ;
+amalgame:nickname a rdf:Property , owl:FunctionalProperty ;
 	rdfs:domain amalgame:Alignment ;
 	rdfs:range rdfs:Literal .
 
