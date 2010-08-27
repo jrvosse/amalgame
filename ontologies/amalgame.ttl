@@ -1,0 +1,39 @@
+@prefix amalgame: <http://purl.org/vocabularies/amalgame#> .
+@prefix align:    <http://knowledgeweb.semanticweb.org/heterogeneity/alignment#> .
+@prefix rdfs:     <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix skos:	  <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:      <http://www.w3.org/2001/XMLSchema#t> .
+
+amalgame:Alignment a rdfs:Class .
+
+amalgame:count a rdf:Property ;
+	rdfs:domain amalgame:Alignment ;
+	rdfs:range xsd:int .
+
+amalgame:format a rdf:Property ;
+	rdfs:domain amalgame:Alignment ;
+	rdfs:range rdfs:Literal .
+
+amalgame:mappedSourceConcepts a rdf:Property ;
+	rdfs:domain amalgame:Alignment ;
+	rdfs:range xsd:int .
+
+amalgame:mappedTargetConcepts a rdf:Property ;
+	rdfs:domain amalgame:Alignment ;
+	rdfs:range xsd:int .
+
+amalgame:nickname a rdf:Property ;
+	rdfs:domain amalgame:Alignment ;
+	rdfs:range rdfs:Literal .
+
+amalgame:source a rdf:Property ;
+	rdfs:domain amalgame:Alignment ;
+	rdfs:range align:Ontology ;
+	rdfs:range skos:ConceptScheme .
+
+amalgame:target a rdf:Property ;
+	rdfs:domain amalgame:Alignment ;
+	rdfs:range align:Ontology ;
+	rdfs:range skos:ConceptScheme .
+

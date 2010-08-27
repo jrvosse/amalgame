@@ -1,12 +1,18 @@
-@prefix     lib: <http://www.swi-prolog.org/rdf/library/> .
-@prefix     owl: <http://www.w3.org/2002/07/owl#> .
-@prefix	dcterms: <http://purl.org/dc/terms/> .
-@prefix	  align: <http://knowledgeweb.semanticweb.org/heterogeneity/alignment#> .
+@prefix	   align: <http://knowledgeweb.semanticweb.org/heterogeneity/alignment#> .
+@prefix amalgame: <http://purl.org/vocabularies/amalgame#> .
+@prefix      lib: <http://www.swi-prolog.org/rdf/library/> .
+@prefix      owl: <http://www.w3.org/2002/07/owl#> .
+@prefix	 dcterms: <http://purl.org/dc/terms/> .
 
 :align
         a lib:Namespace ;
         lib:mnemonic "align" ;
         lib:namespace align: .
+
+:amalgame
+        a lib:Namespace ;
+        lib:mnemonic "amalgame" ;
+        lib:namespace amalgame: .
 
 <alignmentschema>
 	a lib:Ontology ;
@@ -16,3 +22,14 @@
 	owl:imports
 		<align.owl> ,
 		<align.rdfs> .
+
+
+<amalgameschema>
+	a lib:Ontology ;
+	a lib:Virtual ;
+	dcterms:title "Schema for the Amalgame RDF vocabulary"@en ;
+	lib:source amalgame: ;
+	owl:imports
+		<amalgame.ttl> .
+
+
