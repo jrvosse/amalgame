@@ -1,6 +1,7 @@
 :- module(compare,
 	  [
-	   find_overlap/2
+	   find_overlap/2,
+	   clear_overlaps/0
 	  ]
 	 ).
 
@@ -44,6 +45,14 @@ find_overlap(ResultsSorted, [cached(false)]) :-
 	count_overlaps(Overlaps, [], Results),
 	sort(Results, ResultsSorted).
 
+clear_overlaps :-
+	forall(
+		(   rdf_graph(Graph),
+		    sub_atom(Graph,_,_,_,'amalgame_overlap')
+		),
+	       rdf_retractall(_,_,_,Graph)
+	      ).
+
 is_precomputed_overlap(Overlap, C, [E1,E2]) :-
 	rdf(Overlap, rdf:type, amalgame:'Overlap', amalgame),
 	rdf(Overlap, amalgame:count, literal(type(_,C)), amalgame),
@@ -62,16 +71,22 @@ count_overlaps([Graphs:Map|Tail], Accum, Results) :-
 	->  true
 	;   Count = 0, NewAccum = Accum, Example=Map
 	),
+	Map = [E1, E2],
+	overlap_uri(Graphs, Overlap),
+	assert_cell(E1, E2, [graph(Overlap), method(overlap)]),
 	NewCount is Count + 1,
 	count_overlaps(Tail, [NewCount:Graphs:Example|NewAccum], Results).
+
+overlap_uri(GraphList, URI) :-
+	term_hash(GraphList, Hash),
+	rdf_equal(amalgame:'', NS),
+	format(atom(URI), '~wamalgame_overlap_~w', [NS,Hash]),
+	debug(uri, 'URI: ~w', [URI]).
 
 assert_overlaps([], Accum, Accum).
 assert_overlaps([C:G:E|Tail], Accum, Results) :-
 	E = [E1,E2],
-	term_hash(G, Hash),
-	rdf_equal(amalgame:'', NS),
-	format(atom(URI), '~wamalgame_overlap_~w', [NS,Hash]),
-	debug(uri, 'URI: ~w', [URI]),
+	overlap_uri(G, URI),
 	assert_overlap_members(URI, G),
 	rdf_assert(URI, rdf:type, amalgame:'Overlap', amalgame),
 	rdf_assert(URI, amalgame:count, literal(type('xsd:int', C)), amalgame),
