@@ -91,7 +91,7 @@ ensure_stats(target(Graph)) :-
 	(   rdf(Graph, amalgame:target, _, amalgame)
 	->  true
 	;   is_alignment_graph(Graph, Format),!,
-	    find_source(Graph, Format, Target),
+	    find_target(Graph, Format, Target),
 	    assert_alignment_props(Graph:[target(Target)])
 	),!.
 
@@ -160,7 +160,7 @@ find_source(Graph, Format, Source) :-
 	).
 
 find_target(Graph, Format, Source) :-
-	has_map([_, E2], Format, Graph),
+	has_map([_, E2], Format, Graph), !,
 	(   rdf_has(E2, skos:inScheme, Source)
 	->  true
 	;   iri_xml_namespace(E2, Source)
