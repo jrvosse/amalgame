@@ -70,3 +70,12 @@ has_map([E1, E2], owl, Graph) :-
 	rdf(E1, RealProp, E2, Graph).
 
 
+%%	prolog:message(map(found, What, From, Number))// is det.
+%
+%	Used to print various progress messages.
+%
+
+prolog:message(map(found, What, From, Number)) -->
+        [
+          'Found ', Number, ' ', What, ' (', From, ') to process'
+        ].

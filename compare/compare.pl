@@ -145,20 +145,6 @@ find_alignment_graphs(SortedGraphs, [cached(true)]) :-
 	       ),
 	sort(Graphs, SortedGraphs).
 
-find_alignment_graphs(SortedGraphs, [cached(fail)]) :-
-	% fixme rdf/4 bug work around
-	% findall(Format:Graph, (rdf_graph(Graph), has_map(_,Format,Graph)), Graphs).
-	findall(Format:Graph, has_map(_, Format,Graph:_), DoubleGraphs),
-	sort(DoubleGraphs, Graphs),
-	findall(Count:Graph:Props,
-		(   member(Format:Graph, Graphs),
-		    find_align_props(Format, Graph, Props),
-		    count_alignments(Format, Graph, Count)
-		),
-		CountedGraphs),
-	sort(CountedGraphs, SortedGraphs),
-	assert_alignments(SortedGraphs),
-	true.
 
 
 mapped_concepts(Format, Graph, MapCounts) :-
@@ -173,51 +159,6 @@ mapped_concepts(Format, Graph, MapCounts) :-
 		     mappedTargetConcepts(literal(NrMappedTargetConcepts))
 		    ].
 
-find_align_props(edoal, Graph, Props) :-
-	rdf(Alignment, rdf:type, align:'Alignment', Graph),
-	rdf(Alignment, align:onto1, O1, Graph),
-	rdf(Alignment, align:onto2, O2, Graph),
-	Props1 = [
-		 format(literal(edoal)),
-		 alignment(Alignment),
-		 source(O1),
-		 target(O2)
-		],
-	!,
-	mapped_concepts(edoal, Graph, MapCounts),
-	append(Props1, MapCounts, Props).
-
-find_align_props(Format, Graph, Props) :-
-	Props1 = [
-		 format(literal(Format)),
-		 source(Source),
-		 target(Target)
-		],
-	has_map([E1, E2], Format, Graph),
-	(   rdf_has(E1, skos:inScheme, Source)
-	->  true
-	;   iri_xml_namespace(E1, Source)
-	),
-	(   rdf_has(E2, skos:inScheme, Target)
-	->  true
-	;   iri_xml_namespace(E2, Target)
-	),
-	!,
-
-	mapped_concepts(Format, Graph, MapCounts),
-	append(Props1, MapCounts, Props).
-
-assert_alignments([]).
-assert_alignments([Count:Graph:Props|Tail]) :-
-	rdf_equal(amalgame:'', NS),
-	rdf_assert(Graph, rdf:type, amalgame:'Alignment',   amalgame),
-	rdf_assert(Graph, amalgame:count,  literal(Count),  amalgame),
-	forall(member(M,Props),
-	       (   M =.. [PropName, Value],
-		   format(atom(URI), '~w~w', [NS,PropName]),
-		   rdf_assert(Graph, URI, Value, amalgame)
-	       )),
-	assert_alignments(Tail).
 
 
 
@@ -251,8 +192,4 @@ target_graph([E1, E2], OldGraph, Condition, Graph) :-
 	format(atom(Graph), '~p_~p', [OldGraph, FirstType]).
 
 
-prolog:message(map(found,What, From, Number)) -->
-        [
-          'Found ', Number, ' ', What, ' (', From, ') to process'
-        ].
 
