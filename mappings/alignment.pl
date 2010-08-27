@@ -1,12 +1,17 @@
 :-module(ag_alignment,
 	 [
 	  is_alignment_graph/2,
+	  find_graphs/2,
+	  nickname/2,
+	  split_alignment/3,
+
 	  get_computed_alignment_props/2,
 	  ensure_stats/1,
 	  clear_stats/1,
 	  recompute_stats/1
 	 ]).
 
+:- use_module(edoal).
 :- use_module(map).
 
 %%	is_alignment_graph(+Graph, ?Format) is semidet.
@@ -23,6 +28,16 @@ is_alignment_graph(Graph, Format) :-
 	rdf(Graph, rdf:type, amalgame:'Alignment', amalgame),
 	rdf(Graph, amalgame:format, literal(Format), amalgame),
 	rdf_graph(Graph).
+
+%%	find_graphs(+Map, -Graphs) is det.
+%
+%	Find all Graphs that have a mapping Map.
+
+find_graphs(Map, Graphs) :-
+	findall(Graph,
+		has_map(Map, _, Graph:_),
+		Graphs).
+
 
 %%	get_computed_alignment_props(+Graph, Props) is det.
 %
@@ -102,10 +117,16 @@ ensure_stats(mapped(Graph)) :-
 %	Clears all results that have been cached after running
 %	ensure_stats(Type).
 
+clear_stats(all) :-
+	rdf_retractall(_, _, _, amalgame),
+	rdf_retractall(_, _, _, amalgame_nicknames).
+
 clear_stats(found) :-
 	rdf_retractall(_, rdf:type, amalgame:'Alignment', amalgame),
 	rdf_retractall(_, amalgame:format, _, amalgame).
 
+clear_stats(nicknames) :-
+	rdf_retractall(_, _, _, amalgame_nicknames).
 
 %%	recompute_stats(+Type) is det.
 %%	recompute_stats(-Type) is nondet.
@@ -160,3 +181,46 @@ assert_alignment_props(Graph:Props) :-
 	       )).
 
 
+
+
+
+has_nickname(Graph,Nick) :-
+	% work around bug in rdf/4
+	rdf(Graph, amalgame:nickname, literal(Nick)).
+	% rdf(Graph, amalgame:nickname, literal(Nick), amalgame_nicknames).
+nickname(Graph, Nick) :-
+	has_nickname(Graph,Nick), !.
+nickname(Graph, Nick) :-
+	coin_nickname(Graph, Nick),
+	rdf_assert(Graph, amalgame:nickname, literal(Nick), amalgame_nicknames).
+coin_nickname(_Graph, Nick) :-
+	char_type(Nick, alpha),
+	\+ has_nickname(_, Nick),!.
+
+split_alignment(SourceGraph, Condition, SplittedGraphs) :-
+	findall(Map:Format, has_map(Map, Format, SourceGraph), Maps),
+	reassert(Maps, SourceGraph, Condition, [], SplittedGraphs).
+
+reassert([], _ , _, Graphs, Graphs).
+reassert([Map:_Format|Tail], OldGraph, Condition, Accum, Results) :-
+	target_graph(Map, OldGraph, Condition, NewGraph),
+	Map = [E1,E2],
+	Options = [graph(NewGraph),
+		   method(OldGraph)
+		  ],
+	assert_cell(E1, E2, Options),
+	reassert(Tail, OldGraph, Condition, Accum, Results).
+
+target_graph([E1, E2], OldGraph, Condition, Graph) :-
+	(   Condition = sourceType
+	->  findall(Type, rdf(E1, rdf:type, Type), Types)
+	;   findall(Type, rdf(E2, rdf:type, Type), Types)
+	),
+	sort(Types, STypes),
+	rdf_equal(skos:'Concept', SkosConcept),
+	(   selectchk(SkosConcept, STypes, GTypes)
+	->  true
+	;   GTypes = STypes
+	),
+	GTypes = [FirstType|_],
+	format(atom(Graph), '~p_~p', [OldGraph, FirstType]).

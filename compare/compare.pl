@@ -1,11 +1,6 @@
 :- module(compare,
 	  [
-	   clear_stats/0,
-	   clear_nicknames/0,
-	   nickname/2,
-	   find_overlap/2,
-	   find_alignment_graphs/2,
-	   split_alignment/3
+	   find_overlap/2
 	  ]
 	 ).
 
@@ -32,27 +27,11 @@ It assumes matchers assert mappings in different name graphs.
 :- use_module(amalgame(namespaces)).
 
 
-%%	find_graphs(+Map, -Graphs) is det.
-%
-%	Find all Graphs that have a mapping Map.
-
-find_graphs(Map, Graphs) :-
-	findall(Graph,
-		has_map(Map, _, Graph:_),
-		Graphs).
-
-count_alignments(Format, Graph, Count) :-
-	findall(Map, has_map(Map, Format, Graph), Graphs),
-	length(Graphs, Count),
-	print_message(informational, map(found, maps, Graph, Count)),
-	!.
-
-count_alignments(_,_,-1).
 
 find_overlap(ResultsSorted, [cached(true)]) :-
 	rdf(_, amalgame:member, _),
 	!, % assume overlap stats have been computed already and can be gathered from the RDF
-	findall(C:G:E, is_overlap(G,C,E), Results),
+	findall(C:G:E, is_precomputed_overlap(G,C,E), Results),
 	sort(Results, ResultsSorted).
 
 find_overlap(ResultsSorted, [cached(false)]) :-
@@ -65,9 +44,9 @@ find_overlap(ResultsSorted, [cached(false)]) :-
 	count_overlaps(Overlaps, [], Results),
 	sort(Results, ResultsSorted).
 
-is_overlap(Overlap, C, [E1,E2]) :-
+is_precomputed_overlap(Overlap, C, [E1,E2]) :-
 	rdf(Overlap, rdf:type, amalgame:'Overlap', amalgame),
-	rdf(Overlap, amalgame:count, literal(C), amalgame),
+	rdf(Overlap, amalgame:count, literal(type(_,C)), amalgame),
 	rdf(Overlap, amalgame:entity1, E1, amalgame),
 	rdf(Overlap, amalgame:entity2, E2, amalgame).
 
@@ -95,7 +74,7 @@ assert_overlaps([C:G:E|Tail], Accum, Results) :-
 	debug(uri, 'URI: ~w', [URI]),
 	assert_overlap_members(URI, G),
 	rdf_assert(URI, rdf:type, amalgame:'Overlap', amalgame),
-	rdf_assert(URI, amalgame:count, literal(C), amalgame),
+	rdf_assert(URI, amalgame:count, literal(type('xsd:int', C)), amalgame),
 	rdf_assert(URI, amalgame:entity1, E1, amalgame),
 	rdf_assert(URI, amalgame:entity2, E2, amalgame),
 	assert_overlaps(Tail, [C:URI:E|Accum], Results).
@@ -105,91 +84,6 @@ assert_overlap_members(URI, [G|T]) :-
 	rdf_assert(URI, amalgame:member, G, amalgame),
 	assert_overlap_members(URI, T).
 
-clear_stats :-
-	rdf_retractall(_, _, _, amalgame).
-clear_nicknames :-
-	rdf_retractall(_, _, _, amalgame_nicknames).
-
-has_nickname(Graph,Nick) :-
-	% work around bug in rdf/4
-	rdf(Graph, amalgame:nickname, literal(Nick)).
-	% rdf(Graph, amalgame:nickname, literal(Nick), amalgame_nicknames).
-nickname(Graph, Nick) :-
-	has_nickname(Graph,Nick), !.
-nickname(Graph, Nick) :-
-	coin_nickname(Graph, Nick),
-	rdf_assert(Graph, amalgame:nickname, literal(Nick), amalgame_nicknames).
-coin_nickname(_Graph, Nick) :-
-	char_type(Nick, alpha),
-	\+ has_nickname(_, Nick),!.
-
-
-collect_props_from_rdf(Graph, Count, Props) :-
-	rdf(Graph, amalgame:count, literal(Count), amalgame),
-	findall([PropLn, Value],
-		(   rdf(Graph, Prop, Value, amalgame),
-		    rdf_global_id(amalgame:PropLn, Prop)
-		),
-		GraphProps
-	       ),
-	maplist(=.., Props, GraphProps).
-
-find_alignment_graphs(SortedGraphs, [cached(true)]) :-
-	rdf(_, rdf:type, amalgame:'Alignment', amalgame),
-	!,
-	findall(Count:Graph:Props,
-		(   rdf(Graph, rdf:type, amalgame:'Alignment', amalgame),
-		    collect_props_from_rdf(Graph, Count, Props)
-		),
-		Graphs
-	       ),
-	sort(Graphs, SortedGraphs).
-
-
-
-mapped_concepts(Format, Graph, MapCounts) :-
-	findall(M1, has_map([M1, _], Format, Graph), M1s),
-	findall(M2, has_map([_, M2], Format, Graph), M2s),
-	sort(M1s, MappedSourceConcepts),
-	sort(M2s, MappedTargetConcepts),
-	length(MappedSourceConcepts, NrMappedSourceConcepts),
-	length(MappedTargetConcepts, NrMappedTargetConcepts),
-	MapCounts = [
-		     mappedSourceConcepts(literal(NrMappedSourceConcepts)),
-		     mappedTargetConcepts(literal(NrMappedTargetConcepts))
-		    ].
-
-
-
-
-
-split_alignment(SourceGraph, Condition, SplittedGraphs) :-
-	findall(Map:Format, has_map(Map, Format, SourceGraph), Maps),
-	reassert(Maps, SourceGraph, Condition, [], SplittedGraphs).
-
-reassert([], _ , _, Graphs, Graphs).
-reassert([Map:_Format|Tail], OldGraph, Condition, Accum, Results) :-
-	target_graph(Map, OldGraph, Condition, NewGraph),
-	Map = [E1,E2],
-	Options = [graph(NewGraph),
-		   method(OldGraph)
-		  ],
-	assert_cell(E1, E2, Options),
-	reassert(Tail, OldGraph, Condition, Accum, Results).
-
-target_graph([E1, E2], OldGraph, Condition, Graph) :-
-	(   Condition = sourceType
-	->  findall(Type, rdf(E1, rdf:type, Type), Types)
-	;   findall(Type, rdf(E2, rdf:type, Type), Types)
-	),
-	sort(Types, STypes),
-	rdf_equal(skos:'Concept', SkosConcept),
-	(   selectchk(SkosConcept, STypes, GTypes)
-	->  true
-	;   GTypes = STypes
-	),
-	GTypes = [FirstType|_],
-	format(atom(Graph), '~p_~p', [OldGraph, FirstType]).
 
 
 

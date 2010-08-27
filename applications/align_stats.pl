@@ -118,8 +118,7 @@ http_list_overlap(_Request) :-
 
 http_clear_cache(_Request) :-
 	authorized(write(amalgame_cache, clear)),
-	clear_nicknames,
-	clear_stats,
+	clear_stats(all),
 	reply_html_page(cliopatria(default),
 			title('Amalgame caches cleared'),
 			[h3('Amalgame caches cleared'),
