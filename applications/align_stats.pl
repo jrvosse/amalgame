@@ -119,13 +119,15 @@ http_list_overlap(_Request) :-
 http_clear_cache(_Request) :-
 	authorized(write(amalgame_cache, clear)),
 	clear_stats(all),
+	clear_overlaps,
 	reply_html_page(cliopatria(default),
 			title('Amalgame caches cleared'),
-			[h3('Amalgame caches cleared'),
-			 p('The following caches have been cleared:'),
+			[h3('Amalgame generated data have been cleared'),
+			 p('The following data been cleared:'),
 			 ul([
-			     li('Amalgame alignment abbreviation cache'),
-			     li('Amalgame statistics cache')
+			     li('Amalgame alignment overlap named graphs'),
+			     li('Amalgame alignment abbreviation nicknamesrdf'),
+			     li('Amalgame statistics data')
 			    ])
 			]).
 
@@ -200,7 +202,7 @@ show_countlist([Count:O:Example|T], Number) -->
 	  NewNumber is Number + Count
 	},
 	html(tr([
-		 td(\show_overlap_graphs(O, [nick(true)])),
+		 td(\show_overlap_graphs(O)),
 		 td([style('text-align: right')],Count),
 		 \show_example(Example)
 		])),
@@ -218,7 +220,7 @@ show_example([E1, E2]) -->
 show_example([E1, E2]) -->
 	html([td(E1),td(E2)]).
 
-show_overlap_graphs(Overlap, _Options) -->
+show_overlap_graphs(Overlap) -->
 	{
 	 findall(Nick,
 		 (   rdf(Overlap, amalgame:member, M),
@@ -226,7 +228,7 @@ show_overlap_graphs(Overlap, _Options) -->
 		 ), Graphs),
 	 sort(Graphs, Sorted),
 	 atom_chars(Nicks, Sorted),
-	 http_link_to_id(list_resource, [r(Overlap)], Olink)
+	 http_link_to_id(list_graph, [graph(Overlap)], Olink)
 	},
 	html([a([href(Olink)], Nicks)]).
 
