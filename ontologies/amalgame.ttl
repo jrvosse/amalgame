@@ -7,24 +7,29 @@
 @prefix xsd:      <http://www.w3.org/2001/XMLSchema#> .
 
 amalgame:Alignment a rdfs:Class ;
-	rdfs:label "The class of all Named Graphs containing mappings and/or alignments."@en.
+	rdfs:label "Amalgame Alignment Graph"@en ;
+	rdfs:comment "The class of all Named Graphs containing mappings and/or alignments."@en.
 
 amalgame:Overlap a rdfs:Class;
 	rdfs:subClassOf amalgame:Alignment ;
-	rdfs:label "A Named Graph that describes the overlap of one or more other named graphs, these constituents are denoted by the amalgame:member property."@en .
+	rdfs:label "Amalgame Overlap"@en ;
+	rdfs:comment "A Named Graph that describes the overlap of one or more other named graphs, these constituents are denoted by the amalgame:member property."@en .
 
 amalgame:member a rdf:Property ;
-	rdfs:label "Used to define the alignment graphs that define an Overlap."@en ;
+	rdfs:label "overlap member"@en ;
+	rdfs:comment "Used to define the alignment graphs that define an Overlap."@en ;
 	rdfs:domain amalgame:Overlap ;
 	rdfs:range amalgame:Alignment .
 
 amalgame:count a rdf:Property, owl:FunctionalProperty ;
-	rdfs:label "The number of mappings in this Aligment" ;
+	rdfs:label "total map count" ;
+	rdfs:comment "The number of mappings in this Aligment" ;
 	rdfs:domain amalgame:Alignment ;
 	rdfs:range xsd:int .
 
 amalgame:format a rdf:Property , owl:FunctionalProperty ;
-	rdfs:label "The format of the mappings in this Aligment, assuming a graph contains only one format." ;
+	rdfs:label "mapping format" ;
+	rdfs:comment "The format of the mappings in this Aligment, assuming a graph contains only one format." ;
 	rdfs:domain amalgame:Alignment ;
 	rdfs:range rdfs:Literal .
 
