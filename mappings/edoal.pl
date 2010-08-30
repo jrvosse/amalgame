@@ -84,7 +84,9 @@ assert_cell(C1, C2, Options) :-
 	rdf_assert(Cell, align:entity1, C1, Graph),
 	rdf_assert(Cell, align:entity2, C2, Graph),
 	rdf_assert(Cell, align:measure, literal(M), Graph),
-	rdf_assert(Cell, align:relation, literal(R), Graph),
+	% Relation should be a literal according to the specs, be we do not like this ...
+	% rdf_assert(Cell, align:relation, literal(R), Graph),
+	rdf_assert(Cell, align:relation, R, Graph),
 
 	% FIXME. Jan, asserting this triple slows things down dramatically
 	%(   option(alignment(A), Options)
