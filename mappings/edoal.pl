@@ -70,14 +70,15 @@ assert_alignment(URI, Options) :-
 %       between Entity 1 and 2.
 %	Options include:
 %	- measure(M) the confidence level (M defaults to 0.00001).
-%	- relation(R) the type of relation (R defaults to '=')
+%	- relation(R) the type of relation (R defaults to skos:closeMatch)
 %	- method(M) method used if different from method set for
 %	- aligmnent A (default: none)
 
 assert_cell(C1, C2, Options) :-
+	rdf_equal(skos:closeMatch, CloseMatch),
         option(graph(Graph), Options, align),
 	option(measure(M),   Options, 0.00001),
-	option(relation(R),  Options, '='),
+	option(relation(R),  Options, CloseMatch),
 	rdf_bnode(Cell),
 	rdf_assert(Cell, rdf:type, align:'Cell', Graph),
 	rdf_assert(Cell, align:entity1, C1, Graph),
