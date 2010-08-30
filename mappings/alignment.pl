@@ -159,11 +159,11 @@ find_source(Graph, Format, Source) :-
 	;   iri_xml_namespace(E1, Source)
 	).
 
-find_target(Graph, Format, Source) :-
+find_target(Graph, Format, Target) :-
 	has_map([_, E2], Format, Graph), !,
-	(   rdf_has(E2, skos:inScheme, Source)
+	(   rdf_has(E2, skos:inScheme, Target)
 	->  true
-	;   iri_xml_namespace(E2, Source)
+	;   iri_xml_namespace(E2, Target)
 	).
 
 assert_alignment_props([]).
