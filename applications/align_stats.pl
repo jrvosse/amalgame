@@ -54,7 +54,7 @@ http_split_alignment(Request) :-
 			]),
 	style(Style),
 	split_alignment(Graph, Condition, OutGraphs),
-	clear_stats(found),
+	align_clear_stats(found),
 	reply_html_page(cliopatria(default),
 			[title('Alignment splitted'),
 			 Style
@@ -67,10 +67,10 @@ http_compute_stats(Request) :-
 	http_parameters(Request, [graph(all, [])]),
 	findall(G, is_alignment_graph(G,_), Graphs),!,
 	forall(member(G, Graphs),
-	       (   ensure_stats(totalcount(G)),
-		   ensure_stats(mapped(G)),
-		   ensure_stats(source(G)),
-		   ensure_stats(target(G))
+	       (   align_ensure_stats(totalcount(G)),
+		   align_ensure_stats(mapped(G)),
+		   align_ensure_stats(source(G)),
+		   align_ensure_stats(target(G))
 	       )
 	      ),
 	http_redirect(moved, location_by_id(http_list_alignments), Request).
@@ -82,7 +82,7 @@ http_compute_stats(Request) :-
 			]),
 	forall(member(Stat, Stats),
 	       (   Type =.. [Stat, Graph],
-		   ensure_stats(Type)
+		   align_ensure_stats(Type)
 	       )
 	      ),
 	http_redirect(moved, location_by_id(http_list_alignments), Request).
@@ -118,7 +118,7 @@ http_list_overlap(_Request) :-
 
 http_clear_cache(_Request) :-
 	authorized(write(amalgame_cache, clear)),
-	clear_stats(all),
+	align_clear_stats(all),
 	clear_overlaps,
 	reply_html_page(cliopatria(default),
 			title('Amalgame caches cleared'),
@@ -282,10 +282,10 @@ show_alignments([Graph|Tail], Number) -->
 			 MissingLink),
 	 MissingValue = a([href(MissingLink)],'?'),
 	 is_alignment_graph(Graph, Format),
-	 get_computed_alignment_props(Graph, Props),
+	 align_get_computed_props(Graph, Props),
 	 (   memberchk(count(literal(type(_,Count))), Props)
 	 ->  NewNumber is Number + Count
-	 ;   NewNumber is Number, Count = MissingValue
+	 ;   NewNumber = Number, Count = MissingValue
 	 ),
 	 (   memberchk(alignment(A), Props)
 	 ->  http_link_to_id(list_resource, [r(A)], AlignLink),

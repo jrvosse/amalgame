@@ -5,10 +5,10 @@
 	  nickname/2,
 	  split_alignment/3,
 
-	  get_computed_alignment_props/2,
-	  ensure_stats/1,
-	  clear_stats/1,
-	  recompute_stats/1
+	  align_get_computed_props/2,
+	  align_ensure_stats/1,
+	  align_clear_stats/1,
+	  align_recompute_stats/1
 	 ]).
 
 :- use_module(edoal).
@@ -24,7 +24,7 @@
 
 is_alignment_graph(Graph, Format) :-
 	% Note: behaves as has_map(_,_,Graph), but this is very expensive due to the rdf/4 bug
-	ensure_stats(found),
+	align_ensure_stats(found),
 	rdf(Graph, rdf:type, amalgame:'Alignment', amalgame),
 	rdf(Graph, amalgame:format, literal(Format), amalgame),
 	rdf_graph(Graph).
@@ -39,12 +39,12 @@ find_graphs(Map, Graphs) :-
 		Graphs).
 
 
-%%	get_computed_alignment_props(+Graph, Props) is det.
+%%	align_get_computed_props(+Graph, Props) is det.
 %
 %	Collect all amalgame properties Props of Graph that have been
 %	computed already.
 
-get_computed_alignment_props(Graph, Props) :-
+align_get_computed_props(Graph, Props) :-
 	findall([PropLn, Value],
 		(   rdf(Graph, Prop, Value, amalgame),
 		    rdf_global_id(amalgame:PropLn, Prop)
@@ -53,25 +53,26 @@ get_computed_alignment_props(Graph, Props) :-
 	       ),
 	maplist(=.., Props, GraphProps).
 
-%%	ensure_stats(+Type) is det.
-%%	ensure_stats(-Type) is nondet.
+%%	align_ensure_stats(+Type) is det.
+%%	align_ensure_stats(-Type) is nondet.
 %
 %	Ensures that alignmets statistics of type Type have been
 %	computed. The following types are currently supported:
 %
 %	* found: makes sure that the algorithm to find all alignment
 %	graphs has been run.
+%	* totalcount: idem for total number of alignments
 %
 
 
-ensure_stats(found) :-
+align_ensure_stats(found) :-
 	(   rdf(_, rdf:type, amalgame:'Alignment', amalgame)
 	->  true
 	;   find_alignment_graphs(Graphs),
 	    assert_alignment_props(Graphs)
 	),!.
 
-ensure_stats(totalcount(Graph)) :-
+align_ensure_stats(totalcount(Graph)) :-
 	(   rdf(Graph, amalgame:count, _, amalgame)
 	->  true
 	;   is_alignment_graph(Graph, Format),!,
@@ -79,7 +80,7 @@ ensure_stats(totalcount(Graph)) :-
 	    assert_alignment_props(Graph:[count(literal(type('http://www.w3.org/2001/XMLSchema#int',Count)))])
 	),!.
 
-ensure_stats(source(Graph)) :-
+align_ensure_stats(source(Graph)) :-
 	(   rdf(Graph, amalgame:source, _, amalgame)
 	->  true
 	;   is_alignment_graph(Graph, Format),!,
@@ -87,7 +88,7 @@ ensure_stats(source(Graph)) :-
 	    assert_alignment_props(Graph:[source(Source)])
 	),!.
 
-ensure_stats(target(Graph)) :-
+align_ensure_stats(target(Graph)) :-
 	(   rdf(Graph, amalgame:target, _, amalgame)
 	->  true
 	;   is_alignment_graph(Graph, Format),!,
@@ -96,7 +97,7 @@ ensure_stats(target(Graph)) :-
 	),!.
 
 
-ensure_stats(mapped(Graph)) :-
+align_ensure_stats(mapped(Graph)) :-
 	(   rdf(Graph, amalgame:mappedSourceConcepts, _, amalgame)
 	->  true
 	;   is_alignment_graph(Graph, Format),!,
@@ -111,32 +112,32 @@ ensure_stats(mapped(Graph)) :-
 					 ])
 	),!.
 
-%%	clear_stats(+Type) is det.
-%%	clear_stats(-Type) is nondet.
+%%	align_clear_stats(+Type) is det.
+%%	align_clear_stats(-Type) is nondet.
 %
 %	Clears all results that have been cached after running
 %	ensure_stats(Type).
 
-clear_stats(all) :-
+align_clear_stats(all) :-
 	rdf_retractall(_, _, _, amalgame),
 	rdf_retractall(_, _, _, amalgame_nicknames).
 
-clear_stats(found) :-
+align_clear_stats(found) :-
 	rdf_retractall(_, rdf:type, amalgame:'Alignment', amalgame),
 	rdf_retractall(_, amalgame:format, _, amalgame).
 
-clear_stats(nicknames) :-
+align_clear_stats(nicknames) :-
 	rdf_retractall(_, _, _, amalgame_nicknames).
 
-%%	recompute_stats(+Type) is det.
-%%	recompute_stats(-Type) is nondet.
+%%	align_recompute_stats(+Type) is det.
+%%	align_recompute_stats(-Type) is nondet.
 %
 %	Clears and recomputes statistics of type Type. See
 %	ensure_stats/1 for a list of supported types.
 
-recompute_stats(Type) :-
-	clear_stats(Type),
-	ensure_stats(Type).
+align_recompute_stats(Type) :-
+	align_clear_stats(Type),
+	align_ensure_stats(Type).
 
 
 find_alignment_graphs(Graphs):-

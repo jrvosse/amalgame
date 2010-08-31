@@ -1,5 +1,8 @@
 :- module(am_skosvocs,
-          [skos_statistics/1
+          [skos_statistics/1,
+	   voc_get_computed_props/2,
+
+	   voc_ensure_stats/1
           ]).
 
 :- use_module(library(http/http_dispatch)).
@@ -28,6 +31,54 @@ skos_statistics(Stats) :-
 		rdfs_individual_of(Scheme, skos:'ConceptScheme'),
 		Schemes),
 	skos_vocs_stats(Schemes, [], Stats).
+
+
+voc_get_computed_props(Voc, Props) :-
+	findall([PropLn, Value],
+		(   rdf(Voc, Prop, Value, amalgame),
+		    rdf_global_id(amalgame:PropLn, Prop)
+		),
+		GraphProps
+	       ),
+	maplist(=.., Props, GraphProps).
+
+voc_ensure_stats(numberOfConcepts(Voc)) :-
+	(   rdf(Voc,amalgame:numberOfConcepts, literal(type(_, Count)))
+	->  true
+	;   count_concepts(Voc, Count),
+	    assert_voc_props(Voc:[numberOfConcepts(literal(type('http://www.w3.org/2001/XMLSchema#int', Count)))])
+	),!.
+
+voc_ensure_stats(numberOfPrefLabels(Voc)) :-
+	(   rdf(Voc,amalgame:numberOfPrefLabels, literal(type(_, Count)))
+	->  true
+	;   count_prefLabels(Voc, Count),
+	    assert_voc_props(Voc:[numberOfPrefLabels(literal(type('http://www.w3.org/2001/XMLSchema#int', Count)))])
+	),!.
+
+voc_ensure_stats(numberOfAltLabels(Voc)) :-
+	(   rdf(Voc,amalgame:numberOfAltLabels, literal(type(_, Count)))
+	->  true
+	;   count_altLabels(Voc, Count),
+	    assert_voc_props(Voc:[numberOfAltLabels(literal(type('http://www.w3.org/2001/XMLSchema#int', Count)))])
+	),!.
+
+assert_voc_props([]).
+assert_voc_props([Head|Tail]) :-
+	assert_voc_props(Head),
+	assert_voc_props(Tail),!.
+
+assert_voc_props(Voc:Props) :-
+	rdf_equal(amalgame:'', NS),
+	(   rdf(Voc, rdf:type, skos:'ConceptScheme')
+	->  true
+	;   rdf_assert(Voc, rdf:type, skos:'ConceptScheme', amalgame)
+	),
+	forall(member(M,Props),
+	       (   M =.. [PropName, Value],
+		   format(atom(URI), '~w~w', [NS,PropName]),
+		   rdf_assert(Voc, URI, Value, amalgame)
+	       )).
 
 strip_sort_value(_:V:S, V:S).
 
