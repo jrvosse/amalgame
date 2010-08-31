@@ -40,9 +40,9 @@ skos_vocs_stats([Voc|Tail], Accum, Stats) :-
 	skos_vocs_stats(Tail, [SortValue:Voc:VocStats|Accum], Stats).
 
 skos_voc_stats(Voc, Count, Stats) :-
-	rdf(Voc,amalgame:numberOfConcepts,   literal(Count), amalgame),
-	rdf(Voc,amalgame:numberOfPrefLabels, literal(PCount), amalgame),
-	rdf(Voc,amalgame:numberOfAltLabels,  literal(ACount), amalgame),
+	rdf(Voc,amalgame:numberOfConcepts,   literal(type(xsd:int, Count)),  amalgame),
+	rdf(Voc,amalgame:numberOfPrefLabels, literal(type(xsd:int, PCount)), amalgame),
+	rdf(Voc,amalgame:numberOfAltLabels,  literal(type(xsd:int, ACount)), amalgame),
 	Stats = [numberOfConcepts(Count),
 		 numberOfPrefLabels(PCount),
 		  numberOfAltLabels(ACount)
@@ -52,9 +52,9 @@ skos_voc_stats(Voc, Count, Stats) :-
 	count_concepts(Voc,   Count),
 	count_prefLabels(Voc, PCount),
 	count_altLabels(Voc,  ACount),
-	rdf_assert(Voc,amalgame:numberOfConcepts, literal(Count), amalgame),
-	rdf_assert(Voc,amalgame:numberOfPrefLabels, literal(PCount), amalgame),
-	rdf_assert(Voc,amalgame:numberOfAltLabels, literal(ACount), amalgame),
+	rdf_assert(Voc,amalgame:numberOfConcepts,   literal(type(xsd:int, Count)),  amalgame),
+	rdf_assert(Voc,amalgame:numberOfPrefLabels, literal(type(xsd:int, PCount)), amalgame),
+	rdf_assert(Voc,amalgame:numberOfAltLabels,  literal(type(xsd:int, ACount)), amalgame),
 	Stats = [numberOfConcepts(Count),
 		 numberOfPrefLabels(PCount),
 		 numberOfAltLabels(ACount)
@@ -81,16 +81,3 @@ count_altLabels(Voc, Count) :-
 		),
 		Labels),
 	length(Labels, Count).
-
-
-
-
-
-
-
-
-
-
-
-
-
