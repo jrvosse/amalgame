@@ -26,7 +26,7 @@
 	height: 400px;
 	border-width: 1px 0;
 	border-style: solid;
-	border-color: #AAA;
+	border-color: #CCC;
 }
 .yui3-columnbrowser .columns-box {
 	height: 100%;
@@ -94,7 +94,6 @@
 }
 .yui3-columnbrowser .search input {
 	padding: 2px 0 2px 15px;
-	background: url("/www/skins/mazzle/search_bg_enabled.png") no-repeat scroll 2px 60% #FFFFFF;
 	-moz-border-radius: 15px;
 	-webkit-border-radius: 15px;
 }

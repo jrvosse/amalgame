@@ -116,8 +116,7 @@ yui_script -->
 
 
 :- json_object
-        concept(id:atom, label:atom),
-	concept(id:atom, label:atom, hasNarrower:boolean).
+ 	concept(id:atom, label:atom, hasNarrower:boolean).
 
 %%	http_concept_schemes(+Request)
 %
@@ -134,7 +133,7 @@ http_concept_schemes(Request) :-
 			  query(Query,
 				[optional(true), description('keyword query to filter the results by')])
 			]),
-	ConceptScheme = concept(Concept, Label),
+	ConceptScheme = concept(Concept, Label, true),
 	findall(ConceptScheme, concept_scheme(Parent, Query, Concept, Label), Cs),
 	list_offset(Cs, Offset, OffsetResults),
 	list_limit(OffsetResults, Limit, LimitResults, _),
