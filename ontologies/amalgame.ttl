@@ -55,3 +55,17 @@ amalgame:target a rdf:Property ;
 	rdfs:range align:Ontology ;
 	rdfs:range skos:ConceptScheme .
 
+amalgame:numberOfConcepts a rdf:Property , owl:FunctionalProperty ;
+	rdfs:label "# Concepts"@en;
+	rdfs:domain skos:ConceptScheme ;
+	rdfs:range xsd:int .
+
+amalgame:numberOfPrefLabels a rdf:Property , owl:FunctionalProperty ;
+	rdfs:label "# pref. labels"@en;
+	rdfs:domain skos:ConceptScheme ;
+	rdfs:range xsd:int .
+
+amalgame:numberOfAltLabels a rdf:Property , owl:FunctionalProperty ;
+	rdfs:label "# alt. labels"@en;
+	rdfs:domain skos:ConceptScheme ;
+	rdfs:range xsd:int .
