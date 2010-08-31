@@ -1,0 +1,103 @@
+#content {
+	font-family: Arial,Helvetica,sans-serif;
+	font-color: #222;
+	font-size: 12px;
+}
+#content a {
+	color: #3875D7;
+	text-decoration: none;
+}
+#content a:hover {
+	text-decoration: underline;
+}
+
+.yui3-columnbrowser .hd {
+	height: 60px;
+	padding: 2px 15px;
+}
+.yui3-columnbrowser .hd .title {
+	padding-top: 20px;
+	text-align: center;
+}
+.yui3-columnbrowser .hd .controls {
+	height: 40px;
+}
+.yui3-columnbrowser .bd {
+	height: 400px;
+	border-width: 1px 0;
+	border-style: solid;
+	border-color: #AAA;
+}
+.yui3-columnbrowser .columns-box {
+	height: 100%;
+	overflow-x: auto;
+	overflow-y: hidden;
+}
+.yui3-columnbrowser .columns {
+	height: 100%;
+}
+
+.yui3-columnbrowser .ft {
+	height: 1em;
+	padding: 5px;
+	text-align: center;
+}
+.yui3-columnbrowser .yui3-resourcelist {
+	float: left;
+	height: inherit;
+	padding-right: 5px;
+}
+.yui3-columnbrowser .yui3-resourcelist-content {
+	overflow-y: scroll;
+	height: inherit;
+}
+.yui3-columnbrowser .yui3-resourcelist-content ul {
+	padding: 2px 0;
+}
+.yui3-columnbrowser .resourcelist-item {
+	padding: 3px 5px 2px;
+	cursor: pointer;
+	overflow: auto;
+}
+.yui3-columnbrowser .resourcelist-item .more {
+	float: right;
+}
+.yui3-columnbrowser .resourcelist-item.selected {
+	background-color: #3875D7;
+	color: #FFF;
+}
+.yui3-columnbrowser .options {
+	border-color:#CCC;
+	border-style:solid;
+	border-width:0 0 1px;
+	width: 100%;
+}
+.yui3-columnbrowser .pagination {
+	border-color:#CCCCCC;
+	border-style:solid;
+	border-width:1px 0 0;
+	display:block;
+	text-align:center;
+}
+.yui3-columnbrowser .pagination .page-label {
+	padding: 0 10px;
+}
+.yui3-columnbrowser .pagination a.disabled {
+	color: #CCC;
+}
+
+.yui3-columnbrowser .controls .label {
+	text-align: center;
+}
+.yui3-columnbrowser .search {
+	float: right;
+}
+.yui3-columnbrowser .search input {
+	padding: 2px 0 2px 15px;
+	background: url("/www/skins/mazzle/search_bg_enabled.png") no-repeat scroll 2px 60% #FFFFFF;
+	-moz-border-radius: 15px;
+	-webkit-border-radius: 15px;
+}
+.yui3-columnbrowser .search input:focus {
+	border-color: #0000FF;
+}
