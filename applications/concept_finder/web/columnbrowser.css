@@ -10,14 +10,29 @@
 #content a:hover {
 	text-decoration: underline;
 }
-
-.yui3-columnbrowser .hd {
-	height: 60px;
-	padding: 2px 15px;
+.yui3-columnbrowser .hidden {
+	display: none;
 }
-.yui3-columnbrowser .hd .title {
+.yui3-columnbrowser .loading {
 	padding-top: 20px;
-	text-align: center;
+	background: url(loading.gif) no-repeat center center
+}
+.yui3-columnbrowser .hd {
+	padding: 2px 0;
+	height: 100px;
+	overflow: auto;
+}
+.yui3-columnbrowser .infobox {
+	margin: 0 auto;
+	text-align: left;
+}
+.yui3-columnbrowser .infobox h3 {
+	margin: 0;
+}
+.yui3-columnbrowser .infobox .uri {
+	font-size: 90%;
+}
+.yui3-columnbrowser .infobox table {
 }
 .yui3-columnbrowser .hd .controls {
 	height: 40px;
@@ -45,18 +60,18 @@
 	padding: 5px;
 	text-align: center;
 }
-.yui3-columnbrowser .yui3-resourcelist {
+.yui3-columnbrowser .column {
 	float: left;
-	height: inherit;
-	padding-right: 5px;
+	height: 100%;
 }
-.yui3-columnbrowser .yui3-resourcelist-content {
+.yui3-columnbrowser .yui3-resourcelist {
+	height: 100%;
 	overflow-x: auto;
 	overflow-y: scroll;
-	height: inherit;
 }
 .yui3-columnbrowser .yui3-resourcelist-content ul {
 	padding: 2px 0;
+	margin: 0;
 }
 .yui3-columnbrowser .resourcelist-item {
 	padding: 3px 5px 2px;

@@ -26,8 +26,9 @@
 % http handlers for this applications
 
 :- http_handler(amalgame(conceptfinder), http_concept_finder, []).
-:- http_handler(amalgame(conceptschemes), http_concept_schemes, []).
-:- http_handler(amalgame(concepts), http_concepts, []).
+:- http_handler(amalgame(api/conceptschemes), http_concept_schemes, []).
+:- http_handler(amalgame(api/concepts), http_concepts, []).
+:- http_handler(amalgame(api/conceptInfo), http_concept_info, []).
 
 %%	http_concept_finder(+Request)
 %
@@ -39,7 +40,7 @@ http_concept_finder(_Request) :-
  			],
 			[  \html_requires(css('columnbrowser.css')),
 			   \html_requires('http://github.com/mattparker/yui3-gallery/raw/master/build/gallery-resize/assets/resize-core.css'),
-			   \html_requires('http://yui.yahooapis.com/3.1.1/build/yui/yui-min.js'),
+			   \html_requires('http://yui.yahooapis.com/3.1.2/build/yui/yui-min.js'),
  			   div(id(header),
 			       []),
  			   div(id(main),
@@ -55,8 +56,8 @@ yui_script -->
 	{ http_absolute_location(js('resourcelist.js'), ResourceList, []),
 	  http_absolute_location(js('columnbrowser.js'), ColumnBrowser, []),
 	  http_location_by_id(http_concept_schemes, ConceptSchemes),
-	  http_location_by_id(http_concepts, Concepts)
-	  %http_location_by_id(http_narrower_concepts, NarrowerConcepts)
+	  http_location_by_id(http_concepts, Concepts),
+	  http_location_by_id(http_concept_info, ConceptInfo)
  	},
 	html(\[
 'YUI({
@@ -71,7 +72,7 @@ yui_script -->
             requires: ["node","event","widget","resourcelist","gallery-resize","gallery-value-change"]
         }
     }\n',
-'}).use("io","datasource","columnbrowser",function(Y) {\n',
+'}).use("io","datasource","overlay","columnbrowser",function(Y) {\n',
 
 'var ds = new Y.DataSource.IO({source:""})
 	      .plug(Y.Plugin.DataSourceJSONSchema, {
@@ -112,6 +113,29 @@ yui_script -->
 	return HTML;
 }\n',
 'cf.render("#columnbrowser");\n',
+
+'myNS = YUI.namespace("resource.data");\n',
+'cf.setTitle = function(resource) {
+	Y.log("get info for: "+resource.id);
+	Y.Get.script("',ConceptInfo,'?uri="+resource.id+"&callback=myNS.setInfo", {
+	    context: Y
+	});
+};\n',
+
+'myNS.setInfo = function(info) {
+	var props = info.properties,
+	    HTML = "<div class=\'infobox\'>"+
+		   "<h3>"+info.label+"</h3>"+
+		   "<div class=\'uri\'>"+info.uri+"</div>"+
+		   "<table class=\'props\'>";\n',
+'	for(i=0; i<props.length; i++) {
+	    HTML += "<tr><td>"+props[i].plabel+"</td>"+
+		    "<td>"+props[i].vlabel+"</td></tr>";
+	}\n',
+'	HTML += "</table></div>";
+	cf.titleNode.set("innerHTML", HTML);
+ };\n',
+
 '});\n'
 	      ]).
 
@@ -246,6 +270,51 @@ has_narrower(Concept, true) :-
 	!.
 has_narrower(_, false).
 
+:- json_object
+        literal(literal:atom),
+	literal(literal:_),
+        type(type:atom, text:atom),
+        lang(lang:atom, text:atom),
+        prop(property:atom, plabel:atom, value:_, vlabel:atom).
+
+:- rdf_meta
+        skos_info_property(r).
+
+%%	http_concept_info(+Request)
+%
+%       API handler to fetch info about a URI.
+
+http_concept_info(Request) :-
+	http_parameters(Request,
+			[  uri(URI,
+			       [uri, description('Resource to request info about')]),
+			   callback(Callback,
+				    [optional(true),
+				     description('Callback function in which the response is wrapped')])
+			]),
+	display_label(URI, Label),
+ 	findall(prop(P,PL,V,VL), concept_info(URI, P, PL, V, VL), Properties),
+	prolog_to_json(Properties, JSONProps),
+	JSON = json([uri(URI), label(Label), properties(JSONProps)]),
+	(   nonvar(Callback)
+	->  reply_jsonp(JSON, Callback)
+ 	;   reply_json(JSON)
+	).
+
+concept_info(R, P, PL, V, VL) :-
+	skos_info_property(P),
+	(   rdf_has(R,P,V)
+	;   rdf_has(V,P,R),
+	    \+ rdf_has(R,P,V)
+	),
+	once(display_label(P, PL)),
+	once(display_label(V, VL)).
+
+skos_info_property(skos:prefLabel).
+skos_info_property(skos:altLabel).
+skos_info_property(skos:scopeNote).
+skos_info_property(skos:notation).
+skos_info_property(skos:related).
 
 		 /*******************************
 		 *	     UTILILIES          *
@@ -299,9 +368,25 @@ list_limit_([H|T], N, [H|T1], Rest) :-
 %
 %	Txt is a label of Resource suited for display.
 
+display_label(literal(Lit), Label) :-
+	!,
+	literal_text(literal(Lit), Label).
 display_label(R, Label) :-
 	rdf_label(R, Lit),
 	!,
 	literal_text(Lit, Label).
 display_label(R, Label) :-
 	rdfs_label(R, Label).
+
+
+%%	reply_jsonp(+JSON, +Callback)
+%
+%	Output an html script node, where JSON is embedded in a
+%	javascript funtion.
+
+reply_jsonp(JSON, Callback) :-
+	with_output_to(string(JSONString),
+		       json_write(current_output, JSON, [])),
+	format('Content-type: text/javascript~n~n'),
+	phrase(html([Callback,'(',JSONString,')']), HTML),
+	print_html(HTML).

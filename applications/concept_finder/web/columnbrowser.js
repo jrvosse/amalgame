@@ -71,7 +71,6 @@ YUI.add('columnbrowser', function(Y) {
 		},
 
 		bindUI : function() {
-			//Y.on("resize", this._updateBodySize, window, this);
 		},
 
 		syncUI : function() {
@@ -95,12 +94,13 @@ YUI.add('columnbrowser', function(Y) {
 		* @param index {Integer} the index of the column
 		**/
 		_itemSelect : function(listItem, resource, index) {
-			var columns = this.get("columns");
-			this._setTitle(this.itemLabel(resource));
+			var columns = this.get("columns"),
+				next = index+1;
+			this.setTitle(resource);
 			this.fire("itemSelect", resource, index);
-			if(columns[index+1]||columns[index].repeat) {			
-				var column = this._setColumnDef(index+1, resource);
-				this._getColumnData(index+1);
+			if(columns[next]||columns[index].repeat) {			
+				var column = this._setColumnDef(next, resource);
+				this._getColumnData(next);
 			}
 		},
 		
@@ -147,7 +147,7 @@ YUI.add('columnbrowser', function(Y) {
 		**/
 		_renderHeader : function() {
 			var oSelf = this,
-				title = Node.create('<h3 class="title"></h3>');
+				title = Node.create('<div class="title"></div>');
 				//search = Node.create('<input type="text">');
 				
 			this.get("contentBox").
@@ -254,7 +254,7 @@ YUI.add('columnbrowser', function(Y) {
 						"click", this._offsetSelect, this, index, 1);
 				column._pagination = pagination;		
 			} else {
-				column._pagination.setStyle("display", "block");
+				column._pagination.removeClass("hidden");
 			}
 			
 			// disable/enable buttons
@@ -296,7 +296,9 @@ YUI.add('columnbrowser', function(Y) {
 				: request+"?"+this._requestParams(cfg)+this._requestParams(column.params);
 				
 			this._nDelayID = -1; // reset search query delay
-			this._clearColumns(index);
+			this._createColumn(index);
+			this._clearColumns(index+1);
+			this._setLoading(index, true);
 			this.get("datasource").sendRequest({
 				request:request,
 				callback: {
@@ -309,11 +311,13 @@ YUI.add('columnbrowser', function(Y) {
 						} 
 						else { // hide all columns and set activeIndex to previous column
 							oSelf.activeIndex = index-1;
+							oSelf._clearColumn(column);
 						}
 						oSelf._setStatus(index, resources);
 					},
 					failure: function(e){
 						alert("Could not retrieve data: " + e.error.message);
+						oSelf._clearColumn(column);
 					},
 					scope: oSelf
 				}
@@ -339,24 +343,16 @@ YUI.add('columnbrowser', function(Y) {
 		* @param resources {Array} the index of the column				
 		**/			
 		_populateColumn : function(index, resources) {
-			var columns = this.get("columns"),
-				column = columns[index];
-
-			if(column.resourceList) { // we already have a column
-				column.resourceList.setResources(resources);
-			} 
-			else { // create a new column				
-				this._createColumn(index, resources);
-			}
+			var column = this.get("columns")[index];
+			column.resourceList.setResources(resources);
 			
 			// set pagination
 			if(resources.length===this.get("maxNumberItems")||column.page>0) {
 				this._renderPagination(index, resources.length);
 			} else if(column._pagination) {
-				column._pagination.setStyle("display", "none");
+				column._pagination.addClass("hidden");
 			}
-			// show it
-			column._node.setStyle("display", "block");
+			this._setLoading(index, false);
 			this._updateContentSize();
 			column._node.scrollIntoView();
 		},
@@ -367,37 +363,43 @@ YUI.add('columnbrowser', function(Y) {
 		* @private
 		**/ 
 		_createColumn : function(index, resources) {
-			var oSelf = this,
-				content = this.columnsNode,
-				column = this.get("columns")[index],
-				width = this.get("columnWidth");
-			
-			// create a new div in columnsNode and add resize plugin
-			column._node = this.columnsNode.appendChild(
-				Y.Node.create('<div></div>'))
-				.plug(Y.Plugin.Resize, {handles:["r"],animate:true});
+			var column = this.get("columns")[index];
+			if(!column.resourceList) {
+				var oSelf = this,
+					content = this.columnsNode,
+					width = this.get("columnWidth");
 				
-			// hack to get a handler on the resize (
-			// first make contentNode very big, and on mouse release set to actual size
-			column._node.one('.yui3-resize-handle')
-				.on( "mousedown" , function() {
-					content.get("parentNode").addClass("noscroll");
-					content.setStyle("width", "10000px")}, this);
-			column._node.one('.yui3-resize-handle')
-				.on( "mouseup" , this._updateContentSize, this);
+				// create a new div in columnsNode and add resize plugin
+				column._node = this.columnsNode.appendChild(
+					Y.Node.create('<div class="column"></div>'))
+					.plug(Y.Plugin.Resize, {handles:["r"],animate:true});
+				column._load = column._node.appendChild(
+					Y.Node.create('<div class="hidden loading"></div>'));
+				
+				// hack to get a handler on the resize 
+				// first make contentNode very big, and on mouse release set to actual size
+				column._node.one('.yui3-resize-handle')
+					.on( "mousedown" , function() {
+						content.get("parentNode").addClass("noscroll");
+						content.setStyle("width", "10000px")}, this);
+				column._node.one('.yui3-resize-handle')
+					.on( "mouseup" , this._updateContentSize, this);
 	
-			// create a new ResourceList
-			var resourceList = new Y.mazzle.ResourceList({
-				boundingBox: column._node,
-				maxNumberItems: this.get("maxNumberItems"),
-				resources: resources,
-				width:width,
-				formatter:column.formatter
-			});
-			resourceList.render();
-			resourceList.on("itemClick", oSelf._itemSelect, oSelf, index);
-			column.resourceList = resourceList;
-			this._renderOptionList(index);
+				// create a new ResourceList
+				var resourceList = new Y.mazzle.ResourceList({
+					boundingBox: column._node,
+					maxNumberItems: this.get("maxNumberItems"),
+					resources: resources,
+					width:width,
+					formatter:column.formatter
+				});
+				resourceList.render();
+				resourceList.on("itemClick", oSelf._itemSelect, oSelf, index);
+				column.resourceList = resourceList;
+				this._renderOptionList(index);
+			} else {
+				column._node.removeClass("hidden");
+			}
 		},
 	
 		/**
@@ -408,11 +410,13 @@ YUI.add('columnbrowser', function(Y) {
 		_clearColumns : function(index) {
 			var columns = this.get("columns");
 			for (var i=index; i < columns.length; i++) {
-				if(columns[i].resourceList) {
-					var column = columns[i];
-					column.resourceList.clearContent();
-					column._node.setStyle("display", "none");
-				}
+				this._clearColumn(columns[i]);
+			}
+		},
+		_clearColumn : function(column) {			
+			if(column._node) {
+				column.resourceList.clearContent();
+				column._node.addClass("hidden");
 			}
 		},
 		
@@ -444,14 +448,14 @@ YUI.add('columnbrowser', function(Y) {
 		/**
 		* Sets the title in the header
 		*
-		* @private
+		* @public
 		**/ 
-		_setTitle : function(HTML) {
-			if(HTML) {
-				this.titleNode.set("innerHTML", HTML);
-			} else {
-				this.titleNode.set("innerHTML", "");
+		setTitle : function(resource) {
+			var HTML = "";
+			if(resource) {
+				HTML = '<h3>'+this.itemLabel(resource)+'</h3>'
 			}
+			this.titleNode.set("innerHTML", HTML);
 		},
 	
 		/**
@@ -482,6 +486,16 @@ YUI.add('columnbrowser', function(Y) {
 			this.statusNode.set("innerHTML", HTML);
 		},
 		
+		_setLoading: function(index, status) {
+			var column = this.get("columns")[index];
+			if(status) {
+				column._load.removeClass("hidden");
+				column._node.one(".yui3-resourcelist-content").addClass("hidden");
+			} else {
+				column._node.one(".yui3-resourcelist-content").removeClass("hidden");
+				column._load.addClass("hidden");
+			}
+		},	
 		/**
 		 * The handler that listens to valueChange events and decides whether or not
 		 * to kick off a new query.
@@ -518,17 +532,7 @@ YUI.add('columnbrowser', function(Y) {
 			}
 
 		},
-		
-		/**
-		 * Handles resizing of the window by updating
-		 * the fixed with of the bodyNode.
-		 * This is required because the resize.plugin adds a fixed with.
-		 **/
-		_updateBodySize : function() {
-			var width = this.get("boundingBox").get("offsetWidth")-2;
-			this.bodyNode.setStyle("width", width+"px");
-		},
-		
+				
 		/**
 		 * Handles resizing column content by
 		 * setting the size of this.colomnsNode to the width of the combined columns
@@ -540,7 +544,7 @@ YUI.add('columnbrowser', function(Y) {
 			
 			for (var i=0; i < columns.length; i++) {
 				var columnNode = columns[i]._node;
-				if(columnNode&&(columnNode.getStyle("display")=='block')) {
+				if(columnNode&&(!columnNode.hasClass("hidden"))) {
 					width += columnNode.get("offsetWidth");
 				}
 			}
@@ -550,5 +554,4 @@ YUI.add('columnbrowser', function(Y) {
 		
 	}); 
 
-	
 }, 'gallery-2010.03.02-18' ,{requires:['node','event','widget','resourcelist','value-change']});
