@@ -28,7 +28,6 @@
 :- http_handler(amalgame(conceptfinder), http_concept_finder, []).
 :- http_handler(amalgame(conceptschemes), http_concept_schemes, []).
 :- http_handler(amalgame(concepts), http_concepts, []).
-:- http_handler(amalgame(narrowerconcepts), http_narrower_concepts, []).
 
 %%	http_concept_finder(+Request)
 %
@@ -56,8 +55,8 @@ yui_script -->
 	{ http_absolute_location(js('resourcelist.js'), ResourceList, []),
 	  http_absolute_location(js('columnbrowser.js'), ColumnBrowser, []),
 	  http_location_by_id(http_concept_schemes, ConceptSchemes),
-	  http_location_by_id(http_concepts, Concepts),
-	  http_location_by_id(http_narrower_concepts, NarrowerConcepts)
+	  http_location_by_id(http_concepts, Concepts)
+	  %http_location_by_id(http_narrower_concepts, NarrowerConcepts)
  	},
 	html(\[
 'YUI({
@@ -78,7 +77,7 @@ yui_script -->
 	      .plug(Y.Plugin.DataSourceJSONSchema, {
 		    schema: {
     			resultListLocator: "results",
-    			resultFields: ["id", "label", "hasNarrower"]
+    			resultFields: ["id", "label", "hasNext"]
     		    }\n',
 '    	      })
     	      .plug({fn:Y.Plugin.DataSourceCache, cfg:{max:20}});\n',
@@ -95,10 +94,12 @@ yui_script -->
 		    options: [
 	                {value:"inscheme", label:"concepts in scheme"},
 	                {value:"topconcept", label: "top concepts"}
-	            ]\n',
-'	        },\n',
-'	        {   request: "',NarrowerConcepts,'"
-	        }\n',
+	            ]
+	        },\n',
+'	        {   request: "',Concepts,'",
+		    params: {type:"narrower"},
+		    repeat: true
+ 	        }\n',
 '	    ]
 	});\n',
 'function formatItem(oResource) {
@@ -106,7 +107,7 @@ yui_script -->
             uri   = oResource["concept"],
             value = (label&&!Y.Lang.isObject(label)) ? label : uri;\n',
 '	var HTML = "";
-	if(oResource.hasNarrower) { HTML += "<div class=\'more\'>&gt;</div>"; }
+	if(oResource.hasNext) { HTML += "<div class=\'more\'>&gt;</div>"; }
 	HTML += "<div class=\'resourcelist-item-value\' title=\'"+uri+"\'>"+value+"</div>";
 	return HTML;
 }\n',
@@ -116,7 +117,7 @@ yui_script -->
 
 
 :- json_object
- 	concept(id:atom, label:atom, hasNarrower:boolean).
+ 	concept(id:atom, label:atom, hasNext:boolean).
 
 %%	http_concept_schemes(+Request)
 %
@@ -156,7 +157,7 @@ concept_scheme(Parent, Query, C, Label) :-
 http_concepts(Request) :-
 	http_parameters(Request,
 			[ parent(Parent,
-				   [description('Concept scheme from which we request the concepts')]),
+				   [description('Concept or concept scheme from which we request the concepts')]),
 			  type(Type,
 			       [default(topconcept), description('Method to determine the concepts')]),
 			  offset(Offset,
@@ -167,7 +168,7 @@ http_concepts(Request) :-
 				[optional(true), description('keyword query to filter the results by')])
 			]),
 	TopConcept = concept(Concept, Label, HasNarrower),
-	findall(TopConcept, scheme_concept(Type, Parent, Query, Concept, Label, HasNarrower), Cs),
+	findall(TopConcept, concept(Type, Parent, Query, Concept, Label, HasNarrower), Cs),
 	term_sort_by_arg(Cs, 2, Sorted),
 	list_offset(Sorted, Offset, OffsetResults),
 	list_limit(OffsetResults, Limit, LimitResults, _),
@@ -177,70 +178,61 @@ http_concepts(Request) :-
 			 limit=Limit,
  			 results=JSONResults])).
 
-scheme_concept(Type, ConceptScheme, Query, Concept, Label, HasNarrower) :-
+concept(Type, Parent, Query, Concept, Label, HasNarrower) :-
 	var(Query),
 	!,
-	scheme_concept_(Type, ConceptScheme, Concept),
+	concept_(Type, Parent, Concept),
 	has_narrower(Concept, HasNarrower),
  	once(display_label(Concept, Label)).
 
-scheme_concept_(inscheme, ConceptScheme, Concept) :- !,
+concept_(inscheme, ConceptScheme, Concept) :- !,
 	inscheme(ConceptScheme, Concept).
-scheme_concept_(topconcept, ConceptScheme, Concept) :- !,
-	topconcept(ConceptScheme, Concept).
+concept_(topconcept, ConceptScheme, Concept) :- !,
+	top_concept(ConceptScheme, Concept).
+concept_(narrower, Parent, Concept) :-
+	narrower_concept(Parent, Concept).
+concept_(related, Parent, Concept) :-
+	related_concept(Parent, Concept).
+
+%%	inscheme(+ConceptScheme, -Concept)
+%
+%	True if Concept is contained in a skos:ConceptScheme by
+%	skos:inScheme.
 
 inscheme(ConceptScheme, Concept) :-
 	rdf(Concept, skos:inScheme, ConceptScheme).
 
-topconcept(ConceptScheme, Concept) :-
+%%	top_concept(+ConceptScheme, -Concept)
+%
+%	True if Concept is a skos:hasTopConcept of ConceptScheme, or
+%	inversely by skos:topConceptOf
+
+top_concept(ConceptScheme, Concept) :-
 	rdf(ConceptScheme, skos:hasTopConcept, Concept).
-topconcept(ConceptScheme, Concept) :-
+top_concept(ConceptScheme, Concept) :-
 	rdf(Concept, skos:topConceptOf, ConceptScheme),
 	\+ rdf(ConceptScheme, skos:hasTopConcept, Concept).
 
-%%	http_top_concepts(+Request)
-%
-%       API handler to fetch top concepts
-
-http_narrower_concepts(Request) :-
-	http_parameters(Request,
-			[ parent(Parent,
-				   [description('Concepts form which we request narrower concepts')]),
- 			  offset(Offset,
-				[integer, default(0), description('Start of the results returned')]),
-			  limit(Limit,
-				[integer, default(20), description('maximum number of results returned')]),
-			  query(Query,
-				[optional(true), description('keyword query to filter the results by')])
-			]),
-	TopConcept = concept(Concept, Label, HasNarrower),
-	findall(TopConcept, narrower_concept(Parent, Query, Concept, Label, HasNarrower), Cs),
-	term_sort_by_arg(Cs, 2, Sorted),
-	list_offset(Sorted, Offset, OffsetResults),
-	list_limit(OffsetResults, Limit, LimitResults, _),
-	prolog_to_json(LimitResults, JSONResults),
-	reply_json(json([parent=Parent,
-			 offset=Offset,
-			 limit=Limit,
- 			 results=JSONResults])).
-
-narrower_concept(Parent, Query, Concept, Label, HasNarrower) :-
-	var(Query),
-	!,
-	narrower_concept(Parent, Concept),
-	has_narrower(Concept, HasNarrower),
- 	once(display_label(Concept, Label)).
-
 %%	narrower_concept(+Concept, -Narrower)
 %
-%	Narrower is related to Concept by skos:narrower or inversely by
-%	skos:broader.
+%	True if Narrower is related to Concept by skos:narrower or
+%	inversely by skos:broader.
 
 narrower_concept(Concept, Narrower) :-
 	rdf_has(Concept, skos:narrower, Narrower).
 narrower_concept(Concept, Narrower) :-
 	rdf_has(Narrower, skos:broader, Concept),
 	\+ rdf_has(Concept, skos:narrower, Narrower).
+
+%%	related_concept(+Concept, -Related)
+%
+%	True if Related is related to Concept by skos:related.
+
+related_concept(Concept, Related) :-
+	rdf_has(Concept, skos:related, Related).
+related_concept(Concept, Related) :-
+	rdf_has(Related, skos:related, Concept),
+	\+ rdf_has(Concept, skos:related, Related).
 
 %%	has_narrower(+Concept, -Boolean)
 %
@@ -253,6 +245,7 @@ has_narrower(Concept, true) :-
 	rdf_has(_, skos:broader, Concept),
 	!.
 has_narrower(_, false).
+
 
 		 /*******************************
 		 *	     UTILILIES          *
@@ -301,7 +294,6 @@ list_limit_(Rest, 0, [], Rest) :- !.
 list_limit_([H|T], N, [H|T1], Rest) :-
 	N1 is N-1,
 	list_limit_(T, N1, T1, Rest).
-
 
 %%	display_label(+Resource, -Txt)
 %

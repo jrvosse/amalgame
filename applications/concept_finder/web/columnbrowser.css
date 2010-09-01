@@ -33,6 +33,9 @@
 	overflow-x: auto;
 	overflow-y: hidden;
 }
+.yui3-columnbrowser .columns-box.noscroll {
+	overflow-x: hidden;
+}
 .yui3-columnbrowser .columns {
 	height: 100%;
 }
@@ -48,6 +51,7 @@
 	padding-right: 5px;
 }
 .yui3-columnbrowser .yui3-resourcelist-content {
+	overflow-x: auto;
 	overflow-y: scroll;
 	height: inherit;
 }
@@ -57,7 +61,7 @@
 .yui3-columnbrowser .resourcelist-item {
 	padding: 3px 5px 2px;
 	cursor: pointer;
-	overflow: auto;
+	overflow: hidden;
 }
 .yui3-columnbrowser .resourcelist-item .more {
 	float: right;

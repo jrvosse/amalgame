@@ -95,10 +95,13 @@ YUI.add('columnbrowser', function(Y) {
 		* @param index {Integer} the index of the column
 		**/
 		_itemSelect : function(listItem, resource, index) {
-			var column = this._setColumnDef(index+1, resource);
-			this._getColumnData(index+1);
+			var columns = this.get("columns");
 			this._setTitle(this.itemLabel(resource));
 			this.fire("itemSelect", resource, index);
+			if(columns[index+1]||columns[index].repeat) {			
+				var column = this._setColumnDef(index+1, resource);
+				this._getColumnData(index+1);
+			}
 		},
 		
 		/**
@@ -288,8 +291,12 @@ YUI.add('columnbrowser', function(Y) {
 					offset: offset,
 					query: column.searchString
 				};
-			request = Lang.isFunction(request) ? request.call(this, cfg) : request+"?"+this._requestParams(cfg);
+			request = Lang.isFunction(request) 
+				? request.call(this, cfg, params) 
+				: request+"?"+this._requestParams(cfg)+this._requestParams(column.params);
+				
 			this._nDelayID = -1; // reset search query delay
+			// setLoadingMsg
 			this.get("datasource").sendRequest({
 				request:request,
 				callback: {
@@ -362,15 +369,21 @@ YUI.add('columnbrowser', function(Y) {
 		**/ 
 		_createColumn : function(index, resources) {
 			var oSelf = this,
+				content = this.columnsNode,
 				column = this.get("columns")[index],
 				width = this.get("columnWidth");
 			
 			// create a new div in columnsNode and add resize plugin
-			column._node = this.columnsNode.appendChild(Y.Node.create('<div></div>'));
-			column._node.plug(Y.Plugin.Resize, {handles:["r"],animate:true});
-			// hack to get a handler on the resize
-			column._node.one('.yui3-resize-handle').
-				on( "mouseup" , oSelf._updateContentSize, oSelf);
+			column._node = this.columnsNode.appendChild(Y.Node.create('<div></div>'))
+				.plug(Y.Plugin.Resize, {handles:["r"],animate:true});
+			// hack to get a handler on the resize (
+			// first make contentNode very big, and on mouse release set to actual size
+			column._node.one('.yui3-resize-handle')
+				.on( "mousedown" , function() {
+					content.get("parentNode").addClass("noscroll");
+					content.setStyle("width", "10000px")}, this);
+			column._node.one('.yui3-resize-handle')
+				.on( "mouseup" , this._updateContentSize, this);
 	
 			// create a new ResourceList
 			var resourceList = new Y.mazzle.ResourceList({
@@ -412,13 +425,15 @@ YUI.add('columnbrowser', function(Y) {
 		// 
 		_setColumnDef : function(index, parent) { 
 			var columns = this.get("columns"),
-				previous = columns[index-1],
+				previous = columns[index-1]||{},
 				column = columns[index] ? columns[index] : {};
 
-			column.request = column.request||previous.request;	
+			column.request = column.request||(previous.repeat ? previous.request : null);	
 			column.formatter = column.formatter||previous.resourceList.get("formatter");
 			column.parent = parent ? this.itemId(parent) : null;
-			column.page = 0;
+			column.params = column.params||(previous.repeat ? previous.params : null);
+			column.repeat = column.repeat||previous.repeat;
+ 			column.page = 0;
 			column.searchString = null;
 			
 			columns[index] = column;
@@ -529,6 +544,7 @@ YUI.add('columnbrowser', function(Y) {
 				}
 			}
 			content.setStyle("width", width+"px");
+			content.get("parentNode").removeClass("noscroll");
 		}
 		
 	}); 
