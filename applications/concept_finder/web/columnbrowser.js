@@ -296,7 +296,7 @@ YUI.add('columnbrowser', function(Y) {
 				: request+"?"+this._requestParams(cfg)+this._requestParams(column.params);
 				
 			this._nDelayID = -1; // reset search query delay
-			// setLoadingMsg
+			this._clearColumns(index);
 			this.get("datasource").sendRequest({
 				request:request,
 				callback: {
@@ -305,12 +305,10 @@ YUI.add('columnbrowser', function(Y) {
 
 						if(resources.length>0||column.options) { // add the results
 							oSelf.activeIndex = index;
-							oSelf._clearColumns(index+1);
 							oSelf._populateColumn(index, resources);
 						} 
 						else { // hide all columns and set activeIndex to previous column
 							oSelf.activeIndex = index-1;
-							oSelf._clearColumns(index);
 						}
 						oSelf._setStatus(index, resources);
 					},
@@ -343,7 +341,7 @@ YUI.add('columnbrowser', function(Y) {
 		_populateColumn : function(index, resources) {
 			var columns = this.get("columns"),
 				column = columns[index];
-				
+
 			if(column.resourceList) { // we already have a column
 				column.resourceList.setResources(resources);
 			} 
@@ -360,6 +358,7 @@ YUI.add('columnbrowser', function(Y) {
 			// show it
 			column._node.setStyle("display", "block");
 			this._updateContentSize();
+			column._node.scrollIntoView();
 		},
 
 		/**
@@ -374,8 +373,10 @@ YUI.add('columnbrowser', function(Y) {
 				width = this.get("columnWidth");
 			
 			// create a new div in columnsNode and add resize plugin
-			column._node = this.columnsNode.appendChild(Y.Node.create('<div></div>'))
+			column._node = this.columnsNode.appendChild(
+				Y.Node.create('<div></div>'))
 				.plug(Y.Plugin.Resize, {handles:["r"],animate:true});
+				
 			// hack to get a handler on the resize (
 			// first make contentNode very big, and on mouse release set to actual size
 			column._node.one('.yui3-resize-handle')

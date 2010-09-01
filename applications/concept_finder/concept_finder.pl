@@ -104,7 +104,7 @@ yui_script -->
 	});\n',
 'function formatItem(oResource) {
         var label = oResource["label"],
-            uri   = oResource["concept"],
+            uri   = oResource["id"],
             value = (label&&!Y.Lang.isObject(label)) ? label : uri;\n',
 '	var HTML = "";
 	if(oResource.hasNext) { HTML += "<div class=\'more\'>&gt;</div>"; }

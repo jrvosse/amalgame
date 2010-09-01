@@ -86,10 +86,8 @@ YUI.add('resourcelist', function(Y) {
 			// add ul
 			var list = content.one("."+ResourceList.LIST_CLASS);
 			if(!list) {
-				list = Node.create(ResourceList.LIST_TEMPLATE);
-				content.appendChild(list);
+				list = content.appendChild(Node.create(ResourceList.LIST_TEMPLATE));
 			}
-			
 			// add list items
 			var listItems = [];
 			for (var i=0; i < nListLength; i++) {
@@ -134,6 +132,7 @@ YUI.add('resourcelist', function(Y) {
 					oItem.resource = null;
 				}	
 			}
+			this._listNode.setStyle("display", "block");
 		},
 		
 		clearContent : function() {
