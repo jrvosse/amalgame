@@ -29,7 +29,6 @@
 :- http_handler(amalgame(conceptfinder), http_concept_finder, []).
 :- http_handler(amalgame(api/conceptschemes), http_concept_schemes, []).
 :- http_handler(amalgame(api/concepts), http_concepts, []).
-:- http_handler(amalgame(api/conceptsearch), http_concept_search, []).
 :- http_handler(amalgame(private/conceptinfo), http_concept_info, []).
 
 %%	http_concept_finder(+Request)
@@ -59,9 +58,8 @@ yui_script -->
 	  http_absolute_location(js('columnbrowser.js'), ColumnBrowser, []),
 	  http_location_by_id(http_concept_schemes, ConceptSchemes),
 	  http_location_by_id(http_concepts, Concepts),
-	  http_location_by_id(http_concept_info, ConceptInfo),
-	  http_location_by_id(http_concept_search, ConceptSearch)
- 	},
+	  http_location_by_id(http_concept_info, ConceptInfo)
+  	},
 	html(\[
 'YUI({
     modules: {
@@ -88,11 +86,7 @@ yui_script -->
 
 'var cf = new Y.mazzle.ColumnBrowser({\n',
 '	    datasource: ds,
-	    maxNumberItems: 100,
-	    search: {
-		request: "',ConceptSearch,'",
-		formatter: formatSearchResult
-	    },\n',
+	    maxNumberItems: 100,\n',
 ' 	    columns: [
 	        {   request: "',ConceptSchemes,'",
 	            formatter: formatItem
@@ -105,21 +99,16 @@ yui_script -->
 	            ]
 	        },\n',
 '	        {   request: "',Concepts,'",
-		    params: {type:"narrower"},
-		    repeat: true
+		    params: {type:"child"},
+		    options: [
+			 {value:"descendant", label:"descendants"},
+			 {value:"child", label:"children"}
+		    ],\n',
+'		    repeat: true
  	        }\n',
 '	    ]
 	});\n',
 'function formatItem(oResource) {
-        var label = oResource["label"],
-            uri   = oResource["id"],
-            value = (label&&!Y.Lang.isObject(label)) ? label : uri;\n',
-'	var HTML = "";
-	if(oResource.hasNext) { HTML += "<div class=\'more\'>&gt;</div>"; }
-	HTML += "<div class=\'resourcelist-item-value\' title=\'"+uri+"\'>"+value+"</div>";
-	return HTML;
-};\n',
-'function formatSearchResult(oResource) {
         var label = oResource["label"],
             uri   = oResource["id"],
             value = (label&&!Y.Lang.isObject(label)) ? label : uri;\n',
@@ -196,7 +185,8 @@ http_concepts(Request) :-
 				   [optional(true),
 				    description('Concept or concept scheme from which we request the concepts')]),
 			  type(Type,
-			       [default(inscheme),
+			       [oneof(topconcept,inscheme,child,descendant,related),
+				default(inscheme),
 				description('Method to determine the concepts')]),
 			  offset(Offset,
 				[integer, default(0),
@@ -236,8 +226,10 @@ concept_(inscheme, ConceptScheme, Concept) :- !,
 	inscheme(ConceptScheme, Concept).
 concept_(topconcept, ConceptScheme, Concept) :- !,
 	top_concept(ConceptScheme, Concept).
-concept_(narrower, Parent, Concept) :-
+concept_(child, Parent, Concept) :-
 	narrower_concept(Parent, Concept).
+concept_(descendant, Parent, Concept) :-
+	descendant(Parent, Concept).
 concept_(related, Parent, Concept) :-
 	related_concept(Parent, Concept).
 
@@ -271,6 +263,16 @@ narrower_concept(Concept, Narrower) :-
 	rdf_has(Narrower, skos:broader, Concept),
 	\+ rdf_has(Concept, skos:narrower, Narrower).
 
+%%	descendant(+Concept, -Descendant)
+%
+%	Descendant is a child of Concept or recursively of its children
+
+descendant(Concept, Descendant) :-
+	narrower_concept(Concept, Narrower),
+	(   Descendant = Narrower
+	;   descendant(Narrower, Descendant)
+	).
+
 %%	related_concept(+Concept, -Related)
 %
 %	True if Related is related to Concept by skos:related.
@@ -293,65 +295,6 @@ has_narrower(Concept, true) :-
 	!.
 has_narrower(_, false).
 
-
-
-%%	http_concept_search(+Request)
-%
-%       API handler to search for SKOS concepts
-
-http_concept_search(Request) :-
-	http_parameters(Request,
-			[ offset(Offset,
-				[integer, default(0),
-				 description('Start of the results returned')]),
-			  limit(Limit,
-				[integer, default(20),
-				 description('maximum number of results returned')]),
-			  query(Query,
-				[description('keyword query to filter the results by')]),
-			  scheme(Scheme,
-				 [optional(true),
-				  description('concept scheme to search within')])
-			]),
- 	findall(Concept-Match, search_concept(Query, Scheme, Concept, Match), Cs0),
-	keysort(Cs0, Cs),
-	group_pairs_by_key(Cs, Groups),
-	maplist(result_group, Groups, Results),
-	term_sort_by_arg(Results, 2, Sorted),
-	list_offset(Sorted, Offset, OffsetResults),
-	list_limit(OffsetResults, Limit, LimitResults, _),
-	prolog_to_json(LimitResults, JSONResults),
-	reply_json(json([query=Query,
-			 offset=Offset,
-			 limit=Limit,
- 			 results=JSONResults])).
-
-result_group(Concept-Matches, result(Concept, Label, Matches)) :-
-	display_label(Concept, Label).
-
-:- json_object
-        match(match:atom, type:atom),
-        result(id:atom, label:atom, matches:list).
-
-search_concept(Query, Scheme, Concept, match(Match, MatchType)) :-
-	rdf_find_literals(prefix(Query), Matches),
-	member(Match, Matches),
-	search_pattern(literal(Match), Scheme, Concept, MatchType).
-
-search_pattern(Lit, Scheme, Concept, P) :-
-	rdf(Concept, P, Lit),
-	rdf_has(Concept, skos:inScheme, Scheme).
-
-
-:- json_object
-        literal(literal:atom),
-	literal(literal:_),
-        type(type:atom, text:atom),
-        lang(lang:atom, text:atom),
-        prop(property:atom, plabel:atom, value:_, vlabel:atom).
-
-:- rdf_meta
-        skos_info_property(r).
 
 %%	http_concept_info(+Request)
 %

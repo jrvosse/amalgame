@@ -32,9 +32,6 @@ YUI.add('columnbrowser', function(Y) {
 		columns: {
 			value: null
 		},
-		search: {
-			value: null
-		},
 		columnWidth: {
 			value: "200px"
 		},
@@ -150,25 +147,20 @@ YUI.add('columnbrowser', function(Y) {
 		**/
 		_renderHeader : function() {
 			var oSelf = this,
-				title = Node.create('<div class="title"></div>');
-				search = Node.create('<input type="search" size="20">');
+				category = Y.stamp(this)+"|";
 				
-			this.get("contentBox")
-				.append(Node.create('<div class="hd"></div>')
-					.append(title)
-					.append(Node.create('<div class="controls"></div>')
-						.append(Node.create('<div class="search"></div>')
-							.append(search)
-							.append('<div class="label">search within column'
-								+'<input type="checkbox" checked id="searchwithin">'
-								+'</div>')
-						)
-					)
-				);
+			var hd = this.get("contentBox")
+				.appendChild(Node.create('<div class="hd"></div>'))
 			
-			var category = Y.stamp(this)+"|";
-			Y.on(category+"valueChange", this._valueChangeHandler, search, this);
-			this.titleNode = title;
+			this.titleNode = hd
+				.appendChild(Node.create('<div class="title"></div>'));
+			
+			var search = hd
+				.appendChild(Node.create('<div class="controls"></div>'))
+				.appendChild(Node.create('<div class="search"></div>'))
+			search.appendChild(Node.create('<input type="search" size="20">'))
+				.on(category+"valueChange", this._valueChangeHandler, this);
+			search.appendChild(Node.create('<div class="label">search</div>'));
 		},
 		
 		/**
@@ -180,11 +172,8 @@ YUI.add('columnbrowser', function(Y) {
 		* @private
 		**/
 		_renderBody : function() {
-			var body = this.get("contentBox")
-				.appendChild(Node.create('<div class="bd"></div>'));
-			this.searchResultsNode = body
-				.appendChild(Node.create('<div class="search-results hidden"></div>'));
-			this.columnsNode = body
+			this.columnsNode = this.get("contentBox")
+				.appendChild(Node.create('<div class="bd"></div>'))
 				.appendChild(Node.create('<div class="columns-box"></div>'))
 				.appendChild(Node.create('<div class="columns"></div>'));
 		},
@@ -195,11 +184,9 @@ YUI.add('columnbrowser', function(Y) {
 		* @private
 		**/
 		_renderFooter : function() {
-			this.statusNode = Node.create('<div class="status"></div>');
-			this.get("contentBox").
-				append(Node.create('<div class="ft"></div>').
-					append(this.statusNode)
-				);
+			this.statusNode = this.get("contentBox")
+				.appendChild(Node.create('<div class="ft"></div>'))
+				.appendChild(Node.create('<div class="status"></div>'));
 		},
 		
 		/**
@@ -248,14 +235,13 @@ YUI.add('columnbrowser', function(Y) {
 				end = start+Math.min(limit,length);
 				
 			if(!column._pagination) {
-				var pagination = content.appendChild(Node.create('<div class="pagination"></div>'));
-				pagination.appendChild(
-					Node.create('<a href="javascript:{}" class="page-prev">prev</a>')).on(
-						"click", this._offsetSelect, this, index, -1);
+				var pagination = content
+					.appendChild(Node.create('<div class="pagination"></div>'));
+				pagination.appendChild(Node.create('<a href="javascript:{}" class="page-prev">prev</a>'))
+					.on("click", this._offsetSelect, this, index, -1);
 				pagination.insert('<span class="page-label"></span>');
-				pagination.appendChild(
-					Node.create('<a href="javascript:{}" class="page-next">next</a>')).on(
-						"click", this._offsetSelect, this, index, 1);
+				pagination.appendChild(Node.create('<a href="javascript:{}" class="page-next">next</a>'))
+					.on("click", this._offsetSelect, this, index, 1);
 				column._pagination = pagination;		
 			} else {
 				column._pagination.removeClass("hidden");
@@ -524,19 +510,13 @@ YUI.add('columnbrowser', function(Y) {
 		    if(oSelf._nDelayID != -1) {
 		        clearTimeout(oSelf._nDelayID);
 		    }
-			// We support to types of search
-			if(Y.one('#searchwithin').get("checked")) {
-				this._columnSearch(this.activeIndex, query);
-			} else if(this.get("search")&&this.get("search").request) {
-				this._globalSearch(query);
-			}
+
+			this._columnSearch(this.activeIndex, query);
 		},	
 		_columnSearch : function(index, query) {		
 			var column = this.get("columns")[index];
-			
 			column.searchString = query;
 			column.page = 0;
-			
 			if (!query || query.length < this.get("minQueryLength")) {
 				this._getColumnData(index);
 			}
@@ -546,53 +526,6 @@ YUI.add('columnbrowser', function(Y) {
 	    		oSelf._nDelayID = setTimeout(function(){
 	            	oSelf._getColumnData(index);
 	        	}, this.get("queryDelay")*1000);
-			}
-		},
-		_globalSearch : function(query) {
-			var oSelf = this,
-				resultsNode = this.searchResultsNode,
-				columnsNode = this.columnsNode,
-				search = this.get("search"),
-				limit = this.get("maxNumberItems");
-				
-			if(!query) {
-				resultsNode.addClass("hidden");
-				columnsNode.removeClass("hidden");
-			}
-			else {
-				columnsNode.addClass("hidden");
-				resultsNode.removeClass("hidden");
-
-				if(!this.searchResultList) {
-					// create a new ResourceList
-					var resourceList = new Y.mazzle.ResourceList({
-						maxNumberItems: limit
-					});
-					if(search.formatter) {
-						resourceList.formatItem = search.formatter;
-					}
-					resourceList.render(resultsNode);
-					//resourceList.on("itemClick", this._itemSelect, this);
-					this.searchResultList = resourceList;
-				}
-				
-				oSelf._nDelayID = setTimeout(function(){
-	            	oSelf.get("datasource").sendRequest({
-						request:search.request+"?query="+query+"&limit="+limit,
-						callback: {
-							success: function(e){
-								var resources = e.response.results;
-								oSelf.searchResultList.setResources(resources);
-							},
-							failure: function(e){
-								alert("Could not retrieve data: " + e.error.message);
-								oSelf.searchResultList.setResources([]);
-							},
-							scope: oSelf
-						}
-					});
-	        	}, this.get("queryDelay")*1000);
-				
 			}
 		},
 				
