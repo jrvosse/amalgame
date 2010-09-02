@@ -9,6 +9,9 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(semweb/rdfs)).
 
+:- use_module(amalgame(mappings/map)).
+
+
 %%	skos_statistics(-Stats) is det.
 %
 %	Return a list of all skos concept schemes with statistics.
@@ -61,6 +64,13 @@ voc_ensure_stats(numberOfAltLabels(Voc)) :-
 	->  true
 	;   count_altLabels(Voc, Count),
 	    assert_voc_props(Voc:[numberOfAltLabels(literal(type('http://www.w3.org/2001/XMLSchema#int', Count)))])
+	),!.
+
+voc_ensure_stats(numberOfMappedConcepts(Voc)) :-
+	(   rdf(Voc,amalgame:numberOfMappedConcepts, literal(type(_, Count)))
+	->  true
+	;   count_mapped_concepts(Voc, Count),
+	    assert_voc_props(Voc:[numberOfMappedConcepts(literal(type('http://www.w3.org/2001/XMLSchema#int', Count)))])
 	),!.
 
 assert_voc_props([]).
@@ -132,3 +142,12 @@ count_altLabels(Voc, Count) :-
 		),
 		Labels),
 	length(Labels, Count).
+
+count_mapped_concepts(Voc, Count) :-
+	findall(C,
+		(   rdf(C, skos:inScheme, Voc),
+		    (  	has_map([C,_], _, _); has_map([_,C], _, _) )
+                ),
+		Concepts),
+	sort(Concepts, Sorted),
+	length(Sorted, Count).
