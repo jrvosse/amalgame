@@ -199,9 +199,8 @@ http_concepts(Request) :-
 				 description('keyword query to filter the results by')])
 			]),
 	TopConcept = concept(Concept, Label, HasNarrower),
-	findall(TopConcept, concept(Type, Parent, Query, Concept, Label, HasNarrower), Cs0),
-	sort(Cs0, Cs),
-	term_sort_by_arg(Cs, 2, Sorted),
+	findall(TopConcept, concept(Type, Parent, Query, Concept, Label, HasNarrower), Cs),
+ 	term_sort_by_arg(Cs, 2, Sorted),
 	list_offset(Sorted, Offset, OffsetResults),
 	list_limit(OffsetResults, Limit, LimitResults, _),
 	prolog_to_json(LimitResults, JSONResults),
