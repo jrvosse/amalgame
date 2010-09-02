@@ -76,6 +76,6 @@ has_map([E1, E2], owl, Graph) :-
 %	Term = map(found, What, From, Number)).
 
 prolog:message(map(found, What, From, Number)) -->
-        [
-          'Found ', Number, ' ', What, ' (', From, ') to process'
-        ].
+        [ 'Found ', Number, ' ', What, ' (', From, ') to process.' ].
+prolog:message(map(cleared, What, From, Number)) -->
+        [ 'Cleared ', Number, ' ', What, ' (', From, ').' ].
