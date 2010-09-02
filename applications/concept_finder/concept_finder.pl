@@ -404,8 +404,7 @@ html_info_snippet(URI, Label, Desc, AltLabels, Related) -->
 		      ]),
 		   div(class(uri), URI),
 		   div(class(desc), Desc),
-		   div(class(related),
-		       \html_concept_list(Related))
+		   \html_related_list(Related)
 		 ])).
 
 html_label_list([]) --> !.
@@ -421,6 +420,13 @@ html_label_list_([L]) --> !,
 html_label_list_([L|Ls]) -->
 	html(span(class(label), [L,', '])),
 	html_label_list_(Ls).
+
+html_related_list([]) --> !.
+html_related_list(Cs) -->
+	html(div(class(related),
+		 [ 'related: ',
+		   \html_concept_list(Cs)
+		 ])).
 
 html_concept_list([concept(URI, Label)]) --> !,
 	html(span([class(concept), title(URI)], Label)).
