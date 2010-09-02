@@ -18,30 +18,50 @@
 	background: url(loading.gif) no-repeat center center
 }
 .yui3-columnbrowser .hd {
-	padding: 2px 0;
-	height: 100px;
-	overflow: auto;
+	height: 7em;
+	padding: 0.5em;
+	background-color: #EEE;
+}
+.yui3-columnbrowser .hd .title {
+	height: 100%;
+	float:left;
+	width:500px;
 }
 .yui3-columnbrowser .infobox {
-	margin: 0 auto;
+	height: 100%;
 	text-align: left;
+	overflow: auto;
 }
 .yui3-columnbrowser .infobox h3 {
+	font-size: 1.2em;
 	margin: 0;
 }
+.yui3-columnbrowser .infobox h3 .altlabels {
+	font-weight: normal;
+}
 .yui3-columnbrowser .infobox .uri {
-	font-size: 90%;
+	font-size: 0.9em;
 }
-.yui3-columnbrowser .infobox table {
+.yui3-columnbrowser .infobox .related {
+	margin-top: 0.5em;
 }
+.yui3-columnbrowser .infobox .desc {
+	margin-top: 0.5em;
+}
+
+
 .yui3-columnbrowser .hd .controls {
-	height: 40px;
+	height: 7em;
 }
 .yui3-columnbrowser .bd {
 	height: 400px;
 	border-width: 1px 0;
 	border-style: solid;
 	border-color: #CCC;
+}
+.yui3-columnbrowser .search-results {
+	height: 100%;
+	overflow: auto;
 }
 .yui3-columnbrowser .columns-box {
 	height: 100%;
@@ -64,7 +84,7 @@
 	float: left;
 	height: 100%;
 }
-.yui3-columnbrowser .yui3-resourcelist {
+.yui3-columnbrowser .columns .yui3-resourcelist {
 	height: 100%;
 	overflow-x: auto;
 	overflow-y: scroll;
@@ -110,12 +130,11 @@
 }
 .yui3-columnbrowser .search {
 	float: right;
+	margin-top: 3.5em;
 }
 .yui3-columnbrowser .search input {
 	padding: 2px 0 2px 15px;
-	-moz-border-radius: 15px;
-	-webkit-border-radius: 15px;
-}
-.yui3-columnbrowser .search input:focus {
-	border-color: #0000FF;
+	border: 1px solid #CCC;
+	-moz-border-radius: 10px;
+	border-radius: 10px;
 }

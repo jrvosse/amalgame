@@ -37,14 +37,6 @@ YUI.add('resourcelist', function(Y) {
 		selected: {
 			value: [],
 			validator : Lang.isArray
-		},
-		formatter: {
-			setter : function (f) {
-				return ( Lang.isFunction(f) ? f
-						 : function (resource) {
-								return '<div class="resourcelist-value">'+resource+'</div>';
-						 });
-			}
 		}
 	};
 
@@ -102,7 +94,6 @@ YUI.add('resourcelist', function(Y) {
 		
 		setResources : function(resources) {
 			var listItems = this._listItems,
-				formatter = this.get("formatter"),
 				numberItems = Math.min(this.get("maxNumberItems"), resources.length);
 
 			this.clearSelection();
@@ -111,7 +102,7 @@ YUI.add('resourcelist', function(Y) {
 			var i = 0;	
 			for (i; i < numberItems; i++) {
 				var oResource = resources[i],
-					HTML = this.get("formatter")(oResource),
+					HTML = this.formatItem(oResource),
 					oItem = listItems[i],
 					elItem = oItem.el;
 
@@ -165,6 +156,10 @@ YUI.add('resourcelist', function(Y) {
 			
 			itemNode.addClass("selected");
 			this.fire("itemClick", itemNode, oResource);
+		},
+		
+		formatItem : function(item) {
+			return '<div class="resourcelist-value">'+item.label+'</div>';
 		}
 		
 	});

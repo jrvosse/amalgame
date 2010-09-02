@@ -15,6 +15,7 @@
 :- use_module(library(semweb/rdf_litindex)).
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(settings)).
+:- use_module(components(label)).
 
 % add local web directories from which static files are served.
 
@@ -28,7 +29,7 @@
 :- http_handler(amalgame(conceptfinder), http_concept_finder, []).
 :- http_handler(amalgame(api/conceptschemes), http_concept_schemes, []).
 :- http_handler(amalgame(api/concepts), http_concepts, []).
-:- http_handler(amalgame(api/conceptInfo), http_concept_info, []).
+:- http_handler(amalgame(private/conceptinfo), http_concept_info, []).
 
 %%	http_concept_finder(+Request)
 %
@@ -58,7 +59,7 @@ yui_script -->
 	  http_location_by_id(http_concept_schemes, ConceptSchemes),
 	  http_location_by_id(http_concepts, Concepts),
 	  http_location_by_id(http_concept_info, ConceptInfo)
- 	},
+  	},
 	html(\[
 'YUI({
     modules: {
@@ -78,7 +79,7 @@ yui_script -->
 	      .plug(Y.Plugin.DataSourceJSONSchema, {
 		    schema: {
     			resultListLocator: "results",
-    			resultFields: ["id", "label", "hasNext"]
+    			resultFields: ["id", "label", "hasNext", "matches", "scheme"]
     		    }\n',
 '    	      })
     	      .plug({fn:Y.Plugin.DataSourceCache, cfg:{max:20}});\n',
@@ -87,19 +88,23 @@ yui_script -->
 '	    datasource: ds,
 	    maxNumberItems: 100,\n',
 ' 	    columns: [
-
 	        {   request: "',ConceptSchemes,'",
 	            formatter: formatItem
 	        },\n',
 '	        {   request: "',Concepts,'",
+		    params: {type:"topconcept"},
 		    options: [
 	                {value:"inscheme", label:"concepts in scheme"},
-	                {value:"topconcept", label: "top concepts"}
+	                {value:"topconcept", selected:true, label: "top concepts"}
 	            ]
 	        },\n',
 '	        {   request: "',Concepts,'",
-		    params: {type:"narrower"},
-		    repeat: true
+		    params: {type:"child"},
+		    options: [
+			 {value:"descendant", label:"descendants"},
+			 {value:"child", selected:true, label:"children"}
+		    ],\n',
+'		    repeat: true
  	        }\n',
 '	    ]
 	});\n',
@@ -111,37 +116,22 @@ yui_script -->
 	if(oResource.hasNext) { HTML += "<div class=\'more\'>&gt;</div>"; }
 	HTML += "<div class=\'resourcelist-item-value\' title=\'"+uri+"\'>"+value+"</div>";
 	return HTML;
-}\n',
+};\n',
 'cf.render("#columnbrowser");\n',
 
-'myNS = YUI.namespace("resource.data");\n',
 'cf.setTitle = function(resource) {
-	Y.log("get info for: "+resource.id);
-	Y.Get.script("',ConceptInfo,'?uri="+resource.id+"&callback=myNS.setInfo", {
-	    context: Y
-	});
-};\n',
-
-'myNS.setInfo = function(info) {
-	var props = info.properties,
-	    HTML = "<div class=\'infobox\'>"+
-		   "<h3>"+info.label+"</h3>"+
-		   "<div class=\'uri\'>"+info.uri+"</div>"+
-		   "<table class=\'props\'>";\n',
-'	for(i=0; i<props.length; i++) {
-	    HTML += "<tr><td>"+props[i].plabel+"</td>"+
-		    "<td>"+props[i].vlabel+"</td></tr>";
-	}\n',
-'	HTML += "</table></div>";
-	cf.titleNode.set("innerHTML", HTML);
- };\n',
+ 	Y.io("',ConceptInfo, '", {
+	    data: "concept="+resource.id,
+	    on: {  success: function(tid, o) {
+		      cf.titleNode.set("innerHTML", o.responseText);
+	           }
+		}
+	});\n',
+'};\n',
 
 '});\n'
 	      ]).
 
-
-:- json_object
- 	concept(id:atom, label:atom, hasNext:boolean).
 
 %%	http_concept_schemes(+Request)
 %
@@ -150,13 +140,17 @@ yui_script -->
 http_concept_schemes(Request) :-
 	http_parameters(Request,
 			[ parent(Parent,
-				 [optional(true), description('Named graph in which the concept schemes occur')]),
+				 [optional(true),
+				  description('Named graph in which the concept schemes occur')]),
 			  offset(Offset,
-				[integer, default(0),description('Start of the results returned')]),
+				[integer, default(0),
+				 description('Start of the results returned')]),
 			  limit(Limit,
-				[integer, default(20), description('maximum number of results returned')]),
+				[integer, default(20),
+				 description('maximum number of results returned')]),
 			  query(Query,
-				[optional(true), description('keyword query to filter the results by')])
+				[optional(true),
+				 description('keyword query to filter the results by')])
 			]),
 	ConceptScheme = concept(Concept, Label, true),
 	findall(ConceptScheme, concept_scheme(Parent, Query, Concept, Label), Cs),
@@ -167,11 +161,18 @@ http_concept_schemes(Request) :-
 			 limit=Limit,
  			 results=JSONResults])).
 
+:- json_object
+ 	concept(id:atom, label:atom, hasNext:boolean).
+
 concept_scheme(Parent, Query, C, Label) :-
 	var(Query),
 	!,
 	rdf(C, rdf:type, skos:'ConceptScheme', Parent),
 	once(display_label(C, Label)).
+concept_scheme(Parent, Query, C, Label) :-
+	rdf(C, rdf:type, skos:'ConceptScheme', Parent),
+	rdf(C, rdfs:label, literal(prefix(Query), Lit)),
+	text_of_literal(Lit, Label).
 
 
 %%	http_concepts(+Request)
@@ -181,18 +182,25 @@ concept_scheme(Parent, Query, C, Label) :-
 http_concepts(Request) :-
 	http_parameters(Request,
 			[ parent(Parent,
-				   [description('Concept or concept scheme from which we request the concepts')]),
+				   [optional(true),
+				    description('Concept or concept scheme from which we request the concepts')]),
 			  type(Type,
-			       [default(topconcept), description('Method to determine the concepts')]),
+			       [oneof(topconcept,inscheme,child,descendant,related),
+				default(inscheme),
+				description('Method to determine the concepts')]),
 			  offset(Offset,
-				[integer, default(0), description('Start of the results returned')]),
+				[integer, default(0),
+				 description('Start of the results returned')]),
 			  limit(Limit,
-				[integer, default(20), description('maximum number of results returned')]),
+				[integer, default(20),
+				 description('maximum number of results returned')]),
 			  query(Query,
-				[optional(true), description('keyword query to filter the results by')])
+				[optional(true),
+				 description('keyword query to filter the results by')])
 			]),
 	TopConcept = concept(Concept, Label, HasNarrower),
-	findall(TopConcept, concept(Type, Parent, Query, Concept, Label, HasNarrower), Cs),
+	findall(TopConcept, concept(Type, Parent, Query, Concept, Label, HasNarrower), Cs0),
+	sort(Cs0, Cs),
 	term_sort_by_arg(Cs, 2, Sorted),
 	list_offset(Sorted, Offset, OffsetResults),
 	list_limit(OffsetResults, Limit, LimitResults, _),
@@ -208,13 +216,20 @@ concept(Type, Parent, Query, Concept, Label, HasNarrower) :-
 	concept_(Type, Parent, Concept),
 	has_narrower(Concept, HasNarrower),
  	once(display_label(Concept, Label)).
+concept(Type, Parent, Query, Concept, Label, HasNarrower) :-
+	rdf_has(Concept, rdfs:label, literal(prefix(Query), Lit)),
+ 	concept_(Type, Parent, Concept),
+	text_of_literal(Lit, Label),
+	has_narrower(Concept, HasNarrower).
 
 concept_(inscheme, ConceptScheme, Concept) :- !,
 	inscheme(ConceptScheme, Concept).
 concept_(topconcept, ConceptScheme, Concept) :- !,
 	top_concept(ConceptScheme, Concept).
-concept_(narrower, Parent, Concept) :-
+concept_(child, Parent, Concept) :-
 	narrower_concept(Parent, Concept).
+concept_(descendant, Parent, Concept) :-
+	descendant(Parent, Concept).
 concept_(related, Parent, Concept) :-
 	related_concept(Parent, Concept).
 
@@ -248,6 +263,16 @@ narrower_concept(Concept, Narrower) :-
 	rdf_has(Narrower, skos:broader, Concept),
 	\+ rdf_has(Concept, skos:narrower, Narrower).
 
+%%	descendant(+Concept, -Descendant)
+%
+%	Descendant is a child of Concept or recursively of its children
+
+descendant(Concept, Descendant) :-
+	narrower_concept(Concept, Narrower),
+	(   Descendant = Narrower
+	;   descendant(Narrower, Descendant)
+	).
+
 %%	related_concept(+Concept, -Related)
 %
 %	True if Related is related to Concept by skos:related.
@@ -270,51 +295,88 @@ has_narrower(Concept, true) :-
 	!.
 has_narrower(_, false).
 
-:- json_object
-        literal(literal:atom),
-	literal(literal:_),
-        type(type:atom, text:atom),
-        lang(lang:atom, text:atom),
-        prop(property:atom, plabel:atom, value:_, vlabel:atom).
-
-:- rdf_meta
-        skos_info_property(r).
 
 %%	http_concept_info(+Request)
 %
 %       API handler to fetch info about a URI.
+%
+%       @TBD support for language tags
 
 http_concept_info(Request) :-
 	http_parameters(Request,
-			[  uri(URI,
-			       [uri, description('Resource to request info about')]),
-			   callback(Callback,
-				    [optional(true),
-				     description('Callback function in which the response is wrapped')])
-			]),
-	display_label(URI, Label),
- 	findall(prop(P,PL,V,VL), concept_info(URI, P, PL, V, VL), Properties),
-	prolog_to_json(Properties, JSONProps),
-	JSON = json([uri(URI), label(Label), properties(JSONProps)]),
-	(   nonvar(Callback)
-	->  reply_jsonp(JSON, Callback)
- 	;   reply_json(JSON)
+			[  concept(C,
+			       [description('Concept to request info about')])
+ 			]),
+	display_label(C, Label),
+	skos_description(C, Desc),
+	skos_alt_labels(C, AltLabels0),
+	delete(AltLabels0, Label, AltLabels),
+	skos_related_concepts(C, Related),
+	format('Content-type: text/html~n~n'),
+	phrase(html(\html_info_snippet(C, Label, Desc, AltLabels, Related)), HTML),
+	print_html(HTML).
+
+skos_description(C, Desc) :-
+	(   rdf_has(C, skos:scopeNote, Lit)
+	->  literal_text(Lit, Desc)
+	;   Desc = ''
 	).
+skos_alt_labels(C, AltLabels) :-
+ 	findall(AL, ( rdf_has(C, skos:altLabel, Lit),
+		      literal_text(Lit, AL)
+		    ),
+		AltLabels0),
+	sort(AltLabels0, AltLabels).
+skos_related_concepts(C, Related) :-
+	Concept = concept(R, Label),
+ 	findall(Concept, ( skos_related(C, R),
+			   once(display_label(R, Label))
+		    ),
+		Related).
 
-concept_info(R, P, PL, V, VL) :-
-	skos_info_property(P),
-	(   rdf_has(R,P,V)
-	;   rdf_has(V,P,R),
-	    \+ rdf_has(R,P,V)
-	),
-	once(display_label(P, PL)),
-	once(display_label(V, VL)).
+skos_related(C, R) :-
+	rdf_has(C, skos:related, R).
+skos_related(C, R) :-
+	rdf_has(R, skos:related, C),
+	\+ rdf_has(C, skos:related, R).
 
-skos_info_property(skos:prefLabel).
-skos_info_property(skos:altLabel).
-skos_info_property(skos:scopeNote).
-skos_info_property(skos:notation).
-skos_info_property(skos:related).
+html_info_snippet(URI, Label, Desc, AltLabels, Related) -->
+	html(div(class(infobox),
+		 [ h3([Label,
+		       \html_label_list(AltLabels)
+		      ]),
+		   div(class(uri), URI),
+		   div(class(desc), Desc),
+		   \html_related_list(Related)
+		 ])).
+
+html_label_list([]) --> !.
+html_label_list(Ls) -->
+	html(span(class(altlabels),
+		  [ ' (',
+		    \html_label_list_(Ls),
+		    ')'
+		  ])).
+
+html_label_list_([L]) --> !,
+	html(span(class(label), L)).
+html_label_list_([L|Ls]) -->
+	html(span(class(label), [L,', '])),
+	html_label_list_(Ls).
+
+html_related_list([]) --> !.
+html_related_list(Cs) -->
+	html(div(class(related),
+		 [ 'related: ',
+		   \html_concept_list(Cs)
+		 ])).
+
+html_concept_list([concept(URI, Label)]) --> !,
+	html(span([class(concept), title(URI)], Label)).
+html_concept_list([concept(URI, Label)|Cs]) -->
+	html(span([class(concept), title(URI)], [Label, ', '])),
+	html_concept_list(Cs).
+
 
 		 /*******************************
 		 *	     UTILILIES          *

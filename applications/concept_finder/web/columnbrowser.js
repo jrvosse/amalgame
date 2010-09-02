@@ -147,23 +147,20 @@ YUI.add('columnbrowser', function(Y) {
 		**/
 		_renderHeader : function() {
 			var oSelf = this,
-				title = Node.create('<div class="title"></div>');
-				//search = Node.create('<input type="text">');
+				category = Y.stamp(this)+"|";
 				
-			this.get("contentBox").
-				append(Node.create('<div class="hd"></div>').
-					append(title)
-					/*append(Node.create('<div class="controls"></div>').
-						append(Node.create('<div class="search"></div>').
-							append(search).
-							append('<div class="label">Search</div>')
-						)
-					)*/
-				);
+			var hd = this.get("contentBox")
+				.appendChild(Node.create('<div class="hd"></div>'))
 			
-			//var category = Y.stamp(this)+"|";
-			//Y.on(category+"valueChange", this._valueChangeHandler, search, this);
-			this.titleNode = title;
+			this.titleNode = hd
+				.appendChild(Node.create('<div class="title"></div>'));
+			
+			var search = hd
+				.appendChild(Node.create('<div class="controls"></div>'))
+				.appendChild(Node.create('<div class="search"></div>'))
+			search.appendChild(Node.create('<input type="search" size="20">'))
+				.on(category+"valueChange", this._valueChangeHandler, this);
+			search.appendChild(Node.create('<div class="label">search</div>'));
 		},
 		
 		/**
@@ -175,14 +172,10 @@ YUI.add('columnbrowser', function(Y) {
 		* @private
 		**/
 		_renderBody : function() {
-			this.bodyNode = Node.create('<div class="bd"></div>');
-			this.columnsNode = Node.create('<div class="columns"></div>');
-			
-			this.get("contentBox").appendChild(this.bodyNode).
-				appendChild(Node.create('<div class="columns-box"></div>')).
-					appendChild(this.columnsNode);
-			
-			//this.bodyNode.plug(Y.Plugin.Resize, {handles:["b"],animate:true});
+			this.columnsNode = this.get("contentBox")
+				.appendChild(Node.create('<div class="bd"></div>'))
+				.appendChild(Node.create('<div class="columns-box"></div>'))
+				.appendChild(Node.create('<div class="columns"></div>'));
 		},
 		
 		/**
@@ -191,11 +184,9 @@ YUI.add('columnbrowser', function(Y) {
 		* @private
 		**/
 		_renderFooter : function() {
-			this.statusNode = Node.create('<div class="status"></div>');
-			this.get("contentBox").
-				append(Node.create('<div class="ft"></div>').
-					append(this.statusNode)
-				);
+			this.statusNode = this.get("contentBox")
+				.appendChild(Node.create('<div class="ft"></div>'))
+				.appendChild(Node.create('<div class="status"></div>'));
 		},
 		
 		/**
@@ -217,8 +208,9 @@ YUI.add('columnbrowser', function(Y) {
 				for (var i=0; i < options.length; i++) {
 					var option = options[i],
 						value = option.value,
-						label = option.label ? option.label : value;		
-					optionsNode.insert('<option value="'+value+'">'+label+'</option>');
+						label = option.label ? option.label : value,	
+						selected = option.selected ? 'selected' : '';
+					optionsNode.insert('<option value="'+value+'" '+selected+'>'+label+'</option>');
 				}
 				optionsNode.on("change", this._optionSelect, this, index);
 			}
@@ -244,14 +236,13 @@ YUI.add('columnbrowser', function(Y) {
 				end = start+Math.min(limit,length);
 				
 			if(!column._pagination) {
-				var pagination = content.appendChild(Node.create('<div class="pagination"></div>'));
-				pagination.appendChild(
-					Node.create('<a href="javascript:{}" class="page-prev">prev</a>')).on(
-						"click", this._offsetSelect, this, index, -1);
+				var pagination = content
+					.appendChild(Node.create('<div class="pagination"></div>'));
+				pagination.appendChild(Node.create('<a href="javascript:{}" class="page-prev">prev</a>'))
+					.on("click", this._offsetSelect, this, index, -1);
 				pagination.insert('<span class="page-label"></span>');
-				pagination.appendChild(
-					Node.create('<a href="javascript:{}" class="page-next">next</a>')).on(
-						"click", this._offsetSelect, this, index, 1);
+				pagination.appendChild(Node.create('<a href="javascript:{}" class="page-next">next</a>'))
+					.on("click", this._offsetSelect, this, index, 1);
 				column._pagination = pagination;		
 			} else {
 				column._pagination.removeClass("hidden");
@@ -282,18 +273,28 @@ YUI.add('columnbrowser', function(Y) {
 		_getColumnData : function(index) {
 			var oSelf = this,
 				column = this.get("columns")[index],
+				params = column.params,
 				request = column.request,
 				offset = column.page ? column.page*this.get("maxNumberItems") : 0,
-				cfg = {
-					type: column.option,
-					parent: column.parent,
-					limit: this.get("maxNumberItems"),
-					offset: offset,
-					query: column.searchString
-				};
+				cfg = {};
+				
+			// request configuration attribute consist of params in
+			// the column definition and the current status of the column 	
+			for(key in params) {
+				if(key) {
+					cfg[key] = params[key];
+				}
+			}
+			cfg.limit = this.get("maxNumberItems");
+			cfg.offset = offset;
+			cfg.query = column.searchString || cfg.query ;
+			cfg.type = column.option || cfg.type;
+			cfg.parent = column.parent || cfg.parent;
+			
+			// request
 			request = Lang.isFunction(request) 
-				? request.call(this, cfg, params) 
-				: request+"?"+this._requestParams(cfg)+this._requestParams(column.params);
+				? request.call(this, cfg) 
+				: request+"?"+this._requestParams(cfg);
 				
 			this._nDelayID = -1; // reset search query delay
 			this._createColumn(index);
@@ -309,8 +310,7 @@ YUI.add('columnbrowser', function(Y) {
 							oSelf.activeIndex = index;
 							oSelf._populateColumn(index, resources);
 						} 
-						else { // hide all columns and set activeIndex to previous column
-							oSelf.activeIndex = index-1;
+						else { 
 							oSelf._clearColumn(column);
 						}
 						oSelf._setStatus(index, resources);
@@ -390,9 +390,9 @@ YUI.add('columnbrowser', function(Y) {
 					boundingBox: column._node,
 					maxNumberItems: this.get("maxNumberItems"),
 					resources: resources,
-					width:width,
-					formatter:column.formatter
+					width:width
 				});
+				resourceList.formatItem = column.formatter;
 				resourceList.render();
 				resourceList.on("itemClick", oSelf._itemSelect, oSelf, index);
 				column.resourceList = resourceList;
@@ -434,9 +434,10 @@ YUI.add('columnbrowser', function(Y) {
 				column = columns[index] ? columns[index] : {};
 
 			column.request = column.request||(previous.repeat ? previous.request : null);	
-			column.formatter = column.formatter||previous.resourceList.get("formatter");
+			column.formatter = column.formatter||previous.resourceList.formatItem;
 			column.parent = parent ? this.itemId(parent) : null;
 			column.params = column.params||(previous.repeat ? previous.params : null);
+			column.options = column.options||(previous.repeat ? previous.options : null);
 			column.repeat = column.repeat||previous.repeat;
  			column.page = 0;
 			column.searchString = null;
@@ -505,32 +506,29 @@ YUI.add('columnbrowser', function(Y) {
 		 **/
 		_valueChangeHandler : function(e) {
 			var oSelf = this,
-				value = e.value,
-				index = this.activeIndex,
-				column = this.get("columns")[index],
-				delay = this.get("queryDelay");
-
+				query = e.value;
+			
 			// Clear previous timeout
 		    if(oSelf._nDelayID != -1) {
 		        clearTimeout(oSelf._nDelayID);
 		    }
-			column.searchString = value;
-			
-			if (!value) {
+
+			this._columnSearch(this.activeIndex, query);
+		},	
+		_columnSearch : function(index, query) {		
+			var column = this.get("columns")[index];
+			column.searchString = query;
+			column.page = 0;
+			if (!query || query.length < this.get("minQueryLength")) {
 				this._getColumnData(index);
 			}
-			else if (value === this._cachedValue || value.length < this.get("minQueryLength")) {
-				return;
-			} else {
-				this._cachedValue = value;
-				column.page = 0;
-
+			else {
 	    		// Set new timeout
+				var oSelf = this;
 	    		oSelf._nDelayID = setTimeout(function(){
 	            	oSelf._getColumnData(index);
-	        	}, delay*1000);
+	        	}, this.get("queryDelay")*1000);
 			}
-
 		},
 				
 		/**
