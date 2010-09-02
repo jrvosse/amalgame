@@ -436,6 +436,7 @@ YUI.add('columnbrowser', function(Y) {
 			column.formatter = column.formatter||previous.resourceList.formatItem;
 			column.parent = parent ? this.itemId(parent) : null;
 			column.params = column.params||(previous.repeat ? previous.params : null);
+			column.options = column.options||(previous.repeat ? previous.options : null);
 			column.repeat = column.repeat||previous.repeat;
  			column.page = 0;
 			column.searchString = null;
