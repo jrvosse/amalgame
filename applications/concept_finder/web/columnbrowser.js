@@ -32,6 +32,9 @@ YUI.add('columnbrowser', function(Y) {
 		columns: {
 			value: null
 		},
+		search: {
+			value: null
+		},
 		columnWidth: {
 			value: "200px"
 		},
@@ -524,7 +527,7 @@ YUI.add('columnbrowser', function(Y) {
 			// We support to types of search
 			if(Y.one('#searchwithin').get("checked")) {
 				this._columnSearch(this.activeIndex, query);
-			} else {
+			} else if(this.get("search")&&this.get("search").request) {
 				this._globalSearch(query);
 			}
 		},	
@@ -549,6 +552,7 @@ YUI.add('columnbrowser', function(Y) {
 			var oSelf = this,
 				resultsNode = this.searchResultsNode,
 				columnsNode = this.columnsNode,
+				search = this.get("search"),
 				limit = this.get("maxNumberItems");
 				
 			if(!query) {
@@ -564,6 +568,9 @@ YUI.add('columnbrowser', function(Y) {
 					var resourceList = new Y.mazzle.ResourceList({
 						maxNumberItems: limit
 					});
+					if(search.formatter) {
+						resourceList.formatItem = search.formatter;
+					}
 					resourceList.render(resultsNode);
 					//resourceList.on("itemClick", this._itemSelect, this);
 					this.searchResultList = resourceList;
@@ -571,7 +578,7 @@ YUI.add('columnbrowser', function(Y) {
 				
 				oSelf._nDelayID = setTimeout(function(){
 	            	oSelf.get("datasource").sendRequest({
-						request:"/amalgame/api/conceptsearch?query="+query+"&limit="+limit,
+						request:search.request+"?query="+query+"&limit="+limit,
 						callback: {
 							success: function(e){
 								var resources = e.response.results;

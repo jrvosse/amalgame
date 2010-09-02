@@ -59,7 +59,8 @@ yui_script -->
 	  http_absolute_location(js('columnbrowser.js'), ColumnBrowser, []),
 	  http_location_by_id(http_concept_schemes, ConceptSchemes),
 	  http_location_by_id(http_concepts, Concepts),
-	  http_location_by_id(http_concept_info, ConceptInfo)
+	  http_location_by_id(http_concept_info, ConceptInfo),
+	  http_location_by_id(http_concept_search, ConceptSearch)
  	},
 	html(\[
 'YUI({
@@ -80,16 +81,19 @@ yui_script -->
 	      .plug(Y.Plugin.DataSourceJSONSchema, {
 		    schema: {
     			resultListLocator: "results",
-    			resultFields: ["id", "label", "hasNext"]
+    			resultFields: ["id", "label", "hasNext", "matches", "scheme"]
     		    }\n',
 '    	      })
     	      .plug({fn:Y.Plugin.DataSourceCache, cfg:{max:20}});\n',
 
 'var cf = new Y.mazzle.ColumnBrowser({\n',
 '	    datasource: ds,
-	    maxNumberItems: 100,\n',
+	    maxNumberItems: 100,
+	    search: {
+		request: "',ConceptSearch,'",
+		formatter: formatSearchResult
+	    },\n',
 ' 	    columns: [
-
 	        {   request: "',ConceptSchemes,'",
 	            formatter: formatItem
 	        },\n',
@@ -114,7 +118,16 @@ yui_script -->
 	if(oResource.hasNext) { HTML += "<div class=\'more\'>&gt;</div>"; }
 	HTML += "<div class=\'resourcelist-item-value\' title=\'"+uri+"\'>"+value+"</div>";
 	return HTML;
-}\n',
+};\n',
+'function formatSearchResult(oResource) {
+        var label = oResource["label"],
+            uri   = oResource["id"],
+            value = (label&&!Y.Lang.isObject(label)) ? label : uri;\n',
+'	var HTML = "";
+	if(oResource.hasNext) { HTML += "<div class=\'more\'>&gt;</div>"; }
+	HTML += "<div class=\'resourcelist-item-value\' title=\'"+uri+"\'>"+value+"</div>";
+	return HTML;
+};\n',
 'cf.render("#columnbrowser");\n',
 
 'cf.setTitle = function(resource) {
