@@ -124,7 +124,9 @@ show_schemes([Voc|Tail], Nr, [C,P,A,M]) -->
 	 ;   NewA = A, ACount = MissingValue
 	 ),
 	 (   memberchk(numberOfMappedConcepts(literal(type(_, MCount))), Props)
-	 ->  NewM is M + MCount
+	 ->  NewM is M + MCount,
+	     Perc is 100*(MCount/CCount),
+	     format(atom(MPercent), '(~2f%)', [Perc])
 	 ;   NewM = M, MCount = MissingValue
 	 ),
 	 (rdf_has(Example, skos:inScheme, Voc)
@@ -134,9 +136,7 @@ show_schemes([Voc|Tail], Nr, [C,P,A,M]) -->
 	 (rdf_has(Voc, dcterms:rights, RightsO)
 	 ->  text_of_literal(RightsO, Rights)
 	 ;   Rights = '-'
-	 ),
-	 Perc is 100*(MCount/CCount),
-	 format(atom(MPercent), '(~2f%)', [Perc])
+	 )
 	},
 	html(tr([td(Nr),
 		 td(\rdf_link(Voc, [resource_format(plain)])),
