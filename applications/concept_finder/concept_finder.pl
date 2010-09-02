@@ -95,14 +95,14 @@ yui_script -->
 		    params: {type:"topconcept"},
 		    options: [
 	                {value:"inscheme", label:"concepts in scheme"},
-	                {value:"topconcept", label: "top concepts"}
+	                {value:"topconcept", selected:true, label: "top concepts"}
 	            ]
 	        },\n',
 '	        {   request: "',Concepts,'",
 		    params: {type:"child"},
 		    options: [
 			 {value:"descendant", label:"descendants"},
-			 {value:"child", label:"children"}
+			 {value:"child", selected:true, label:"children"}
 		    ],\n',
 '		    repeat: true
  	        }\n',

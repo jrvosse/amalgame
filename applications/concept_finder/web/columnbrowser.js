@@ -208,8 +208,9 @@ YUI.add('columnbrowser', function(Y) {
 				for (var i=0; i < options.length; i++) {
 					var option = options[i],
 						value = option.value,
-						label = option.label ? option.label : value;		
-					optionsNode.insert('<option value="'+value+'">'+label+'</option>');
+						label = option.label ? option.label : value,	
+						selected = option.selected ? 'selected' : '';
+					optionsNode.insert('<option value="'+value+'" '+selected+'>'+label+'</option>');
 				}
 				optionsNode.on("change", this._optionSelect, this, index);
 			}
