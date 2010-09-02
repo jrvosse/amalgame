@@ -15,6 +15,7 @@
 :- use_module(library(semweb/rdf_litindex)).
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(settings)).
+:- use_module(components(label)).
 
 % add local web directories from which static files are served.
 
@@ -28,6 +29,7 @@
 :- http_handler(amalgame(conceptfinder), http_concept_finder, []).
 :- http_handler(amalgame(api/conceptschemes), http_concept_schemes, []).
 :- http_handler(amalgame(api/concepts), http_concepts, []).
+:- http_handler(amalgame(api/conceptsearch), http_concept_search, []).
 :- http_handler(amalgame(private/conceptinfo), http_concept_info, []).
 
 %%	http_concept_finder(+Request)
@@ -92,6 +94,7 @@ yui_script -->
 	            formatter: formatItem
 	        },\n',
 '	        {   request: "',Concepts,'",
+		    params: {type:"topconcept"},
 		    options: [
 	                {value:"inscheme", label:"concepts in scheme"},
 	                {value:"topconcept", label: "top concepts"}
@@ -128,9 +131,6 @@ yui_script -->
 	      ]).
 
 
-:- json_object
- 	concept(id:atom, label:atom, hasNext:boolean).
-
 %%	http_concept_schemes(+Request)
 %
 %       API handler to fetch concept schemes
@@ -138,13 +138,17 @@ yui_script -->
 http_concept_schemes(Request) :-
 	http_parameters(Request,
 			[ parent(Parent,
-				 [optional(true), description('Named graph in which the concept schemes occur')]),
+				 [optional(true),
+				  description('Named graph in which the concept schemes occur')]),
 			  offset(Offset,
-				[integer, default(0),description('Start of the results returned')]),
+				[integer, default(0),
+				 description('Start of the results returned')]),
 			  limit(Limit,
-				[integer, default(20), description('maximum number of results returned')]),
+				[integer, default(20),
+				 description('maximum number of results returned')]),
 			  query(Query,
-				[optional(true), description('keyword query to filter the results by')])
+				[optional(true),
+				 description('keyword query to filter the results by')])
 			]),
 	ConceptScheme = concept(Concept, Label, true),
 	findall(ConceptScheme, concept_scheme(Parent, Query, Concept, Label), Cs),
@@ -155,11 +159,18 @@ http_concept_schemes(Request) :-
 			 limit=Limit,
  			 results=JSONResults])).
 
+:- json_object
+ 	concept(id:atom, label:atom, hasNext:boolean).
+
 concept_scheme(Parent, Query, C, Label) :-
 	var(Query),
 	!,
 	rdf(C, rdf:type, skos:'ConceptScheme', Parent),
 	once(display_label(C, Label)).
+concept_scheme(Parent, Query, C, Label) :-
+	rdf(C, rdf:type, skos:'ConceptScheme', Parent),
+	rdf(C, rdfs:label, literal(prefix(Query), Lit)),
+	text_of_literal(Lit, Label).
 
 
 %%	http_concepts(+Request)
@@ -169,18 +180,24 @@ concept_scheme(Parent, Query, C, Label) :-
 http_concepts(Request) :-
 	http_parameters(Request,
 			[ parent(Parent,
-				   [description('Concept or concept scheme from which we request the concepts')]),
+				   [optional(true),
+				    description('Concept or concept scheme from which we request the concepts')]),
 			  type(Type,
-			       [default(topconcept), description('Method to determine the concepts')]),
+			       [default(inscheme),
+				description('Method to determine the concepts')]),
 			  offset(Offset,
-				[integer, default(0), description('Start of the results returned')]),
+				[integer, default(0),
+				 description('Start of the results returned')]),
 			  limit(Limit,
-				[integer, default(20), description('maximum number of results returned')]),
+				[integer, default(20),
+				 description('maximum number of results returned')]),
 			  query(Query,
-				[optional(true), description('keyword query to filter the results by')])
+				[optional(true),
+				 description('keyword query to filter the results by')])
 			]),
 	TopConcept = concept(Concept, Label, HasNarrower),
-	findall(TopConcept, concept(Type, Parent, Query, Concept, Label, HasNarrower), Cs),
+	findall(TopConcept, concept(Type, Parent, Query, Concept, Label, HasNarrower), Cs0),
+	sort(Cs0, Cs),
 	term_sort_by_arg(Cs, 2, Sorted),
 	list_offset(Sorted, Offset, OffsetResults),
 	list_limit(OffsetResults, Limit, LimitResults, _),
@@ -196,6 +213,11 @@ concept(Type, Parent, Query, Concept, Label, HasNarrower) :-
 	concept_(Type, Parent, Concept),
 	has_narrower(Concept, HasNarrower),
  	once(display_label(Concept, Label)).
+concept(Type, Parent, Query, Concept, Label, HasNarrower) :-
+	rdf_has(Concept, rdfs:label, literal(prefix(Query), Lit)),
+ 	concept_(Type, Parent, Concept),
+	text_of_literal(Lit, Label),
+	has_narrower(Concept, HasNarrower).
 
 concept_(inscheme, ConceptScheme, Concept) :- !,
 	inscheme(ConceptScheme, Concept).
@@ -257,6 +279,56 @@ has_narrower(Concept, true) :-
 	rdf_has(_, skos:broader, Concept),
 	!.
 has_narrower(_, false).
+
+
+
+%%	http_concept_search(+Request)
+%
+%       API handler to search for SKOS concepts
+
+http_concept_search(Request) :-
+	http_parameters(Request,
+			[ offset(Offset,
+				[integer, default(0),
+				 description('Start of the results returned')]),
+			  limit(Limit,
+				[integer, default(20),
+				 description('maximum number of results returned')]),
+			  query(Query,
+				[description('keyword query to filter the results by')]),
+			  scheme(Scheme,
+				 [optional(true),
+				  description('concept scheme to search within')])
+			]),
+ 	findall(Concept-Match, search_concept(Query, Scheme, Concept, Match), Cs0),
+	keysort(Cs0, Cs),
+	group_pairs_by_key(Cs, Groups),
+	maplist(result_group, Groups, Results),
+	term_sort_by_arg(Results, 2, Sorted),
+	list_offset(Sorted, Offset, OffsetResults),
+	list_limit(OffsetResults, Limit, LimitResults, _),
+	prolog_to_json(LimitResults, JSONResults),
+	reply_json(json([query=Query,
+			 offset=Offset,
+			 limit=Limit,
+ 			 results=JSONResults])).
+
+result_group(Concept-Matches, result(Concept, Label, Matches)) :-
+	display_label(Concept, Label).
+
+:- json_object
+        match(match:atom, type:atom),
+        result(id:atom, label:atom, matches:list).
+
+search_concept(Query, Scheme, Concept, match(Match, MatchType)) :-
+	rdf_find_literals(prefix(Query), Matches),
+	member(Match, Matches),
+	search_pattern(literal(Match), Scheme, Concept, MatchType).
+
+search_pattern(Lit, Scheme, Concept, P) :-
+	rdf(Concept, P, Lit),
+	rdf_has(Concept, skos:inScheme, Scheme).
+
 
 :- json_object
         literal(literal:atom),
