@@ -18,22 +18,31 @@
 	background: url(loading.gif) no-repeat center center
 }
 .yui3-columnbrowser .hd {
-	padding: 2px 0;
-	height: 100px;
-	overflow: auto;
+	height: 7em;
 }
 .yui3-columnbrowser .infobox {
-	margin: 0 auto;
+	margin: 0.5em auto;
 	text-align: left;
+	overflow: auto;
 }
 .yui3-columnbrowser .infobox h3 {
+	font-size: 1.2em;
 	margin: 0;
 }
+.yui3-columnbrowser .infobox h3 .altlabels {
+	font-weight: normal;
+}
 .yui3-columnbrowser .infobox .uri {
-	font-size: 90%;
+	font-size: 0.9em;
 }
-.yui3-columnbrowser .infobox table {
+.yui3-columnbrowser .infobox .related {
+	margin-top: 0.5em;
 }
+.yui3-columnbrowser .infobox .desc {
+	margin-top: 0.5em;
+}
+
+
 .yui3-columnbrowser .hd .controls {
 	height: 40px;
 }

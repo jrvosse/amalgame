@@ -28,7 +28,7 @@
 :- http_handler(amalgame(conceptfinder), http_concept_finder, []).
 :- http_handler(amalgame(api/conceptschemes), http_concept_schemes, []).
 :- http_handler(amalgame(api/concepts), http_concepts, []).
-:- http_handler(amalgame(api/conceptInfo), http_concept_info, []).
+:- http_handler(amalgame(private/conceptinfo), http_concept_info, []).
 
 %%	http_concept_finder(+Request)
 %
@@ -114,27 +114,15 @@ yui_script -->
 }\n',
 'cf.render("#columnbrowser");\n',
 
-'myNS = YUI.namespace("resource.data");\n',
 'cf.setTitle = function(resource) {
-	Y.log("get info for: "+resource.id);
-	Y.Get.script("',ConceptInfo,'?uri="+resource.id+"&callback=myNS.setInfo", {
-	    context: Y
-	});
-};\n',
-
-'myNS.setInfo = function(info) {
-	var props = info.properties,
-	    HTML = "<div class=\'infobox\'>"+
-		   "<h3>"+info.label+"</h3>"+
-		   "<div class=\'uri\'>"+info.uri+"</div>"+
-		   "<table class=\'props\'>";\n',
-'	for(i=0; i<props.length; i++) {
-	    HTML += "<tr><td>"+props[i].plabel+"</td>"+
-		    "<td>"+props[i].vlabel+"</td></tr>";
-	}\n',
-'	HTML += "</table></div>";
-	cf.titleNode.set("innerHTML", HTML);
- };\n',
+ 	Y.io("',ConceptInfo, '", {
+	    data: "concept="+resource.id,
+	    on: {  success: function(tid, o) {
+		      cf.titleNode.set("innerHTML", o.responseText);
+	           }
+		}
+	});\n',
+'};\n',
 
 '});\n'
 	      ]).
@@ -283,38 +271,78 @@ has_narrower(_, false).
 %%	http_concept_info(+Request)
 %
 %       API handler to fetch info about a URI.
+%
+%       @TBD support for language tags
 
 http_concept_info(Request) :-
 	http_parameters(Request,
-			[  uri(URI,
-			       [uri, description('Resource to request info about')]),
-			   callback(Callback,
-				    [optional(true),
-				     description('Callback function in which the response is wrapped')])
-			]),
-	display_label(URI, Label),
- 	findall(prop(P,PL,V,VL), concept_info(URI, P, PL, V, VL), Properties),
-	prolog_to_json(Properties, JSONProps),
-	JSON = json([uri(URI), label(Label), properties(JSONProps)]),
-	(   nonvar(Callback)
-	->  reply_jsonp(JSON, Callback)
- 	;   reply_json(JSON)
+			[  concept(C,
+			       [description('Concept to request info about')])
+ 			]),
+	display_label(C, Label),
+	skos_description(C, Desc),
+	skos_alt_labels(C, AltLabels0),
+	delete(AltLabels0, Label, AltLabels),
+	skos_related_concepts(C, Related),
+	format('Content-type: text/html~n~n'),
+	phrase(html(\html_info_snippet(C, Label, Desc, AltLabels, Related)), HTML),
+	print_html(HTML).
+
+skos_description(C, Desc) :-
+	(   rdf_has(C, skos:scopeNote, Lit)
+	->  literal_text(Lit, Desc)
+	;   Desc = ''
 	).
+skos_alt_labels(C, AltLabels) :-
+ 	findall(AL, ( rdf_has(C, skos:altLabel, Lit),
+		      literal_text(Lit, AL)
+		    ),
+		AltLabels0),
+	sort(AltLabels0, AltLabels).
+skos_related_concepts(C, Related) :-
+	Concept = concept(R, Label),
+ 	findall(Concept, ( skos_related(C, R),
+			   once(display_label(R, Label))
+		    ),
+		Related).
 
-concept_info(R, P, PL, V, VL) :-
-	skos_info_property(P),
-	(   rdf_has(R,P,V)
-	;   rdf_has(V,P,R),
-	    \+ rdf_has(R,P,V)
-	),
-	once(display_label(P, PL)),
-	once(display_label(V, VL)).
+skos_related(C, R) :-
+	rdf_has(C, skos:related, R).
+skos_related(C, R) :-
+	rdf_has(R, skos:related, C),
+	\+ rdf_has(C, skos:related, R).
 
-skos_info_property(skos:prefLabel).
-skos_info_property(skos:altLabel).
-skos_info_property(skos:scopeNote).
-skos_info_property(skos:notation).
-skos_info_property(skos:related).
+html_info_snippet(URI, Label, Desc, AltLabels, Related) -->
+	html(div(class(infobox),
+		 [ h3([Label,
+		       \html_label_list(AltLabels)
+		      ]),
+		   div(class(uri), URI),
+		   div(class(desc), Desc),
+		   div(class(related),
+		       \html_concept_list(Related))
+		 ])).
+
+html_label_list([]) --> !.
+html_label_list(Ls) -->
+	html(span(class(altlabels),
+		  [ ' (',
+		    \html_label_list_(Ls),
+		    ')'
+		  ])).
+
+html_label_list_([L]) --> !,
+	html(span(class(label), L)).
+html_label_list_([L|Ls]) -->
+	html(span(class(label), [L,', '])),
+	html_label_list_(Ls).
+
+html_concept_list([concept(URI, Label)]) --> !,
+	html(span([class(concept), title(URI)], Label)).
+html_concept_list([concept(URI, Label)|Cs]) -->
+	html(span([class(concept), title(URI)], [Label, ', '])),
+	html_concept_list(Cs).
+
 
 		 /*******************************
 		 *	     UTILILIES          *
