@@ -38,8 +38,6 @@
 
 :- use_module(components(label)).
 
-:- use_module(rdfs_plus_skos).
-
 
 %%	graph_to_json(+Type, +Graph, -JSON, +Options)
 %
@@ -380,47 +378,40 @@ rdf_triple(Graph, S,P,O) :-
 %       @see iface_resource_values
 
 iface_resource_properties(R, Ps0, Pairs) :-
-        rdf_global_term(Ps0, Ps),
-        iface_resource_properties_(Ps, 0, 0, R, Pairs).
+	rdf_global_term(Ps0, Ps),
+	iface_resource_properties_(Ps, R, Pairs).
 
-iface_resource_properties(R, Ps0, Pairs, Options) :-
-        rdf_global_term(Ps0, Ps),
-        resource_ext_map(Options, EMap),
-        query_ext_map(Options, QMap),
-        iface_resource_properties_(Ps, EMap, QMap, R, Pairs).
 
-iface_resource_properties_([], _, _, _, []).
-iface_resource_properties_([P0|Ps], EMap, QMap, R, [Key=V|Pairs]) :-
+iface_resource_properties_([], _, []).
+iface_resource_properties_([P0|Ps], R, [Key=V|Pairs]) :-
         (   P0 = P-Key
-        ->  hooked_rdfs_plus_skos(EMap, QMap, R, P, O)
-        ;   hooked_rdfs_plus_skos(EMap, QMap, R, P0, O),
+        ->  hooked_rdf_has(R, P, O)
+        ;   hooked_rdf_has(R, P0, O),
             Key = P0
         ),
         !,
         object_value(O, V),
-        iface_resource_properties_(Ps, EMap, QMap, R, Pairs).
-iface_resource_properties_([_|Ps], EMap, QMap, R, Pairs) :-
-        iface_resource_properties_(Ps, EMap, QMap, R, Pairs).
+        iface_resource_properties_(Ps, R, Pairs).
+iface_resource_properties_([_|Ps], R, Pairs) :-
+        iface_resource_properties_(Ps, R, Pairs).
 
-iface_key_resource_graph(Rs, Ps0, Graph, Options) :-
+iface_key_resource_graph(Rs, Ps0, Graph, _Options) :-
         rdf_global_term(Ps0, Ps),
-        resource_ext_map(Options, EMap),
-        query_ext_map(Options, QMap),
         findall(rdf(R,Key,V),
                 (   member(R, Rs),
                     member(P-Key, Ps),
-                    hooked_rdfs_plus_skos(EMap, QMap, R,P,V)
+                    hooked_rdf_has(R,P,V)
                 ),
                 Graph
                ).
 
-hooked_rdfs_plus_skos(EMap, QMap, R,P,V) :-
-	rdfs_plus_skos(EMap, QMap, R,P,V, _,_,_).
+hooked_rdf_has(S,P,O) :-
+	rdf_has(S,P,O).
 
-hooked_rdfs_plus_skos(_, _, R,registered_ns,V) :-
-        atom(R),
-        rdf_db:ns(_,V),
-        sub_atom(R, _,_,_, V),!.
+hooked_rdf_has(S,registered_ns,O) :-
+        atom(S),
+        rdf_db:ns(_,O),
+        sub_atom(S, _,_,_, O),!.
 
 object_value(literal(L), Txt) :- !,
         text_of_literal(L, Txt).
