@@ -218,7 +218,9 @@ concept(Type, Parent, Query, Concept, Label, HasNarrower) :-
 	has_narrower(Concept, HasNarrower),
  	once(display_label(Concept, Label)).
 concept(Type, Parent, Query, Concept, Label, HasNarrower) :-
+	rdf(Parent, skos:inScheme, Scheme),
 	rdf_has(Concept, rdfs:label, literal(prefix(Query), Lit)),
+	rdf(Concept, skos:inScheme, Scheme),
  	once(concept_(Type, Parent, Concept)),
 	text_of_literal(Lit, Label),
 	has_narrower(Concept, HasNarrower).
@@ -276,8 +278,16 @@ descendant(Concept, Descendant) :-
 	;   descendant(Narrower, Descendant)
 	).
 descendant(Concept, Descendant) :-
+%	var(Concept),
+%	!,
 	parent_of(Concept, Descendant).
-
+/*
+descendant(Concept, Descendant) :-
+	tree_index(Concept, CStart, CEnd),
+	tree_index(Descendant, DStart, DEnd),
+	DStart > CStart,
+	DEnd =< CEnd.
+*/
 parent_of(Concept, Concept). % really?
 parent_of(Concept, Descendant) :-
 	narrower_concept(Broader, Descendant),
