@@ -41,12 +41,13 @@ http_concept_finder(_Request) :-
  			],
 			[  \html_requires(css('columnbrowser.css')),
 			   \html_requires('http://github.com/mattparker/yui3-gallery/raw/master/build/gallery-resize/assets/resize-core.css'),
+			   \html_requires('http://github.com/mattparker/yui3-gallery/raw/master/build/gallery-resize/assets/skin/sam/resize-skin.css'),
 			   \html_requires('http://yui.yahooapis.com/3.1.2/build/yui/yui-min.js'),
  			   div(id(header),
 			       []),
  			   div(id(main),
 			       div(class('main-content'),
-				   [ div(id(columnbrowser), [])
+				   [ div([class('yui-skin-sam'), id(columnbrowser)], [])
 				   ])),
 			   script(type('text/javascript'),
 				  [ \yui_script
@@ -171,7 +172,7 @@ concept_scheme(Parent, Query, C, Label) :-
 	once(display_label(C, Label)).
 concept_scheme(Parent, Query, C, Label) :-
 	rdf(C, rdf:type, skos:'ConceptScheme', Parent),
-	rdf(C, rdfs:label, literal(prefix(Query), Lit)),
+	once(rdf(C, rdfs:label, literal(prefix(Query), Lit))),
 	text_of_literal(Lit, Label).
 
 
@@ -218,7 +219,7 @@ concept(Type, Parent, Query, Concept, Label, HasNarrower) :-
  	once(display_label(Concept, Label)).
 concept(Type, Parent, Query, Concept, Label, HasNarrower) :-
 	rdf_has(Concept, rdfs:label, literal(prefix(Query), Lit)),
- 	concept_(Type, Parent, Concept),
+ 	once(concept_(Type, Parent, Concept)),
 	text_of_literal(Lit, Label),
 	has_narrower(Concept, HasNarrower).
 
@@ -263,15 +264,24 @@ narrower_concept(Concept, Narrower) :-
 	rdf_has(Narrower, skos:broader, Concept),
 	\+ rdf_has(Concept, skos:narrower, Narrower).
 
-%%	descendant(+Concept, -Descendant)
+%%	descendant(?Concept, ?Descendant)
 %
 %	Descendant is a child of Concept or recursively of its children
 
 descendant(Concept, Descendant) :-
+	var(Descendant),
+	!,
 	narrower_concept(Concept, Narrower),
 	(   Descendant = Narrower
 	;   descendant(Narrower, Descendant)
 	).
+descendant(Concept, Descendant) :-
+	parent_of(Concept, Descendant).
+
+parent_of(Concept, Concept). % really?
+parent_of(Concept, Descendant) :-
+	narrower_concept(Broader, Descendant),
+	parent_of(Concept, Broader).
 
 %%	related_concept(+Concept, -Related)
 %
