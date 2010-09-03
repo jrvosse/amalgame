@@ -131,14 +131,14 @@ json_get_mapping(Request) :-
         ),
 	(   Mappings = error
 	->  reply_json(json([nr_to_go=0, mappings='Error, no mappings found']))
-	;   compose_json_answer(Nr, [Mappings], Json),
+	;   compose_json_answer(Nr, Mappings, Json),
 	    reply_json(Json)
 	).
 
 get_first_mappings(Graph, Mappings, Nr) :-
 	ensure_todo_list(Graph),
 	http_session_data(mappings_to_do(Graph,Todo)),
-	Todo = [Mappings|_],
+	Todo = [_Subject-Mappings|_],
 	length(Todo,Nr),!.
 
 get_first_mappings(_,error, 0).
@@ -151,7 +151,7 @@ get_next_mappings(Graph, Mappings, Nr) :-
 	length(ToDo,Nr),
         (   Nr = 0
         ->  Mappings = done-done
-        ;   [Mappings|_] = ToDo
+        ;   [_Subject-Mappings|_] = ToDo
         ).
 
 
@@ -168,8 +168,8 @@ ensure_todo_list(Graph) :-
 		    N,
 		    List
 		   ),
-	http_session_assert(mappings_to_do(Graph, List)).
-
+	rdf_group_by(1, List, Todo),
+	http_session_assert(mappings_to_do(Graph, Todo)).
 
 
 compose_json_answer(Nr, Mappings, Json) :-
