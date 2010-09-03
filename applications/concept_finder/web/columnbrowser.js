@@ -288,7 +288,7 @@ YUI.add('columnbrowser', function(Y) {
 				
 			this._nDelayID = -1; // reset search query delay
 			this._createColumn(index);
-			this._clearColumns(index+1);
+			this._hideColumns(index+1);
 			this._setLoading(index, true);
 			this.get("datasource").sendRequest({
 				request:request,
@@ -395,8 +395,6 @@ YUI.add('columnbrowser', function(Y) {
 				resourceList.render();
 				resourceList.on("itemClick", oSelf._itemSelect, oSelf, index);
 				column.resourceList = resourceList;
-			} else {
-				column._node.removeClass("hidden");
 			}
 		},
 	
@@ -405,10 +403,13 @@ YUI.add('columnbrowser', function(Y) {
 		*
 		* @private
 		**/		
-		_clearColumns : function(index) {
+		_hideColumns : function(index) {
 			var columns = this.get("columns");
 			for (var i=index; i < columns.length; i++) {
-				this._clearColumn(columns[i]);
+				var content = columns[i]._node;
+				if(content) { 
+					content.addClass("hidden");
+				}
 			}
 		},
 		_clearColumn : function(column) {			
@@ -416,9 +417,6 @@ YUI.add('columnbrowser', function(Y) {
 				column.resourceList.clearContent();
 				if(column._pagination) {
 					column._pagination.addClass("hidden");
-				}
-				if(!column.searchString) {
-					column._node.addClass("hidden");
 				}
 			}
 		},
@@ -495,6 +493,7 @@ YUI.add('columnbrowser', function(Y) {
 			if(status) {
 				column._load.removeClass("hidden");
 				column._node.one(".yui3-resourcelist-content").addClass("hidden");
+				column._node.removeClass("hidden");
 			} else {
 				column._node.one(".yui3-resourcelist-content").removeClass("hidden");
 				column._load.addClass("hidden");
@@ -531,7 +530,7 @@ YUI.add('columnbrowser', function(Y) {
 	        	}, this.get("queryDelay")*1000);
 			}
 		},
-				
+					
 		/**
 		 * Handles resizing of the window by updating
 		 * the fixed with of the bodyNode.
