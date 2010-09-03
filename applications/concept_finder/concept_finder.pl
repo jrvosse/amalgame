@@ -172,7 +172,7 @@ concept_scheme(Parent, Query, C, Label) :-
 	once(display_label(C, Label)).
 concept_scheme(Parent, Query, C, Label) :-
 	rdf(C, rdf:type, skos:'ConceptScheme', Parent),
-	rdf(C, rdfs:label, literal(prefix(Query), Lit)),
+	once(rdf(C, rdfs:label, literal(prefix(Query), Lit))),
 	text_of_literal(Lit, Label).
 
 
@@ -219,7 +219,7 @@ concept(Type, Parent, Query, Concept, Label, HasNarrower) :-
  	once(display_label(Concept, Label)).
 concept(Type, Parent, Query, Concept, Label, HasNarrower) :-
 	rdf_has(Concept, rdfs:label, literal(prefix(Query), Lit)),
- 	concept_(Type, Parent, Concept),
+ 	once(concept_(Type, Parent, Concept)),
 	text_of_literal(Lit, Label),
 	has_narrower(Concept, HasNarrower).
 

@@ -510,7 +510,6 @@ YUI.add('columnbrowser', function(Y) {
 		_valueChangeHandler : function(e, index) {
 			var oSelf = this,
 				query = e.value;
-			console.log(index);	
 			// Clear previous timeout to prevent old searches to push through
 		    if(oSelf._nDelayID != -1) {
 		        clearTimeout(oSelf._nDelayID);
