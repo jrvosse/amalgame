@@ -71,6 +71,9 @@ YUI.add('columnbrowser', function(Y) {
 		},
 
 		bindUI : function() {
+			Y.on("resize", this._updateBodySize, window, this);
+			this.columnsBox.one('.yui3-resize-handle')
+				.on( "mouseup" , this._updateColumnsSize, this);
 		},
 
 		syncUI : function() {
@@ -139,28 +142,13 @@ YUI.add('columnbrowser', function(Y) {
 		
 		/**
 		* Creates the header with this.titleNode used to show active item
-		* and a controls bar with a search box.
-		* The search box is bound to an valueChangeHandler
-		* to perform autocompletion search.	 
 		* 
 		* @private
 		**/
 		_renderHeader : function() {
-			var oSelf = this,
-				category = Y.stamp(this)+"|";
-				
-			var hd = this.get("contentBox")
+			this.titleNode = this.get("contentBox")
 				.appendChild(Node.create('<div class="hd"></div>'))
-			
-			this.titleNode = hd
 				.appendChild(Node.create('<div class="title"></div>'));
-			
-			var search = hd
-				.appendChild(Node.create('<div class="controls"></div>'))
-				.appendChild(Node.create('<div class="search"></div>'))
-			search.appendChild(Node.create('<input type="search" size="20">'))
-				.on(category+"valueChange", this._valueChangeHandler, this);
-			search.appendChild(Node.create('<div class="label">search</div>'));
 		},
 		
 		/**
@@ -172,9 +160,11 @@ YUI.add('columnbrowser', function(Y) {
 		* @private
 		**/
 		_renderBody : function() {
-			this.columnsNode = this.get("contentBox")
+			this.columnsBox = this.get("contentBox")
 				.appendChild(Node.create('<div class="bd"></div>'))
 				.appendChild(Node.create('<div class="columns-box"></div>'))
+				.plug(Y.Plugin.Resize, {handles:["b"],animate:true});
+			this.columnsNode = this.columnsBox	
 				.appendChild(Node.create('<div class="columns"></div>'));
 		},
 		
@@ -201,10 +191,10 @@ YUI.add('columnbrowser', function(Y) {
 		_renderOptionList : function(index) {
 			var column = this.get("columns")[index];
 			if(column.options) {
-				var options = column.options,
-					optionsNode = Node.create('<select class="options"></select>');
-				
-				column.resourceList.get("contentBox").prepend(optionsNode);
+				var options = column.options;
+				var optionsNode = column._node
+						.appendChild(Node.create('<select class="options"></select>'));
+
 				for (var i=0; i < options.length; i++) {
 					var option = options[i],
 						value = option.value,
@@ -373,9 +363,18 @@ YUI.add('columnbrowser', function(Y) {
 				column._node = this.columnsNode.appendChild(
 					Y.Node.create('<div class="column"></div>'))
 					.plug(Y.Plugin.Resize, {handles:["r"],animate:true});
+					
+				this._renderOptionList(index);
+				
+				// search box	
+				var category = Y.stamp(this)+"|";
+				column._node.appendChild(Node.create('<div class="search"></div>'))
+					.appendChild(Node.create('<input type="text"></div>'))
+					.on(category+"valueChange", this._valueChangeHandler, this, index);	
+				
 				column._load = column._node.appendChild(
 					Y.Node.create('<div class="hidden loading"></div>'));
-				
+					
 				// hack to get a handler on the resize 
 				// first make contentNode very big, and on mouse release set to actual size
 				column._node.one('.yui3-resize-handle')
@@ -396,7 +395,6 @@ YUI.add('columnbrowser', function(Y) {
 				resourceList.render();
 				resourceList.on("itemClick", oSelf._itemSelect, oSelf, index);
 				column.resourceList = resourceList;
-				this._renderOptionList(index);
 			} else {
 				column._node.removeClass("hidden");
 			}
@@ -416,7 +414,12 @@ YUI.add('columnbrowser', function(Y) {
 		_clearColumn : function(column) {			
 			if(column._node) {
 				column.resourceList.clearContent();
-				column._node.addClass("hidden");
+				if(column._pagination) {
+					column._pagination.addClass("hidden");
+				}
+				if(!column.searchString) {
+					column._node.addClass("hidden");
+				}
 			}
 		},
 		
@@ -504,16 +507,15 @@ YUI.add('columnbrowser', function(Y) {
 		 * @param {Object} The event object
 		 * @private
 		 **/
-		_valueChangeHandler : function(e) {
+		_valueChangeHandler : function(e, index) {
 			var oSelf = this,
 				query = e.value;
-			
-			// Clear previous timeout
+			console.log(index);	
+			// Clear previous timeout to prevent old searches to push through
 		    if(oSelf._nDelayID != -1) {
 		        clearTimeout(oSelf._nDelayID);
 		    }
-
-			this._columnSearch(this.activeIndex, query);
+			this._columnSearch(index, query);
 		},	
 		_columnSearch : function(index, query) {		
 			var column = this.get("columns")[index];
@@ -523,12 +525,22 @@ YUI.add('columnbrowser', function(Y) {
 				this._getColumnData(index);
 			}
 			else {
-	    		// Set new timeout
+	    		// Set a timeout to prevent too many search requests
 				var oSelf = this;
 	    		oSelf._nDelayID = setTimeout(function(){
 	            	oSelf._getColumnData(index);
 	        	}, this.get("queryDelay")*1000);
 			}
+		},
+				
+		/**
+		 * Handles resizing of the window by updating
+		 * the fixed with of the bodyNode.
+		 * This is required because the resize.plugin adds a fixed with.
+		 **/
+		_updateBodySize : function() {
+			var width = this.get("boundingBox").get("offsetWidth");
+			this.columnsBox.setStyle("width", width+"px");
 		},
 				
 		/**
@@ -548,6 +560,17 @@ YUI.add('columnbrowser', function(Y) {
 			}
 			content.setStyle("width", width+"px");
 			content.get("parentNode").removeClass("noscroll");
+			this._updateColumnsSize();
+		},
+		
+		_updateColumnsSize : function() {
+			var columns = this.get("columns"),
+				height = this.columnsNode.get("offsetHeight");
+			for (var i=0; i < columns.length; i++) {
+				if(columns[i]._node) {
+					columns[i]._node.setStyle("height", height+"px");
+				}
+			}
 		}
 		
 	}); 

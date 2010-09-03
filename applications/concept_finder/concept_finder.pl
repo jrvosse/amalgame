@@ -41,12 +41,13 @@ http_concept_finder(_Request) :-
  			],
 			[  \html_requires(css('columnbrowser.css')),
 			   \html_requires('http://github.com/mattparker/yui3-gallery/raw/master/build/gallery-resize/assets/resize-core.css'),
+			   \html_requires('http://github.com/mattparker/yui3-gallery/raw/master/build/gallery-resize/assets/skin/sam/resize-skin.css'),
 			   \html_requires('http://yui.yahooapis.com/3.1.2/build/yui/yui-min.js'),
  			   div(id(header),
 			       []),
  			   div(id(main),
 			       div(class('main-content'),
-				   [ div(id(columnbrowser), [])
+				   [ div([class('yui-skin-sam'), id(columnbrowser)], [])
 				   ])),
 			   script(type('text/javascript'),
 				  [ \yui_script
