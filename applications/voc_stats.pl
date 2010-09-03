@@ -11,7 +11,7 @@
 
 :- use_module(components(label)).
 
-:- use_module('../skos/vocabularies').
+:- use_module(amalgame(skos/vocabularies)).
 
 :- http_handler(amalgame(list_skos_vocs),     http_list_skos_vocs,     []).
 :- http_handler(amalgame(compute_voc_stats),  http_compute_voc_stats,  []).
