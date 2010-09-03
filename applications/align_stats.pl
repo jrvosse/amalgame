@@ -3,7 +3,9 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/html_write)).
+
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdfs)).
 
 :- use_module(auth(user_db)).
 :- use_module(components(label)).
@@ -240,7 +242,12 @@ show_overlap_graphs(Overlap) -->
 
 show_alignments -->
 	{
-	 findall(Graph, is_alignment_graph(Graph,_), Graphs),
+	 align_ensure_stats(found),
+	 findall(Graph,
+		 (   is_alignment_graph(Graph,_),
+		     \+ rdfs_individual_of(Graph, amalgame:'Overlap')
+		 ),
+		 Graphs),
 	 http_link_to_id(http_clear_cache, [], CacheLink),
 	 http_link_to_id(http_compute_stats, [graph(all)], ComputeLink),
 	 Note = ['These are cached results, ',

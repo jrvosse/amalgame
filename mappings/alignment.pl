@@ -25,11 +25,19 @@
 %	format.
 
 is_alignment_graph(Graph, Format) :-
+	ground(Graph),!,
 	% Note: behaves as has_map(_,_,Graph), but this is very expensive due to the rdf/4 bug
 	align_ensure_stats(format(Graph)),
 	rdfs_individual_of(Graph, amalgame:'Alignment'),
 	rdf(Graph, amalgame:format, literal(Format), amalgame),
 	rdf_graph(Graph).
+
+is_alignment_graph(Graph, Format) :-
+	var(Graph),
+	rdfs_individual_of(Graph, amalgame:'Alignment'),
+	rdf_graph(Graph),
+	align_ensure_stats(format(Graph)),
+	rdf(Graph, amalgame:format, literal(Format), amalgame).
 
 %%	find_graphs(+Map, -Graphs) is det.
 %
@@ -78,11 +86,12 @@ align_ensure_stats(found) :-
 	assert_alignment_props(Graphs).
 
 align_ensure_stats(format(Graph)) :-
-	(   rdf(Graph, amalgame:format, _, amalgame)
-	->  true
-	;   has_map(_,Format, Graph),!,
-	    assert_alignment_props([Graph:[format(literal(Format))]])
-	),!.
+	rdf(Graph, amalgame:format, _, amalgame), !.
+align_ensure_stats(format(Graph)) :-
+	has_map(_,Format, Graph:_),!,
+	assert_alignment_props([Graph:[format(literal(Format))]]),!.
+align_ensure_stats(format(_)) :- !.
+
 
 align_ensure_stats(totalcount(Graph)) :-
 	(   rdf(Graph, amalgame:count, _, amalgame)
