@@ -43,6 +43,11 @@
 :- http_handler(amalgame(api/evaluator/save),  json_save_results, []).
 :- http_handler(amalgame(api/evaluator/concept),  json_concept, []).
 
+% This triple is deprecated and doubles the glosses in the interface
+:- rdf_retractall('http://www.w3.org/2006/03/wn/wn20/schema/gloss',
+		  rdfs:subPropertyOf,
+		  skos:scopeNote).
+
 :- html_resource(evaluator,
                  [ virtual(true),
 		   requires([
@@ -60,6 +65,7 @@
                              js('parameters.js')
                             ])
                  ]).
+
 
 attribute_decl(judgement,        [default(none)]).
 attribute_decl(subject,          [default(none)]).
@@ -193,10 +199,10 @@ make_display_graph([H|Tail], Out) :-
 				 [(skos:altLabel)-altlabel,
 				  (skos:prefLabel)-preflabel,
 				  (skos:definition)-prelabel,
+                                  (skos:notation)-prelabel,
+                                  (skos:scopeNote)-sublabel,
 				  registered_ns-ns,
-                                  abbreviation-prelabel,
                                   iconclassCluster-sublabel,
-                                  description-sublabel,
                                   example_thumbs-examples
                                  ],
                                  Display,
