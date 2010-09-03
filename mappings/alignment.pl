@@ -11,6 +11,8 @@
 	  align_recompute_stats/1
 	 ]).
 
+:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdfs)).
 :- use_module(edoal).
 :- use_module(map).
 
@@ -24,8 +26,8 @@
 
 is_alignment_graph(Graph, Format) :-
 	% Note: behaves as has_map(_,_,Graph), but this is very expensive due to the rdf/4 bug
-	align_ensure_stats(found),
-	rdf(Graph, rdf:type, amalgame:'Alignment', amalgame),
+	align_ensure_stats(format(Graph)),
+	rdfs_individual_of(Graph, amalgame:'Alignment'),
 	rdf(Graph, amalgame:format, literal(Format), amalgame),
 	rdf_graph(Graph).
 
@@ -68,10 +70,18 @@ align_get_computed_props(Graph, Props) :-
 %
 
 align_ensure_stats(found) :-
-	(   rdf(_, rdf:type, amalgame:'Alignment', amalgame)
+	% fixme: This can be made a lot cheaper using rdf_graph once rdf/4 has been fixed ...
+	findall(Graph:[format(literal(Format))], has_map(_,Format, Graph:_), GFs),
+	sort(GFs, Graphs),
+	length(Graphs, GraphsFound),
+	print_message(informational, map(found, graphs, total, GraphsFound)),
+	assert_alignment_props(Graphs).
+
+align_ensure_stats(format(Graph)) :-
+	(   rdf(Graph, amalgame:format, _, amalgame)
 	->  true
-	;   find_alignment_graphs(Graphs),
-	    assert_alignment_props(Graphs)
+	;   has_map(_,Format, Graph),!,
+	    assert_alignment_props([Graph:[format(literal(Format))]])
 	),!.
 
 align_ensure_stats(totalcount(Graph)) :-
@@ -141,13 +151,6 @@ align_recompute_stats(Type) :-
 	align_clear_stats(Type),
 	align_ensure_stats(Type).
 
-
-find_alignment_graphs(Graphs):-
-	% fixme: This can be made a lot cheaper using rdf_graph once rdf/4 has been fixed ...
-	findall(Graph:[format(literal(Format))], has_map(_,Format, Graph:_), GFs),
-	sort(GFs, Graphs),
-	length(Graphs, GraphsFound),
-	print_message(informational, map(found, graphs, total, GraphsFound)).
 
 count_alignment(Graph, Format, Count) :-
 	findall(Map, has_map(Map, Format, Graph), Graphs),

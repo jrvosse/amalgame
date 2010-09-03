@@ -234,7 +234,7 @@ show_overlap_graphs(Overlap) -->
 		 ), Graphs),
 	 sort(Graphs, Sorted),
 	 atom_chars(Nicks, Sorted),
-	 http_link_to_id(list_graph, [graph(Overlap)], Olink)
+	 http_link_to_id(http_list_alignment, [graph(Overlap)], Olink)
 	},
 	html([a([href(Olink)], Nicks)]).
 
