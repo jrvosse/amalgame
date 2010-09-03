@@ -1,4 +1,4 @@
-:- module(valuator, []).
+:- module(evaluator, []).
 
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
@@ -19,6 +19,7 @@
 :- use_module(library(settings)).
 
 :- use_module(components(label)).
+:- use_module(auth(user_db)).
 
 :- use_module(amalgame(mappings/map)).
 :- use_module(amalgame(util/util)).
@@ -38,6 +39,7 @@
 :- http_handler(amalgame(evaluator),	       http_evaluator, []).
 :- http_handler(amalgame(api/evaluator/get),   json_get_mapping, []).
 :- http_handler(amalgame(api/evaluator/judge), json_judge_mapping, []).
+:- http_handler(amalgame(api/evaluator/save),  json_save_results, []).
 
 :- html_resource(evaluator,
                  [ virtual(true),
@@ -200,3 +202,67 @@ make_display_graph([H|Tail], Out) :-
         append(TailGraph, Display, All),
         sort(All,Out). % just sort to remove duplicates ...
 
+my_make_directory(Suggestion, Base, Name, Number) :-
+        exists_directory(Suggestion),!,
+        atom_concat(Base, Number, Suggestion1),
+        Number1 is Number + 1,
+        my_make_directory(Suggestion1, Base, Name, Number1).
+
+my_make_directory(Name, _, Name, _) :-
+        make_directory(Name).
+
+my_make_directory(Name) :-
+        logged_on(UserName, anonymous),
+        my_make_directory(UserName, UserName, Name, 1).
+
+open_file(Dir, Name, Stream) :-
+        absolute_file_name(Name, [relative_to(Dir)], Abs),
+        open(Abs, write, Stream).
+
+open_files(Files, Dir) :-
+      Files = [exact-ApprovedStream,
+               close-CloseStream,
+               unrelated-RejectedStream,
+               narrower-NarrowerStream,
+               related-RelatedStream,
+               broader-BroaderStream,
+               unsure-UnsureStream
+              ],
+      my_make_directory(Dir),
+      open_file(Dir, 'approved.ttl', ApprovedStream),
+      open_file(Dir, 'close.ttl', CloseStream),
+      open_file(Dir, 'rejected.ttl', RejectedStream),
+      open_file(Dir, 'narrower.ttl', NarrowerStream),
+      open_file(Dir, 'related.ttl',  RelatedStream),
+      open_file(Dir, 'broader.ttl',  BroaderStream),
+      open_file(Dir, 'unsure.ttl',   UnsureStream).
+
+close_files([]).
+close_files([_-H|T]) :-
+        close(H),
+        close_files(T).
+
+save_results(_Files, []).
+save_results(Files, [Head|Tail]) :-
+        Head = judgement(S,P,O,DB),
+        memberchk(DB-File, Files),
+        format(File, '<~w> <~w> <~w> .~n', [S,P,O]),
+        save_results(Files,Tail).
+
+save_results(_Files, []).
+save_results(Files, [Head|Tail]) :-
+        Head = judgement(S,P,O,DB),
+        memberchk(DB-File, Files),
+        format(File, '<~w> <~w> <~w> .~n', [S,P,O]),
+        save_results(Files,Tail).
+
+json_save_results(_Request) :-
+        debug(map, 'Save request for mappings judgements',[]),
+        findall(judgement(S,P,O,DB),
+                 http_session_data(judgement(S,P,O,DB)),
+                 Results),
+        open_files(Files, Dir),
+        save_results(Files, Results),
+        close_files(Files),
+        reply_json(json([nr_to_go=0, dir=Dir])),
+        true.

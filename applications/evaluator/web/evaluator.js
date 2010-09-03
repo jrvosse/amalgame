@@ -25,7 +25,7 @@
 YAHOO.namespace("mazzle");
 
 /* JavaScript routines used in the ClioPatria tool
- * to manually check candidate mappings, usually on /session/mappings/
+ * to manually check candidate mappings, usually on /api/evaluator/
  */
 
 var mappingsLeftForConcept = 0;
@@ -185,41 +185,6 @@ YAHOO.mazzle.MapCheck.prototype._initContainer = function() {
 	return;
 };
 
-YAHOO.mazzle.MapCheck.prototype._initSourceMenu = function(elContainer) {
-       sLink=serverPrefix()+"/session/api/mapping/sources"
-       function successhandler(o) {
-	 function onMenuItemClick(p_sType, p_aArgs, file) {
-		var m = document.getElementById('sourceMenuButton-button');
-		m.innerHTML=file;
-		this.selectsource(file);
-	 };
-         var response = YAHOO.lang.JSON.parse(o.responseText);
-         var files = response.mapping_files;
-         var index = response.index;
-	 // this.selectsource(files[index]);
-      	this.graph = files[index];
-      	this._initMap('head');
-	 var sMenu = [];
-         for(var i=0; i < files.length; i++) {
-		sMenu[i]= {text:files[i], value:files[i], onclick: {fn:onMenuItemClick, obj:files[i], scope:this}};
-	 };
-	 var options = document.getElementById('options');
-         this._oSourceButton= new YAHOO.widget.Button({
-	       id:        "sourceMenuButton",
-	       type:      "menu",
-               label:     files[index],
-               menu:      sMenu,
-               container: options
-	});
-
-       };
-       function failurehandler() { };
-       var callback = { scope:this,
-	                success:successhandler,
-                        failure:failurehandler };
-       var request = YAHOO.util.Connect.asyncRequest('GET', sLink, callback);
-};
-
 YAHOO.mazzle.MapCheck.prototype._judgeCallback = function(ev,oParams) {
   oSelf = oParams.oSelf;
   index = oParams.index;
@@ -251,7 +216,7 @@ YAHOO.mazzle.MapCheck.prototype.goto_next = function(event, oParams) {
 
 YAHOO.mazzle.MapCheck.prototype.save_results = function(event , oParams) {
   var oSelf = oParams.oSelf;
-  sLink=serverPrefix()+'/session/api/mapping/save?' +
+  sLink=serverPrefix()+'/api/evaluator/save?' +
   queryString('file', oSelf.graph);
   function successhandler(o) {
 	  response = YAHOO.lang.JSON.parse(o.responseText);
@@ -277,24 +242,6 @@ YAHOO.mazzle.MapCheck.prototype.delete_mapping = function(event, oParams) {
   parent.appendChild(elChoice);
   if (!mappingsLeftForConcept) // we're done with all mappings for this concept, get next
     oSelf.goto_next(event, oParams);
-};
-
-YAHOO.mazzle.MapCheck.prototype.selectsource = function(file) {
-    elBody = this._elBody;
-    while(elBody.firstChild) { elBody.removeChild(elBody.firstChild) };
-    var link = serverPrefix()+'/session/api/mapping/clear'+
-              "?" + queryString('file',	file);
-    function successhandler() {
-      this._initMap('head');
-      this.graph = file;
-    };
-    function failurehandler() { };
-    var oCallback = {
-    		success:successhandler,
-    		failure:this.failurehandler,
-    		scope: this
-    };
-    var request = YAHOO.util.Connect.asyncRequest('GET', link, oCallback);
 };
 
 
