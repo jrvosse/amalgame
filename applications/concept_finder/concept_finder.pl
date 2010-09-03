@@ -264,15 +264,24 @@ narrower_concept(Concept, Narrower) :-
 	rdf_has(Narrower, skos:broader, Concept),
 	\+ rdf_has(Concept, skos:narrower, Narrower).
 
-%%	descendant(+Concept, -Descendant)
+%%	descendant(?Concept, ?Descendant)
 %
 %	Descendant is a child of Concept or recursively of its children
 
 descendant(Concept, Descendant) :-
+	var(Descendant),
+	!,
 	narrower_concept(Concept, Narrower),
 	(   Descendant = Narrower
 	;   descendant(Narrower, Descendant)
 	).
+descendant(Concept, Descendant) :-
+	parent_of(Concept, Descendant).
+
+parent_of(Concept, Concept). % really?
+parent_of(Concept, Descendant) :-
+	narrower_concept(Broader, Descendant),
+	parent_of(Broader, Concept).
 
 %%	related_concept(+Concept, -Related)
 %
