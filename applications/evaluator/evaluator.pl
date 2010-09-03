@@ -35,9 +35,9 @@
 
 % http handlers for this applications
 
-:- http_handler(amalgame(evaluator), http_evaluator, []).
-:- http_handler(amalgame(api/evaluator/get), json_get_mapping, []).
-
+:- http_handler(amalgame(evaluator),	       http_evaluator, []).
+:- http_handler(amalgame(api/evaluator/get),   json_get_mapping, []).
+:- http_handler(amalgame(api/evaluator/judge), json_judge_mapping, []).
 
 :- html_resource(evaluator,
                  [ virtual(true),
@@ -57,6 +57,11 @@
                             ])
                  ]).
 
+attribute_decl(judgement,        [default(none)]).
+attribute_decl(subject,          [default(none)]).
+attribute_decl(predicate,        [default(none)]).
+attribute_decl(object,           [default(none)]).
+attribute_decl(method,           [oneof([head,next]),default(head)]).
 
 %%	http_evaluator(+Request)
 %
@@ -92,7 +97,7 @@ yui_script(Graph) -->
 	{
 	 setting(http:prefix, Prefix)
 	},
-	html(['function serverPrefix() { return "', Prefix, '";}\n',
+	html(['function serverPrefix() { return "', Prefix, '/amalgame";}\n',
 	      'var evaluator = new YAHOO.mazzle.MapCheck(',
 	      '\'evaluator\', ',
 	      '{graph:\'',
@@ -100,6 +105,19 @@ yui_script(Graph) -->
 		'\'});'
 	     ]
 	    ).
+
+json_judge_mapping(Request) :-
+	http_parameters(Request,
+                        [
+                         judgement(Judgement),
+                         subject(Subject),
+                         predicate(Predicate),
+                         object(Object)
+                        ],
+                        [attribute_declarations(attribute_decl)]),
+        debug(evaluator, 'Judgement: ~w', [Judgement]),
+        http_session_assert(judgement(Subject, Predicate, Object, Judgement)),
+        reply_json(json([message='judgement processed'])).
 
 
 

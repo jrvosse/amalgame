@@ -100,7 +100,7 @@ YAHOO.mazzle.MapCheck.prototype._initMap = function(headornext) {
   };
   function failurehandler() { };
 
-  var link = serverPrefix()+'/amalgame/api/evaluator/get?method='+headornext+'&graph='+encodeURIComponent(this.graph);
+  var link = serverPrefix()+'/api/evaluator/get?method='+headornext+'&graph='+encodeURIComponent(this.graph);
   var oCallback = { success:successhandler,
 		    failure:this.failurehandler,
 		    scope: this
@@ -230,7 +230,7 @@ YAHOO.mazzle.MapCheck.prototype._judgeCallback = function(ev,oParams) {
   function failurehandler() { };
   var callback = { success:successhandler,
 		   failure:failurehandler };
-  sLink=serverPrefix() + "/session/api/mapping/judge" +
+  sLink=serverPrefix() + "/api/evaluator/judge" +
   "?" + queryString('judgement', choice) +
   "&" + queryString('subject',     mapping.subject.value) +
   "&" + queryString('predicate',    mapping.predicate.value) +
