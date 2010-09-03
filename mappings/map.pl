@@ -16,7 +16,7 @@ from the underlying formats.
 
 %%	map_iterator(-Map) is non_det.
 %
-%	Iterates over all maps to be compared. Map is currently of the
+%	Iterates over all maps in the triple store. Map is currently of the
 %	form [C1, C2], simply meaning there is a mapping from C1 to C2.
 %	What other information is available about this mapping depends
 %	on the format it is stored in, see has_map/3 for details.
@@ -76,6 +76,6 @@ has_map([E1, E2], owl, Graph) :-
 %	Term = map(found, What, From, Number)).
 
 prolog:message(map(found, What, From, Number)) -->
-        [
-          'Found ', Number, ' ', What, ' (', From, ') to process'
-        ].
+        [ 'Found ', Number, ' ', What, ' (', From, ') to process.' ].
+prolog:message(map(cleared, What, From, Number)) -->
+        [ 'Cleared ', Number, ' ', What, ' (', From, ').' ].

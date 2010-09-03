@@ -1,14 +1,15 @@
-:- module(compare,
+:- module(ag_overlap,
 	  [
 	   find_overlap/2,
 	   clear_overlaps/0
 	  ]
 	 ).
 
-/** <module> Amalgame compare mapping module
+/** <module> Amalgame compare mapping module: overlaps
 
 This module compares mappings as they are found by different matchers.
-It assumes matchers assert mappings in different name graphs.
+It does so by computing the (lack of) overlap between the different
+matchers. It assumes matchers assert mappings in different name graphs.
 
 @author Jacco van Ossenbruggen
 @license GPL
@@ -50,7 +51,9 @@ clear_overlaps :-
 		(   rdf_graph(Graph),
 		    sub_atom(Graph,_,_,_,'amalgame_overlap')
 		),
-	       rdf_retractall(_,_,_,Graph)
+	       (   rdf_retractall(_,_,_,Graph),
+		   print_message(informational, map(cleared, overlap, Graph, 1))
+	       )
 	      ).
 
 is_precomputed_overlap(Overlap, C, [E1,E2]) :-
@@ -62,7 +65,8 @@ is_precomputed_overlap(Overlap, C, [E1,E2]) :-
 find_overlaps([], Doubles, Uniques) :- sort(Doubles, Uniques).
 find_overlaps([Map|Tail], Accum, Out) :-
 	find_graphs(Map, Graphs),
-	find_overlaps(Tail, [Graphs:Map|Accum], Out).
+	sort(Graphs, Sorted),
+	find_overlaps(Tail, [Sorted:Map|Accum], Out).
 
 count_overlaps([], Accum, Results) :-
 	assert_overlaps(Accum, [], Results).
@@ -78,7 +82,8 @@ count_overlaps([Graphs:Map|Tail], Accum, Results) :-
 	count_overlaps(Tail, [NewCount:Graphs:Example|NewAccum], Results).
 
 overlap_uri(GraphList, URI) :-
-	term_hash(GraphList, Hash),
+	sort(GraphList, Sorted), assertion(GraphList=Sorted),
+	term_hash(Sorted, Hash),
 	rdf_equal(amalgame:'', NS),
 	format(atom(URI), '~wamalgame_overlap_~w', [NS,Hash]),
 	debug(uri, 'URI: ~w', [URI]).

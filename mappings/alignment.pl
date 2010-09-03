@@ -39,7 +39,7 @@ find_graphs(Map, Graphs) :-
 		Graphs).
 
 
-%%	align_get_computed_props(+Graph, Props) is det.
+%%	align_get_computed_props(+Graph, -Props) is det.
 %
 %	Collect all amalgame properties Props of Graph that have been
 %	computed already.
@@ -54,16 +54,18 @@ align_get_computed_props(Graph, Props) :-
 	maplist(=.., Props, GraphProps).
 
 %%	align_ensure_stats(+Type) is det.
-%%	align_ensure_stats(-Type) is nondet.
 %
 %	Ensures that alignmets statistics of type Type have been
 %	computed. The following types are currently supported:
 %
 %	* found: makes sure that the algorithm to find all alignment
 %	graphs has been run.
-%	* totalcount: idem for total number of alignments
+%	* totalcount(Graph): idem for total number of alignments in Graph
+%	* mapped(Graph): idem for total number of alignments in Graph
+%	* source(Graph): idem for the source of the  alignments in Graph
+%	* target(Graph): idem for the source of the  alignments in Graph
+%	* mapped(Graph): idem for the numbers of mapped source and target concepts in Graph
 %
-
 
 align_ensure_stats(found) :-
 	(   rdf(_, rdf:type, amalgame:'Alignment', amalgame)

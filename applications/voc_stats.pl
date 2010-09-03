@@ -11,7 +11,7 @@
 
 :- use_module(components(label)).
 
-:- use_module('../skos/vocabularies').
+:- use_module(amalgame(skos/vocabularies)).
 
 :- http_handler(amalgame(list_skos_vocs),     http_list_skos_vocs,     []).
 :- http_handler(amalgame(compute_voc_stats),  http_compute_voc_stats,  []).
@@ -37,7 +37,8 @@ http_compute_voc_stats(Request) :-
 	forall(member(V, Vocs),
 	       (   voc_ensure_stats(numberOfConcepts(V)),
 		   voc_ensure_stats(numberOfPrefLabels(V)),
-		   voc_ensure_stats(numberOfAltLabels(V))
+		   voc_ensure_stats(numberOfAltLabels(V)),
+		   voc_ensure_stats(numberOfMappedConcepts(V))
 	       )
 	      ),
 	http_redirect(moved, location_by_id(http_list_skos_vocs), Request).
@@ -77,14 +78,16 @@ show_schemes -->
 			 th('# Concepts'),
 			 th('# prefLabels'),
 			 th('# altLabels'),
+			 th('# mapped'),
+			 th('%'),
 			 th('Example concept'),
 			 th('Copyrights & licenses')
 			]),
-		     \show_schemes(Schemes, 1, [0, 0, 0])
+		     \show_schemes(Schemes, 1, [0, 0, 0,0])
 		    ])
 	     ]).
 
-show_schemes([], _, [C, P, A]) -->
+show_schemes([], _, [C, P, A, M]) -->
 	html(tr([id(finalrow)],
 		[
 		 td(''), td(''),
@@ -92,15 +95,17 @@ show_schemes([], _, [C, P, A]) -->
 		 td([style('text-align: right')],C),
 		 td([style('text-align: right')],P),
 		 td([style('text-align: right')],A),
-		 td(''),td('')
+		 td([style('text-align: right')],M),
+		 td(''),td(''), td('')
 		])).
-show_schemes([Voc|Tail], Nr, [C,P,A]) -->
+show_schemes([Voc|Tail], Nr, [C,P,A,M]) -->
 	{
 	 http_link_to_id(http_compute_voc_stats,
 			 [voc(Voc),
 			  stat(numberOfConcepts),
 			  stat(numberOfPrefLabels),
-			  stat(numberOfAltLabels)
+			  stat(numberOfAltLabels),
+			  stat(numberOfMappedConcepts)
 			 ],
 			 MissingLink),
 	 MissingValue = a([href(MissingLink)],'?'),
@@ -118,6 +123,12 @@ show_schemes([Voc|Tail], Nr, [C,P,A]) -->
 	 ->  NewA is A + ACount
 	 ;   NewA = A, ACount = MissingValue
 	 ),
+	 (   memberchk(numberOfMappedConcepts(literal(type(_, MCount))), Props)
+	 ->  NewM is M + MCount,
+	     Perc is 100*(MCount/CCount),
+	     format(atom(MPercent), '(~2f%)', [Perc])
+	 ;   NewM = M, MCount = MissingValue
+	 ),
 	 (rdf_has(Example, skos:inScheme, Voc)
 	 ->  true
 	 ;   Example = '-'
@@ -133,7 +144,9 @@ show_schemes([Voc|Tail], Nr, [C,P,A]) -->
 		 td([style('text-align: right')],CCount),
 		 td([style('text-align: right')],PCount),
 		 td([style('text-align: right')],ACount),
+		 td([style('text-align: right')],MCount),
+		 td([style('text-align: right')],MPercent),
 		 td(\rdf_link(Example, [resource_format(label)])),
 		 td(Rights)
 		])),
-	show_schemes(Tail, NewNr, [NewC, NewP, NewA]).
+	show_schemes(Tail, NewNr, [NewC, NewP, NewA, NewM]).
