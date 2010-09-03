@@ -8,7 +8,7 @@
 :- use_module(auth(user_db)).
 :- use_module(components(label)).
 
-:- use_module(amalgame(compare/compare)).
+:- use_module(amalgame(compare/overlap)).
 :- use_module(amalgame(mappings/alignment)).
 
 :- http_handler(amalgame(list_alignments),    http_list_alignments,     []).

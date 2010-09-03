@@ -1,14 +1,15 @@
-:- module(compare,
+:- module(ag_overlap,
 	  [
 	   find_overlap/2,
 	   clear_overlaps/0
 	  ]
 	 ).
 
-/** <module> Amalgame compare mapping module
+/** <module> Amalgame compare mapping module: overlaps
 
 This module compares mappings as they are found by different matchers.
-It assumes matchers assert mappings in different name graphs.
+It does so by computing the (lack of) overlap between the different
+matchers. It assumes matchers assert mappings in different name graphs.
 
 @author Jacco van Ossenbruggen
 @license GPL
