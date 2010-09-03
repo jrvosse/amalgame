@@ -424,10 +424,10 @@ YAHOO.mazzle.MapCheck.prototype._initForm = function(oParms) {
 YAHOO.mazzle.MapCheck.prototype._initTree = function() {
 
     // datasource
-    var oServer  = serverPrefix()+"/session/api/resource?";
-	sQueryString = "&method=tree&siblings=true&display=label";
+    var oServer  = serverPrefix()+"/api/evaluator/concept?";
+    var	sQueryString = "&type=tree";
 
-	var oResponseSchema = {
+    var oResponseSchema = {
 		resultsList : "result"
 	};
 
@@ -489,26 +489,22 @@ YAHOO.mazzle.MapCheck.prototype.initTreeNode = function(oRoot, oNode, sProp, exp
     var loadDataForNode = function(node, onCompleteCallback) {
         var sURI = node.data.uri;
     	// server request
-    	var link = serverPrefix()+"/session/api/resource";
-    	link += "?r="+encodeURIComponent(sURI);
+    	var link = serverPrefix()+"/api/concepts";
+    	link += "?parent="+encodeURIComponent(sURI);
     	if(sProp) {
 	        link += "&"+queryString("rel", sProp);
 	    }
-    	link += "&method=child";
-    	link += "&display=label";
-    	link += "&display=hasChild";
+    	link += "&type=child";
 
     	function successHandler(o){
     		var response = YAHOO.lang.JSON.parse(o.responseText);
-    		var children = response.result.results.bindings;
-    		// var children = response.result.children;
-    		var display = response.graph;
+    		var children = response.results
     		for(var i=0;i<children.length;i++) {
-    		    var uri = children[i].child.value;
+    		    var uri = children[i].id;
     			var oChild = {
     			    uri: uri,
-    			    label: display[uri].label[0].value,
-    			    children: display[uri].hasChild[0].value
+    			    label: children[i].label,
+    			    children: children[i].hasNext
     			};
     			oSelf.initTreeNode(node, oChild, sProp, expandChildren);
     		}

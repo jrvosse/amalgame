@@ -21,6 +21,7 @@
 :- use_module(components(label)).
 :- use_module(auth(user_db)).
 
+:- use_module(amalgame(skos/vocabularies)).
 :- use_module(amalgame(mappings/map)).
 :- use_module(amalgame(util/util)).
 :- use_module(amalgame(util/json_graph)).
@@ -40,6 +41,7 @@
 :- http_handler(amalgame(api/evaluator/get),   json_get_mapping, []).
 :- http_handler(amalgame(api/evaluator/judge), json_judge_mapping, []).
 :- http_handler(amalgame(api/evaluator/save),  json_save_results, []).
+:- http_handler(amalgame(api/evaluator/concept),  json_concept, []).
 
 :- html_resource(evaluator,
                  [ virtual(true),
@@ -266,3 +268,102 @@ json_save_results(_Request) :-
         close_files(Files),
         reply_json(json([nr_to_go=0, dir=Dir])),
         true.
+
+
+json_concept(Request) :-
+	http_parameters(Request,
+			[ r(URI,
+				 [
+				  description('Concept or concept scheme from which we request the tree')])]),
+	Node = node(URI, [hit], Children),
+	rdf_equal(skos:broader, Rel),
+	ancestor_tree(Node, Rel, Tree, []),
+        children(URI, Rel, Children, []),
+	tree_to_json(Tree, [], JSONTree),
+        JSON = json([ method=tree,
+                      resource=URI,
+                      result=JSONTree
+                    ]),
+        reply_json(JSON).
+
+
+ancestor_tree(Node, Rel, Tree, Options) :-
+        Node = node(URI,_,_),
+        rdf_has(URI, Rel, Parent),
+        URI \== Parent,
+        (   select_option(sibblings(true), Options, Options1)
+        ->  ancestor_tree(node(Parent, [], [Node|Siblings]), Rel, Tree, Options1),
+            children(Parent, Rel, Children, Options),
+            select(node(URI,_,_), Children, Siblings)
+        ;   ancestor_tree(node(Parent, [], [Node]), Rel, Tree, Options)
+        ).
+
+ancestor_tree(Tree, _Rel, Tree, _).
+
+children(R, Rel, Children, _Options) :-
+        Goal = (   rdf_has(Child, Rel, R),
+                   has_child(Child, Rel, HasChild),
+                   skos_label(Child,Label)
+                ),
+        findall(Label-node(Child, [], HasChild), Goal, Children0),
+        key_rank(Children0, normal, Children).
+
+has_child(R, Rel, true) :-
+        rdf_has(_, Rel, R),
+        !.
+has_child(_, _, false).
+
+%%  key_rank(+List:key-value, +Type, -RankedList:value)
+%
+%   Values from pair are sorted by keyed.
+%
+%   * Type = forward or reverse
+
+key_rank(Pairs, reverse, Values) :- !,
+    keysort(Pairs, Pairs1),
+        pairs_values(Pairs1, Values0),
+        reverse(Values0, Values).
+key_rank(Pairs, _, Values) :-
+    keysort(Pairs, Pairs1),
+        pairs_values(Pairs1, Values).
+
+
+%%  tree_to_json(+Tree:node(uri,nodeList), +DisplayProperties, -JSON)
+%
+%   Tree to JSON term.
+
+tree_to_json(node(R,Attr,Children), Ps, json(Data)) :-
+        attr_params(Attr, Params),
+        append(Params, Ps, Data0),
+        (   is_list(Children)
+        ->  Data1 = [children=Nodes|Data0],
+            nodes_to_json(Children, Ps, Nodes)
+        ;   bool_to_json(Children,HasChildren)
+        ->  Data1 = [hasChildren=HasChildren|Data0]
+        ;   Data1 = Data0
+        ),
+	skos_label(R,L),
+        Data = [uri=R, label=L|Data1].
+
+nodes_to_json([], _, []) :- !.
+nodes_to_json([Node|Nodes], Ps, [JNode|JSON]) :- !,
+        tree_to_json(Node, Ps, JNode),
+        nodes_to_json(Nodes, Ps, JSON).
+nodes_to_json(Bool, _, JSON) :-
+        bool_to_json(Bool, JSON).
+
+bool_to_json(false, @false).
+bool_to_json(true, @true).
+
+attr_params([], []).
+attr_params([H|T], [P|Ps]) :-
+        attr_param(H, P), !,
+        attr_params(T, Ps).
+attr_params([_|T], Ps) :-
+        attr_params(T, Ps).
+
+attr_param(Term, Key=Value) :-
+        Term =.. [Key,Value],
+        !.
+attr_param(hit, hit=Bool) :-
+        bool_to_json(true, Bool).
