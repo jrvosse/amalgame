@@ -281,7 +281,7 @@ descendant(Concept, Descendant) :-
 parent_of(Concept, Concept). % really?
 parent_of(Concept, Descendant) :-
 	narrower_concept(Broader, Descendant),
-	parent_of(Broader, Concept).
+	parent_of(Concept, Broader).
 
 %%	related_concept(+Concept, -Related)
 %
