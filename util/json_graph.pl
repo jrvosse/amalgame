@@ -392,8 +392,8 @@ iface_resource_properties(R, Ps0, Pairs, Options) :-
 iface_resource_properties_([], _, _, _, []).
 iface_resource_properties_([P0|Ps], EMap, QMap, R, [Key=V|Pairs]) :-
         (   P0 = P-Key
-        ->  iface_has(EMap, QMap, R, P, O, _)
-        ;   iface_has(EMap, QMap, R, P0, O, _),
+        ->  hooked_rdfs_plus_skos(EMap, QMap, R, P, O)
+        ;   hooked_rdfs_plus_skos(EMap, QMap, R, P0, O),
             Key = P0
         ),
         !,
