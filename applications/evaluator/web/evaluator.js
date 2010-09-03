@@ -271,25 +271,32 @@ YAHOO.mazzle.MapCheck.prototype._initForm = function(oParms) {
   var elForm = document.createElement("form");
   elForm.id="searchField"+id+'_'+nr;  elContainer.appendChild(elForm);
 
-  var lv = document.createElement('div');
-  lv.className='detailPanel'
-  lv.innerHTML='detail panel';
-  lv.setAttribute('style','text-decoration: underline');
+  // var lv = document.createElement('div');
+  // lv.className='detailPanel'
+  // lv.innerHTML='detail panel';
+  // lv.setAttribute('style','text-decoration: underline');
   // YAHOO.util.Event.addListener(lv, "click", localViewHandler, sURI);
-  elForm.appendChild(lv);
+  // elForm.appendChild(lv);
 
   var yuiWrapper = document.createElement("div");
   yuiWrapper.className="yui-ac-input-wrapper"; elForm.appendChild(yuiWrapper);
 
-  var acInput = document.createElement("input");
-  acInput.id='searchFieldInput'+id+'_'+nr;
-  acInput.setAttribute('name', 'active');
-  acInput.setAttribute('type', 'text');
-  acInput.size=sURI.length;
-  yuiWrapper.appendChild(acInput);
+  // var acInput = document.createElement("input");
+  // acInput.id='searchFieldInput'+id+'_'+nr;
+  // acInput.setAttribute('name', 'active');
+  // acInput.setAttribute('type', 'text');
+  // acInput.size=sURI.length;
+  // yuiWrapper.appendChild(acInput);
+  // acInput.value=sURI;
+  var elURI = document.createElement("a");
+  elURI.id = 'conceptURI'+id+'_'+nr;
+  elURI.href = serverPrefix() + '/../browse/list_resource?r=' + encodeURIComponent(sURI) ;
+  elURI.innerHTML = sURI;
+  yuiWrapper.appendChild(elURI);
+
   var acContainer = document.createElement("div");
   acContainer.id="searchFieldContainer"+id+'_'+nr;
-  acInput.value=sURI;
+
   elForm.appendChild(acContainer);
   var acScript = document.createElement('script');
   acScript.type="text/javascript";

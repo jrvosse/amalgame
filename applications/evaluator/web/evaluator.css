@@ -8,4 +8,7 @@ font-weight:bold;
     margin-left: 1.99%;
 }
 
-#evaluator { text-align: left }
+#evaluator { 
+	text-align: left;
+	margin: 2%;
+}
