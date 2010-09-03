@@ -478,7 +478,7 @@ YAHOO.mazzle.MapCheck.prototype._loadTree = function(id, sURI, prop, expandChild
 	}
 	request += this._oTreeDataSource.scriptQueryAppend;
 
-	// this._oTreeDataSource.sendRequest(request, oCallback);
+	this._oTreeDataSource.sendRequest(request, oCallback);
 };
 
 
