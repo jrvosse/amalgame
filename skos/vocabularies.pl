@@ -10,20 +10,29 @@
 
 :- use_module(amalgame(mappings/map)).
 
-/* <module> Compute and store vocabulary-oriented statistics as RDF.
-	Currently supported stats include:
-	* numberOfConcepts(N)
-	* numberOfPrefLabels(N)
-	* numberOfAltLabels(N)
-	* numberOfMappedConcepts(N)
+/** <module> Compute and store vocabulary-oriented statistics as RDF.
 
-	Side effect: These statistics will also be asserted as RDF
-	triples to the 'amalgame' named graph, using similarly named
-	properties with the 'amalgame:' namespace prefix. These asserted
-	triples will be used in subsequent calls for efficiency reasons.
+Currently supported statistical properties include:
+* numberOfConcepts(xsd:int)
+* numberOfPrefLabels(xsd:int)
+* numberOfAltLabels(xsd:int)
+* numberOfMappedConcepts(xsd:int)
 
-	See also http_clear_cache/1.
+Side effect: These statistics will also be asserted as RDF
+triples to the 'amalgame' named graph, using similarly named
+properties with the 'amalgame:' namespace prefix. These asserted
+triples will be used in subsequent calls for efficiency reasons.
+
+See also http_clear_cache/1.
+
+@author Jacco van Ossenbruggen
 */
+
+%%	voc_get_computed_props(+Voc, -Props) is det.
+%
+%	Collect all amalgame properties Props of Voc that have been
+%	already computed and asserted in the amalgame named graph.
+%
 
 voc_get_computed_props(Voc, Props) :-
 	findall([PropLn, Value],
@@ -33,6 +42,11 @@ voc_get_computed_props(Voc, Props) :-
 		GraphProps
 	       ),
 	maplist(=.., Props, GraphProps).
+
+%%	voc_ensure_stats(+Type) is det.
+%
+%	Ensures that the statistical properties of Type are asserted in
+%	the amalgame graph.
 
 voc_ensure_stats(numberOfConcepts(Voc)) :-
 	(   rdf(Voc,amalgame:numberOfConcepts, literal(type(_, Count)))
