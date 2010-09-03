@@ -148,6 +148,11 @@ style(style(
 
 show_alignment_overview(Graph) -->
 	{
+	 align_ensure_stats(source(Graph)),
+	 align_ensure_stats(target(Graph)),
+	 align_ensure_stats(mapped(Graph)),
+
+	 http_link_to_id(http_evaluator, [graph=Graph], EvalLink),
 	 http_link_to_id(list_graph, [graph=Graph], URI),
 	 http_link_to_id(http_split_alignment,
 			 [graph=Graph, condition=sourceType], STLink),
@@ -159,7 +164,8 @@ show_alignment_overview(Graph) -->
 	 rdf(Graph, amalgame:mappedTargetConcepts, literal(MTC))
 	},
 	html([div(['Alignment graph: ',
-		  a([href(URI)], Graph)
+		   a([href(URI)], Graph), ' ',
+		   a([href(EvalLink)], '(evaluate)')
 		 ]),
 	      table([
 		     tr([td('Source voc:'),
