@@ -36,8 +36,12 @@ is_alignment_graph(Graph, Format) :-
 	var(Graph),
 	rdfs_individual_of(Graph, amalgame:'Alignment'),
 	rdf_graph(Graph),
-	align_ensure_stats(format(Graph)),
-	rdf(Graph, amalgame:format, literal(Format), amalgame).
+	graph_format(Graph, Format).
+
+graph_format(Graph, Format) :-
+	rdf(Graph, amalgame:format, literal(Format), amalgame), !.
+graph_format(Graph, Format) :-
+	has_map(_,Format, Graph), !.
 
 %%	find_graphs(+Map, -Graphs) is det.
 %
