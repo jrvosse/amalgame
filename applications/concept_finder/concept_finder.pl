@@ -199,8 +199,8 @@ http_concepts(Request) :-
 				[optional(true),
 				 description('keyword query to filter the results by')])
 			]),
-	TopConcept = concept(Concept, Label, HasNarrower),
-	findall(TopConcept, concept(Type, Parent, Query, Concept, Label, HasNarrower), Cs0),
+	C = concept(Concept, Label, HasNarrower),
+	findall(C, concept(Type, Parent, Query, Concept, Label, HasNarrower), Cs0),
 	sort(Cs0, Cs),
 	term_sort_by_arg(Cs, 2, Sorted),
 	list_offset(Sorted, Offset, OffsetResults),
@@ -218,9 +218,12 @@ concept(Type, Parent, Query, Concept, Label, HasNarrower) :-
 	has_narrower(Concept, HasNarrower),
  	once(display_label(Concept, Label)).
 concept(Type, Parent, Query, Concept, Label, HasNarrower) :-
-	rdf(Parent, skos:inScheme, Scheme),
 	rdf_has(Concept, rdfs:label, literal(prefix(Query), Lit)),
-	rdf(Concept, skos:inScheme, Scheme),
+	(   Type == inscheme
+	->  true
+	;   rdf(Parent, skos:inScheme, Scheme),
+	    rdf(Concept, skos:inScheme, Scheme)
+	),
  	once(concept_(Type, Parent, Concept)),
 	text_of_literal(Lit, Label),
 	has_narrower(Concept, HasNarrower).
