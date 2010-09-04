@@ -15,20 +15,13 @@ matchers. It assumes matchers assert mappings in different name graphs.
 @license GPL
 */
 
-:- use_module(library(assoc)).
 :- use_module(library(semweb/rdf_db)).
-:- use_module(library(http/html_write)).
-:- use_module(library(http/http_dispatch)).
 :- use_module(library(semweb/rdfs)).
-
-:- use_module(components(label)).
 
 :- use_module(amalgame(mappings/map)).
 :- use_module(amalgame(mappings/alignment)).
 :- use_module(amalgame(mappings/edoal)).
 :- use_module(amalgame(namespaces)).
-
-
 
 find_overlap(ResultsSorted, [cached(true)]) :-
 	rdf(_, amalgame:member, _),
