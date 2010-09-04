@@ -72,8 +72,8 @@ YUI.add('columnbrowser', function(Y) {
 
 		bindUI : function() {
 			Y.on("resize", this._updateBodySize, window, this);
-			this.columnsBox.one('.yui3-resize-handle')
-				.on( "mouseup" , this._updateColumnsSize, this);
+			this.columnsBox.dd
+				.on( "drag:end" , this._updateColumnsSize, this);
 		},
 
 		syncUI : function() {
@@ -375,15 +375,16 @@ YUI.add('columnbrowser', function(Y) {
 				column._load = column._node.appendChild(
 					Y.Node.create('<div class="hidden loading"></div>'));
 					
-				// hack to get a handler on the resize 
-				// first make contentNode very big, and on mouse release set to actual size
-				column._node.one('.yui3-resize-handle')
-					.on( "mousedown" , function() {
-						content.get("parentNode").addClass("noscroll");
-						content.setStyle("width", "10000px")}, this);
-				column._node.one('.yui3-resize-handle')
-					.on( "mouseup" , this._updateContentSize, this);
-	
+				var dd = column._node.dd;	
+					
+				// first make contentNode very big
+				dd.on( "drag:start", function() {
+					this.get("parentNode").addClass("noscroll");
+					this.setStyle("width", "10000px");
+				}, content);
+				// at the end of resize put it to the actual size
+				dd.on( "drag:end", this._updateContentSize, this);
+					
 				// create a new ResourceList
 				var resourceList = new Y.mazzle.ResourceList({
 					boundingBox: column._node,
