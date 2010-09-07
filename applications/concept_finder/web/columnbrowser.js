@@ -100,10 +100,15 @@ YUI.add('columnbrowser', function(Y) {
 			var columns = this.get("columns"),
 				next = index+1;
 			this.setTitle(resource);
+			this._setActiveColumn(index);
 			this.fire("itemSelect", resource, index);
-			if(columns[next]||columns[index].repeat) {			
-				var column = this._setColumnDef(next, resource);
-				this._getColumnData(next);
+			if(columns[next]||columns[index].repeat) {
+				if(resource.hasNext) {			
+					var column = this._setColumnDef(next, resource);
+					this._getColumnData(next);
+				} else {
+					this._clearColumn(columns[next]);
+				}
 			}
 		},
 		
@@ -121,6 +126,7 @@ YUI.add('columnbrowser', function(Y) {
 			column.page = 0;
 			column.option = optionValue;
 			this._getColumnData(index);
+			this._setActiveColumn(index-1);
 			this.fire("optionSelect", optionValue, index);
 		},
 		
@@ -300,7 +306,6 @@ YUI.add('columnbrowser', function(Y) {
 							resources.length;
 
 						if(resources.length>0||column.options) { // add the results
-							oSelf.activeIndex = index;
 							oSelf._populateColumn(index, resources);
 						} 
 						else {
@@ -499,6 +504,19 @@ YUI.add('columnbrowser', function(Y) {
 				column._load.addClass("hidden");
 			}
 		},	
+		
+		_setActiveColumn : function(index) {
+			this.activeIndex = index;
+			var columns = this.get("columns");
+			for (var i=0; i < columns.length; i++) {
+				if(i==index) {
+					columns[index]._node.addClass("active");
+				}
+				else if(columns[i]._node) {
+					columns[i]._node.removeClass("active");
+				}
+			}
+		},
 		/**
 		 * The handler that listens to valueChange events and decides whether or not
 		 * to kick off a new query.

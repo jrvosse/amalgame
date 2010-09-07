@@ -101,6 +101,9 @@
 	float: right;
 }
 .yui3-columnbrowser .resourcelist-item.selected {
+	background-color: #DDD;
+}
+.yui3-columnbrowser .column.active .resourcelist-item.selected {
 	background-color: #3875D7;
 	color: #FFF;
 }
