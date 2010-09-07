@@ -431,9 +431,10 @@ html_amalgame_props(Props) -->
 
 amalgame_props([]) --> !.
 amalgame_props([Term|Ts]) -->
-	{ Term =.. [Prop, Value]
+	{ Term =.. [Prop, Value],
+	  text_of_literal(Value, Txt)
 	},
-	html(tr([td(Prop), td(Value)])),
+	html(tr([td(Prop), td(Txt)])),
 	amalgame_props(Ts).
 
 resource_link(URI, Label) -->
