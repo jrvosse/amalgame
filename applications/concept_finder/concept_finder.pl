@@ -16,6 +16,7 @@
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(settings)).
 :- use_module(components(label)).
+:- use_module(tree_index).
 
 % add local web directories from which static files are served.
 
@@ -175,7 +176,7 @@ concept_scheme(Query, C, Label) :-
 	display_label(C, Label).
 concept_scheme(Query, C, Label) :-
 	rdf(C, rdf:type, skos:'ConceptScheme'),
-	once(rdf(C, rdfs:label, literal(prefix(Query), Lit))),
+	once(label_of(prefix, Query, C, Lit)),
 	text_of_literal(Lit, Label).
 
 
@@ -223,12 +224,12 @@ concept(Type, Parent, Query, Concept, Label, HasNarrower) :-
 	has_narrower(Concept, HasNarrower),
  	display_label(Concept, Label).
 concept(Type, Parent, Query, Concept, Label, HasNarrower) :-
-	rdf_has(Concept, rdfs:label, literal(prefix(Query), Lit)),
 	(   Type = descendant
-	->  once(same_scheme(Parent, Concept))
-	;   true
+	->  label_of(prefix, Query, Concept, Lit),
+	    in_tree(Parent, Concept)
+	;   label_of(prefix, Query, Concept, Lit),
+	    once(concept_(Type, Parent, Concept))
 	),
- 	once(concept_(Type, Parent, Concept)),
 	text_of_literal(Lit, Label),
 	has_narrower(Concept, HasNarrower).
 
@@ -243,9 +244,16 @@ concept_(descendant, Parent, Concept) :-
 concept_(related, Parent, Concept) :-
 	related_concept(Parent, Concept).
 
-same_scheme(C1, C2) :-
-	rdf(C1, skos:inScheme, Scheme),
-	rdf(C2, skos:inScheme, Scheme).
+in_tree(Parent, Concept) :-
+	tree_index(Parent, PS, PE),
+	!,
+	tree_index(Concept, CS, CE),
+	CS > PS,
+	CE =< PE.
+in_tree(Parent, Concept) :-
+ 	rdf(Parent, skos:inScheme, Scheme),
+	rdf(Concept, skos:inScheme, Scheme),
+	descendant(Parent, Concept).
 
 %%	inscheme(+ConceptScheme, -Concept)
 %
@@ -465,11 +473,28 @@ display_label(literal(Lit), Label) :-
 	!,
 	literal_text(literal(Lit), Label).
 display_label(R, Label) :-
-	rdf_label(R, Lit),
+	label_property(P),
+	rdf_has(R, P, O),
 	!,
-	literal_text(Lit, Label).
+	display_label(O, Label).
+display_label(R, Label) :-
+	rdf(R, rdf:value, O),
+	!,
+	display_label(O, Label).
 display_label(R, Label) :-
 	once(rdfs_label(R, Label)).
+
+%%	label_of(+MatchType, +Query, -R, -Lit)
+%
+%	True if Query matches a literal value of R.
+
+label_of(MatchType, Query, R, Lit) :-
+	SearchTerm =.. [MatchType, Query],
+	rdf_has(R, rdfs:label, literal(SearchTerm, Lit)).
+label_of(MatchType, Query, R, Lit) :-
+	SearchTerm =.. [MatchType, Query],
+	rdf(O, rdf:value, literal(SearchTerm, Lit)),
+ 	rdf_has(R, rdfs:label, O).
 
 
 %%	reply_jsonp(+JSON, +Callback)
