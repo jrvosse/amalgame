@@ -86,6 +86,7 @@
 	height: 100%;
 	overflow-x: auto;
 	overflow-y: scroll;
+	min-width: 15px;
 }
 .yui3-columnbrowser .yui3-resourcelist-content ul {
 	padding: 2px 0;
