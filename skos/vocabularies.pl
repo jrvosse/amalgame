@@ -20,7 +20,7 @@ Currently supported statistical properties include:
 * numberOfMappedConcepts(xsd:int)
 
 Side effect: These statistics will also be asserted as RDF
-triples to the 'amalgame' named graph, using similarly named
+triples to the 'amalgame_vocs' named graph, using similarly named
 properties with the 'amalgame:' namespace prefix. These asserted
 triples will be used in subsequent calls for efficiency reasons.
 
@@ -37,7 +37,7 @@ See also http_clear_cache/1.
 
 voc_get_computed_props(Voc, Props) :-
 	findall([PropLn, Value],
-		(   rdf(Voc, Prop, Value, amalgame),
+		(   rdf(Voc, Prop, Value, amalgame_vocs),
 		    rdf_global_id(amalgame:PropLn, Prop)
 		),
 		GraphProps
@@ -86,12 +86,12 @@ assert_voc_props(Voc:Props) :-
 	rdf_equal(amalgame:'', NS),
 	(   rdf(Voc, rdf:type, skos:'ConceptScheme')
 	->  true
-	;   rdf_assert(Voc, rdf:type, skos:'ConceptScheme', amalgame)
+	;   rdf_assert(Voc, rdf:type, skos:'ConceptScheme', amalgame_vocs)
 	),
 	forall(member(M,Props),
 	       (   M =.. [PropName, Value],
 		   format(atom(URI), '~w~w', [NS,PropName]),
-		   rdf_assert(Voc, URI, Value, amalgame)
+		   rdf_assert(Voc, URI, Value, amalgame_vocs)
 	       )).
 
 count_concepts(Voc, Count) :-
@@ -137,3 +137,4 @@ skos_label(Concept, Label) :-
 	rdfs_label(Concept, Label),!.
 skos_label(Concept, Label) :-
 	format(atom(Label), '<~p>', [Concept]),!.
+
