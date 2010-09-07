@@ -178,7 +178,7 @@ concept_scheme(Query, C, Label) :-
 	display_label(C, Label).
 concept_scheme(Query, C, Label) :-
 	rdf(C, rdf:type, skos:'ConceptScheme'),
-	once(label_of(prefix, Query, C, Lit)),
+	once(label_prefix(Query, C, Lit)),
 	text_of_literal(Lit, Label).
 
 
@@ -226,12 +226,8 @@ concept(Type, Parent, Query, Concept, Label, HasNarrower) :-
 	has_narrower(Concept, HasNarrower),
  	display_label(Concept, Label).
 concept(Type, Parent, Query, Concept, Label, HasNarrower) :-
-	(   Type = descendant
-	->  label_of(prefix, Query, Concept, Lit),
-	    in_tree(Parent, Concept)
-	;   label_of(prefix, Query, Concept, Lit),
-	    once(concept_(Type, Parent, Concept))
-	),
+	concept_(Type, Parent, Concept),
+	once(label_prefix(Query, Concept, Lit)),
 	text_of_literal(Lit, Label),
 	has_narrower(Concept, HasNarrower).
 
@@ -245,17 +241,6 @@ concept_(descendant, Parent, Concept) :-
 	descendant(Parent, Concept).
 concept_(related, Parent, Concept) :-
 	related_concept(Parent, Concept).
-
-in_tree(Parent, Concept) :-
-	tree_index(Parent, PS, PE),
-	!,
-	tree_index(Concept, CS, CE),
-	CS > PS,
-	CE =< PE.
-in_tree(Parent, Concept) :-
- 	rdf(Parent, skos:inScheme, Scheme),
-	rdf(Concept, skos:inScheme, Scheme),
-	descendant(Parent, Concept).
 
 %%	inscheme(+ConceptScheme, -Concept)
 %
@@ -282,37 +267,20 @@ top_concept(ConceptScheme, Concept) :-
 %	inversely by skos:broader.
 
 narrower_concept(Concept, Narrower) :-
-	rdf_has(Concept, skos:narrower, Narrower).
+	rdf_has(Narrower, skos:broader, Concept).
 narrower_concept(Concept, Narrower) :-
-	rdf_has(Narrower, skos:broader, Concept),
-	\+ rdf_has(Concept, skos:narrower, Narrower).
+	rdf_has(Concept, skos:narrower, Narrower),
+	\+ rdf_has(Narrower, skos:narrower, Concept).
 
-%%	descendant(?Concept, ?Descendant)
+%%	descendant(+Concept, -Descendant)
 %
 %	Descendant is a child of Concept or recursively of its children
 
 descendant(Concept, Descendant) :-
-	var(Descendant),
-	!,
-	narrower_concept(Concept, Narrower),
+ 	narrower_concept(Concept, Narrower),
 	(   Descendant = Narrower
 	;   descendant(Narrower, Descendant)
 	).
-descendant(Concept, Descendant) :-
-%	var(Concept),
-%	!,
-	parent_of(Concept, Descendant).
-/*
-descendant(Concept, Descendant) :-
-	tree_index(Concept, CStart, CEnd),
-	tree_index(Descendant, DStart, DEnd),
-	DStart > CStart,
-	DEnd =< CEnd.
-*/
-parent_of(Concept, Concept). % really?
-parent_of(Concept, Descendant) :-
-	narrower_concept(Broader, Descendant),
-	parent_of(Concept, Broader).
 
 %%	related_concept(+Concept, -Related)
 %
@@ -509,17 +477,15 @@ display_label(R, Label) :-
 display_label(R, Label) :-
 	once(rdfs_label(R, Label)).
 
-%%	label_of(+MatchType, +Query, -R, -Lit)
+%%	label_prefix(+Query, -R, -Lit)
 %
 %	True if Query matches a literal value of R.
 
-label_of(MatchType, Query, R, Lit) :-
-	SearchTerm =.. [MatchType, Query],
-	rdf_has(R, rdfs:label, literal(SearchTerm, Lit)).
-label_of(MatchType, Query, R, Lit) :-
-	SearchTerm =.. [MatchType, Query],
-	rdf(O, rdf:value, literal(SearchTerm, Lit)),
- 	rdf_has(R, rdfs:label, O).
+label_prefix(Query, R, Lit) :-
+ 	rdf_has(R, rdfs:label, literal(prefix(Query), Lit)).
+label_prefix(Query, R, Lit) :-
+	rdf_has(O, rdf:value, literal(prefix(Query), Lit)),
+	rdf_has(R, rdfs:label, O).
 
 
 %%	reply_jsonp(+JSON, +Callback)
