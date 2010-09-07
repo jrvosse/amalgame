@@ -1,7 +1,9 @@
 :- module(ag_map,
 	  [
 	   map_iterator/1,	   % -Map
-	   has_map/3               % ?Map, ?Format ?Graph
+	   has_map/4,              % ?Map, ?Format ?Options, ?Graph
+	   has_map/3,		   % ?Map, ?Format ?Graph
+	   retract_map/3           % +Map, +Format, +Graph
 	  ]
 	 ).
 
@@ -13,6 +15,19 @@ from the underlying formats.
 @author Jacco van Ossenbruggen
 @license GPL
 */
+
+:- dynamic
+	mapping_props/1.
+
+:-	P = [align:measure,
+	     align:relation,
+	     amalgame:method
+	    ],
+	rdf_global_term(P, Props),
+	retractall(mapping_props(_)),
+	assert(mapping_props(Props)).
+
+
 
 %%	map_iterator(-Map) is non_det.
 %
@@ -28,8 +43,8 @@ from the underlying formats.
 map_iterator([E1,E2]) :-
 	has_map([E1, E2], _, _).
 
-
-%%	has_map(+Map, -Format, -Graph) is non_det.
+%%	has_map(+Map, -Format, Options, -Graph) is non_det.
+%%%	has_map(+Map, -Format, -Graph) is non_det.
 %
 %	Intended to be used to find graphs that contain Map, and in what
 %	Format. Map can be stored in the triple store in several
@@ -42,7 +57,17 @@ map_iterator([E1,E2]) :-
 %
 %	@see EDOAL: http://alignapi.gforge.inria.fr/edoal.html
 
-has_map([E1, E2], edoal, Graph) :-
+has_map([E1, E2], edoal, Options, Graph) :-
+	has_map_([E1, E2], Cell, Graph),
+	mapping_props(Props),
+	findall(Term,
+		(   member(Prop, Props),
+		    rdf(Cell, Prop, Value, Graph),
+		    prop_to_term(Prop, Value, Term)
+		),
+		Options).
+
+has_map_([E1,E2], Cell, Graph) :-
 	(   ground(E1)
 	->  rdf(Cell, align:entity1, E1, Graph),
 	    rdf(Cell, align:entity2, E2, Graph)
@@ -57,6 +82,11 @@ has_map([E1, E2], edoal, Graph) :-
 	    rdf(Cell, align:entity2, E2, Graph)
 	).
 
+
+has_map(Map, edoal, Graph) :-
+	has_map_(Map, _, Graph).
+
+
 has_map([E1, E2], skos, Graph) :-
 	rdf_has(E1, skos:mappingRelation, E2, RealProp),
 	rdf(E1, RealProp, E2, Graph).
@@ -69,6 +99,27 @@ has_map([E1, E2], owl, Graph) :-
 	rdf_has(E1, owl:sameAs, E2, RealProp),
 	rdf(E1, RealProp, E2, Graph).
 
+%%	retract_map(+Map, +Format, Graph) is det.
+%
+%	retracts Map in Format form Graph if it exists in Graph.
+
+retract_map([E1,E2], edoal, Graph) :-
+	(   has_map_([E1, E2], Cell, Graph)
+	->  rdf_retractall(Cell, _,_,Graph)
+	;   true
+	).
+
+prop_to_term(Prop, Value, Term) :-
+	rdf_global_id(NS:Local, Prop),
+	(   NS:Local = align:measure
+	->  (literal(type(_,LRealValue)) = Value;literal(LRealValue) = Value),
+	    term_to_atom(RealValue, LRealValue)
+	;   NS:Local = amalgame:method
+	->  literal(Literal) = Value,
+	    term_to_atom(RealValue, Literal)
+	;   RealValue = Value
+	),
+	Term =.. [Local, RealValue],!.
 
 %%	message(+Term)// is det.
 %
@@ -79,3 +130,9 @@ prolog:message(map(found, What, From, Number)) -->
         [ 'Found ', Number, ' ', What, ' (', From, ') to process.' ].
 prolog:message(map(cleared, What, From, Number)) -->
         [ 'Cleared ', Number, ' ', What, ' (', From, ').' ].
+
+
+
+
+
+
