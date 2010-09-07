@@ -129,7 +129,7 @@ http_clear_cache(_Request) :-
 			 ul([
 			     li('Amalgame alignment overlap named graphs'),
 			     li('Amalgame alignment abbreviation nicknamesrdf'),
-			     li('Amalgame statistics data')
+			     li('Amalgame alignment statistics data')
 			    ])
 			]).
 

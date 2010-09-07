@@ -125,7 +125,10 @@ show_schemes([Voc|Tail], Nr, [C,P,A,M]) -->
 	 ),
 	 (   memberchk(numberOfMappedConcepts(literal(type(_, MCount))), Props)
 	 ->  NewM is M + MCount,
-	     Perc is 100*(MCount/CCount),
+	     (	 CCount = 0
+	     ->	 Perc = 0.0
+	     ;	 Perc is 100*(MCount/CCount)
+	     ),
 	     format(atom(MPercent), '(~2f%)', [Perc])
 	 ;   NewM = M, MCount = MissingValue
 	 ),
