@@ -107,7 +107,7 @@ YUI.add('columnbrowser', function(Y) {
 					var column = this._setColumnDef(next, resource);
 					this._getColumnData(next);
 				} else {
-					this._clearColumn(columns[next]);
+					this._hideColumns(next);
 				}
 			}
 		},
