@@ -295,6 +295,9 @@ YUI.add('columnbrowser', function(Y) {
 				callback: {
 					success: function(e){
 						var resources = e.response.results;
+						column.totalNumberOfResults = e.response.meta 
+							? e.response.meta.totalNumberOfResults :
+							resources.length;
 
 						if(resources.length>0||column.options) { // add the results
 							oSelf.activeIndex = index;
@@ -466,25 +469,19 @@ YUI.add('columnbrowser', function(Y) {
 		*
 		* @private
 		**/			
-		_setStatus : function(index, resources) {
+		_setStatus : function(index) {
 			var columns = this.get("columns"),
-				length = resources.length,
+				column = columns[index],
+				label = column.label || "item",
+				length = column.totalNumberOfResults,
 				HTML = "";
-			
+
 			if(length>0) {
-				var column = columns[index],
-					type = column.type || "item";
-				
-				type += (length>0) ? "s" : "";
-				length += (length==this.get("maxNumberItems")) ? "+" : "";
-				HTML = '<div>'+length+' '+type+'</div>';
+				label += (length>1) ? "s" : "";
+				HTML = '<div>'+length+' '+label+'</div>';
 			}
-			else if(columns[index-1]) {
-				var rl = columns[index-1].resourceList,
-					selected = rl.get("selected").length,
-					total = rl.get("resources").length;
-					
-				HTML = '<div>'+selected+' of '+total+' selected</div>';
+			else {
+				HTML = '';
 			}
 			this.statusNode.set("innerHTML", HTML);
 		},

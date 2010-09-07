@@ -16,6 +16,7 @@
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(settings)).
 :- use_module(components(label)).
+:- use_module(tree_index).
 
 % add local web directories from which static files are served.
 
@@ -80,7 +81,8 @@ yui_script -->
 	      .plug(Y.Plugin.DataSourceJSONSchema, {
 		    schema: {
     			resultListLocator: "results",
-    			resultFields: ["id", "label", "hasNext", "matches", "scheme"]
+    			resultFields: ["id", "label", "hasNext", "matches", "scheme"],
+			metaFields: {"totalNumberOfResults":"totalNumberOfResults"}
     		    }\n',
 '    	      })
     	      .plug({fn:Y.Plugin.DataSourceCache, cfg:{max:20}});\n',
@@ -90,11 +92,13 @@ yui_script -->
 	    maxNumberItems: 100,\n',
 ' 	    columns: [
 	        {   request: "',ConceptSchemes,'",
+		    label: "conceptscheme",
 	            formatter: formatItem
 	        },\n',
 '	        {   request: "',Concepts,'",
-		    params: {type:"topconcept"},
-		    options: [
+		    label: "concept",
+		    params: {type:"topconcept"},\n',
+'		    options: [
 	                {value:"inscheme", label:"concepts in scheme"},
 	                {value:"topconcept", selected:true, label: "top concepts"}
 	            ]
@@ -122,7 +126,7 @@ yui_script -->
 
 'cf.setTitle = function(resource) {
  	Y.io("',ConceptInfo, '", {
-	    data: "concept="+resource.id,
+	    data: "concept="+encodeURIComponent(resource.id),
 	    on: {  success: function(tid, o) {
 		      cf.titleNode.set("innerHTML", o.responseText);
 	           }
@@ -140,9 +144,7 @@ yui_script -->
 
 http_concept_schemes(Request) :-
 	http_parameters(Request,
-			[ parent(Parent,
-				 [optional(true),
-				  description('Named graph in which the concept schemes occur')]),
+			[
 			  offset(Offset,
 				[integer, default(0),
 				 description('Start of the results returned')]),
@@ -154,25 +156,27 @@ http_concept_schemes(Request) :-
 				 description('keyword query to filter the results by')])
 			]),
 	ConceptScheme = concept(Concept, Label, true),
-	findall(ConceptScheme, concept_scheme(Parent, Query, Concept, Label), Cs),
+	findall(ConceptScheme, concept_scheme(Query, Concept, Label), Cs),
+	length(Cs, Total),
 	list_offset(Cs, Offset, OffsetResults),
 	list_limit(OffsetResults, Limit, LimitResults, _),
 	prolog_to_json(LimitResults, JSONResults),
 	reply_json(json([offset=Offset,
 			 limit=Limit,
+			 totalNumberOfResults=Total,
  			 results=JSONResults])).
 
 :- json_object
  	concept(id:atom, label:atom, hasNext:boolean).
 
-concept_scheme(Parent, Query, C, Label) :-
+concept_scheme(Query, C, Label) :-
 	var(Query),
 	!,
-	rdf(C, rdf:type, skos:'ConceptScheme', Parent),
-	once(display_label(C, Label)).
-concept_scheme(Parent, Query, C, Label) :-
-	rdf(C, rdf:type, skos:'ConceptScheme', Parent),
-	once(rdf(C, rdfs:label, literal(prefix(Query), Lit))),
+	rdf(C, rdf:type, skos:'ConceptScheme'),
+	display_label(C, Label).
+concept_scheme(Query, C, Label) :-
+	rdf(C, rdf:type, skos:'ConceptScheme'),
+	once(label_of(prefix, Query, C, Lit)),
 	text_of_literal(Lit, Label).
 
 
@@ -203,12 +207,14 @@ http_concepts(Request) :-
 	findall(C, concept(Type, Parent, Query, Concept, Label, HasNarrower), Cs0),
 	sort(Cs0, Cs),
 	term_sort_by_arg(Cs, 2, Sorted),
+	length(Sorted, Total),
 	list_offset(Sorted, Offset, OffsetResults),
 	list_limit(OffsetResults, Limit, LimitResults, _),
 	prolog_to_json(LimitResults, JSONResults),
 	reply_json(json([parent=Parent,
 			 offset=Offset,
 			 limit=Limit,
+			 totalNumberOfResults=Total,
  			 results=JSONResults])).
 
 concept(Type, Parent, Query, Concept, Label, HasNarrower) :-
@@ -216,15 +222,14 @@ concept(Type, Parent, Query, Concept, Label, HasNarrower) :-
 	!,
 	concept_(Type, Parent, Concept),
 	has_narrower(Concept, HasNarrower),
- 	once(display_label(Concept, Label)).
+ 	display_label(Concept, Label).
 concept(Type, Parent, Query, Concept, Label, HasNarrower) :-
-	rdf_has(Concept, rdfs:label, literal(prefix(Query), Lit)),
-	(   Type == inscheme
-	->  true
-	;   rdf(Parent, skos:inScheme, Scheme),
-	    rdf(Concept, skos:inScheme, Scheme)
+	(   Type = descendant
+	->  label_of(prefix, Query, Concept, Lit),
+	    in_tree(Parent, Concept)
+	;   label_of(prefix, Query, Concept, Lit),
+	    once(concept_(Type, Parent, Concept))
 	),
- 	once(concept_(Type, Parent, Concept)),
 	text_of_literal(Lit, Label),
 	has_narrower(Concept, HasNarrower).
 
@@ -238,6 +243,17 @@ concept_(descendant, Parent, Concept) :-
 	descendant(Parent, Concept).
 concept_(related, Parent, Concept) :-
 	related_concept(Parent, Concept).
+
+in_tree(Parent, Concept) :-
+	tree_index(Parent, PS, PE),
+	!,
+	tree_index(Concept, CS, CE),
+	CS > PS,
+	CE =< PE.
+in_tree(Parent, Concept) :-
+ 	rdf(Parent, skos:inScheme, Scheme),
+	rdf(Concept, skos:inScheme, Scheme),
+	descendant(Parent, Concept).
 
 %%	inscheme(+ConceptScheme, -Concept)
 %
@@ -353,7 +369,7 @@ skos_alt_labels(C, AltLabels) :-
 skos_related_concepts(C, Related) :-
 	Concept = concept(R, Label),
  	findall(Concept, ( skos_related(C, R),
-			   once(display_label(R, Label))
+			   display_label(R, Label)
 		    ),
 		Related).
 
@@ -457,11 +473,28 @@ display_label(literal(Lit), Label) :-
 	!,
 	literal_text(literal(Lit), Label).
 display_label(R, Label) :-
-	rdf_label(R, Lit),
+	label_property(P),
+	rdf_has(R, P, O),
 	!,
-	literal_text(Lit, Label).
+	display_label(O, Label).
 display_label(R, Label) :-
-	rdfs_label(R, Label).
+	rdf(R, rdf:value, O),
+	!,
+	display_label(O, Label).
+display_label(R, Label) :-
+	once(rdfs_label(R, Label)).
+
+%%	label_of(+MatchType, +Query, -R, -Lit)
+%
+%	True if Query matches a literal value of R.
+
+label_of(MatchType, Query, R, Lit) :-
+	SearchTerm =.. [MatchType, Query],
+	rdf_has(R, rdfs:label, literal(SearchTerm, Lit)).
+label_of(MatchType, Query, R, Lit) :-
+	SearchTerm =.. [MatchType, Query],
+	rdf(O, rdf:value, literal(SearchTerm, Lit)),
+ 	rdf_has(R, rdfs:label, O).
 
 
 %%	reply_jsonp(+JSON, +Callback)
