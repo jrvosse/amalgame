@@ -303,7 +303,7 @@ YUI.add('columnbrowser', function(Y) {
 							oSelf.activeIndex = index;
 							oSelf._populateColumn(index, resources);
 						} 
-						else { 
+						else {
 							oSelf._clearColumn(column);
 						}
 						oSelf._setStatus(index, resources);
@@ -438,12 +438,14 @@ YUI.add('columnbrowser', function(Y) {
 				previous = columns[index-1]||{},
 				column = columns[index] ? columns[index] : {};
 
-			column.request = column.request||(previous.repeat ? previous.request : null);	
+			column.repeat = column.repeat||previous.repeat;
+			column.request = column.request||(column.repeat ? previous.request : null);	
 			column.formatter = column.formatter||previous.resourceList.formatItem;
 			column.parent = parent ? this.itemId(parent) : null;
-			column.params = column.params||(previous.repeat ? previous.params : null);
-			column.options = column.options||(previous.repeat ? previous.options : null);
-			column.repeat = column.repeat||previous.repeat;
+			column.params = column.params||(column.repeat ? previous.params : null);
+			column.options = column.options||(column.repeat ? previous.options : null);
+			column.label = column.label || (column.repeat&&previous.label);
+			
  			column.page = 0;
 			column.searchString = null;
 			
