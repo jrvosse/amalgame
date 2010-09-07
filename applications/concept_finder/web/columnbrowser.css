@@ -25,8 +25,6 @@
 }
 .yui3-columnbrowser .hd .title {
 	height: 100%;
-	float:left;
-	width:500px;
 }
 .yui3-columnbrowser .infobox {
 	height: 100%;
@@ -49,7 +47,9 @@
 .yui3-columnbrowser .infobox .desc {
 	margin-top: 0.5em;
 }
-
+.yui3-columnbrowser .infobox .amalgame {
+	font-size: 0.9em;
+}
 
 .yui3-columnbrowser .hd .controls {
 	height: 7em;

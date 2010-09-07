@@ -16,6 +16,8 @@
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(settings)).
 :- use_module(components(label)).
+
+:- use_module(amalgame(skos/vocabularies)).
 :- use_module(tree_index).
 
 % add local web directories from which static files are served.
@@ -351,8 +353,9 @@ http_concept_info(Request) :-
 	skos_alt_labels(C, AltLabels0),
 	delete(AltLabels0, Label, AltLabels),
 	skos_related_concepts(C, Related),
+	voc_get_computed_props(C, Amalgame),
 	format('Content-type: text/html~n~n'),
-	phrase(html(\html_info_snippet(C, Label, Desc, AltLabels, Related)), HTML),
+	phrase(html(\html_info_snippet(C, Label, Desc, AltLabels, Related, Amalgame)), HTML),
 	print_html(HTML).
 
 skos_description(C, Desc) :-
@@ -379,14 +382,20 @@ skos_related(C, R) :-
 	rdf_has(R, skos:related, C),
 	\+ rdf_has(C, skos:related, R).
 
-html_info_snippet(URI, Label, Desc, AltLabels, Related) -->
+html_info_snippet(URI, Label, Desc, AltLabels, Related, AmalGame) -->
+	{ truncate_atom(Desc, 80, ShortDesc)
+	},
 	html(div(class(infobox),
-		 [ h3([Label,
+		 [ h3([\resource_link(URI, Label),
 		       \html_label_list(AltLabels)
 		      ]),
 		   div(class(uri), URI),
-		   div(class(desc), Desc),
-		   \html_related_list(Related)
+		   div(style('float:left'),
+		       [ div([class(desc), title(Desc)], ShortDesc),
+			 \html_related_list(Related)
+		       ]),
+		   div(class(amalgame),
+		       \html_amalgame_props(AmalGame))
 		 ])).
 
 html_label_list([]) --> !.
@@ -411,11 +420,26 @@ html_related_list(Cs) -->
 		 ])).
 
 html_concept_list([concept(URI, Label)]) --> !,
-	html(span([class(concept), title(URI)], Label)).
+	resource_link(URI, Label).
 html_concept_list([concept(URI, Label)|Cs]) -->
-	html(span([class(concept), title(URI)], [Label, ', '])),
+	html([\resource_link(URI, Label), ', ']),
 	html_concept_list(Cs).
 
+html_amalgame_props([]) --> !.
+html_amalgame_props(Props) -->
+	html(table(\amalgame_props(Props))).
+
+amalgame_props([]) --> !.
+amalgame_props([Term|Ts]) -->
+	{ Term =.. [Prop, Value]
+	},
+	html(tr([td(Prop), td(Value)])),
+	amalgame_props(Ts).
+
+resource_link(URI, Label) -->
+	{ www_form_encode(URI, EncURI)
+	},
+	html(a(href(location_by_id(list_resource)+'?r='+EncURI), Label)).
 
 		 /*******************************
 		 *	     UTILILIES          *
