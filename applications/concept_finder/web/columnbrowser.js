@@ -311,7 +311,7 @@ YUI.add('columnbrowser', function(Y) {
 						else {
 							oSelf._clearColumn(column);
 						}
-						oSelf._setStatus(index, resources);
+						oSelf.setFooter(index, resources);
 					},
 					failure: function(e){
 						alert("Could not retrieve data: " + e.error.message);
@@ -470,7 +470,9 @@ YUI.add('columnbrowser', function(Y) {
 			}
 			this.titleNode.set("innerHTML", HTML);
 		},
-	
+		setFooter : function(index, resource) {
+			this._setStatus(index, resource);
+		},
 		/**
 		* Sets the status in the footer
 		*
