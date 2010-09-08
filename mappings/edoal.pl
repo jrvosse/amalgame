@@ -1,6 +1,7 @@
 :-module(edoal, [
 		 assert_alignment/2, 	% +URI, +OptionList
-		 assert_cell/3	        % +E1, +E2, +OptionList
+		 assert_cell/3,	        % +E1, +E2, +OptionList
+		 edoal_to_skos/2        % +EdoalGraph, +SkosGraph
 		]
 	).
 
@@ -15,9 +16,11 @@ http://alignapi.gforge.inria.fr/edoal.html
 */
 
 
-
 :- use_module(library(semweb/rdf_db)).
-:- use_module('../namespaces.pl').
+:- use_module(library(semweb/rdfs)).
+
+:- use_module(amalgame(namespaces)).
+:- use_module(map).
 
 %%	assert_alignment(+URI, +OptionList) is det.
 %
@@ -97,3 +100,23 @@ assert_cell(C1, C2, Options) :-
 	    rdf_assert(Cell, amalgame:method, literal(MethodAtom), Graph)
 	;   true
 	).
+
+%%	edoal_to_skos(+EdoalGraph, +SkosGraph) is det.
+%
+%	Convert mappings in EdoalGraph to SKOS mapping relations in SkosGraph.
+
+edoal_to_skos(EdoalGraph, SkosGraph) :-
+	rdf_transaction(
+			forall(has_map([C1, C2], edoal, Options, EdoalGraph),
+			       assert_as_skos([C1,C2], Options, SkosGraph)
+			      )
+		       ).
+
+
+assert_as_skos([C1,C2], Options, SkosGraph) :-
+	(   memberchk(relation(R), Options),
+	    rdfs_subproperty_of(R, skos:mappingRelation)
+	->  true
+	;   rdf_equal(skos:closeMatch, R)
+	),
+	rdf_assert(C1, R, C2, SkosGraph).
