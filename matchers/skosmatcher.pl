@@ -53,6 +53,50 @@ candidate(SourceConcept, TargetConceptScheme, Options) :-
 	assert_cell(SourceConcept, TargetConcept, CellOptions).
 
 
+
+%	These versions match only the english labels
+
+%       The first one takes into
+%	consideration that the prefLabel can have a blanknode with
+%	rdf:value "literal(...)". This is the case in ASFA
+
+
+candidate(SourceConcept, TargetConceptScheme, Options) :-
+	ground(SourceConcept),
+	ground(TargetConceptScheme),
+	ground(Options),
+	option(candidate_matchers(Matchers), Options, []),
+	memberchk(labelmatchEN, Matchers),
+	rdf_has(SourceConcept, rdfs:label, literal(lang(en, Label)), RealLabel1Predicate),
+	rdf_has(TargetConceptBN, rdf:value, literal(lang(en, Label))),
+       	rdf_has(TargetConcept, rdfs:label, TargetConceptBN, RealLabel2Predicate),
+	rdf_has(TargetConcept, skos:inScheme, TargetConceptScheme),
+	format(atom(Method), 'exact EN match: ~p-~p', [RealLabel1Predicate, RealLabel2Predicate]),
+	CellOptions = [measure(0.001), % Only label match, this is just a candidate
+		       method(Method)
+		       |Options
+		      ],
+	assert_cell(SourceConcept, TargetConcept, CellOptions).
+
+candidate(SourceConcept, TargetConceptScheme, Options) :-
+	ground(SourceConcept),
+	ground(TargetConceptScheme),
+	ground(Options),
+	option(candidate_matchers(Matchers), Options, []),
+	memberchk(labelmatchEN, Matchers),
+	rdf_has(SourceConcept, rdfs:label, literal(lang(en, Label)), RealLabel1Predicate),
+	rdf_has(TargetConcept, rdfs:label, literal(lang(_, Label)), RealLabel2Predicate),
+	rdf_has(TargetConcept, skos:inScheme, TargetConceptScheme),
+	format(atom(Method), 'exact EN match: ~p-~p', [RealLabel1Predicate, RealLabel2Predicate]),
+	CellOptions = [measure(0.001), % Only label match, this is just a candidate
+		       method(Method)
+		       |Options
+		      ],
+	assert_cell(SourceConcept, TargetConcept, CellOptions).
+
+
+
+
 % This version of candidate/3 asserts a match when the
 % Levenshtein distance between two labels is less than a maximum
 % (retrieved from stringdist_setting/2). For reasons of scalability,
