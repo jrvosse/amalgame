@@ -18,6 +18,7 @@ from the underlying formats.
 */
 
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdfs)).
 
 :- dynamic
 	mapping_props/1.
@@ -74,16 +75,28 @@ has_map(Map, edoal, Graph) :-
 	has_map_(Map, _, Graph).
 
 has_map([E1, E2], skos, Graph) :-
-	rdf_has(E1, skos:mappingRelation, E2, RealProp),
-	rdf(E1, RealProp, E2, Graph).
+	(   ground(E1), ground(E2)
+	->  rdf_has(E1, skos:mappingRelation, E2, RealProp),
+	    rdf(E1, RealProp, E2, Graph)
+	;   rdfs_subproperty_of(PotentialMapping, skos:mappingRelation),
+	    rdf(E1, PotentialMapping, E2, Graph)
+	).
 
 has_map([E1, E2], dc, Graph) :-
-	rdf_has(E1, dcterms:replaces, E2, RealProp),
-	rdf(E1, RealProp, E2, Graph).
+	(   ground(E1), ground(E2)
+	->  rdf_has(E1, dcterms:replaces, E2, RealProp),
+	    rdf(E1, RealProp, E2, Graph)
+	;   rdfs_subproperty_of(PotentialMapping, dcterms:replaces),
+	    rdf(E1, PotentialMapping, E2, Graph)
+	).
 
 has_map([E1, E2], owl, Graph) :-
-	rdf_has(E1, owl:sameAs, E2, RealProp),
-	rdf(E1, RealProp, E2, Graph).
+	(   ground(E1), ground(E2)
+	->  rdf_has(E1, owl:sameAs, E2, RealProp),
+	    rdf(E1, RealProp, E2, Graph)
+	;   rdfs_subproperty_of(PotentialMapping, owl:sameAs),
+	    rdf(E1, PotentialMapping, E2, Graph)
+	).
 
 
 has_map_chk(Map, Format, Graph) :-
