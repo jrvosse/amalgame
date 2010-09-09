@@ -3,6 +3,7 @@
 	   map_iterator/1,	   % -Map
 	   has_map/4,              % ?Map, ?Format ?Options, ?Graph
 	   has_map/3,		   % ?Map, ?Format ?Graph
+	   has_map_chk/3,	   % ?Map, ?Format ?Graph
 	   retract_map/3           % +Map, +Format, +Graph
 	  ]
 	 ).
@@ -15,6 +16,8 @@ from the underlying formats.
 @author Jacco van Ossenbruggen
 @license GPL
 */
+
+:- use_module(library(semweb/rdf_db)).
 
 :- dynamic
 	mapping_props/1.
@@ -67,25 +70,8 @@ has_map([E1, E2], edoal, Options, Graph) :-
 		),
 		Options).
 
-has_map_([E1,E2], Cell, Graph) :-
-	(   ground(E1)
-	->  rdf(Cell, align:entity1, E1, Graph),
-	    rdf(Cell, align:entity2, E2, Graph)
-	;   ground(E2)
-	->  rdf(Cell, align:entity2, E2, Graph),
-	    rdf(Cell, align:entity1, E1, Graph)
-	;   var(Graph)
-	->  rdf(Cell, align:entity1, E1, Graph),
-	    rdf(Cell, align:entity2, E2, Graph)
-	;   rdf(Cell, align:entity1, E1),
-	    rdf(Cell, align:entity1, E1, Graph),
-	    rdf(Cell, align:entity2, E2, Graph)
-	).
-
-
 has_map(Map, edoal, Graph) :-
 	has_map_(Map, _, Graph).
-
 
 has_map([E1, E2], skos, Graph) :-
 	rdf_has(E1, skos:mappingRelation, E2, RealProp),
@@ -99,9 +85,22 @@ has_map([E1, E2], owl, Graph) :-
 	rdf_has(E1, owl:sameAs, E2, RealProp),
 	rdf(E1, RealProp, E2, Graph).
 
+
+has_map_chk(Map, Format, Graph) :-
+	has_map(Map, Format, Graph),!.
+
+has_map_([E1,E2], Cell, Graph) :-
+	(   ground(E1)
+	->  rdf(Cell, align:entity1, E1, Graph),
+	    rdf(Cell, align:entity2, E2, Graph)
+	;   rdf(Cell, align:entity2, E2, Graph),
+	    rdf(Cell, align:entity1, E1, Graph)
+	).
+
 %%	retract_map(+Map, +Format, Graph) is det.
 %
-%	retracts Map in Format form Graph if it exists in Graph.
+%	retracts Map in Format form Graph if it exists in Graph,
+%	succeeds without doing anything if not.
 
 retract_map([E1,E2], edoal, Graph) :-
 	(   has_map_([E1, E2], Cell, Graph)
