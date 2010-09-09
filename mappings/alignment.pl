@@ -79,6 +79,8 @@ align_get_computed_props(Graph, Props) :-
 %
 
 align_ensure_stats(found) :-
+	rdf(_, amalgame:format, _, amalgame), !.
+align_ensure_stats(found) :-
 	findall(Graph:[format(literal(Format))],
 		(   rdf_graph(Graph),
 		    has_map_chk(_,Format, Graph:_)
