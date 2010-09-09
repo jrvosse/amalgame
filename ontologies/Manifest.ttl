@@ -19,7 +19,6 @@
 	a lib:Ontology ;
 	a lib:Virtual ;
 	dcterms:title "Schema for the Alignment format"@en ;
-	lib:source align: ;
 	owl:imports
 		<align.owl> ,
 		<align.rdfs> .
