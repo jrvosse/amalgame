@@ -70,15 +70,7 @@ http_split_alignment(Request) :-
 
 http_compute_stats(Request) :-
 	http_parameters(Request, [graph(all, [])]),
-	findall(G, is_alignment_graph(G,_), Graphs),!,
-	forall(member(G, Graphs),
-	       (   align_ensure_stats(totalcount(G)),
-		   align_ensure_stats(mapped(G)),
-		   align_ensure_stats(source(G)),
-		   align_ensure_stats(target(G))
-	       )
-	      ),
-	http_redirect(moved, location_by_id(http_list_alignments), Request).
+	call_showing_messages(compute_stats, []).
 
 http_compute_stats(Request) :-
 	http_parameters(Request,
@@ -91,6 +83,17 @@ http_compute_stats(Request) :-
 	       )
 	      ),
 	http_redirect(moved, location_by_id(http_list_alignments), Request).
+
+compute_stats :-
+	findall(G, is_alignment_graph(G,_), Graphs),!,
+	forall(member(G, Graphs),
+	       (   align_ensure_stats(totalcount(G)),
+		   align_ensure_stats(mapped(G)),
+		   align_ensure_stats(source(G)),
+		   align_ensure_stats(target(G))
+	       )
+	      ).
+
 
 %%	http_list_overlap(+Request) is det.
 %
