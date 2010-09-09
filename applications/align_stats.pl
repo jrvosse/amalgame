@@ -70,7 +70,8 @@ http_split_alignment(Request) :-
 
 http_compute_stats(Request) :-
 	http_parameters(Request, [graph(all, [])]),
-	call_showing_messages(compute_stats, []).
+	call_showing_messages(compute_stats,
+			      [head(title('Amalgame: computing statistics'))]).
 
 http_compute_stats(Request) :-
 	http_parameters(Request,
@@ -125,7 +126,8 @@ http_list_overlap(_Request) :-
 %	@tbd: authorisation
 
 http_clear_cache(_Request):-
-	call_showing_messages(clear_cache, []).
+	call_showing_messages(clear_cache,
+			      [head(title('Amalgame: clearing caches'))]).
 
 clear_cache :-
 	authorized(write(amalgame_cache, clear)),
@@ -134,7 +136,8 @@ clear_cache :-
 
 
 http_delete_alignment_graphs(_Request) :-
-	call_showing_messages(delete_alignment_graphs, []).
+	call_showing_messages(delete_alignment_graphs,
+			      [head(title('Amalgame: deleting graphs'))]).
 
 delete_alignment_graphs :-
 	align_ensure_stats(found),
