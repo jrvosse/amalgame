@@ -2,6 +2,7 @@
           [
 	   voc_get_computed_props/2,
 	   skos_label/2,
+	   skos_label/3,
 	   voc_ensure_stats/1
           ]).
 
@@ -125,10 +126,13 @@ count_mapped_concepts(Voc, Count) :-
 	sort(Concepts, Sorted),
 	length(Sorted, Count).
 
+
+
+
 %%	skos_label(+Concept, -Label) is det.
 %
 %	Return the most appropriate Label for Concept.
-
+/*
 skos_label(Concept, Label) :-
 	rdf_has(Concept, skos:prefLabel, literal(lang(_, Label))),!.
 skos_label(Concept, Label) :-
@@ -137,4 +141,31 @@ skos_label(Concept, Label) :-
 	rdfs_label(Concept, Label),!.
 skos_label(Concept, Label) :-
 	format(atom(Label), '<~p>', [Concept]),!.
+*/
 
+%%	skos_label(+Concept, -Label, -Options) is det.
+%
+%	Return the most appropriate Label for Concept.
+%       May or may not include specified language
+%      (use ISO code) (code by Victor)
+
+skos_label(Concept, Label, Options) :-
+	memberchk(preflang(PrefLang),Options),
+	rdf_has(Concept, skos:prefLabel, literal(lang(PrefLang, Label))),!.
+skos_label(Concept, Label, Options) :-
+	memberchk(preflang(PrefLang),Options),
+	rdf_has(Concept, skos:altLabel, literal(lang(PrefLang, Label))),!.
+
+skos_label(Concept, Label, _Options) :-
+	rdf_has(Concept, skos:prefLabel, literal(lang(_, Label))),!.
+skos_label(Concept, Label, _Options) :-
+	rdf_has(Concept, skos:altLabel, literal(lang(_, Label))),!.
+
+skos_label(Concept, Label, _) :-
+	rdfs_label(Concept, Label),!.
+skos_label(Concept, Label, _) :-
+	format(atom(Label), '<~p>', [Concept]),!.
+
+% for backwards compatibility
+skos_label(Concept, Label):-
+	skos_label(Concept, Label, []).

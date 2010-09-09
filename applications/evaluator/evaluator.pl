@@ -305,11 +305,10 @@ ancestor_tree(Node, Rel, Tree, Options) :-
         ).
 
 ancestor_tree(Tree, _Rel, Tree, _).
-
 children(R, Rel, Children, _Options) :-
         Goal = (   rdf_has(Child, Rel, R),
                    has_child(Child, Rel, HasChild),
-                   skos_label(Child,Label)
+                   skos_label(Child,Label,[preflang(en)])
                 ),
         findall(Label-node(Child, [], HasChild), Goal, Children0),
         key_rank(Children0, normal, Children).
@@ -348,7 +347,7 @@ tree_to_json(node(R,Attr,Children), Ps, json(Data)) :-
         ->  Data1 = [hasChildren=HasChildren|Data0]
         ;   Data1 = Data0
         ),
-	skos_label(R,L),
+	skos_label(R,L,[preflang(en)]),
         Data = [uri=R, label=L|Data1].
 
 nodes_to_json([], _, []) :- !.
