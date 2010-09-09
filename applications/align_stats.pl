@@ -9,16 +9,19 @@
 
 :- use_module(auth(user_db)).
 :- use_module(components(label)).
+:- use_module(components(messages)).
 
 :- use_module(amalgame(compare/overlap)).
 :- use_module(amalgame(mappings/alignment)).
 
-:- http_handler(amalgame(list_alignments),    http_list_alignments,     []).
-:- http_handler(amalgame(list_alignment),     http_list_alignment,      []).
-:- http_handler(amalgame(find_overlap),       http_list_overlap,        []).
+
+:- http_handler(amalgame(clear_alignments),   http_delete_alignment_graphs, []).
 :- http_handler(amalgame(clear_cache),        http_clear_cache,         []).
-:- http_handler(amalgame(split_alignment),    http_split_alignment,     []).
 :- http_handler(amalgame(compute_stats),      http_compute_stats,       []).
+:- http_handler(amalgame(find_overlap),       http_list_overlap,        []).
+:- http_handler(amalgame(list_alignment),     http_list_alignment,      []).
+:- http_handler(amalgame(list_alignments),    http_list_alignments,     []).
+:- http_handler(amalgame(split_alignment),    http_split_alignment,     []).
 
 %%	http_list_alignments(+Request) is det.
 %
@@ -118,20 +121,28 @@ http_list_overlap(_Request) :-
 %	Clears named graphs with cached amalgame results.
 %	@tbd: authorisation
 
-http_clear_cache(_Request) :-
+http_clear_cache(_Request):-
+	call_showing_messages(clear_cache, []).
+
+clear_cache :-
 	authorized(write(amalgame_cache, clear)),
 	align_clear_stats(all),
-	clear_overlaps,
-	reply_html_page(cliopatria(default),
-			title('Amalgame caches cleared'),
-			[h3('Amalgame generated data have been cleared'),
-			 p('The following data been cleared:'),
-			 ul([
-			     li('Amalgame alignment overlap named graphs'),
-			     li('Amalgame alignment abbreviation nicknamesrdf'),
-			     li('Amalgame alignment statistics data')
-			    ])
-			]).
+	clear_overlaps.
+
+
+http_delete_alignment_graphs(_Request) :-
+	call_showing_messages(delete_alignment_graphs, []).
+
+delete_alignment_graphs :-
+	align_ensure_stats(found),
+	findall(Graph, is_alignment_graph(Graph, _Format), Graphs),
+	forall(member(Graph, Graphs),
+	       (   authorized(write(default, unload(Graph))),
+		   print_message(informational, map(cleared, graph, 1, Graph)),
+		   rdf_unload(Graph)
+	       )
+	      ),
+	align_clear_stats(all).
 
 %%	style(-Style) is det.
 %
@@ -250,9 +261,12 @@ show_alignments -->
 		 Graphs),
 	 http_link_to_id(http_clear_cache, [], CacheLink),
 	 http_link_to_id(http_compute_stats, [graph(all)], ComputeLink),
+	 http_link_to_id(http_delete_alignment_graphs, [], ClearAlignLink),
 	 Note = ['These are cached results, ',
-		 a([href(CacheLink)], 'clear cache'), ' or ',
-		 a([href(ComputeLink)], 'compute all'), ' missing statistics.' ]
+		 a([href(CacheLink)], 'clear cache'), ', ',
+		 a([href(ComputeLink)], 'compute all'), ' missing statistics, or ',
+		 a([href(ClearAlignLink)], 'clear all alignments from repository (!)')
+		]
 	},
 	html([div([id(cachenote)], Note),
 	      table([id(aligntable)],
