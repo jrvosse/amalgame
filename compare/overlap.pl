@@ -72,7 +72,10 @@ count_overlaps([Graphs:Map|Tail], Accum, Results) :-
 	;   Count = 0, NewAccum = Accum, Example=Map,
 	    rdf_persistency(Overlap, false)
 	),
-	assert_cell(E1, E2, [graph(Overlap), method(overlap)]),
+	(   Graphs=[G], has_map([E1, E2], edoal, Options, G)
+	->  assert_cell(E1, E2, [graph(Overlap)|Options])
+	;   assert_cell(E1, E2, [graph(Overlap), method(overlap)])
+	),
 	NewCount is Count + 1,
 	count_overlaps(Tail, [NewCount:Graphs:Example|NewAccum], Results).
 
