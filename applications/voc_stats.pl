@@ -9,12 +9,16 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 
+:- use_module(auth(user_db)).
 :- use_module(components(label)).
+:- use_module(components(messages)).
+
 
 :- use_module(amalgame(skos/vocabularies)).
 
 :- http_handler(amalgame(list_skos_vocs),     http_list_skos_vocs,     []).
 :- http_handler(amalgame(compute_voc_stats),  http_compute_voc_stats,  []).
+:- http_handler(amalgame(clear_voc_stats),    http_clear_voc_stats,    []).
 
 %%	http_list_skos_vocs(+Request) is det.
 %
@@ -33,15 +37,9 @@ http_list_skos_vocs(_Request) :-
 
 http_compute_voc_stats(Request) :-
 	http_parameters(Request, [voc(all, [])]),
-	findall(V, rdfs_individual_of(V, skos:'ConceptScheme'), Vocs),!,
-	forall(member(V, Vocs),
-	       (   voc_ensure_stats(numberOfConcepts(V)),
-		   voc_ensure_stats(numberOfPrefLabels(V)),
-		   voc_ensure_stats(numberOfAltLabels(V)),
-		   voc_ensure_stats(numberOfMappedConcepts(V))
-	       )
-	      ),
-	http_redirect(moved, location_by_id(http_list_skos_vocs), Request).
+	authorized(write(amalgame_cache, write)),
+	call_showing_messages(voc_ensure_stats(all),
+			      [head(title('Amalgame: calculating vocabulary stats'))]).
 
 http_compute_voc_stats(Request) :-
 	http_parameters(Request,
@@ -56,15 +54,25 @@ http_compute_voc_stats(Request) :-
 	http_redirect(moved, location_by_id(http_list_skos_vocs), Request).
 
 
+%%	http_clear_voc_stats(?Request) is det.
+%
+%	Clears named graphs with cached amalgame results.
+
+http_clear_voc_stats(_Request):-
+	authorized(write(amalgame_cache, clear)),
+	call_showing_messages(voc_clear_stats,
+			      [head(title('Amalgame: clearing caches'))]).
+
+
 show_schemes -->
 	{
 	 findall(Voc, rdfs_individual_of(Voc, skos:'ConceptScheme'), Schemes),
 	 length(Schemes, Count),
-	 http_link_to_id(http_clear_cache, [], CacheLink),
+	 http_link_to_id(http_clear_voc_stats, [], CacheLink),
 	 http_link_to_id(http_compute_voc_stats, [voc(all)], ComputeLink),
 	 Note = ['These are cached results, ',
-		 a([href(CacheLink)], 'clear cache'), ' or ',
-		 a([href(ComputeLink)], 'compute all'), ' missing statistics.' ]
+		 a([href(CacheLink)], 'clear vocabulary statistics cache'), ' or ',
+		 a([href(ComputeLink)], 'compute'), ' missing statistics.' ]
 	},
 	html([
 	      div(Note),
@@ -128,7 +136,7 @@ show_schemes([Voc|Tail], Nr, [C,P,A,M,U]) -->
 	 (   memberchk(numberOfMappedConcepts(literal(type(_, MCount))), Props)
 	 ->  NewM is M + MCount,
 	     (	 CCount = 0
-	     ->	 MPercent = '-' 
+	     ->	 MPercent = '-'
 	     ;	 Perc is 100*(MCount/CCount),
 	         format(atom(MPercent), '(~2f%)', [Perc])
 	     ),
