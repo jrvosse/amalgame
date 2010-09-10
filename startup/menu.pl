@@ -7,9 +7,10 @@
   This module adds the amalgame functionality to the cliopatria menu.
 */
 
-cliopatria:menu_item(view/http_list_alignments, 'Alignments').
-cliopatria:menu_item(view/http_list_overlap,    'Overlaps').
-cliopatria:menu_item(view/http_clear_cache,     'Clear Amalgame cache').
-cliopatria:menu_item(view/http_list_skos_vocs,  'SKOS Vocabularies').
-cliopatria:menu_item(view/http_concept_finder,	'Browse Vocabularies').
+cliopatria:menu_item(view/http_concept_finder,	'Vocabularies').
+
+cliopatria:menu_popup_order(amalgame, 3500).
+cliopatria:menu_item(amalgame/http_list_alignments, 'Alignments').
+cliopatria:menu_item(amalgame/http_list_overlap,    'Overlaps').
+cliopatria:menu_item(amalgame/http_list_skos_vocs,  'Vocabularies').
 
