@@ -16,7 +16,7 @@
 
 
 :- http_handler(amalgame(clear_alignments),   http_delete_alignment_graphs, []).
-:- http_handler(amalgame(clear_cache),        http_clear_cache,         []).
+:- http_handler(amalgame(clear_alignstats),   http_clear_alignstats,    []).
 :- http_handler(amalgame(compute_stats),      http_compute_stats,       []).
 :- http_handler(amalgame(find_overlap),       http_list_overlap,        []).
 :- http_handler(amalgame(list_alignment),     http_list_alignment,      []).
@@ -120,22 +120,24 @@ http_list_overlap(_Request) :-
 			     ])
 			]).
 
-%%	http_clear_cache(+Request) is det.
+%%	http_clear_alignstats(?Request) is det.
 %
 %	Clears named graphs with cached amalgame results.
 %	@tbd: authorisation
 
-http_clear_cache(_Request):-
-	call_showing_messages(clear_cache,
+http_clear_alignstats(_Request):-
+	authorized(write(amalgame_cache, clear)),
+	call_showing_messages(clear_alignstats,
 			      [head(title('Amalgame: clearing caches'))]).
 
-clear_cache :-
-	authorized(write(amalgame_cache, clear)),
+clear_alignstats :-
 	align_clear_stats(all),
 	clear_overlaps.
 
 
 http_delete_alignment_graphs(_Request) :-
+	authorized(write(amalgame_cache, clear)),
+	authorized(write(default, unload(_))),
 	call_showing_messages(delete_alignment_graphs,
 			      [head(title('Amalgame: deleting graphs'))]).
 
@@ -143,7 +145,7 @@ delete_alignment_graphs :-
 	align_ensure_stats(found),
 	findall(Graph, is_alignment_graph(Graph, _Format), Graphs),
 	forall(member(Graph, Graphs),
-	       (   authorized(write(default, unload(Graph))),
+	       (
 		   print_message(informational, map(cleared, graph, 1, Graph)),
 		   rdf_unload(Graph)
 	       )
@@ -264,8 +266,9 @@ show_alignments -->
 		 (   is_alignment_graph(Graph,_),
 		     \+ rdfs_individual_of(Graph, amalgame:'Overlap')
 		 ),
-		 Graphs),
-	 http_link_to_id(http_clear_cache, [], CacheLink),
+		 AllGraphs),
+	 sort(AllGraphs, Graphs),
+	 http_link_to_id(http_clear_alignstats, [], CacheLink),
 	 http_link_to_id(http_compute_stats, [graph(all)], ComputeLink),
 	 http_link_to_id(http_delete_alignment_graphs, [], ClearAlignLink),
 	 Note = ['These are cached results, ',
@@ -358,7 +361,7 @@ show_overlap -->
 	{
 	 find_overlap(CountList, [cached(Cached)]),
 	 (   Cached
-	 ->  http_link_to_id(http_clear_cache, [], CacheLink),
+	 ->  http_link_to_id(http_clear_alignstats, [], CacheLink),
 	     Note = ['These are results from the cache, ', a([href(CacheLink)], 'clear cache'), ' to recompute']
 	 ;   Note = ''
 	 )
