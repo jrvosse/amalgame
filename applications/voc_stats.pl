@@ -78,16 +78,17 @@ show_schemes -->
 			 th('# Concepts'),
 			 th('# prefLabels'),
 			 th('# altLabels'),
+			 th('# not mapped'),
 			 th('# mapped'),
 			 th('%'),
 			 th('Example concept'),
 			 th('Copyrights & licenses')
 			]),
-		     \show_schemes(Schemes, 1, [0, 0, 0,0])
+		     \show_schemes(Schemes, 1, [0, 0, 0, 0, 0])
 		    ])
 	     ]).
 
-show_schemes([], _, [C, P, A, M]) -->
+show_schemes([], _, [C, P, A, M , U]) -->
 	html(tr([id(finalrow)],
 		[
 		 td(''), td(''),
@@ -95,10 +96,11 @@ show_schemes([], _, [C, P, A, M]) -->
 		 td([style('text-align: right')],C),
 		 td([style('text-align: right')],P),
 		 td([style('text-align: right')],A),
+		 td([style('text-align: right')],U),
 		 td([style('text-align: right')],M),
 		 td(''),td(''), td('')
 		])).
-show_schemes([Voc|Tail], Nr, [C,P,A,M]) -->
+show_schemes([Voc|Tail], Nr, [C,P,A,M,U]) -->
 	{
 	 http_link_to_id(http_compute_voc_stats,
 			 [voc(Voc),
@@ -126,11 +128,12 @@ show_schemes([Voc|Tail], Nr, [C,P,A,M]) -->
 	 (   memberchk(numberOfMappedConcepts(literal(type(_, MCount))), Props)
 	 ->  NewM is M + MCount,
 	     (	 CCount = 0
-	     ->	 Perc = 0.0
-	     ;	 Perc is 100*(MCount/CCount)
+	     ->	 MPercent = '-' 
+	     ;	 Perc is 100*(MCount/CCount),
+	         format(atom(MPercent), '(~2f%)', [Perc])
 	     ),
-	     format(atom(MPercent), '(~2f%)', [Perc])
-	 ;   NewM = M, MCount = MissingValue
+	     UCount is CCount - MCount, NewU is U + UCount
+	 ;   NewM = M, NewU = U, MCount = MissingValue, UCount = MissingValue
 	 ),
 	 (rdf_has(Example, skos:inScheme, Voc)
 	 ->  true
@@ -147,9 +150,10 @@ show_schemes([Voc|Tail], Nr, [C,P,A,M]) -->
 		 td([style('text-align: right')],CCount),
 		 td([style('text-align: right')],PCount),
 		 td([style('text-align: right')],ACount),
+		 td([style('text-align: right')],UCount),
 		 td([style('text-align: right')],MCount),
 		 td([style('text-align: right')],MPercent),
 		 td(\rdf_link(Example, [resource_format(label)])),
 		 td(Rights)
 		])),
-	show_schemes(Tail, NewNr, [NewC, NewP, NewA, NewM]).
+	show_schemes(Tail, NewNr, [NewC, NewP, NewA, NewM, NewU]).
