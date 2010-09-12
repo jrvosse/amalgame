@@ -38,10 +38,12 @@
 % http handlers for this applications
 
 :- http_handler(amalgame(evaluator),	       http_evaluator, []).
+:- http_handler(amalgame(api/evaluator/reset), http_evaluator_reset, []).
 :- http_handler(amalgame(api/evaluator/get),   json_get_mapping, []).
 :- http_handler(amalgame(api/evaluator/judge), json_judge_mapping, []).
 :- http_handler(amalgame(api/evaluator/save),  json_save_results, []).
 :- http_handler(amalgame(api/evaluator/concept),  json_concept, []).
+
 
 % This triple is deprecated and doubles the glosses in the interface
 :- rdf_retractall('http://www.w3.org/2006/03/wn/wn20/schema/gloss',
@@ -79,8 +81,9 @@ attribute_decl(method,           [oneof([head,next]),default(head)]).
 
 http_evaluator(Request) :-
 	http_parameters(Request, [graph(Graph, [])]),
+	http_link_to_id(http_evaluator_reset, [], ResetLink),
   	reply_html_page(cliopatria(default),
-			[ title(['Vocabulary browser']),
+			[ title(['Amalgame alignment evaluator']),
 			  script([type('text/javascript'),
 				  src('http://yui.yahooapis.com/2.7.0/build/yahoo/yahoo.js')
 				 ],[]),
@@ -94,14 +97,22 @@ http_evaluator(Request) :-
 			  \html_requires(evaluator)
 			],
 			[
- 			   div(id(main),
-			       div(class('main-content'),
-				   [ div(id(evaluator), [])
-				   ])),
-			   script(type('text/javascript'),
-				  [ \yui_script(Graph)
- 				  ])
+			 div(id(main),
+			     div(class('main-content'),
+				 [ div(id(evaluator), [])
+				 ])),
+			 script(type('text/javascript'),
+				[ \yui_script(Graph)]),
+			 div(a([href(ResetLink)],'reset all(!)'))
+
 			]).
+
+http_evaluator_reset(_Request) :-
+	http_session_retractall(mappings_to_do(_,_)),
+	http_session_retractall(judgement(_,_,_,_)),
+	reply_html_page(cliopatria(default),
+			title(['Evaluator reset']),
+			p('The Amalgame alignment evaluator has been reset')).
 
 yui_script(Graph) -->
 	{
@@ -161,7 +172,6 @@ get_next_mappings(Graph, Mappings, Nr) :-
         ->  Mappings = done-done
         ;   [_Subject-Mappings|_] = ToDo
         ).
-
 
 ensure_todo_list(Graph) :-
 	http_session_data(mappings_to_do(Graph,Todo)),
