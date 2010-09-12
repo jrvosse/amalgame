@@ -147,7 +147,9 @@ count_altLabels(Voc, Count) :-
 count_mapped_concepts(Voc, Count) :-
 	findall(C,
 		(   rdf(C, skos:inScheme, Voc),
-		    (  	has_map([C,_], _, _); has_map([_,C], _, _) )
+		    (  	has_map_chk([C,_], _, _)
+		    ;	has_map_chk([_,C], _, _)
+		    )
                 ),
 		Concepts),
 	sort(Concepts, Sorted),
