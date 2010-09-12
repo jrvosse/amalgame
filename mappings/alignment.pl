@@ -145,16 +145,17 @@ align_ensure_stats(mapped(Graph)) :-
 %	ensure_stats(Type).
 
 align_clear_stats(all) :-
+	print_message(informational, map(cleared, statistics, 1, amalgame)),
 	(   rdf_graph(amalgame)
 	->  rdf_unload(amalgame)
 	;   true
 	),
-	print_message(informational, map(cleared, statistics, 1, amalgame)),
+	print_message(informational, map(cleared, nicknames, 1, amalgame)),
 	(   rdf_graph(amalgame_nicknames)
 	->  rdf_unload(amalgame_nicknames)
 	;   true
-	),
-	print_message(informational, map(cleared, nicknames, 1, amalgame)).
+	).
+
 
 
 align_clear_stats(found) :-
