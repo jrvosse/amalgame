@@ -88,7 +88,7 @@ http_compute_stats(Request) :-
 compute_stats :-
 	findall(G, is_alignment_graph(G,_), Graphs),!,
 	forall(member(G, Graphs),
-	       (   align_ensure_stats(totalcount(G)),
+	       (   align_ensure_stats(count(G)),
 		   align_ensure_stats(mapped(G)),
 		   align_ensure_stats(source(G)),
 		   align_ensure_stats(target(G))
@@ -123,7 +123,6 @@ http_list_overlap(_Request) :-
 %%	http_clear_alignstats(?Request) is det.
 %
 %	Clears named graphs with cached amalgame results.
-%	@tbd: authorisation
 
 http_clear_alignstats(_Request):-
 	authorized(write(amalgame_cache, clear)),
@@ -171,6 +170,7 @@ show_alignment_overview(Graph) -->
 	{
 	 align_ensure_stats(source(Graph)),
 	 align_ensure_stats(target(Graph)),
+	 align_ensure_stats(count(Graph)),
 	 align_ensure_stats(mapped(Graph)),
 
 	 http_link_to_id(http_evaluator, [graph=Graph], EvalLink),
@@ -179,24 +179,35 @@ show_alignment_overview(Graph) -->
 			 [graph=Graph, condition=sourceType], STLink),
 	 http_link_to_id(http_split_alignment,
 			 [graph=Graph, condition=targetType], TTLink),
-	 rdf(Graph, amalgame:source, Source),
-	 rdf(Graph, amalgame:target, Target),
-	 rdf(Graph, amalgame:mappedSourceConcepts, literal(MSC)),
-	 rdf(Graph, amalgame:mappedTargetConcepts, literal(MTC))
+
+	 align_get_computed_props(Graph, Props),
+	 memberchk(count(Count), Props),
+	 memberchk(format(Format), Props),
+	 memberchk(source(Source), Props),
+	 memberchk(target(Target), Props),
+	 memberchk(mappedSourceConcepts(MSC), Props),
+	 memberchk(mappedTargetConcepts(MTC), Props)
 	},
-	html([div(['Alignment graph: ',
-		   a([href(URI)], Graph), ' ',
-		   a([href(EvalLink)], '(evaluate)')
+	html([p(['Alignment graph: ', Graph]),
+	      p('Actions: '),
+	      ul([
+		  li(a([href(URI)], 'view/download graph')),
+		  li(a([href(EvalLink)], 'evaluate graph')),
+		  li(a([href(STLink)], 'split on source type')),
+		  li(a([href(TTLink)], 'split on target type'))
 		 ]),
+	      p('Key alignment statistics: '),
 	      table([
+		     tr([td('# maps'),
+			 td(['format: ', Format]),
+			 td([style('text-align:right')],[Count])
+			]),
 		     tr([td('Source voc:'),
 			 td(\rdf_link(Source)),
-			 td(a([href(STLink)], 'split on source type')),
 			 td([style('text-align:right')],[MSC])
 			]),
 		     tr([td('Target voc:'),
 			 td(\rdf_link(Target)),
-			 td(a([href(TTLink)], 'split on target type')),
 			 td([style('text-align:right')],[MTC])
 			])
 		    ]
@@ -310,7 +321,7 @@ show_alignments([Graph|Tail], Number) -->
 	{
 	 http_link_to_id(http_compute_stats,
 			 [graph(Graph),
-			  stat(totalcount),
+			  stat(count),
 			  stat(source),
 			  stat(target),
 			  stat(mapped)

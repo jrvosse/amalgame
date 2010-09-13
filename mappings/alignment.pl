@@ -98,7 +98,7 @@ align_ensure_stats(format(Graph)) :-
 align_ensure_stats(format(_)) :- !.
 
 
-align_ensure_stats(totalcount(Graph)) :-
+align_ensure_stats(count(Graph)) :-
 	(   rdf(Graph, amalgame:count, _, amalgame)
 	->  true
 	;   is_alignment_graph(Graph, Format),!,
