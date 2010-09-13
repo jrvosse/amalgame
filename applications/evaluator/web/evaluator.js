@@ -594,16 +594,23 @@ var formatItem = function(sMatch, oInfo, bHTML) {
                 if (oInfo.endlabel) sEndLabel = oInfo.endlabel[0].value; else sEndLabel = '';
                 if (oInfo.extlabel) sExtLabel = oInfo.extlabel[0].value; else sExtLabel = '';
                 if (oInfo.sublabel) sSubLabel = oInfo.sublabel[0].value; else sSubLabel = '';
-                if (oInfo.preflabel) sMatch= oInfo.preflabel[0].value;
-                
+                if (oInfo.preflabel) {
+			sMatch= oInfo.preflabel[0].value;   
+			separator = ', ';
+		}
+		else {
+			sMatch ='';
+			separator ='';
+		}
         }
 
         if(bHTML) {
                 sLabel =  sPreLabel ? '<span class="acPreLabel">['+sPreLabel+']&nbsp;</span>' : '';
                 sLabel += sMatch ? '<span class="acMatchLabel">'+sMatch+'</span>' : '';
-                // sLabel += sAltLabel ? '<span class="acAltLabel">&nbsp;('+sAltLabel+')</span>' : '';
+		sLabel += separator;
 		for (var alt in oInfo.altlabel) {
-			sLabel += ', ' + oInfo.altlabel[alt].value;
+			sLabel += alt==0 ? '' : ', ';
+			sLabel += oInfo.altlabel[alt].value;
 		}
                 sLabel += sExtLabel ? '<span class="acExtLabel">, '+sExtLabel+'</span>' : '';
 

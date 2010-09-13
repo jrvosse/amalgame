@@ -208,7 +208,7 @@ make_display_graph([H|Tail], Out) :-
 	iface_key_resource_graph([S,P,O],
 				 [(skos:altLabel)-altlabel,
 				  (skos:prefLabel)-preflabel,
-				  (skos:definition)-prelabel,
+				  (skos:definition)-sublabel,
                                   (skos:notation)-prelabel,
                                   (skos:scopeNote)-sublabel,
 				  registered_ns-ns,
