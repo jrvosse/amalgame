@@ -211,16 +211,19 @@ show_alignment_overview(Graph) -->
 	html([p(['Alignment graph: ', Graph]),
 	      p('Key alignment statistics: '),
 	      table([id(aligntable)],[
-		     tr([td('# maps'),
-			 td(['format: ', Format]),
+		     tr([td('format:'),
+			 td(Format),
+			 td('Total mappings: '),
 			 td([style('text-align:right')],[Count])
 			]),
 		     tr([td('Source voc:'),
 			 td(\rdf_link(Source)),
+			 td('Source concepts mapped:'),
 			 td([style('text-align:right')],[MSC])
 			]),
 		     tr([td('Target voc:'),
 			 td(\rdf_link(Target)),
+			 td('Target concepts mapped:'),
 			 td([style('text-align:right')],[MTC])
 			])
 		    ]
