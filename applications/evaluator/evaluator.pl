@@ -179,9 +179,10 @@ ensure_todo_list(Graph) :-
 ensure_todo_list(Graph) :-
 	rdf_equal(skos:closeMatch, CM),
 	setting(evaluator:maxMappings, N),
-	find_unique(rdf(Subject,CM,Object),
+	find_unique(rdf(Subject,Predicate,Object),
 		    (
-		    has_map([Subject, Object], _, Graph)
+		    has_map([Subject, Object], _, Options, Graph),
+		    option(relation(Predicate), Options, CM)
 		    ),
 		    N,
 		    List
