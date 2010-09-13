@@ -25,6 +25,7 @@ from the underlying formats.
 
 :-	P = [align:measure,
 	     align:relation,
+	     rdfs:comment,
 	     amalgame:method
 	    ],
 	rdf_global_term(P, Props),
@@ -71,33 +72,35 @@ has_map([E1, E2], edoal, Options, Graph) :-
 		),
 		Options).
 
-has_map(Map, edoal, Graph) :-
-	has_map_(Map, _, Graph).
-
-has_map([E1, E2], skos, Graph) :-
+has_map([E1, E2], skos, [relation(RealProp)], Graph) :-
 	(   ground(E1), ground(E2)
 	->  rdf_has(E1, skos:mappingRelation, E2, RealProp),
 	    rdf(E1, RealProp, E2, Graph)
-	;   rdfs_subproperty_of(PotentialMapping, skos:mappingRelation),
-	    rdf(E1, PotentialMapping, E2, Graph)
+	;   rdfs_subproperty_of(RealProp, skos:mappingRelation),
+	    rdf(E1, RealProp, E2, Graph)
 	).
 
-has_map([E1, E2], dc, Graph) :-
+has_map([E1, E2], dc, [relation(RealProp)], Graph) :-
 	(   ground(E1), ground(E2)
 	->  rdf_has(E1, dcterms:replaces, E2, RealProp),
 	    rdf(E1, RealProp, E2, Graph)
-	;   rdfs_subproperty_of(PotentialMapping, dcterms:replaces),
-	    rdf(E1, PotentialMapping, E2, Graph)
+	;   rdfs_subproperty_of(RealProp, dcterms:replaces),
+	    rdf(E1, RealProp, E2, Graph)
 	).
 
-has_map([E1, E2], owl, Graph) :-
+has_map([E1, E2], owl, [relation(RealProp)], Graph) :-
 	(   ground(E1), ground(E2)
 	->  rdf_has(E1, owl:sameAs, E2, RealProp),
 	    rdf(E1, RealProp, E2, Graph)
-	;   rdfs_subproperty_of(PotentialMapping, owl:sameAs),
-	    rdf(E1, PotentialMapping, E2, Graph)
+	;   rdfs_subproperty_of(RealProp, owl:sameAs),
+	    rdf(E1, RealProp, E2, Graph)
 	).
 
+has_map(Map, edoal, Graph) :-
+	has_map_(Map, _, Graph).
+
+has_map(Map, Format, Graph) :-
+	has_map(Map, Format, _, Graph).
 
 has_map_chk(Map, Format, Graph) :-
 	has_map(Map, Format, Graph),!.
