@@ -228,10 +228,10 @@ show_alignment_overview(Graph) -->
 	      p('Actions: '),
 	      ul([
 		  li(a([href(URI)], 'View/download graph')),
+		  SkosExportLink,
 		  li(a([href(EvalLink)], 'Evaluate graph')),
 		  li(a([href(STLink)], 'Split on source type')),
-		  li(a([href(TTLink)], 'Split on target type')),
-		  SkosExportLink
+		  li(a([href(TTLink)], 'Split on target type'))
 		 ])
 	     ]
 	    ).
