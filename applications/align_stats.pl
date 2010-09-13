@@ -13,6 +13,7 @@
 
 :- use_module(amalgame(compare/overlap)).
 :- use_module(amalgame(mappings/alignment)).
+:- use_module(amalgame(mappings/edoal)).
 
 
 :- http_handler(amalgame(clear_alignments),   http_delete_alignment_graphs, []).
@@ -22,6 +23,7 @@
 :- http_handler(amalgame(list_alignment),     http_list_alignment,      []).
 :- http_handler(amalgame(list_alignments),    http_list_alignments,     []).
 :- http_handler(amalgame(split_alignment),    http_split_alignment,     []).
+:- http_handler(amalgame(skos_export),        http_skos_export,         []).
 
 %%	http_list_alignments(+Request) is det.
 %
@@ -129,9 +131,6 @@ http_clear_alignstats(_Request):-
 	call_showing_messages(clear_alignstats,
 			      [head(title('Amalgame: clearing caches'))]).
 
-clear_alignstats :-
-	align_clear_stats(all),
-	clear_overlaps.
 
 
 http_delete_alignment_graphs(_Request) :-
@@ -139,6 +138,21 @@ http_delete_alignment_graphs(_Request) :-
 	authorized(write(default, unload(_))),
 	call_showing_messages(delete_alignment_graphs,
 			      [head(title('Amalgame: deleting graphs'))]).
+
+
+http_skos_export(Request) :-
+	http_parameters(Request, [graph(Graph, []),
+				  relation(MapRelation, [default('http://www.w3.org/2004/02/skos/core#closeMatch')])
+				 ]),
+	format(atom(SkosGraph), '~p_skos', [Graph]),
+	(rdf_graph(SkosGraph) -> rdf_unload(SkosGraph); true),
+	edoal_to_skos(Graph, SkosGraph, [relation(MapRelation)]),
+	http_link_to_id(list_graph, [graph(SkosGraph)], ListGraph),
+	http_redirect(moved, ListGraph, Request).
+
+clear_alignstats :-
+	align_clear_stats(all),
+	clear_overlaps.
 
 delete_alignment_graphs :-
 	align_ensure_stats(found),
@@ -179,6 +193,7 @@ show_alignment_overview(Graph) -->
 			 [graph=Graph, condition=sourceType], STLink),
 	 http_link_to_id(http_split_alignment,
 			 [graph=Graph, condition=targetType], TTLink),
+	 http_link_to_id(http_skos_export, [graph(Graph)], ExportLink),
 
 	 align_get_computed_props(Graph, Props),
 	 memberchk(count(Count), Props),
@@ -186,18 +201,16 @@ show_alignment_overview(Graph) -->
 	 memberchk(source(Source), Props),
 	 memberchk(target(Target), Props),
 	 memberchk(mappedSourceConcepts(MSC), Props),
-	 memberchk(mappedTargetConcepts(MTC), Props)
+	 memberchk(mappedTargetConcepts(MTC), Props),
+
+	 (   Format == skos
+	 ->  SkosExportLink = ''
+	 ;   SkosExportLink = li(a([href(ExportLink)], 'Export to SKOS'))
+	 )
 	},
 	html([p(['Alignment graph: ', Graph]),
-	      p('Actions: '),
-	      ul([
-		  li(a([href(URI)], 'view/download graph')),
-		  li(a([href(EvalLink)], 'evaluate graph')),
-		  li(a([href(STLink)], 'split on source type')),
-		  li(a([href(TTLink)], 'split on target type'))
-		 ]),
 	      p('Key alignment statistics: '),
-	      table([
+	      table([id(aligntable)],[
 		     tr([td('# maps'),
 			 td(['format: ', Format]),
 			 td([style('text-align:right')],[Count])
@@ -211,7 +224,15 @@ show_alignment_overview(Graph) -->
 			 td([style('text-align:right')],[MTC])
 			])
 		    ]
-		   )
+		   ),
+	      p('Actions: '),
+	      ul([
+		  li(a([href(URI)], 'View/download graph')),
+		  li(a([href(EvalLink)], 'Evaluate graph')),
+		  li(a([href(STLink)], 'Split on source type')),
+		  li(a([href(TTLink)], 'Split on target type')),
+		  SkosExportLink
+		 ])
 	     ]
 	    ).
 

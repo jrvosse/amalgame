@@ -1,7 +1,7 @@
 :-module(edoal, [
 		 assert_alignment/2, 	% +URI, +OptionList
 		 assert_cell/3,	        % +E1, +E2, +OptionList
-		 edoal_to_skos/2        % +EdoalGraph, +SkosGraph
+		 edoal_to_skos/3        % +EdoalGraph, +Options, +SkosGraph
 		]
 	).
 
@@ -101,20 +101,23 @@ assert_cell(C1, C2, Options) :-
 	;   true
 	).
 
-%%	edoal_to_skos(+EdoalGraph, +SkosGraph) is det.
+%%	edoal_to_skos(+EdoalGraph, +SkosGraph, +Options) is det.
 %
 %	Convert mappings in EdoalGraph to SKOS mapping relations in SkosGraph.
 
-edoal_to_skos(EdoalGraph, SkosGraph) :-
+edoal_to_skos(EdoalGraph, SkosGraph, Options) :-
 	rdf_transaction(
-			forall(has_map([C1, C2], edoal, Options, EdoalGraph),
-			       assert_as_skos([C1,C2], Options, SkosGraph)
+			forall(has_map([C1, C2], edoal, MatchOptions, EdoalGraph),
+			       assert_as_skos(C1-C2-MatchOptions, Options, SkosGraph)
 			      )
 		       ).
 
 
-assert_as_skos([C1,C2], Options, SkosGraph) :-
-	(   memberchk(relation(R), Options),
+assert_as_skos(C1-C2-MatchOptions, Options, SkosGraph) :-
+	(   memberchk(relation(R), MatchOptions),
+	    rdfs_subproperty_of(R, skos:mappingRelation)
+	->  true
+	;   memberchk(relation(R), Options),
 	    rdfs_subproperty_of(R, skos:mappingRelation)
 	->  true
 	;   rdf_equal(skos:closeMatch, R)
