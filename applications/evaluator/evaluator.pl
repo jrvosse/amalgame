@@ -38,10 +38,12 @@
 % http handlers for this applications
 
 :- http_handler(amalgame(evaluator),	       http_evaluator, []).
+:- http_handler(amalgame(api/evaluator/reset), http_evaluator_reset, []).
 :- http_handler(amalgame(api/evaluator/get),   json_get_mapping, []).
 :- http_handler(amalgame(api/evaluator/judge), json_judge_mapping, []).
 :- http_handler(amalgame(api/evaluator/save),  json_save_results, []).
 :- http_handler(amalgame(api/evaluator/concept),  json_concept, []).
+
 
 % This triple is deprecated and doubles the glosses in the interface
 :- rdf_retractall('http://www.w3.org/2006/03/wn/wn20/schema/gloss',
@@ -79,8 +81,9 @@ attribute_decl(method,           [oneof([head,next]),default(head)]).
 
 http_evaluator(Request) :-
 	http_parameters(Request, [graph(Graph, [])]),
+	http_link_to_id(http_evaluator_reset, [], ResetLink),
   	reply_html_page(cliopatria(default),
-			[ title(['Vocabulary browser']),
+			[ title(['Amalgame alignment evaluator']),
 			  script([type('text/javascript'),
 				  src('http://yui.yahooapis.com/2.7.0/build/yahoo/yahoo.js')
 				 ],[]),
@@ -94,14 +97,22 @@ http_evaluator(Request) :-
 			  \html_requires(evaluator)
 			],
 			[
- 			   div(id(main),
-			       div(class('main-content'),
-				   [ div(id(evaluator), [])
-				   ])),
-			   script(type('text/javascript'),
-				  [ \yui_script(Graph)
- 				  ])
+			 div(id(main),
+			     div(class('main-content'),
+				 [ div(id(evaluator), [])
+				 ])),
+			 script(type('text/javascript'),
+				[ \yui_script(Graph)]),
+			 div(a([href(ResetLink)],'reset all(!)'))
+
 			]).
+
+http_evaluator_reset(_Request) :-
+	http_session_retractall(mappings_to_do(_,_)),
+	http_session_retractall(judgement(_,_,_,_)),
+	reply_html_page(cliopatria(default),
+			title(['Evaluator reset']),
+			p('The Amalgame alignment evaluator has been reset')).
 
 yui_script(Graph) -->
 	{
@@ -162,16 +173,16 @@ get_next_mappings(Graph, Mappings, Nr) :-
         ;   [_Subject-Mappings|_] = ToDo
         ).
 
-
 ensure_todo_list(Graph) :-
 	http_session_data(mappings_to_do(Graph,Todo)),
 	ground(Todo),!.
 ensure_todo_list(Graph) :-
 	rdf_equal(skos:closeMatch, CM),
 	setting(evaluator:maxMappings, N),
-	find_unique(rdf(Subject,CM,Object),
+	find_unique(rdf(Subject,Predicate,Object),
 		    (
-		    has_map([Subject, Object], _, Graph)
+		    has_map([Subject, Object], _, Options, Graph),
+		    option(relation(Predicate), Options, CM)
 		    ),
 		    N,
 		    List
@@ -198,7 +209,7 @@ make_display_graph([H|Tail], Out) :-
 	iface_key_resource_graph([S,P,O],
 				 [(skos:altLabel)-altlabel,
 				  (skos:prefLabel)-preflabel,
-				  (skos:definition)-prelabel,
+				  (skos:definition)-sublabel,
                                   (skos:notation)-prelabel,
                                   (skos:scopeNote)-sublabel,
 				  registered_ns-ns,
@@ -305,11 +316,10 @@ ancestor_tree(Node, Rel, Tree, Options) :-
         ).
 
 ancestor_tree(Tree, _Rel, Tree, _).
-
 children(R, Rel, Children, _Options) :-
         Goal = (   rdf_has(Child, Rel, R),
                    has_child(Child, Rel, HasChild),
-                   skos_label(Child,Label)
+                   skos_label(Child,Label,[preflang(en)])
                 ),
         findall(Label-node(Child, [], HasChild), Goal, Children0),
         key_rank(Children0, normal, Children).
@@ -348,7 +358,7 @@ tree_to_json(node(R,Attr,Children), Ps, json(Data)) :-
         ->  Data1 = [hasChildren=HasChildren|Data0]
         ;   Data1 = Data0
         ),
-	skos_label(R,L),
+	skos_label(R,L,[preflang(en)]),
         Data = [uri=R, label=L|Data1].
 
 nodes_to_json([], _, []) :- !.

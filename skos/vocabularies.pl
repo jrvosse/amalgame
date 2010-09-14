@@ -1,7 +1,9 @@
 :- module(am_skosvocs,
           [
-	   voc_get_computed_props/2,
 	   skos_label/2,
+	   skos_label/3,
+	   voc_get_computed_props/2,
+	   voc_clear_stats/0,
 	   voc_ensure_stats/1
           ]).
 
@@ -44,10 +46,32 @@ voc_get_computed_props(Voc, Props) :-
 	       ),
 	maplist(=.., Props, GraphProps).
 
+voc_clear_stats :-
+	Graph = amalgame_vocs,
+	(   rdf_graph(Graph)
+	->  rdf_unload(amalgame_vocs)
+	;   true),
+	print_message(informational, map(cleared, 'vocabulary statistics', amalgame_vocs, all)).
+
+
 %%	voc_ensure_stats(+Type) is det.
 %
 %	Ensures that the statistical properties of Type are asserted in
 %	the amalgame graph.
+
+voc_ensure_stats(all) :-
+	findall(V, rdfs_individual_of(V, skos:'ConceptScheme'), Vocs),!,
+	length(Vocs, N),
+	print_message(informational, map(found, 'SKOS vocabularies (ConceptSchemes)', repository, N)),
+
+	forall(member(V, Vocs),
+	       (   voc_ensure_stats(numberOfConcepts(V)),
+		   voc_ensure_stats(numberOfPrefLabels(V)),
+		   voc_ensure_stats(numberOfAltLabels(V)),
+		   voc_ensure_stats(numberOfMappedConcepts(V))
+	       )
+	      ).
+
 
 voc_ensure_stats(numberOfConcepts(Voc)) :-
 	(   rdf(Voc,amalgame:numberOfConcepts, literal(type(_, Count)))
@@ -98,7 +122,9 @@ count_concepts(Voc, Count) :-
 	findall(Concept,
 		rdf(Concept, skos:inScheme, Voc),
 		Concepts),
-	length(Concepts, Count).
+	length(Concepts, Count),
+	print_message(informational, map(found, 'SKOS Concepts', Voc, Count)).
+
 
 count_prefLabels(Voc, Count) :-
 	findall(Label,
@@ -106,7 +132,8 @@ count_prefLabels(Voc, Count) :-
 		    rdf_has(Concept, skos:prefLabel, literal(Label))
 		),
 		Labels),
-	length(Labels, Count).
+	length(Labels, Count),
+	print_message(informational, map(found, 'SKOS preferred labels', Voc, Count)).
 
 count_altLabels(Voc, Count) :-
 	findall(Label,
@@ -114,27 +141,44 @@ count_altLabels(Voc, Count) :-
 		    rdf_has(Concept, skos:altLabel, literal(Label))
 		),
 		Labels),
-	length(Labels, Count).
+	length(Labels, Count),
+	print_message(informational, map(found, 'SKOS alternative labels', Voc, Count)).
 
 count_mapped_concepts(Voc, Count) :-
 	findall(C,
 		(   rdf(C, skos:inScheme, Voc),
-		    (  	has_map([C,_], _, _); has_map([_,C], _, _) )
+		    (  	has_map_chk([C,_], _, _)
+		    ;	has_map_chk([_,C], _, _)
+		    )
                 ),
 		Concepts),
 	sort(Concepts, Sorted),
-	length(Sorted, Count).
+	length(Sorted, Count),
+	print_message(informational, map(found, 'SKOS mapped concepts', Voc, Count)).
 
-%%	skos_label(+Concept, -Label) is det.
+%%	skos_label(+Concept, -Label, -Options) is det.
 %
 %	Return the most appropriate Label for Concept.
+%       May or may not include specified language
+%      (use ISO code) (code by Victor)
 
-skos_label(Concept, Label) :-
+skos_label(Concept, Label, Options) :-
+	memberchk(preflang(PrefLang),Options),
+	rdf_has(Concept, skos:prefLabel, literal(lang(PrefLang, Label))),!.
+skos_label(Concept, Label, Options) :-
+	memberchk(preflang(PrefLang),Options),
+	rdf_has(Concept, skos:altLabel, literal(lang(PrefLang, Label))),!.
+
+skos_label(Concept, Label, _Options) :-
 	rdf_has(Concept, skos:prefLabel, literal(lang(_, Label))),!.
-skos_label(Concept, Label) :-
+skos_label(Concept, Label, _Options) :-
 	rdf_has(Concept, skos:altLabel, literal(lang(_, Label))),!.
-skos_label(Concept, Label) :-
+
+skos_label(Concept, Label, _) :-
 	rdfs_label(Concept, Label),!.
-skos_label(Concept, Label) :-
+skos_label(Concept, Label, _) :-
 	format(atom(Label), '<~p>', [Concept]),!.
 
+% for backwards compatibility
+skos_label(Concept, Label):-
+	skos_label(Concept, Label, []).

@@ -90,7 +90,6 @@ YAHOO.mazzle.MapCheck.prototype._initMap = function(headornext) {
 	var uri1 = this.mappings[i].subject.value;
 	this._initForm({nr:i, id:1, uri:uri1, container:elResource1, expand:expand});
       };
-
       var uri2 = this.mappings[i].predicate.value;
       var ns = this.display[uri2].ns[0].value;
       var pred = uri2.replace(ns, "");
@@ -319,7 +318,7 @@ YAHOO.mazzle.MapCheck.prototype._initForm = function(oParms) {
   var uri1Label = oLabels['label'];
   var elLabels = document.createElement('div');
   elLabels.className = 'acItem';
-  elLabels.innerHTML = formatItem(uri1Label, oLabels, true);
+  elLabels.innerHTML = formatItem(uri1Label, dis1, true);
   elLabels.setAttribute('style', 'border: 1pt solid; padding: 0.1em 1.3em;');
   elForm.appendChild(elLabels);
 
@@ -590,21 +589,29 @@ var formatItem = function(sMatch, oInfo, bHTML) {
         var sSubLabel = '';
 
         if(oInfo) {
-                sPreLabel = oInfo.prelabel;
-                sAltLabel = oInfo.altlabel;
-                sExtLabel = oInfo.extlabel;
-                sEndLabel = oInfo.endlabel;
-                sSubLabel = oInfo.sublabel||'';
-
+                if (oInfo.altlabel) sAltLabel = oInfo.altlabel; else sAltLabel = {};
+                if (oInfo.prelabel) sPreLabel = oInfo.prelabel[0].value; else sPreLabel = '';
+                if (oInfo.endlabel) sEndLabel = oInfo.endlabel[0].value; else sEndLabel = '';
+                if (oInfo.extlabel) sExtLabel = oInfo.extlabel[0].value; else sExtLabel = '';
+                if (oInfo.sublabel) sSubLabel = oInfo.sublabel[0].value; else sSubLabel = '';
                 if (oInfo.preflabel) {
-                        sMatch= oInfo.preflabel;
-                }
+			sMatch= oInfo.preflabel[0].value;   
+			separator = ', ';
+		}
+		else {
+			sMatch ='';
+			separator ='';
+		}
         }
 
         if(bHTML) {
                 sLabel =  sPreLabel ? '<span class="acPreLabel">['+sPreLabel+']&nbsp;</span>' : '';
                 sLabel += sMatch ? '<span class="acMatchLabel">'+sMatch+'</span>' : '';
-                sLabel += sAltLabel ? '<span class="acAltLabel">&nbsp;('+sAltLabel+')</span>' : '';
+		sLabel += separator;
+		for (var alt in oInfo.altlabel) {
+			sLabel += alt==0 ? '' : ', ';
+			sLabel += oInfo.altlabel[alt].value;
+		}
                 sLabel += sExtLabel ? '<span class="acExtLabel">, '+sExtLabel+'</span>' : '';
 
                 sHTML =   sEndLabel ? '<div class="acEndLabel">'+sEndLabel+'</div>' : '';

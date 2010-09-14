@@ -26,11 +26,8 @@
 
 is_alignment_graph(Graph, Format) :-
 	ground(Graph),!,
-	% Note: behaves as has_map(_,_,Graph), but this is very expensive due to the rdf/4 bug
-	align_ensure_stats(format(Graph)),
-	rdfs_individual_of(Graph, amalgame:'Alignment'),
-	rdf(Graph, amalgame:format, literal(Format), amalgame),
-	rdf_graph(Graph).
+	rdf_graph(Graph),
+	has_map(_, Format, Graph),!.
 
 is_alignment_graph(Graph, Format) :-
 	var(Graph),
@@ -82,9 +79,13 @@ align_get_computed_props(Graph, Props) :-
 %
 
 align_ensure_stats(found) :-
-	% fixme: This can be made a lot cheaper using rdf_graph once rdf/4 has been fixed ...
-	findall(Graph:[format(literal(Format))], has_map(_,Format, Graph:_), GFs),
-	sort(GFs, Graphs),
+	rdf(_, amalgame:format, _, amalgame), !.
+align_ensure_stats(found) :-
+	findall(Graph:[format(literal(Format))],
+		(   rdf_graph(Graph),
+		    has_map_chk(_,Format, Graph:_)
+		),
+		Graphs),
 	length(Graphs, GraphsFound),
 	print_message(informational, map(found, graphs, total, GraphsFound)),
 	assert_alignment_props(Graphs).
@@ -97,7 +98,7 @@ align_ensure_stats(format(Graph)) :-
 align_ensure_stats(format(_)) :- !.
 
 
-align_ensure_stats(totalcount(Graph)) :-
+align_ensure_stats(count(Graph)) :-
 	(   rdf(Graph, amalgame:count, _, amalgame)
 	->  true
 	;   is_alignment_graph(Graph, Format),!,
@@ -144,8 +145,18 @@ align_ensure_stats(mapped(Graph)) :-
 %	ensure_stats(Type).
 
 align_clear_stats(all) :-
-	rdf_retractall(_, _, _, amalgame),
-	rdf_retractall(_, _, _, amalgame_nicknames).
+	print_message(informational, map(cleared, statistics, 1, amalgame)),
+	(   rdf_graph(amalgame)
+	->  rdf_unload(amalgame)
+	;   true
+	),
+	print_message(informational, map(cleared, nicknames, 1, amalgame)),
+	(   rdf_graph(amalgame_nicknames)
+	->  rdf_unload(amalgame_nicknames)
+	;   true
+	).
+
+
 
 align_clear_stats(found) :-
 	rdf_retractall(_, rdf:type, amalgame:'Alignment', amalgame),
@@ -199,14 +210,8 @@ assert_alignment_props(Graph:Props) :-
 		   rdf_assert(Graph, URI, Value, amalgame)
 	       )).
 
-
-
-
-
 has_nickname(Graph,Nick) :-
-	% work around bug in rdf/4
-	rdf(Graph, amalgame:nickname, literal(Nick)).
-	% rdf(Graph, amalgame:nickname, literal(Nick), amalgame_nicknames).
+	rdf(Graph, amalgame:nickname, literal(Nick), amalgame_nicknames).
 nickname(Graph, Nick) :-
 	has_nickname(Graph,Nick), !.
 nickname(Graph, Nick) :-
@@ -217,18 +222,20 @@ coin_nickname(_Graph, Nick) :-
 	\+ has_nickname(_, Nick),!.
 
 split_alignment(SourceGraph, Condition, SplittedGraphs) :-
-	findall(Map:Format, has_map(Map, Format, SourceGraph), Maps),
+	has_map(_,Format,SourceGraph),!,
+	findall(Map:Options, has_map(Map, Format, Options, SourceGraph), Maps),
 	reassert(Maps, SourceGraph, Condition, [], SplittedGraphs).
 
 reassert([], _ , _, Graphs, Graphs).
-reassert([Map:_Format|Tail], OldGraph, Condition, Accum, Results) :-
+reassert([Map:Options|Tail], OldGraph, Condition, Accum, Results) :-
 	target_graph(Map, OldGraph, Condition, NewGraph),
+	(   memberchk(NewGraph, Accum)
+	->  NewAccum = Accum
+	;   NewAccum = [NewGraph|Accum]
+	),
 	Map = [E1,E2],
-	Options = [graph(NewGraph),
-		   method(OldGraph)
-		  ],
-	assert_cell(E1, E2, Options),
-	reassert(Tail, OldGraph, Condition, Accum, Results).
+	assert_cell(E1, E2, [graph(NewGraph), copiedFrom(OldGraph)|Options]),
+	reassert(Tail, OldGraph, Condition, NewAccum, Results).
 
 target_graph([E1, E2], OldGraph, Condition, Graph) :-
 	(   Condition = sourceType
@@ -241,5 +248,7 @@ target_graph([E1, E2], OldGraph, Condition, Graph) :-
 	->  true
 	;   GTypes = STypes
 	),
-	GTypes = [FirstType|_],
-	format(atom(Graph), '~p_~p', [OldGraph, FirstType]).
+	(   GTypes = [FirstType|_]
+	->  format(atom(Graph), '~p_~p', [OldGraph, FirstType])
+	;   Graph = OldGraph
+	).

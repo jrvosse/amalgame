@@ -17,6 +17,7 @@ matchers. It assumes matchers assert mappings in different name graphs.
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
+:- use_module(library(semweb/rdf_persistency)).
 
 :- use_module(amalgame(mappings/map)).
 :- use_module(amalgame(mappings/alignment)).
@@ -44,7 +45,7 @@ clear_overlaps :-
 		(   rdf_graph(Graph),
 		    sub_atom(Graph,_,_,_,'amalgame_overlap')
 		),
-	       (   rdf_retractall(_,_,_,Graph),
+	       (   rdf_unload(Graph),
 		   print_message(informational, map(cleared, overlap, Graph, 1))
 	       )
 	      ).
@@ -64,13 +65,17 @@ find_overlaps([Map|Tail], Accum, Out) :-
 count_overlaps([], Accum, Results) :-
 	assert_overlaps(Accum, [], Results).
 count_overlaps([Graphs:Map|Tail], Accum, Results) :-
+	overlap_uri(Graphs, Overlap),
+	Map = [E1, E2],
 	(   selectchk(Count:Graphs:Example, Accum, NewAccum)
 	->  true
-	;   Count = 0, NewAccum = Accum, Example=Map
+	;   Count = 0, NewAccum = Accum, Example=Map,
+	    rdf_persistency(Overlap, false)
 	),
-	Map = [E1, E2],
-	overlap_uri(Graphs, Overlap),
-	assert_cell(E1, E2, [graph(Overlap), method(overlap)]),
+	(   Graphs=[G], has_map([E1, E2], edoal, Options, G)
+	->  assert_cell(E1, E2, [graph(Overlap)|Options])
+	;   assert_cell(E1, E2, [graph(Overlap), method(overlap)])
+	),
 	NewCount is Count + 1,
 	count_overlaps(Tail, [NewCount:Graphs:Example|NewAccum], Results).
 

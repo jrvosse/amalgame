@@ -3,6 +3,7 @@
 	   map_iterator/1,	   % -Map
 	   has_map/4,              % ?Map, ?Format ?Options, ?Graph
 	   has_map/3,		   % ?Map, ?Format ?Graph
+	   has_map_chk/3,	   % ?Map, ?Format ?Graph
 	   retract_map/3           % +Map, +Format, +Graph
 	  ]
 	 ).
@@ -16,11 +17,15 @@ from the underlying formats.
 @license GPL
 */
 
+:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdfs)).
+
 :- dynamic
 	mapping_props/1.
 
 :-	P = [align:measure,
 	     align:relation,
+	     rdfs:comment,
 	     amalgame:method
 	    ],
 	rdf_global_term(P, Props),
@@ -67,41 +72,52 @@ has_map([E1, E2], edoal, Options, Graph) :-
 		),
 		Options).
 
-has_map_([E1,E2], Cell, Graph) :-
-	(   ground(E1)
-	->  rdf(Cell, align:entity1, E1, Graph),
-	    rdf(Cell, align:entity2, E2, Graph)
-	;   ground(E2)
-	->  rdf(Cell, align:entity2, E2, Graph),
-	    rdf(Cell, align:entity1, E1, Graph)
-	;   var(Graph)
-	->  rdf(Cell, align:entity1, E1, Graph),
-	    rdf(Cell, align:entity2, E2, Graph)
-	;   rdf(Cell, align:entity1, E1),
-	    rdf(Cell, align:entity1, E1, Graph),
-	    rdf(Cell, align:entity2, E2, Graph)
+has_map([E1, E2], skos, [relation(RealProp)], Graph) :-
+	(   ground(E1), ground(E2)
+	->  rdf_has(E1, skos:mappingRelation, E2, RealProp),
+	    rdf(E1, RealProp, E2, Graph)
+	;   rdfs_subproperty_of(RealProp, skos:mappingRelation),
+	    rdf(E1, RealProp, E2, Graph)
 	).
 
+has_map([E1, E2], dc, [relation(RealProp)], Graph) :-
+	(   ground(E1), ground(E2)
+	->  rdf_has(E1, dcterms:replaces, E2, RealProp),
+	    rdf(E1, RealProp, E2, Graph)
+	;   rdfs_subproperty_of(RealProp, dcterms:replaces),
+	    rdf(E1, RealProp, E2, Graph)
+	).
+
+has_map([E1, E2], owl, [relation(RealProp)], Graph) :-
+	(   ground(E1), ground(E2)
+	->  rdf_has(E1, owl:sameAs, E2, RealProp),
+	    rdf(E1, RealProp, E2, Graph)
+	;   rdfs_subproperty_of(RealProp, owl:sameAs),
+	    rdf(E1, RealProp, E2, Graph)
+	).
 
 has_map(Map, edoal, Graph) :-
 	has_map_(Map, _, Graph).
 
+has_map(Map, Format, Graph) :-
+	Format \= edoal,
+	has_map(Map, Format, _, Graph).
 
-has_map([E1, E2], skos, Graph) :-
-	rdf_has(E1, skos:mappingRelation, E2, RealProp),
-	rdf(E1, RealProp, E2, Graph).
+has_map_chk(Map, Format, Graph) :-
+	has_map(Map, Format, Graph),!.
 
-has_map([E1, E2], dc, Graph) :-
-	rdf_has(E1, dcterms:replaces, E2, RealProp),
-	rdf(E1, RealProp, E2, Graph).
-
-has_map([E1, E2], owl, Graph) :-
-	rdf_has(E1, owl:sameAs, E2, RealProp),
-	rdf(E1, RealProp, E2, Graph).
+has_map_([E1,E2], Cell, Graph) :-
+	(   ground(E1)
+	->  rdf(Cell, align:entity1, E1, Graph),
+	    rdf(Cell, align:entity2, E2, Graph)
+	;   rdf(Cell, align:entity2, E2, Graph),
+	    rdf(Cell, align:entity1, E1, Graph)
+	).
 
 %%	retract_map(+Map, +Format, Graph) is det.
 %
-%	retracts Map in Format form Graph if it exists in Graph.
+%	retracts Map in Format form Graph if it exists in Graph,
+%	succeeds without doing anything if not.
 
 retract_map([E1,E2], edoal, Graph) :-
 	(   has_map_([E1, E2], Cell, Graph)
