@@ -69,7 +69,7 @@ html_equalizer_page(Vocabularies) :-
 				       div(id(equalizer),
 					   [ div(id('source-concept'), []),
 					     div(id('align'),
-						 input([id('align-button'), type(button), value('Align')])),
+						 input([id('align-button'), class(hidden), type(button), value('Align')])),
 					     div(id('target-concept'), [])
 					   ]),
 				       div(id(target), [])
@@ -176,6 +176,7 @@ function createBrowser(target, voc) {
 	});\n',
 '       browsers[target].on("itemSelect",  function(resource) {
 	    align[target] = resource;
+	    if(target=="target") { Y.one("#align-button").removeClass("hidden");}
  	    Y.io("',ConceptInfo, '", {
 	        data: "concept="+encodeURIComponent(resource.id),
 	        on: {  success: function(tid, o) {

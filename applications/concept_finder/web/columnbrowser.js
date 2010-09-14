@@ -33,16 +33,20 @@ YUI.add('columnbrowser', function(Y) {
 			value: null
 		},
 		columnWidth: {
-			value: "200px"
+			value: 200,
+			validator: Lang.isNumber
 		},
 		maxNumberItems: {
-			value: 100
+			value: 100,
+			validator: Lang.isNumber
 		},
 		minQueryLength: {
-			value: 2
+			value: 2,
+			validator: Lang.isNumber
 		},
 		queryDelay: {
-			value: 0.3
+			value: 0.3,
+			validator: Lang.isNumber
 		}
 	};
 
@@ -50,10 +54,17 @@ YUI.add('columnbrowser', function(Y) {
 	Y.extend(ColumnBrowser, Widget, {
 
 		initializer: function(config) {
+			// internal variables
+			this._activeIndex = null;
+			this._selectedIndex = null;
+			
+			// internal references to nodes
+			this.titleNode = null;
+			this.statusNode = null;
+			this.columnsBox = null;
+			this.columnsNode = null;
+			
 			this.publish("itemSelect", {});
-			this.publish("optionSelect", {});
-			this.publish("offsetSelect", {});
-			this._nDelayID = -1;
 		},
 
 		destructor : function() {
@@ -65,9 +76,6 @@ YUI.add('columnbrowser', function(Y) {
 			this._renderHeader();
 			this._renderBody();
 			this._renderFooter();
-			
-			this._setColumnDef(0);
-			this._getColumnData(0);
 		},
 
 		bindUI : function() {
@@ -77,8 +85,46 @@ YUI.add('columnbrowser', function(Y) {
 		},
 
 		syncUI : function() {
+			if(this._activeIndex===0||this._activeIndex) {
+				var columns = this.get("columns"),
+					activeIndex = this._activeIndex,
+					selectedIndex = this._selectedIndex,
+					selectedItem = this._selectedItem;
+			
+				// update the status of the columns
+				// to "selected" or "hidden"
+				for (var i=0; i < columns.length; i++) {
+					var list = columns[i].list;
+					if(list) {
+						if(i==selectedIndex) {
+							list.get("boundingBox").addClass("selected");
+						} else {
+							list.get("boundingBox").removeClass("selected");
+						}
+						if(i<=activeIndex) {
+							list.set("visible", true);
+						} else {
+							list.set("visible", false);
+						}
+					}
+				}
+			
+				// update the title and footer
+				this.setTitle(selectedItem, activeIndex);
+				this.setFooter(selectedItem, activeIndex);
+
+				// update the active column
+				this._updateContentSize();
+				//columns[activeIndex].list._node.scrollIntoView();
+			} else {
+				this._activeIndex = 0;
+				this._updateColumn(0);
+			}
 		},
 		
+		/** 
+		* Public functions to fetch ids and labels from result items
+		*/
 		itemId : function(item) {
 			var id = item.id ? item.id : item;
 			return id;
@@ -88,62 +134,57 @@ YUI.add('columnbrowser', function(Y) {
 			return label;
 		},
 		/**
+		* Public funtions to set the title and footer
+		**/ 
+		setTitle : function(selected, active) {
+			var HTML = selected ? '<h3>'+this.itemLabel(selected)+'</h3>' : '';
+			this.titleNode.set("innerHTML", HTML);
+		},
+		setFooter : function(selected, active) {
+			var column = this.get("columns")[active],
+				label = column.label || "item",
+				length = column.totalNumberOfResults;
+				
+			var HTML = "";
+			if(length>0) {
+				label += (length>1) ? "s" : "";
+				HTML = '<div>'+length+' '+label+'</div>';
+			}
+			else {
+				HTML = '';
+			}
+			this.statusNode.set("innerHTML", HTML);
+		},
+		
+		/**
 		* Handles the selection of a resource list item.
 		* Fires the itemSelect event
 		* 
 		* @private
 		* @param listItem {Object} the list element node
 		* @param resource {Object} the selected resource
-		* @param index {Integer} the index of the column
 		**/
-		_itemSelect : function(listItem, resource, index) {
+		_itemSelect : function(listItem, oItem, index) {
 			var columns = this.get("columns"),
 				next = index+1;
-			this.setTitle(resource);
-			this._setActiveColumn(index);
-			this.fire("itemSelect", resource, index);
+			
+			this._selectedItem = oItem;
+			this._selectedIndex = index;
+			
 			if(columns[next]||columns[index].repeat) {
-				if(resource.hasNext) {			
-					var column = this._setColumnDef(next, resource);
-					this._getColumnData(next);
+				if(oItem.hasNext) {	
+					this._updateColumn(next, this.itemId(oItem));
 				} else {
-					this._hideColumns(next);
+					this.syncUI();
 				}
 			}
+			
+			this.fire("itemSelect", oItem, index, listItem);
 		},
-		
-		/**
-		* Handles the selection of a column option.
-		* Fires the optionSelect event
-		* 
-		* @private
-		* @param e {Object} the event object
-		* @param index {Integer} the index of the column
-		**/
-		_optionSelect : function(e, index) {
-			var column = this.get("columns")[index],
-				optionValue = e.currentTarget.get("value");
-			column.page = 0;
-			column.option = optionValue;
-			this._getColumnData(index);
-			this._setActiveColumn(index-1);
-			this.fire("optionSelect", optionValue, index);
-		},
-		
-		/**
-		* Handles the selection of a pagination action
-		* Fires the offsetSelect event
-		* 
-		* @private
-		* @param e {Object} the event object
-		* @param index {Integer} the index of the column
-		* @param direction {1 or -1} indicator for next (1) or prev (-1)
-		**/		
-		_offsetSelect : function(e, index, direction) {
-			var column = this.get("columns")[index];							
-			column.page += direction;
-			this._getColumnData(index);
-			this.fire("offsetSelect", index, direction);
+		_setActiveColumn : function(e, index) {
+			this._selectedIndex = index>=1 ? index-1 : null;
+			this._activeIndex = index;
+			this.syncUI();
 		},
 		
 		/**
@@ -184,371 +225,67 @@ YUI.add('columnbrowser', function(Y) {
 				.appendChild(Node.create('<div class="ft"></div>'))
 				.appendChild(Node.create('<div class="status"></div>'));
 		},
-		
-		/**
-		* Creates a HTML select list with options provided in the 
-		* configuration for columns[index].
-		* An eventhandler is added to the HTML select element which is
-		* handled by _optionSelect
-		*
-		* @private
-		* @param index {Integer} the index of the column
-		**/
-		_renderOptionList : function(index) {
-			var column = this.get("columns")[index];
-			if(column.options) {
-				var options = column.options;
-				var optionsNode = column._node
-						.appendChild(Node.create('<select class="options"></select>'));
-
-				for (var i=0; i < options.length; i++) {
-					var option = options[i],
-						value = option.value,
-						label = option.label ? option.label : value,	
-						selected = option.selected ? 'selected' : '';
-					optionsNode.insert('<option value="'+value+'" '+selected+'>'+label+'</option>');
-				}
-				optionsNode.on("change", this._optionSelect, this, index);
-			}
-		},
-		
-		/**
-		* Creates pagination in a column.
-		* An eventhandler is added to the prev and next buttons which is
-		* handled by _offsetSelect
-		* The pagination is stored in column._pagination, such that it is created
-		* only once.
-		* If pagination already exists we simply show it.
-		*
-		* @private
-		* @param index {Integer} the index of the column
-		* @param length {Integer} the number of resources
-		**/
-		_renderPagination : function(index, length) {
-			var column = this.get("columns")[index],
-				content = column.resourceList.get("contentBox"),
-				limit = this.get("maxNumberItems"),
-				start = column.page*limit,
-				end = start+Math.min(limit,length);
-				
-			if(!column._pagination) {
-				var pagination = content
-					.appendChild(Node.create('<div class="pagination"></div>'));
-				pagination.appendChild(Node.create('<a href="javascript:{}" class="page-prev">prev</a>'))
-					.on("click", this._offsetSelect, this, index, -1);
-				pagination.insert('<span class="page-label"></span>');
-				pagination.appendChild(Node.create('<a href="javascript:{}" class="page-next">next</a>'))
-					.on("click", this._offsetSelect, this, index, 1);
-				column._pagination = pagination;		
-			} else {
-				column._pagination.removeClass("hidden");
-			}
 			
-			// disable/enable buttons
-			if(length<limit) { 
-				Y.get(".page-next").addClass("disabled");
-				Y.get(".page-prev").removeClass("disabled");
-			} else if (start===0) { 
-				Y.get(".page-prev").addClass("disabled", true); 
-				Y.get(".page-next").removeClass("disabled");
-			} else {
-				Y.get(".page-next").removeClass("disabled");
-				Y.get(".page-prev").removeClass("disabled");
-			}
-			// set page
-			Y.get(".page-label").set("innerHTML", start+' -- '+end); 
-		},
-		
-		/**
-		* Fetches data for columns[index] by doing a
-		* request on the datasource.
-		*
-		* @private
-		* @param index {Integer} the index of the column
-		**/
-		_getColumnData : function(index) {
-			var oSelf = this,
-				column = this.get("columns")[index],
-				params = column.params,
-				request = column.request,
-				offset = column.page ? column.page*this.get("maxNumberItems") : 0,
-				cfg = {};
-				
-			// request configuration attribute consist of params in
-			// the column definition and the current status of the column 	
-			for(key in params) {
-				if(key) {
-					cfg[key] = params[key];
-				}
-			}
-			cfg.limit = this.get("maxNumberItems");
-			cfg.offset = offset;
-			cfg.query = column.searchString || cfg.query ;
-			cfg.type = column.option || cfg.type;
-			cfg.parent = column.parent || cfg.parent;
-			
-			// request
-			request = Lang.isFunction(request) 
-				? request.call(this, cfg) 
-				: request+"?"+this._requestParams(cfg);
-				
-			this._nDelayID = -1; // reset search query delay
-			this._createColumn(index);
-			this._hideColumns(index+1);
-			this._setLoading(index, true);
-			this.get("datasource").sendRequest({
-				request:request,
-				callback: {
-					success: function(e){
-						var resources = e.response.results;
-						column.totalNumberOfResults = e.response.meta 
-							? e.response.meta.totalNumberOfResults :
-							resources.length;
-
-						if(resources.length>0||column.options) { // add the results
-							oSelf._populateColumn(index, resources);
-						} 
-						else {
-							oSelf._clearColumn(column);
-						}
-						oSelf.setFooter(index, resources);
-					},
-					failure: function(e){
-						alert("Could not retrieve data: " + e.error.message);
-						oSelf._clearColumn(column);
-					},
-					scope: oSelf
-				}
-			});
-		},
-		
-		_requestParams : function(cfg) {
-			var params = "";
-			for(var key in cfg) {
-				if(cfg[key]) {
-					params += key+"="+encodeURIComponent(cfg[key])+"&";
-				}
-			}
-			return params;
-		},
-		
-		/**
-		* Updates the resourceList of columns[index] with new resources.
-		* If the resourceList does not exist yet it is created first.
-		*
-		* @private
-		* @param index {Integer} the index of the column
-		* @param resources {Array} the index of the column				
-		**/			
-		_populateColumn : function(index, resources) {
-			var column = this.get("columns")[index];
-			column.resourceList.setResources(resources);
-			
-			// set pagination
-			if(resources.length===this.get("maxNumberItems")||column.page>0) {
-				this._renderPagination(index, resources.length);
-			} else if(column._pagination) {
-				column._pagination.addClass("hidden");
-			}
-			this._setLoading(index, false);
-			this._updateContentSize();
-			column._node.scrollIntoView();
-		},
-
 		/**
 		* Creates a new column	based on Y.mazzle.ResourceList
 		*
 		* @private
 		**/ 
-		_createColumn : function(index, resources) {
+		_updateColumn : function(index, parent) {	
+			if(!this.get("columns")[index]) {
+				this.get("columns")[index] = {};
+			}
+
 			var column = this.get("columns")[index];
-			if(!column.resourceList) {
-				var oSelf = this,
-					content = this.columnsNode,
-					width = this.get("columnWidth");
-				
-				// create a new div in columnsNode and add resize plugin
-				column._node = this.columnsNode.appendChild(
-					Y.Node.create('<div class="column"></div>'))
-					.plug(Y.Plugin.Resize, {handles:["r"],animate:true});
-					
-				this._renderOptionList(index);
-				
-				// search box	
-				var category = Y.stamp(this)+"|";
-				column._node.appendChild(Node.create('<div class="search"></div>'))
-					.appendChild(Node.create('<input type="text"></div>'))
-					.on(category+"valueChange", this._valueChangeHandler, this, index);	
-				
-				column._load = column._node.appendChild(
-					Y.Node.create('<div class="hidden loading"></div>'));
-					
-				var dd = column._node.dd;	
-					
-				// first make contentNode very big
-				dd.on( "drag:start", function() {
-					this.get("parentNode").addClass("noscroll");
-					this.setStyle("width", "10000px");
-				}, content);
-				// at the end of resize put it to the actual size
-				dd.on( "drag:end", this._updateContentSize, this);
-					
-				// create a new ResourceList
-				var resourceList = new Y.mazzle.ResourceList({
-					boundingBox: column._node,
-					maxNumberItems: this.get("maxNumberItems"),
-					resources: resources,
-					width:width
-				});
-				resourceList.formatItem = column.formatter;
-				resourceList.render();
-				resourceList.on("itemClick", oSelf._itemSelect, oSelf, index);
-				column.resourceList = resourceList;
+ 			if(!column.list) {
+				column.list = this._createColumnList(index);
 			}
-		},
-	
-		/**
-		* Clears the content of all columns from index and above.
-		*
-		* @private
-		**/		
-		_hideColumns : function(index) {
-			var columns = this.get("columns");
-			for (var i=index; i < columns.length; i++) {
-				var content = columns[i]._node;
-				if(content) { 
-					content.addClass("hidden");
-				}
+			if(parent) {
+				column.list.set("params.parent", parent);
 			}
-		},
-		_clearColumn : function(column) {			
-			if(column._node) {
-				column.resourceList.clearContent();
-				if(column._pagination) {
-					column._pagination.addClass("hidden");
-				}
-			}
+			column.list.updateContent();
 		},
 		
-		/**
-		* Create or resets the column configuration.
-		* When formatter and query are not specified the once
-		* from the previous column are used
-		*
-		* @private
-		**/ 
-		// 
-		_setColumnDef : function(index, parent) { 
+		_createColumnList : function(index) {
 			var columns = this.get("columns"),
 				previous = columns[index-1]||{},
-				column = columns[index] ? columns[index] : {};
+				column = columns[index];
+	
+			var cfg = {
+				width: this.get("columnWidth"),
+				maxNumberItems: this.get("maxNumberItems"),
+				minQueryLength: this.get("minQueryLength"),
+				queryDelay: this.get("queryDelay")
+			};
 
 			column.repeat = column.repeat||previous.repeat;
-			column.request = column.request||(column.repeat ? previous.request : null);	
-			column.formatter = column.formatter||previous.resourceList.formatItem;
-			column.parent = parent ? this.itemId(parent) : null;
-			column.params = column.params||(column.repeat ? previous.params : null);
-			column.options = column.options||(column.repeat ? previous.options : null);
 			column.label = column.label || (column.repeat&&previous.label);
+				
+			// column properties are defined or inherited from previous column			
+			cfg.datasource = this.get("datasource");
+			cfg.request = column.request||(column.repeat&&previous.request);	
+			cfg.params = column.params||(column.repeat&&previous.params);
+			cfg.options = column.options||(column.repeat&&previous.options);
 			
- 			column.page = 0;
-			column.searchString = null;
+			var list = new Y.mazzle.ResourceList(cfg);
+			list.render(this.columnsNode);
+			list.get("boundingBox")
+				.plug(Y.Plugin.Resize, {handles:["r"],animate:true})
 			
-			columns[index] = column;
-			return column;
-		},
-	
-		/**
-		* Sets the title in the header
-		*
-		* @public
-		**/ 
-		setTitle : function(resource) {
-			var HTML = "";
-			if(resource) {
-				HTML = '<h3>'+this.itemLabel(resource)+'</h3>'
-			}
-			this.titleNode.set("innerHTML", HTML);
-		},
-		setFooter : function(index, resource) {
-			this._setStatus(index, resource);
-		},
-		/**
-		* Sets the status in the footer
-		*
-		* @private
-		**/			
-		_setStatus : function(index) {
-			var columns = this.get("columns"),
-				column = columns[index],
-				label = column.label || "item",
-				length = column.totalNumberOfResults,
-				HTML = "";
+			list.formatItem = column.formatter||previous.list.formatItem;
+			list.on("itemClick", this._itemSelect, this, index);
+			list.on("beforeContentUpdate", this._setActiveColumn, this, index);
 
-			if(length>0) {
-				label += (length>1) ? "s" : "";
-				HTML = '<div>'+length+' '+label+'</div>';
-			}
-			else {
-				HTML = '';
-			}
-			this.statusNode.set("innerHTML", HTML);
-		},
-		
-		_setLoading: function(index, status) {
-			var column = this.get("columns")[index];
-			if(status) {
-				column._load.removeClass("hidden");
-				column._node.one(".yui3-resourcelist-content").addClass("hidden");
-				column._node.removeClass("hidden");
-			} else {
-				column._node.one(".yui3-resourcelist-content").removeClass("hidden");
-				column._load.addClass("hidden");
-			}
-		},	
-		
-		_setActiveColumn : function(index) {
-			this.activeIndex = index;
-			var columns = this.get("columns");
-			for (var i=0; i < columns.length; i++) {
-				if(i==index) {
-					columns[index]._node.addClass("active");
-				}
-				else if(columns[i]._node) {
-					columns[i]._node.removeClass("active");
-				}
-			}
-		},
-		/**
-		 * The handler that listens to valueChange events and decides whether or not
-		 * to kick off a new query.
-		 *
-		 * @param {Object} The event object
-		 * @private
-		 **/
-		_valueChangeHandler : function(e, index) {
-			var oSelf = this,
-				query = e.value;
-			// Clear previous timeout to prevent old searches to push through
-		    if(oSelf._nDelayID != -1) {
-		        clearTimeout(oSelf._nDelayID);
-		    }
-			this._columnSearch(index, query);
-		},	
-		_columnSearch : function(index, query) {		
-			var column = this.get("columns")[index];
-			column.searchString = query;
-			column.page = 0;
-			if (!query || query.length < this.get("minQueryLength")) {
-				this._getColumnData(index);
-			}
-			else {
-	    		// Set a timeout to prevent too many search requests
-				var oSelf = this;
-	    		oSelf._nDelayID = setTimeout(function(){
-	            	oSelf._getColumnData(index);
-	        	}, this.get("queryDelay")*1000);
-			}
+			var dd = list.get("boundingBox").dd;
+			// first make contentNode very big
+			dd.on( "drag:start", function() {
+				this.get("parentNode").addClass("noscroll");
+				this.setStyle("width", "10000px");
+			}, this.columnsNode);
+			// at the end of resize put it to the actual size
+			dd.on( "drag:end", this._updateContentSize, this);
+			
+			return list;
 		},
 					
 		/**
@@ -571,11 +308,12 @@ YUI.add('columnbrowser', function(Y) {
 				width = 0;
 			
 			for (var i=0; i < columns.length; i++) {
-				var columnNode = columns[i]._node;
-				if(columnNode&&(!columnNode.hasClass("hidden"))) {
-					width += columnNode.get("offsetWidth");
+				var columnList = columns[i].list;
+				if(columnList&&columnList.get("visible")) {
+					width += columnList.get("boundingBox").get("offsetWidth");
 				}
 			}
+			
 			content.setStyle("width", width+"px");
 			content.get("parentNode").removeClass("noscroll");
 			this._updateColumnsSize();
@@ -585,8 +323,8 @@ YUI.add('columnbrowser', function(Y) {
 			var columns = this.get("columns"),
 				height = this.columnsNode.get("offsetHeight");
 			for (var i=0; i < columns.length; i++) {
-				if(columns[i]._node) {
-					columns[i]._node.setStyle("height", height+"px");
+				if(columns[i].list) {
+					columns[i].list.set("height", height+"px");
 				}
 			}
 		}
