@@ -100,6 +100,7 @@ has_map(Map, edoal, Graph) :-
 	has_map_(Map, _, Graph).
 
 has_map(Map, Format, Graph) :-
+	Format \= edoal,
 	has_map(Map, Format, _, Graph).
 
 has_map_chk(Map, Format, Graph) :-
