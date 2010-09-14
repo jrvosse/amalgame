@@ -186,6 +186,7 @@ show_alignment_overview(Graph) -->
 	 align_ensure_stats(target(Graph)),
 	 align_ensure_stats(count(Graph)),
 	 align_ensure_stats(mapped(Graph)),
+	 align_ensure_stats(format(Graph)),
 
 	 http_link_to_id(http_evaluator, [graph=Graph], EvalLink),
 	 http_link_to_id(list_graph, [graph=Graph], URI),
