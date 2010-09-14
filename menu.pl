@@ -1,6 +1,5 @@
 :-module(ag_menu, []).
 
-:- use_module(library(http/html_write)).
 :- use_module(cliopatria(hooks)).
 
 /** <module> Amalgame menu.

@@ -1,4 +1,4 @@
-#!@SWIPL@ -g cp_server -s
+#!@SWIPL@ -g cp_server -s#
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 This file provides a skeleton startup file.  It can be localized by running
@@ -17,11 +17,11 @@ requirements.  See comments in the file.
 % folder holding dot.exe to %PATH% or uncomment and localise the path-line
 % below.
 
-file_search_path(cliopatria, './ClioPatria').		% (*)
-file_search_path(ontology,   '../ontologies/').
+file_search_path(amalgame, '@PARENTDIR@').
+file_search_path(cliopatria,   amalgame('ClioPatria')).
+file_search_path(ontology,   amalgame(ontologies)).
 file_search_path(ontology,   '../../demo/vocs/').
 file_search_path(ontology,   '../../demo/metadata/').
-
 % file_search_path(path,       'C:/Program Files/Graphviz2.26.3/bin').
 % file_search_path(path,       'C:/Program Files/Git/bin').
 % file_search_path(path,       'C:/Program Files (x86)/Graphviz2.26.3/bin').
@@ -37,7 +37,7 @@ file_search_path(ontology,   '../../demo/metadata/').
 
 % Use the ClioPatria help system.  If used, it must be loaded first!
 
-:- use_module(cliopatria('applications/help/load')).
+:- use_module(cliopatria(applications/help/load)).
 
 % Load ClioPatria itself.  Better keep this line.
 
@@ -82,7 +82,7 @@ file_search_path(ontology,   '../../demo/metadata/').
 		 *******************************/
 
 :- use_module(library(semweb/rdf_zlib_plugin)).
-:- use_module(load).
+:- use_module(amalgame(amalgame)).
 
 
 		 /*******************************

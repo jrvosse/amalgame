@@ -1,7 +1,6 @@
-:-module(load, []).
+:- module(amalgame, []).
 
-user:file_search_path(amalgame, '../../amalgame/').
-user:file_search_path(amalgame_apps, amalgame('applications/')).
+user:file_search_path(amalgame_apps, amalgame('applications')).
 
 http:location(amalgame, cliopatria(amalgame), []).
 

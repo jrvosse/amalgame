@@ -1,0 +1,3 @@
+[submodule "ClioPatria"]
+	path = ClioPatria
+	url = git://www.swi-prolog.org/home/pl/git/ClioPatria.git
