@@ -1,13 +1,16 @@
 % Example alignment, aligning aquatic Thesauri that are of interest to
-% Carmen
+% Carmen. Running this file will
 %
 
-:- module(aquatic_align,
+:- module(carmen,
 	 [
 	  run/0,
 	  prun/0,
-	  load/0
+	  load/0,
+	  clean/0
 	 ]).
+
+%user:file_search_path(cliopatria, '../startup/ClioPatria').
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
@@ -15,13 +18,21 @@
 :- use_module(amalgame(matchers/skosmatcher)).
 :- use_module(amalgame(mappings/edoal)).
 
+:-
+
+	writeln('\n\nCarmen commands: \n>load. \t loads all vocabularies (but not the skos/edoal graphs)'),
+	writeln('>run. \t runs all matchers'),
+	writeln('>prun. \t runs all matchers (with a profile)'),
+	writeln('>clean. \t removes all alignment graphs\n').
+
+
 load:-
 	load_gemet,
 	load_asfa,
 	load_agrovoc,
 	prepare.
 
-
+% Adjust these file locations to fit your settings
 load_gemet:-
 	rdf_load('../../../Vocs/Carmen/GEMET.skos.xml').
 load_asfa:-
@@ -87,7 +98,6 @@ runmatcher1:-
 	rdf_retractall(_,_,_,align),
 	voc(gemet, Gemet),
 	voc(asfa, Asfa),
-
 		Options = [
 		   language(en),
 		   graph(Graph),
