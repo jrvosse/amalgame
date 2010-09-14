@@ -77,16 +77,14 @@
 	padding: 5px;
 	text-align: center;
 }
-.yui3-columnbrowser .column {
-	float: left;
-	height: 100%;
-	padding-right: 5px;
-}
+
 .yui3-columnbrowser .columns .yui3-resourcelist {
+	float: left;
 	height: 100%;
 	overflow-x: auto;
 	overflow-y: scroll;
 	min-width: 15px;
+	padding-right: 5px;
 }
 .yui3-columnbrowser .yui3-resourcelist-content ul {
 	padding: 2px 0;
@@ -103,7 +101,7 @@
 .yui3-columnbrowser .resourcelist-item.selected {
 	background-color: #DDD;
 }
-.yui3-columnbrowser .column.active .resourcelist-item.selected {
+.yui3-columnbrowser .yui3-resourcelist.selected .resourcelist-item.selected {
 	background-color: #3875D7;
 	color: #FFF;
 }
