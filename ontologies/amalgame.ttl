@@ -69,3 +69,9 @@ amalgame:numberOfAltLabels a rdf:Property , owl:FunctionalProperty ;
 	rdfs:label "# alt. labels"@en;
 	rdfs:domain skos:ConceptScheme ;
 	rdfs:range xsd:int .
+
+amalgame:numberOfMappedConcepts a rdf:Property , owl:FunctionalProperty ;
+	rdfs:label "# mapped Concepts"@en;
+	rdfs:domain skos:ConceptScheme ;
+	rdfs:range xsd:int .
+
