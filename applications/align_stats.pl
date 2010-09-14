@@ -248,7 +248,7 @@ show_alignment(Graph) -->
 
 show_graph(Graph) -->
 	{
-	 http_link_to_id(list_graph, [graph(Graph)], VLink)
+	 http_link_to_id(http_list_alignment, [graph(Graph)], VLink)
 	},
 	html(a([href(VLink)],\turtle_label(Graph))).
 
@@ -270,17 +270,12 @@ show_countlist([Count:O:Example|T], Number) -->
 		])),
 	show_countlist(T,NewNumber).
 
-show_example([E1, E2]) -->
-	{
-	 atom(E1), atom(E2),
-	 http_link_to_id(list_resource, [r(E1)], E1Link),
-	 http_link_to_id(list_resource, [r(E2)], E2Link)
-	},
-	html([td(a([href(E1Link)],\turtle_label(E1))),
-	      td(a([href(E2Link)],\turtle_label(E2)))]).
+
 
 show_example([E1, E2]) -->
-	html([td(E1),td(E2)]).
+	html([td(\rdf_link(E1)),
+	      td(\rdf_link(E2))
+	     ]).
 
 show_overlap_graphs(Overlap) -->
 	{
