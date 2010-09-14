@@ -8,6 +8,7 @@
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
+:- use_module(library(semweb/rdf_label)).
 
 :- use_module(auth(user_db)).
 :- use_module(components(label)).
@@ -148,7 +149,13 @@ show_schemes([Voc|Tail], Nr, [C,P,A,M,U]) -->
 	 ;   Example = '-'
 	 ),
 	 (rdf_has(Voc, dcterms:rights, RightsO)
-	 ->  text_of_literal(RightsO, Rights)
+	 ->  (   RightsO = literal(_)
+	     ->  literal_text(RightsO, RightsT),
+		 truncate_atom(RightsT, 30, RightsTrunc),
+		 http_link_to_id(list_resource, [r(Voc)], LinkToVoc),
+		 Rights=a([href(LinkToVoc)], RightsTrunc)
+	     ;	 Rights=a([href(RightsO)],'License')
+	     )
 	 ;   Rights = '-'
 	 )
 	},
