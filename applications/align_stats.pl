@@ -35,7 +35,7 @@ http_list_alignments(_Request) :-
 			[title('Alignments'),
 			 Style
 			],
-			[ h4('Alignments in the RDF store'),
+			[ h4('Amalgame: Alignments in the RDF store'),
 			  \show_alignments
 			]).
 
@@ -47,7 +47,7 @@ http_list_alignment(Request) :-
 	style(Style),
 	http_parameters(Request, [graph(Graph, [])]),
 	reply_html_page(cliopatria(default),
-			[title('Alignment'),
+			[title('Amalgame: alignment overview'),
 			 Style
 			],
 			[ h4('Alignment overview'),
@@ -63,7 +63,7 @@ http_split_alignment(Request) :-
 	split_alignment(Graph, Condition, OutGraphs),
 	align_clear_stats(found),
 	reply_html_page(cliopatria(default),
-			[title('Alignment splitted'),
+			[title('Amalgame: alignment splitted'),
 			 Style
 			],
 			[ h4('Alignment splitted'),
@@ -106,7 +106,7 @@ http_list_overlap(_Request) :-
 	style(Style),
 	reply_html_page(cliopatria(default),
 			[
-			 title('Alignment overlap'),
+			 title('Amalgame: alignment overlap'),
 			 Style
 			],
 			[
@@ -196,12 +196,12 @@ show_alignment_overview(Graph) -->
 	 http_link_to_id(http_skos_export, [graph(Graph)], ExportLink),
 
 	 align_get_computed_props(Graph, Props),
-	 memberchk(count(Count), Props),
-	 memberchk(format(Format), Props),
+	 memberchk(count(literal(type(_, Count))), Props),
+	 memberchk(format(literal(Format)), Props),
 	 memberchk(source(Source), Props),
 	 memberchk(target(Target), Props),
-	 memberchk(mappedSourceConcepts(MSC), Props),
-	 memberchk(mappedTargetConcepts(MTC), Props),
+	 memberchk(mappedSourceConcepts(literal(type(_,MSC))), Props),
+	 memberchk(mappedTargetConcepts(literal(type(_,MTC))), Props),
 
 	 (   Format == skos
 	 ->  SkosExportLink = ''

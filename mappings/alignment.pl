@@ -229,9 +229,13 @@ split_alignment(SourceGraph, Condition, SplittedGraphs) :-
 reassert([], _ , _, Graphs, Graphs).
 reassert([Map:Options|Tail], OldGraph, Condition, Accum, Results) :-
 	target_graph(Map, OldGraph, Condition, NewGraph),
+	(   memberchk(NewGraph, Accum)
+	->  NewAccum = Accum
+	;   NewAccum = [NewGraph|Accum]
+	),
 	Map = [E1,E2],
 	assert_cell(E1, E2, [graph(NewGraph), copiedFrom(OldGraph)|Options]),
-	reassert(Tail, OldGraph, Condition, Accum, Results).
+	reassert(Tail, OldGraph, Condition, NewAccum, Results).
 
 target_graph([E1, E2], OldGraph, Condition, Graph) :-
 	(   Condition = sourceType
@@ -244,5 +248,7 @@ target_graph([E1, E2], OldGraph, Condition, Graph) :-
 	->  true
 	;   GTypes = STypes
 	),
-	GTypes = [FirstType|_],
-	format(atom(Graph), '~p_~p', [OldGraph, FirstType]).
+	(   GTypes = [FirstType|_]
+	->  format(atom(Graph), '~p_~p', [OldGraph, FirstType])
+	;   Graph = OldGraph
+	).
