@@ -209,7 +209,7 @@ show_alignment_overview(Graph) -->
 	 ;   SkosExportLink = li(a([href(ExportLink)], 'Export to SKOS'))
 	 )
 	},
-	html([p(['Alignment graph: ', Graph]),
+	html([p(['Alignment graph: ', a([href(Graph)], Graph)]),
 	      p('Key alignment statistics: '),
 	      table([id(aligntable)],[
 		     tr([td('format:'),
