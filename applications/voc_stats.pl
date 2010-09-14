@@ -82,7 +82,6 @@ show_schemes -->
 		     id(skosvoctable)],
 		    [
 		     tr([td('Nr'),
-			 th('IRI'),
 			 th('Name'),
 			 th('# Concepts'),
 			 th('# prefLabels'),
@@ -91,7 +90,7 @@ show_schemes -->
 			 th('# mapped'),
 			 th('%'),
 			 th('Example concept'),
-			 th('Copyrights & licenses')
+			 th('License')
 			]),
 		     \show_schemes(Schemes, 1, [0, 0, 0, 0, 0])
 		    ])
@@ -160,7 +159,6 @@ show_schemes([Voc|Tail], Nr, [C,P,A,M,U]) -->
 	 )
 	},
 	html(tr([td(Nr),
-		 td(\rdf_link(Voc, [resource_format(plain)])),
 		 td(\rdf_link(Voc, [resource_format(label)])),
 		 td([style('text-align: right')],CCount),
 		 td([style('text-align: right')],PCount),
