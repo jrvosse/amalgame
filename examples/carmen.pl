@@ -74,8 +74,16 @@ voc(agrovoc,'http://www.fao.org/aims/aos/agrovoc').
 
 
 
-% rdf assert the skos:inScheme info
+% --------------------
+% Voc preprocessing and preparation
+% --------------------
+
 prepare:-
+	prepare1,
+	prepare2.
+
+% rdf assert the skos:inScheme info for Agrovoc
+prepare1:-
 	voc(agrovoc,AgrovocScheme),
 	rdf_transaction(
 	forall(
@@ -85,6 +93,47 @@ prepare:-
 	       ),
 	       rdf_assert(A, skos:inScheme, AgrovocScheme))
 		       ).
+
+
+% repair 'blank node as label value' problem with asfa
+
+prepare2:- prepare2a,prepare2b.
+prepare2a:-
+	voc(asfa,AsfaScheme),
+	rdf_transaction(
+	forall(
+	       (
+	       rdf(A, rdf:type, skos:'Concept'),
+	       rdf(A, skos:inScheme,AsfaScheme),
+	       rdf(A, skos:prefLabel, BN1),
+	       rdf(BN1, rdf:value, VAL)
+	       ),
+	       (
+	       rdf_retractall(A, skos:prefLabel, BN1),
+	       rdf_retractall(BN1, rdf:value, VAL),
+	       rdf_assert(A, skos:prefLabel, VAL)
+	       )
+	      )
+		       ).
+prepare2b:-
+	voc(asfa,AsfaScheme),
+	rdf_transaction(
+	forall(
+	       (
+	       rdf(A, rdf:type, skos:'Concept'),
+	       rdf(A, skos:inScheme,AsfaScheme),
+	       rdf(A, skos:prefLabel, BN1),
+	       rdf(BN1, rdf:value, VAL)
+	       ),
+	       (
+	       rdf_retractall(A, skos:altLabel, BN1),
+	       rdf_retractall(BN1, rdf:value, VAL),
+	       rdf_assert(A, skos:altLabel, VAL)
+	       )
+	      )
+		       ).
+
+
 
 
 
@@ -172,7 +221,48 @@ find_candidates2(Options) :-
 % --------------------
 % match agrovoc to gemet
 % --------------------
-% Using English labels
+%
+
+% Run language specific label matcher for all found
+% languages in either skos:prefLabel or altLabel
+
+
+runmatcher3ALL:-
+	findall(
+		LANG,
+		(
+		 voc(agrovoc,AG),
+		 rdf(A,skos:inScheme,AG),
+		 rdf(A,skos:prefLabel,literal(lang(LANG,_)))
+		),L),
+	sort(L,LangList),
+       	write('Running language specific matcher for language:'),
+	runmatcher3Langs(LangList).
+
+% Run for one language
+runmatcher3Langs([]).
+runmatcher3Langs([CurLang|Tail]):-
+	write(CurLang),write(', '),flush,
+	atomic_list_concat([agrovocgemet,CurLang],Graph),
+	rdf_persistency(Graph, false),
+	rdf_retractall(_,_,_,Graph),
+	rdf_retractall(_,_,_,align),
+	voc(agrovoc, Agrovoc),
+	voc(gemet, Gemet),
+
+		Options = [
+			   language(CurLang),
+		   graph(Graph),
+		   alignment(Graph),
+		   ontology1(Agrovoc),
+		   ontology2(Gemet),
+		   candidate_matchers([labelmatchLang])
+			  ],
+	find_candidates3(Options),
+	runmatcher3Langs(Tail).
+
+
+% Only using English labels
 runmatcher3EN:-
 	Graph = agrovocgemetEN,
 	rdf_persistency(Graph, false),
@@ -187,13 +277,13 @@ runmatcher3EN:-
 		   alignment(Graph),
 		   ontology1(Agrovoc),
 		   ontology2(Gemet),
-		   candidate_matchers([labelmatchEN])
+		   candidate_matchers([labelmatchLang])
 			  ],
 	find_candidates3(Options).
 
 
 
-% Using Spanish labels
+% Only using Spanish labels
 runmatcher3ES:-
 	Graph = agrovocgemetES,
 	rdf_persistency(Graph, false),
@@ -208,7 +298,7 @@ runmatcher3ES:-
 		   alignment(Graph),
 		   ontology1(Agrovoc),
 		   ontology2(Gemet),
-		   candidate_matchers([labelmatchEN])
+		   candidate_matchers([labelmatchLang])
 			  ],
 	find_candidates3(Options).
 
@@ -216,7 +306,6 @@ runmatcher3ES:-
 find_candidates3(Options) :-
         voc(agrovoc, Agrovoc),
 	voc(gemet, Gemet),
-
 	debug(align, 'Finding source concepts.', []),
 	findall(SourceConcept,
 		(
@@ -225,7 +314,7 @@ find_candidates3(Options) :-
 		),
 		SourceConcepts
 	       ),
-	debug(align, 'Finding candidates mappings from scheme ~p~n', [gemet]),
+	debug(align, 'Finding alignments from Agrovoc to Gemet', []),
 	forall(member(SourceConcept, SourceConcepts),
 	       rdf_transaction(skos_find_candidates(SourceConcept,
 						    Gemet,
