@@ -35,8 +35,7 @@
 :- use_module(library('http/json')).
 :- use_module(library('http/json_convert')).
 :- use_module(library('http/http_json')).
-
-:- use_module(components(label)).
+:- use_module(library(semweb/rdf_label)).
 
 
 %%	graph_to_json(+Type, +Graph, -JSON, +Options)
@@ -269,7 +268,7 @@ rdf_resource_to_json(URI0, Object) :-
 
 literal_to_json(lang(Lang, Txt), Txt, [lang=Lang]) :- !.
 literal_to_json(type(Type, Txt0), Txt, [datatype=Type]) :- !,
-	text_of_literal(type(Type,Txt0), Txt). % hack to handle XML data
+	literal_text(type(Type,Txt0), Txt). % hack to handle XML data
 literal_to_json(Txt, Txt, []).
 
 
@@ -308,7 +307,7 @@ object_uri_type(URI, Type) :-
 %	information and only keep the label.
 
 resource_to_value(literal(L), Txt) :- !,
-	text_of_literal(L, Txt).
+	literal_text(L, Txt).
 resource_to_value(R, R).
 
 
@@ -414,13 +413,13 @@ hooked_rdf_has(S,registered_ns,O) :-
         sub_atom(S, _,_,_, O),!.
 
 object_value(literal(L), Txt) :- !,
-        text_of_literal(L, Txt).
+        literal_text(L, Txt).
 object_value(L, L) :-
         is_list(L), !.
 object_value(R, Label) :-
         rdf_subject(R), !,
 	label_property(P),
 	rdf_has(R, P, Value),
-	text_of_literal(Value, Label).
+	literal_text(Value, Label).
 
 object_value(R, R).
