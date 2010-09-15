@@ -14,6 +14,7 @@
 :- use_module(amalgame(compare/overlap)).
 :- use_module(amalgame(mappings/alignment)).
 :- use_module(amalgame(mappings/edoal)).
+:- use_module(amalgame(mappings/map)).
 
 
 :- http_handler(amalgame(clear_alignments),   http_delete_alignment_graphs, []).
@@ -24,6 +25,7 @@
 :- http_handler(amalgame(list_alignments),    http_list_alignments,     []).
 :- http_handler(amalgame(split_alignment),    http_split_alignment,     []).
 :- http_handler(amalgame(skos_export),        http_skos_export,         []).
+:- http_handler(amalgame(sample_alignment),   http_sample_alignment,	[]).
 
 %%	http_list_alignments(+Request) is det.
 %
@@ -150,6 +152,81 @@ http_skos_export(Request) :-
 	http_link_to_id(list_graph, [graph(SkosGraph)], ListGraph),
 	http_redirect(moved, ListGraph, Request).
 
+http_sample_alignment(Request) :-
+	http_parameters(Request, [graph(Graph, [length > 0]),
+				  size(Size, [nonneg]),
+				  name(Name, [length > 0]),
+				  method(Method, [])
+				 ]),
+	sample(Method, Graph, Name, Size),
+	http_link_to_id(http_list_alignment, [graph(Name)], LinkToSample),
+	reply_html_page(cliopatria(default),
+			title('Amalgame sampled alignment'),
+			div(['Sampled alignment ', Graph,
+			     ' into named graph ', a([href(LinkToSample)], Name),
+			     ' of size ', Size, ' (', Method, ')' ])
+		       ).
+sample(Method, Graph, Name, Size) :-
+	(   rdf_graph(Name)
+	->  rdf_unload(Name),
+	    rdf_retractall(Name,_,_,amalgame)
+	;   true
+	),
+	rdf_assert(Name, rdf:type, amalgame:'Sample', Name),
+	rdf_assert(Name, amalgame:sampleSize, literal(type(xsd:int, Size)), Name),
+	rdf_assert(Name, amalgame:sourceGraph, Graph, Name),
+	rdf_assert(Name, amalgame:method, literal(Method), Name),
+	findall(Map, has_map(Map, _, Graph), Maps),
+	length(Maps, Length),
+
+	randset(Size, Length, RandSet),
+	assert_from_list(Method, Name, Graph, 1, RandSet, Maps).
+
+spyme.
+
+assert_from_list(_,_,_,_,[], _).
+assert_from_list(Method, Name, Graph, Nr, [Rand|RandSet], [[E1,E2]|Maps]) :-
+	(   Rand = Nr
+	->  has_map([E1,E2], _, Options, Graph),!,
+	    spyme,
+	    (	Method = randommaps
+	    ->	AltMaps = [E1-E2-Options]
+	    ;	Method = random_alt_in_graph
+	    ->	findall(E1-E2a-MapOptions,
+			has_map([E1,E2a], _, MapOptions, Graph),
+			AltSourceMaps),
+		findall(E1a-E2-MapOptions,
+			has_map([E1a,E2], _, MapOptions, Graph),
+			AltTargetMaps),
+		append(AltSourceMaps, AltTargetMaps, AltMapsDoubles),
+		sort(AltMapsDoubles, AltMaps)
+	    ;	Method = random_alt_all
+	    ->	findall(E1-E2a-MapOptions,
+			has_map([E1,E2a], _, MapOptions, _),
+			AltSourceMaps),
+		findall(E1a-E2-MapOptions,
+			has_map([E1a,E2], _, MapOptions, _),
+			AltTargetMaps),
+		append(AltSourceMaps, AltTargetMaps, AltMaps)
+	    ),
+	    assert_map_list(AltMaps, Name),
+	    NewRandSet = RandSet,
+	    NewMaps = Maps
+	;   NewRandSet = [Rand|RandSet],
+	    NewMaps = [[E1,E2]|Maps]
+	),
+	NewNr is Nr + 1,
+	assert_from_list(Method, Name, Graph, NewNr, NewRandSet, NewMaps).
+
+assert_map_list([],_).
+assert_map_list([H|T], Graph) :-
+	H=E1-E2-Options,
+	(   has_map([E1,E2], edoal, Graph)
+	->  true
+	;   assert_cell(E1,E2, [graph(Graph)|Options])
+	),
+	assert_map_list(T,Graph).
+
 clear_alignstats :-
 	align_clear_stats(all),
 	clear_overlaps.
@@ -189,12 +266,13 @@ show_alignment_overview(Graph) -->
 	 align_ensure_stats(format(Graph)),
 
 	 http_link_to_id(http_evaluator, [graph=Graph], EvalLink),
-	 http_link_to_id(list_graph, [graph=Graph], URI),
+	 http_link_to_id(list_graph, [graph=Graph], GraphLink),
 	 http_link_to_id(http_split_alignment,
 			 [graph=Graph, condition=sourceType], STLink),
 	 http_link_to_id(http_split_alignment,
 			 [graph=Graph, condition=targetType], TTLink),
 	 http_link_to_id(http_skos_export, [graph(Graph)], ExportLink),
+	 http_link_to_id(http_sample_alignment, [graph(Graph)], SampleLink),
 
 	 align_get_computed_props(Graph, Props),
 	 memberchk(count(literal(type(_, Count))), Props),
@@ -231,9 +309,24 @@ show_alignment_overview(Graph) -->
 		   ),
 	      p('Actions: '),
 	      ul([
-		  li(a([href(URI)], 'View/download graph')),
+		  li(a([href(GraphLink)], 'View/download graph')),
 		  SkosExportLink,
-		  li(a([href(EvalLink)], 'Evaluate graph')),
+		  li(a([href(EvalLink)], 'Evaluate all mappings in graph')),
+		  li(form([action(SampleLink)],
+		     [input([type(hidden), name(graph), value(Graph)],[]),
+		      input([type(submit), value('Create')],[]),
+		      ' sample of size N=',
+		      input([type(text), name(size), value(Count), size(6)],[]),
+		      ' in named graph ',
+		      input([type(text), name(name), value(sample)], []),
+		      ' with method ',
+		      select([name(method)],
+			    [option([selected(selected), value(randommaps)],['N random mappings']),
+			     option([value(random_alt_in_graph)],['N random mapped concepts, with alternative mappings in same graph']),
+			     option([value(random_alt_all)], ['N random mapped concepts, with alternative mappings from all loaded graphs'])
+			    ])
+		     ])
+		    ),
 		  li(a([href(STLink)], 'Split on source type')),
 		  li(a([href(TTLink)], 'Split on target type'))
 		 ])
