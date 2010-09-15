@@ -27,18 +27,26 @@
 
 
 load:-
+	load_skos,
 	load_gemet,
 	load_asfa,
 	load_agrovoc,
 	prepare.
 
 % Adjust these file locations to fit your settings
+
+load_skos:-
+	rdf_load('../ClioPatria/ontologies/base/rdfs.rdfs'),
+	rdf_load('../ClioPatria/ontologies/base/skos.rdf'),
+	rdf_load('../ClioPatria/ontologies/base/dcterms.rdf'),
+	rdf_load('../ClioPatria/ontologies/base/owl.owl').
+
 load_gemet:-
-	rdf_load('../../../Vocs/Carmen/GEMET.skos.xml').
+	rdf_load('../examples/carmenvocs/GEMET.skos.xml').
 load_asfa:-
-       	rdf_load('../../../Vocs/Carmen/ASFATh_Skos.xml.rdf').
+       	rdf_load('../examples/carmenvocs/ASFATh_Skos.xml').
 load_agrovoc:-
-       	rdf_load('../../../Vocs/Carmen/ag_skos_080422.rdf').
+       	rdf_load('../examples/carmenvocs/ag_skos_080422.rdf').
 
 
 prun:- profile(run).
