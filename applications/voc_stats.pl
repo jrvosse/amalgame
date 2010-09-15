@@ -10,7 +10,7 @@
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_label)).
 
-:- use_module(auth(user_db)).
+:- use_module(user(user_db)).
 :- use_module(components(label)).
 :- use_module(components(messages)).
 

@@ -3,7 +3,7 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_request_value)).
-:- use_module(library('http/http_session')).
+:- use_module(library(http/http_session)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_host)).
 :- use_module(library(http/http_path)).
@@ -19,7 +19,7 @@
 :- use_module(library(settings)).
 
 :- use_module(components(label)).
-:- use_module(auth(user_db)).
+:- use_module(user(user_db)).
 
 :- use_module(amalgame(skos/vocabularies)).
 :- use_module(amalgame(mappings/map)).
