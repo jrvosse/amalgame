@@ -16,6 +16,9 @@ h3 {
 	font-size: 1.1em;
 	font-weight: bold;
 }
+.hidden {
+	display: none;
+}
 
 /* vocabulary list */
 
@@ -36,14 +39,14 @@ h3 {
 #vocabularies #target-select,
 #vocabularies #source-select {
 	float: left;
-	width: 73px;
+	width: 75px;
 	text-align: center;
 	padding: 4px 0;
 }
 #vocabularies #source-select.selected,
 #vocabularies ul li.source,
 #source .yui3-columnbrowser-content,
-#source .yui3-columnbrowser .column.active .selected {
+#source .yui3-resourcelist.selected .resourcelist-item.selected {
 	background-color: #66A1D2;
 }
 #vocabularies #source-select a,
@@ -53,7 +56,7 @@ h3 {
 #vocabularies #target-select.selected,
 #vocabularies ul li.target,
 #target .yui3-columnbrowser-content,
-#target .yui3-columnbrowser .column.active .selected {
+#target .yui3-resourcelist.selected .resourcelist-item.selected {
 	background-color: #0B5FA5;
 }
 #vocabularies #target-select a,
@@ -63,7 +66,8 @@ h3 {
 #vocabularies #source-select.selected a,
 #vocabularies ul li.source a,
 #vocabularies #target-select.selected a,
-#vocabularies ul li.target a {
+#vocabularies ul li.target a,
+.yui3-resourcelist.selected .resourcelist-item.selected {
 	color: #FFF;
 }
 #vocabularies #target-select,
@@ -102,9 +106,7 @@ h3 {
 .yui3-columnbrowser-hidden {
 	display: none;
 }
-.yui3-columnbrowser .hidden {
-	display: none;
-}
+
 .yui3-columnbrowser .loading {
 	padding-top: 20px;
 	background: url(loading.gif) no-repeat center center
@@ -146,16 +148,13 @@ h3 {
 	border-color: #E5E5E5;
 	text-align: center;
 }
-.yui3-columnbrowser .column {
-	float: left;
-	height: 100%;
-	padding-right: 5px;
-}
 .yui3-columnbrowser .columns .yui3-resourcelist {
+	float: left;
 	height: 100%;
 	overflow-x: auto;
 	overflow-y: scroll;
 	min-width: 15px;
+	padding-right: 5px;
 }
 .yui3-columnbrowser .yui3-resourcelist-content ul {
 	padding: 2px 0;

@@ -270,72 +270,43 @@ YAHOO.mazzle.MapCheck.prototype._initForm = function(oParms) {
   var elForm = document.createElement("form");
   elForm.id="searchField"+id+'_'+nr;  elContainer.appendChild(elForm);
 
-  // var lv = document.createElement('div');
-  // lv.className='detailPanel'
-  // lv.innerHTML='detail panel';
-  // lv.setAttribute('style','text-decoration: underline');
-  // YAHOO.util.Event.addListener(lv, "click", localViewHandler, sURI);
-  // elForm.appendChild(lv);
-
   var yuiWrapper = document.createElement("div");
   yuiWrapper.className="yui-ac-input-wrapper"; elForm.appendChild(yuiWrapper);
 
-  // var acInput = document.createElement("input");
-  // acInput.id='searchFieldInput'+id+'_'+nr;
-  // acInput.setAttribute('name', 'active');
-  // acInput.setAttribute('type', 'text');
-  // acInput.size=sURI.length;
-  // yuiWrapper.appendChild(acInput);
-  // acInput.value=sURI;
   var elURI = document.createElement("a");
   elURI.id = 'conceptURI'+id+'_'+nr;
   elURI.href = serverPrefix() + '/../browse/list_resource?r=' + encodeURIComponent(sURI) ;
   elURI.innerHTML = sURI;
   yuiWrapper.appendChild(elURI);
-
-  var acContainer = document.createElement("div");
-  acContainer.id="searchFieldContainer"+id+'_'+nr;
-
-  elForm.appendChild(acContainer);
-  var acScript = document.createElement('script');
-  acScript.type="text/javascript";
-  // ('mainSearchInput', 'mainSearchContainer', mainSearchDataSource, {'form':'mainSearch', 'button':'search', 'inputTxt':''});
-  acScript.innerHTML='var searchField'+id+'_'+nr+
-  ' = new YAHOO.mazzle.AutoComplete("searchFieldInput'+id+'_'+nr+
-  '", "searchFieldContainer'+id+'_'+nr+
-  '", ' + serverPrefix() + '"/session/api/autocomplete", '+
-  '{"serverParams": {"filter": {"type":"http://e-culture.multimedian.nl/ns/eculture/Concept"}, "cluster": {"type":"http://e-culture.multimedian.nl/ns/interface/Class"}, "sort": ["exact", "inlink", "label"], "info": {"sublabel":"dynamic", "altlabel":"alternative", "description":"description"}}, "inputTxt":"'+sURI+
-  '", "form":"searchField'+id+'_'+nr+
-  '", "overlayLeft":true, "name":"active"});';
-  // elForm.appendChild(acScript);
-
-  var oLabels = {};
+  
   var dis1 = this.display[sURI];
-  for (p in dis1) {
-    oLabels[p] = dis1[p][0].value;
-  };
-  var examples = oLabels['examples'];
-  var uri1Label = oLabels['label'];
-  var elLabels = document.createElement('div');
-  elLabels.className = 'acItem';
-  elLabels.innerHTML = formatItem(uri1Label, dis1, true);
-  elLabels.setAttribute('style', 'border: 1pt solid; padding: 0.1em 1.3em;');
-  elForm.appendChild(elLabels);
+  if (dis1) {
+  	var oLabels = {};
+  	for (p in dis1) {
+    	oLabels[p] = dis1[p][0].value;
+  	};
+  	var examples = oLabels['examples'];
+  	var uri1Label = oLabels['label'];
+  	var elLabels = document.createElement('div');
+  	elLabels.className = 'acItem';
+  	elLabels.innerHTML = formatItem(uri1Label, dis1, true);
+  	elLabels.setAttribute('style', 'border: 1pt solid; padding: 0.1em 1.3em;');
+  	elForm.appendChild(elLabels);
 
-  if (examples && examples[0] && examples[0].value != []) {
-	var elExamples = document.createElement('div');
-	var elExampleT = document.createElement('div');
-	elExampleT.innerHTML='Example usage:';
-	elExamples.appendChild(elExampleT);
-	elForm.appendChild(elExamples);
-	for (ex in examples) {
-		var elImg = document.createElement('img');
-		elImg.setAttribute('src',examples[ex]);
-		elImg.setAttribute('style', 'padding: 2px;');
-		elExamples.appendChild(elImg);
-	}
+  	if (examples && examples[0] && examples[0].value != []) {
+		var elExamples = document.createElement('div');
+		var elExampleT = document.createElement('div');
+		elExampleT.innerHTML='Example usage:';
+		elExamples.appendChild(elExampleT);
+		elForm.appendChild(elExamples);
+		for (ex in examples) {
+			var elImg = document.createElement('img');
+			elImg.setAttribute('src',examples[ex]);
+			elImg.setAttribute('style', 'padding: 2px;');
+			elExamples.appendChild(elImg);
+		}
+  	}
   }
-
   var elWrapper = document.createElement("div");
   this.elTarget[i] = elWrapper;
   elWrapper.setAttribute("style", "border-bottom: 1pt dashed; margin-bottom: 5pt;");

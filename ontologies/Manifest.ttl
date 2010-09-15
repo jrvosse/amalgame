@@ -1,4 +1,4 @@
-@prefix  clbase:  <../startup/ClioPatria/ontologies/base/> .
+@prefix  clbase:  <../ClioPatria/ontologies/base/> .
 @prefix	   align: <http://knowledgeweb.semanticweb.org/heterogeneity/alignment#> .
 @prefix amalgame: <http://purl.org/vocabularies/amalgame#> .
 @prefix      lib: <http://www.swi-prolog.org/rdf/library/> .

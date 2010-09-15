@@ -21,9 +21,11 @@ from the underlying formats.
 :- use_module(library(semweb/rdfs)).
 
 :- dynamic
-	mapping_props/1.
+	mapping_props/1,
+	mapping_format/2.
 
-:-	P = [align:measure,
+init_mapping_props :-
+	P = [align:measure,
 	     align:relation,
 	     rdfs:comment,
 	     amalgame:method
@@ -32,6 +34,13 @@ from the underlying formats.
 	retractall(mapping_props(_)),
 	assert(mapping_props(Props)).
 
+init_mapping_format :-
+	rdf_equal(skos:mappingRelation, SkosRelation), assert(mapping_format(skos, SkosRelation)),
+	rdf_equal(dcterms:replaces, DcRelation),       assert(mapping_format(dc, DcRelation)),
+	rdf_equal(owl:sameAs, OwlRelation),            assert(mapping_format(owl, OwlRelation)).
+
+:- init_mapping_props.
+:- init_mapping_format.
 
 
 %%	map_iterator(-Map) is non_det.
@@ -48,8 +57,8 @@ from the underlying formats.
 map_iterator([E1,E2]) :-
 	has_map([E1, E2], _, _).
 
-%%	has_map(+Map, -Format, Options, -Graph) is non_det.
-%%%	has_map(+Map, -Format, -Graph) is non_det.
+%%	has_map(+Map, ?Format, ?Properties, -Graph) is non_det.
+%%%	has_map(+Map, ?Format, -Graph) is non_det.
 %
 %	Intended to be used to find graphs that contain Map, and in what
 %	Format. Map can be stored in the triple store in several
@@ -62,51 +71,46 @@ map_iterator([E1,E2]) :-
 %
 %	@see EDOAL: http://alignapi.gforge.inria.fr/edoal.html
 
-has_map([E1, E2], edoal, Options, Graph) :-
-	has_map_([E1, E2], Cell, Graph),
+has_map([E1, E2], edoal, Properties, Graph) :-
+	has_edoal_map_([E1, E2], Cell, Graph),
 	mapping_props(Props),
 	findall(Term,
 		(   member(Prop, Props),
 		    rdf(Cell, Prop, Value, Graph),
 		    prop_to_term(Prop, Value, Term)
 		),
-		Options).
+		Properties).
 
-has_map([E1, E2], skos, [relation(RealProp)], Graph) :-
+has_map([E1, E2], Format, [relation(RealProp)], Graph) :-
+	mapping_format(Format,MappingProp),
 	(   ground(E1), ground(E2)
-	->  rdf_has(E1, skos:mappingRelation, E2, RealProp),
+	->  rdf_has(E1, MappingProp, E2, RealProp),
 	    rdf(E1, RealProp, E2, Graph)
-	;   rdfs_subproperty_of(RealProp, skos:mappingRelation),
-	    rdf(E1, RealProp, E2, Graph)
-	).
-
-has_map([E1, E2], dc, [relation(RealProp)], Graph) :-
-	(   ground(E1), ground(E2)
-	->  rdf_has(E1, dcterms:replaces, E2, RealProp),
-	    rdf(E1, RealProp, E2, Graph)
-	;   rdfs_subproperty_of(RealProp, dcterms:replaces),
-	    rdf(E1, RealProp, E2, Graph)
-	).
-
-has_map([E1, E2], owl, [relation(RealProp)], Graph) :-
-	(   ground(E1), ground(E2)
-	->  rdf_has(E1, owl:sameAs, E2, RealProp),
-	    rdf(E1, RealProp, E2, Graph)
-	;   rdfs_subproperty_of(RealProp, owl:sameAs),
+	;   rdfs_subproperty_of(RealProp, MappingProp),
 	    rdf(E1, RealProp, E2, Graph)
 	).
 
 has_map(Map, edoal, Graph) :-
-	has_map_(Map, _, Graph).
+	has_edoal_map_(Map, _Cell, Graph).
 
-has_map(Map, Format, Graph) :-
-	Format \= edoal,
-	has_map(Map, Format, _, Graph).
+has_map([E1, E2], Format, Graph) :-
+	(   ground(Format), Format = edoal
+	->  fail
+	;   true
+	),
+	mapping_format(Format,MappingProp),
+	(   ground(E1), ground(E2)
+	->  rdf_has(E1, MappingProp, E2, RealProp),
+	    rdf(E1, RealProp, E2, Graph)
+	;   rdfs_subproperty_of(RealProp, MappingProp),
+	    rdf(E1, RealProp, E2, Graph)
+	).
+
 
 has_map_chk(Map, Format, Graph) :-
 	has_map(Map, Format, Graph),!.
 
-has_map_([E1,E2], Cell, Graph) :-
+has_edoal_map_([E1,E2], Cell, Graph) :-
 	(   ground(E1)
 	->  rdf(Cell, align:entity1, E1, Graph),
 	    rdf(Cell, align:entity2, E2, Graph)
@@ -120,7 +124,7 @@ has_map_([E1,E2], Cell, Graph) :-
 %	succeeds without doing anything if not.
 
 retract_map([E1,E2], edoal, Graph) :-
-	(   has_map_([E1, E2], Cell, Graph)
+	(   has_edoal_map_([E1, E2], Cell, Graph)
 	->  rdf_retractall(Cell, _,_,Graph)
 	;   true
 	).
