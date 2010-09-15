@@ -134,12 +134,20 @@ prop_to_term(Prop, Value, Term) :-
 	(   NS:Local = align:measure
 	->  (literal(type(_,LRealValue)) = Value;literal(LRealValue) = Value),
 	    term_to_atom(RealValue, LRealValue)
+	;   NS:Local = align:relation
+	->  atom_to_skos_relation(Value, RealValue)
 	;   NS:Local = amalgame:method
 	->  literal(Literal) = Value,
 	    term_to_atom(RealValue, Literal)
 	;   RealValue = Value
 	),
 	Term =.. [Local, RealValue],!.
+
+atom_to_skos_relation(literal('='), R) :- rdf_equal(skos:exactMatch, R),!.
+atom_to_skos_relation(literal('<'), R) :- rdf_equal(skos:broadMatch, R),!.
+atom_to_skos_relation(literal('<'), R) :- rdf_equal(skos:narrowMatch, R),!.
+atom_to_skos_relation(literal(_), R) :- rdf_equal(skos:relatedMatch, R),!.
+atom_to_skos_relation(URL, URL) :- !.
 
 %%	message(+Term)// is det.
 %

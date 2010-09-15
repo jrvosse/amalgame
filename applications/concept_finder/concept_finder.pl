@@ -179,7 +179,7 @@ concept_scheme(Query, C, Label) :-
 concept_scheme(Query, C, Label) :-
 	rdf(C, rdf:type, skos:'ConceptScheme'),
 	once(label_prefix(Query, C, Lit)),
-	text_of_literal(Lit, Label).
+	literal_text(Lit, Label).
 
 
 %%	http_concepts(+Request)
@@ -228,7 +228,7 @@ concept(Type, Parent, Query, Concept, Label, HasNarrower) :-
 concept(Type, Parent, Query, Concept, Label, HasNarrower) :-
 	concept_(Type, Parent, Concept),
 	once(label_prefix(Query, Concept, Lit)),
-	text_of_literal(Lit, Label),
+	literal_text(Lit, Label),
 	has_narrower(Concept, HasNarrower).
 
 concept_(inscheme, ConceptScheme, Concept) :- !,
@@ -400,7 +400,7 @@ html_amalgame_props(Props) -->
 amalgame_props([]) --> !.
 amalgame_props([Term|Ts]) -->
 	{ Term =.. [Prop, Value],
-	  text_of_literal(Value, Txt)
+	  literal_text(Value, Txt)
 	},
 	html(tr([td(Prop), td(Txt)])),
 	amalgame_props(Ts).
@@ -499,3 +499,4 @@ reply_jsonp(JSON, Callback) :-
 	format('Content-type: text/javascript~n~n'),
 	phrase(html([Callback,'(',JSONString,')']), HTML),
 	print_html(HTML).
+
