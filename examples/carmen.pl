@@ -10,7 +10,7 @@
 	  clean/0
 	 ]).
 
-%user:file_search_path(cliopatria, '../startup/ClioPatria').
+%user:file_search_path(cliopatria, '../ClioPatria').
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
@@ -153,7 +153,7 @@ runmatcher1:-
 		   alignment(Graph),
 		   ontology1(Gemet),
 		   ontology2(Asfa),
-		   candidate_matchers([labelmatchEN])
+		   candidate_matchers([labelmatchLang])
 			  ],
 	find_candidates1(Options).
 
@@ -194,7 +194,7 @@ runmatcher2:-
 		   alignment(Graph),
 		   ontology1(Agrovoc),
 		   ontology2(Asfa),
-		   candidate_matchers([labelmatchEN])
+		   candidate_matchers([labelmatchLang])
 			  ],
 	find_candidates2(Options).
 
