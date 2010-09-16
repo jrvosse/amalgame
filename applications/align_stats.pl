@@ -153,6 +153,7 @@ http_skos_export(Request) :-
 	http_redirect(moved, ListGraph, Request).
 
 http_sample_alignment(Request) :-
+	authorized(write(default, create(sample))),
 	http_parameters(Request, [graph(Graph, [length > 0]),
 				  size(Size, [nonneg]),
 				  name(Name, [length > 0]),
@@ -316,7 +317,7 @@ show_alignment_overview(Graph) -->
 		     [input([type(hidden), name(graph), value(Graph)],[]),
 		      input([type(submit), value('Create')],[]),
 		      ' sample of size N=',
-		      input([type(text), name(size), value(Count), size(6)],[]),
+		      input([type(text), name(size), value(25), size(4)],[]),
 		      ' in named graph ',
 		      input([type(text), name(name), value(sample)], []),
 		      ' with method ',
