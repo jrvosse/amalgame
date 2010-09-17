@@ -95,6 +95,11 @@ assert_cell(C1, C2, Options) :-
 	%->  rdf_assert(A, align:map, Cell, Graph)
 	%;   debug(edoal, 'Warning: asserting EDOAL cell without parent alignment', [])
 	%).
+	(   option(source(Source), Options)
+	->  term_to_atom(Source, SourceAtom),
+	    rdf_assert(Cell, amalgame:source, literal(SourceAtom), Graph)
+	;   true
+	),
 	(   option(method(Method), Options)
 	->  term_to_atom(Method, MethodAtom),
 	    rdf_assert(Cell, amalgame:method, literal(MethodAtom), Graph)
