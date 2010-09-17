@@ -8,7 +8,9 @@
 	  align_get_computed_props/2,
 	  align_ensure_stats/1,
 	  align_clear_stats/1,
-	  align_recompute_stats/1
+	  align_recompute_stats/1,
+
+	  assert_alignment_props/3
 	 ]).
 
 :- use_module(library(semweb/rdf_db)).
@@ -88,13 +90,13 @@ align_ensure_stats(found) :-
 		Graphs),
 	length(Graphs, GraphsFound),
 	print_message(informational, map(found, graphs, total, GraphsFound)),
-	assert_alignment_props(Graphs).
+	assert_alignment_props(Graphs, amalgame).
 
 align_ensure_stats(format(Graph)) :-
 	rdf(Graph, amalgame:format, _, amalgame), !.
 align_ensure_stats(format(Graph)) :-
 	has_map(_,Format, Graph:_),!,
-	assert_alignment_props([Graph:[format(literal(Format))]]),!.
+	assert_alignment_props([Graph:[format(literal(Format))]], amalgame),!.
 align_ensure_stats(format(_)) :- !.
 
 
@@ -103,7 +105,7 @@ align_ensure_stats(count(Graph)) :-
 	->  true
 	;   is_alignment_graph(Graph, Format),!,
 	    count_alignment(Graph, Format, Count),
-	    assert_alignment_props(Graph:[count(literal(type('http://www.w3.org/2001/XMLSchema#int',Count)))])
+	    assert_alignment_props(Graph:[count(literal(type('http://www.w3.org/2001/XMLSchema#int',Count)))], amalgame)
 	),!.
 
 align_ensure_stats(source(Graph)) :-
@@ -111,7 +113,7 @@ align_ensure_stats(source(Graph)) :-
 	->  true
 	;   is_alignment_graph(Graph, Format),!,
 	    find_source(Graph, Format, Source),
-	    assert_alignment_props(Graph:[source(Source)])
+	    assert_alignment_props(Graph:[source(Source)], amalgame)
 	),!.
 
 align_ensure_stats(target(Graph)) :-
@@ -119,7 +121,7 @@ align_ensure_stats(target(Graph)) :-
 	->  true
 	;   is_alignment_graph(Graph, Format),!,
 	    find_target(Graph, Format, Target),
-	    assert_alignment_props(Graph:[target(Target)])
+	    assert_alignment_props(Graph:[target(Target)], amalgame)
 	),!.
 
 
@@ -135,7 +137,7 @@ align_ensure_stats(mapped(Graph)) :-
 	    length(MappedTargetConcepts, NrMappedTargetConcepts),
 	    assert_alignment_props(Graph:[mappedSourceConcepts(literal(type('http://www.w3.org/2001/XMLSchema#int', NrMappedSourceConcepts))),
 					  mappedTargetConcepts(literal(type('http://www.w3.org/2001/XMLSchema#int', NrMappedTargetConcepts)))
-					 ])
+					 ], amalgame)
 	),!.
 
 %%	align_clear_stats(+Type) is det.
@@ -196,18 +198,21 @@ find_target(Graph, Format, Target) :-
 	;   iri_xml_namespace(E2, Target)
 	).
 
-assert_alignment_props([]).
-assert_alignment_props([Head|Tail]) :-
-	assert_alignment_props(Head),
-	assert_alignment_props(Tail),!.
+assert_alignment_props(Alignment, Props, Graph) :-
+	assert_alignment_props(Alignment:Props, Graph).
 
-assert_alignment_props(Graph:Props) :-
+assert_alignment_props([],_).
+assert_alignment_props([Head|Tail], Graph) :-
+	assert_alignment_props(Head, Graph),
+	assert_alignment_props(Tail, Graph),!.
+
+assert_alignment_props(Alignment:Props, Graph) :-
 	rdf_equal(amalgame:'', NS),
-	rdf_assert(Graph, rdf:type, amalgame:'Alignment',   amalgame),
+	rdf_assert(Alignment, rdf:type, amalgame:'Alignment',   Graph),
 	forall(member(M,Props),
 	       (   M =.. [PropName, Value],
 		   format(atom(URI), '~w~w', [NS,PropName]),
-		   rdf_assert(Graph, URI, Value, amalgame)
+		   rdf_assert(Alignment, URI, Value, Graph)
 	       )).
 
 has_nickname(Graph,Nick) :-
