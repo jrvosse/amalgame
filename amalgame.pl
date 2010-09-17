@@ -1,8 +1,14 @@
-:- module(amalgame, []).
+:- module(amalgame, [ag_load_schemas/0]).
+
+:- use_module(library(semweb/rdf_library)).
 
 user:file_search_path(amalgame_apps, amalgame('applications')).
-
 http:location(amalgame, cliopatria(amalgame), []).
+
+ag_load_schemas :-
+	rdf_attach_library(amalgame(ontologies)),
+	rdf_load_library(amalgame).
+
 
 :- [
     amalgame(namespaces),
