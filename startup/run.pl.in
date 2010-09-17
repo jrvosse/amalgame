@@ -1,4 +1,4 @@
-#!@SWIPL@ -g cp_server -s
+#!@SWIPL@ -g cp_server([after_load(amalgame:ag_load_schemas)]) -s
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 This file provides a skeleton startup file.  It can be localized by running
