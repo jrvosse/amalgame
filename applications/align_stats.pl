@@ -167,6 +167,7 @@ http_sample_alignment(Request) :-
 			     ' into named graph ', a([href(LinkToSample)], Name),
 			     ' of size ', Size, ' (', Method, ')' ])
 		       ).
+
 sample(Method, Graph, Name, Size) :-
 	(   rdf_graph(Name)
 	->  rdf_unload(Name),
@@ -175,8 +176,14 @@ sample(Method, Graph, Name, Size) :-
 	),
 	rdf_assert(Name, rdf:type, amalgame:'Sample', Name),
 	rdf_assert(Name, amalgame:sampleSize, literal(type(xsd:int, Size)), Name),
-	rdf_assert(Name, amalgame:sourceGraph, Graph, Name),
-	rdf_assert(Name, amalgame:method, literal(Method), Name),
+	rdf_assert(Name, amalgame:sampleMethod, literal(Method), Name),
+	rdf_assert(Name, amalgame:sampleSource, Graph, Name),
+	align_get_computed_props(Graph, SourceProps),
+	findall(member(M),
+		member(member(M), SourceProps),
+		Members),
+	assert_alignment_props(Name, Members, Name),
+
 	findall(Map, has_map(Map, _, Graph), Maps),
 	length(Maps, Length),
 
@@ -224,7 +231,7 @@ assert_map_list([H|T], Graph) :-
 	H=E1-E2-Options,
 	(   has_map([E1,E2], edoal, Graph)
 	->  true
-	;   assert_cell(E1,E2, [graph(Graph)|Options])
+	;   assert_cell(E1,E2, [graph(Graph), alignment(Graph) | Options])
 	),
 	assert_map_list(T,Graph).
 
