@@ -99,7 +99,7 @@ show_schemes -->
 show_schemes([], _, [C, P, A, M , U]) -->
 	html(tr([id(finalrow)],
 		[
-		 td(''), td(''),
+		 td(''), 
 		 td('Total'),
 		 td([style('text-align: right')],C),
 		 td([style('text-align: right')],P),
