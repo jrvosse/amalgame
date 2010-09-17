@@ -174,7 +174,7 @@ sample(Method, Graph, Name, Size) :-
 	    rdf_retractall(Name,_,_,amalgame)
 	;   true
 	),
-	rdf_assert(Name, rdf:type, amalgame:'Sample', Name),
+	rdf_assert(Name, rdf:type, amalgame:'SampleAlignment', Name),
 	rdf_assert(Name, amalgame:sampleSize, literal(type(xsd:int, Size)), Name),
 	rdf_assert(Name, amalgame:sampleMethod, literal(Method), Name),
 	rdf_assert(Name, amalgame:sampleSource, Graph, Name),
@@ -191,7 +191,6 @@ sample(Method, Graph, Name, Size) :-
 	assert_from_list(Method, Name, Graph, 1, RandSet, Maps).
 
 spyme.
-
 assert_from_list(_,_,_,_,[], _).
 assert_from_list(Method, Name, Graph, Nr, [Rand|RandSet], [[E1,E2]|Maps]) :-
 	(   Rand = Nr
@@ -209,13 +208,18 @@ assert_from_list(Method, Name, Graph, Nr, [Rand|RandSet], [[E1,E2]|Maps]) :-
 		append(AltSourceMaps, AltTargetMaps, AltMapsDoubles),
 		sort(AltMapsDoubles, AltMaps)
 	    ;	Method = random_alt_all
-	    ->	findall(E1-E2a-MapOptions,
-			has_map([E1,E2a], _, MapOptions, _),
+	    ->	findall(E1-E2a-[source(G)|MapOptions],
+			(   has_map([E1,E2a], _, MapOptions, G:_),
+			    rdfs_individual_of(G, amalgame:'LoadedAlignment')
+			),
 			AltSourceMaps),
-		findall(E1a-E2-MapOptions,
-			has_map([E1a,E2], _, MapOptions, _),
+		findall(E1a-E2-[source(G)|MapOptions],
+			(   has_map([E1a,E2], _, MapOptions, G:_),
+			    rdfs_individual_of(G, amalgame:'LoadedAlignment')
+			),
 			AltTargetMaps),
-		append(AltSourceMaps, AltTargetMaps, AltMaps)
+		append(AltSourceMaps, AltTargetMaps, AltMapsDoubles),
+		sort(AltMapsDoubles, AltMaps)
 	    ),
 	    assert_map_list(AltMaps, Name),
 	    NewRandSet = RandSet,
@@ -383,7 +387,7 @@ show_overlap_graphs(Overlap) -->
 	{
 	 findall(Nick,
 		 (   rdf(Overlap, amalgame:member, M),
-		     rdf(M, amalgame:nickname, literal(Nick), amalgame_nicknames)
+		     nickname(M,Nick)
 		 ), Graphs),
 	 sort(Graphs, Sorted),
 	 atom_chars(Nicks, Sorted),
@@ -396,7 +400,7 @@ show_alignments -->
 	 align_ensure_stats(found),
 	 findall(Graph,
 		 (   is_alignment_graph(Graph,_),
-		     \+ rdfs_individual_of(Graph, amalgame:'Overlap')
+		     \+ rdfs_individual_of(Graph, amalgame:'OverlapAlignment')
 		 ),
 		 AllGraphs),
 	 sort(AllGraphs, Graphs),

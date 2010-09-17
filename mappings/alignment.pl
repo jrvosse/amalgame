@@ -207,8 +207,11 @@ assert_alignment_props([Head|Tail], Graph) :-
 	assert_alignment_props(Tail, Graph),!.
 
 assert_alignment_props(Alignment:Props, Graph) :-
+	(   rdfs_individual_of(Alignment, amalgame:'Alignment')
+	->  true
+	;   rdf_assert(Alignment, rdf:type, amalgame:'LoadedAlignment',	Graph)
+	),
 	rdf_equal(amalgame:'', NS),
-	rdf_assert(Alignment, rdf:type, amalgame:'Alignment',   Graph),
 	forall(member(M,Props),
 	       (   M =.. [PropName, Value],
 		   format(atom(URI), '~w~w', [NS,PropName]),

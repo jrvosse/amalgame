@@ -10,6 +10,52 @@ amalgame:Alignment a rdfs:Class ;
 	rdfs:label "Amalgame Alignment Graph"@en ;
 	rdfs:comment "The class of all Named Graphs containing mappings and/or alignments."@en.
 
+amalgame:LoadedAlignment a rdfs:Class ;
+	rdfs:subClassOf amalgame:Alignment ;
+	rdfs:label "Loaded Alignment Graph"@en ;
+	rdfs:comment "An alignment loaded from file, e.g. not derived from another alignment"@en.
+
+amalgame:DerivedAlignment a rdfs:Class ;
+	rdfs:subClassOf amalgame:Alignment ;
+	rdfs:label "Derived Alignment Graph"@en ;
+	rdfs:comment "An alignment derived from another alignment"@en.
+
+amalgame:OverlapAlignment a rdfs:Class;
+	rdfs:subClassOf amalgame:DerivedAlignment ;
+	rdfs:label "Amalgame Overlap"@en ;
+	rdfs:comment "A Named Graph that describes the overlap of one or more other named graphs, these constituents are denoted by the amalgame:member property."@en .
+
+amalgame:SampleAlignment a rdfs:Class;
+	rdfs:subClassOf amalgame:DerivedAlignment ;
+	rdfs:label "Amalgame Sample"@en ;
+	rdfs:comment "A Named Graph that describes a sample of another named graph, denoted amalgame:sampleSource property."@en .
+
+amalgame:member a rdf:Property ;
+	rdfs:label "overlap member"@en ;
+	rdfs:comment "Used to define the alignment graphs that define an Overlap."@en ;
+	rdfs:domain amalgame:Overlap ;
+	rdfs:range amalgame:Alignment .
+
+amalgame:count a rdf:Property, owl:FunctionalProperty ;
+	rdfs:label "total map count" ;
+	rdfs:comment "The number of mappings in this Aligment" ;
+	rdfs:domain amalgame:Alignment ;
+	rdfs:range xsd:int .
+
+amalgame:format a rdf:Property , owl:FunctionalProperty ;
+	rdfs:label "mapping format" ;
+	rdfs:comment "The format of the mappings in this Aligment, assuming a graph contains only one format." ;
+	rdfs:domain amalgame:Alignment ;
+	rdfs:range rdfs:Literal .
+
+amalgame:mappedSourceConcepts a rdf:Property, owl:FunctionalProperty ;
+	rdfs:domain amalgame:Alignment ;
+	rdfs:range xsd:int .
+
+amalgame:mappedTargetConcepts a rdf:Property, owl:FunctionalProperty ;
+	rdfs:domain amalgame:Alignment ;
+	rdfs:range xsd:int .
+
 amalgame:Overlap a rdfs:Class;
 	rdfs:subClassOf amalgame:Alignment ;
 	rdfs:label "Amalgame Overlap"@en ;
