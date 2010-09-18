@@ -59,7 +59,7 @@ find_graphs(Map, Graphs) :-
 
 align_get_computed_props(Graph, Props) :-
 	findall([PropLn, Value],
-		(   rdf(Graph, Prop, Value, amalgame),
+		(   rdf(Graph, Prop, Value),
 		    rdf_global_id(amalgame:PropLn, Prop)
 		),
 		GraphProps

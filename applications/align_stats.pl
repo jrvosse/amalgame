@@ -287,37 +287,15 @@ show_alignment_overview(Graph) -->
 	 http_link_to_id(http_sample_alignment, [graph(Graph)], SampleLink),
 
 	 align_get_computed_props(Graph, Props),
-	 memberchk(count(literal(type(_, Count))), Props),
-	 memberchk(format(literal(Format)), Props),
-	 memberchk(source(Source), Props),
-	 memberchk(target(Target), Props),
-	 memberchk(mappedSourceConcepts(literal(type(_,MSC))), Props),
-	 memberchk(mappedTargetConcepts(literal(type(_,MTC))), Props),
-
+	 memberchk(format(Format), Props),
 	 (   Format == skos
 	 ->  SkosExportLink = ''
 	 ;   SkosExportLink = li(a([href(ExportLink)], 'Export to SKOS'))
 	 )
 	},
 	html([p(['Alignment graph: ', a([href(Graph)], Graph)]),
-	      p('Key alignment statistics: '),
-	      table([id(aligntable)],[
-		     tr([td('format:'),
-			 td(Format),
-			 td('Total mappings: '),
-			 td([style('text-align:right')],[Count])
-			]),
-		     tr([td('Source voc:'),
-			 td(\rdf_link(Source)),
-			 td('Source concepts mapped:'),
-			 td([style('text-align:right')],[MSC])
-			]),
-		     tr([td('Target voc:'),
-			 td(\rdf_link(Target)),
-			 td('Target concepts mapped:'),
-			 td([style('text-align:right')],[MTC])
-			])
-		    ]
+	      table(tr([th(property), th(value)]),
+		    \show_align_props(Graph, Props)
 		   ),
 	      p('Actions: '),
 	      ul([
@@ -511,4 +489,19 @@ show_overlap -->
 		    ]
 		  )
 	     ]).
+
+
+show_align_props(_Graph, []) --> !.
+
+show_align_props(Graph, [PropValue|Tail]) -->
+	{
+	 PropValue =.. [Prop, Value],
+	 rdf_equal(amalgame:'', NS),
+	 format(atom(PropURI), '~w~w', [NS, Prop])
+	},
+	html(tr([
+		 td(\rdf_link(PropURI)),
+		 td(\rdf_link(Value))
+		])),
+	show_align_props(Graph, Tail).
 
