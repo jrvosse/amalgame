@@ -146,16 +146,16 @@ http_delete_alignment_graphs(_Request) :-
 
 http_skos_export(Request) :-
 	http_parameters(Request, [graph(Graph, [description('URI of source graph to export from')]),
+				  name(TargetGraph, [default(default_export_graph)]),
 				  min(Min, [between(0.0, 1.0), description('Minimal confidence level')]),
 				  max(Max, [between(0.0, 1.0), description('Maximal confidence level')]),
 				  relation(MapRelation,
 					   [default('http://www.w3.org/2004/02/skos/core#closeMatch')])
 				 ]),
 
-	format(atom(SkosGraph), '~w_skos', [Graph]),
-	(rdf_graph(SkosGraph) -> rdf_unload(SkosGraph); true),
-	edoal_to_triples(Graph, SkosGraph, [relation(MapRelation), min(Min), max(Max)]),
-	http_link_to_id(list_graph, [graph(SkosGraph)], ListGraph),
+	(rdf_graph(TargetGraph) -> rdf_unload(TargetGraph); true),
+	edoal_to_triples(Graph, TargetGraph, [relation(MapRelation), min(Min), max(Max)]),
+	http_link_to_id(list_graph, [graph(TargetGraph)], ListGraph),
 	http_redirect(moved, ListGraph, Request).
 
 http_sample_alignment(Request) :-
@@ -295,14 +295,11 @@ show_alignment_overview(Graph) -->
 	 rdf_equal(skos:closeMatch, DefaultRelation),
 	 supported_map_relations(MapRelations),
 	 align_get_computed_props(Graph, Props),
-	 memberchk(format(Format), Props),
-	 (   Format == skos
-	 ->  SkosExportLink = ''
-	 ;   SkosExportLink = li(form([action(ExportLink)],
+	 ExportOption = li(form([action(ExportLink)],
 				      [input([type(submit),
-					      value('Export')
+					      value('Export maps')
 					     ],[]),
-				       ' to a SKOS-like single triple format, confidence level between : ',
+				      ' with confidence level between : ',
 				       input([type(text),
 					      name(min),
 					      value('0.0'),
@@ -319,10 +316,12 @@ show_alignment_overview(Graph) -->
 					      value(Graph)],[]),
 				       ' and default map relation: ',
 				       select([name(relation)],
-					      [\show_mapping_relations(MapRelations, DefaultRelation)])
+					      [\show_mapping_relations(MapRelations, DefaultRelation)]),
+				       ' to a single triple format in named graph',
+				       input([type(text), name(name), value(exportedgraph), size(25)],[])
 				      ]
 				     ))
-	 )
+
 	},
 	html([p(['Alignment graph: ', a([href(Graph)], Graph)]),
 	      table(tr([th(property), th(value)]),
@@ -332,7 +331,7 @@ show_alignment_overview(Graph) -->
 	      ul([
 		  li(a([href(GraphLink)], 'View/download graph')),
 		  li(a([href(EvalLink)], 'Evaluate all mappings in graph')),
-		  SkosExportLink,
+		  ExportOption,
 		  li(form([action(SampleLink)],
 		     [input([type(hidden), name(graph), value(Graph)],[]),
 		      input([type(submit), value('Create')],[]),
