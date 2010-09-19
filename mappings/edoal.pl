@@ -1,7 +1,7 @@
 :-module(edoal, [
 		 assert_alignment/2, 	% +URI, +OptionList
 		 assert_cell/3,	        % +E1, +E2, +OptionList
-		 edoal_to_skos/3        % +EdoalGraph, +Options, +SkosGraph
+		 edoal_to_triples/3	% +EdoalGraph, +Options, +TargetGraph
 		]
 	).
 
@@ -106,25 +106,55 @@ assert_cell(C1, C2, Options) :-
 	;   true
 	).
 
-%%	edoal_to_skos(+EdoalGraph, +SkosGraph, +Options) is det.
+%%	edoal_to_triples(+EdoalGraph, +SkosGraph, +Options) is det.
 %
-%	Convert mappings in EdoalGraph to SKOS mapping relations in SkosGraph.
+%	Convert mappings in EdoalGraph to some triple-based format using
+%	simple mapping relations such as defined by as SKOS, owl:sameAs
+%	or dc:replaces.
+%
+%	Options:
+%	* relation(URI): relation to be used, defaults to
+%	skos:closeMatch
+%	* min(Measure): minimal confidence level, defaults to 0.0.
+%	* max(Measure): max confidence level, default to 1.0
 
-edoal_to_skos(EdoalGraph, SkosGraph, Options) :-
+edoal_to_triples(EdoalGraph, TargetGraph, Options) :-
 	rdf_transaction(
 			forall(has_map([C1, C2], edoal, MatchOptions, EdoalGraph),
-			       assert_as_skos(C1-C2-MatchOptions, Options, SkosGraph)
+			       assert_as_single_triple(C1-C2-MatchOptions, Options, TargetGraph)
 			      )
-		       ).
+		       ),
+	option(min(Min), Options, 0.0),
+	option(max(Max), Options, 1.0),
+	rdf_bnode(ConditionBnode),
+	rdf_assert(ConditionBnode, amalgame:minimalConfidence, literal(type(xsd:float, Min)), TargetGraph),
+	rdf_assert(ConditionBnode, amalgame:maximalConfidence, literal(type(xsd:float, Max)), TargetGraph),
+	rdf_assert(TargetGraph, rdf:type, amalgame:'ExportedAlignment', TargetGraph),
+	rdf_assert(TargetGraph, amalgame:exportFrom, EdoalGraph, TargetGraph),
+	rdf_assert(TargetGraph, amalgame:exportCondition, ConditionBnode, TargetGraph).
 
 
-assert_as_skos(C1-C2-MatchOptions, Options, SkosGraph) :-
-	(   memberchk(relation(R), MatchOptions),
-	    rdfs_subproperty_of(R, skos:mappingRelation)
-	->  true
-	;   memberchk(relation(R), Options),
-	    rdfs_subproperty_of(R, skos:mappingRelation)
-	->  true
-	;   rdf_equal(skos:closeMatch, R)
+
+assert_as_single_triple(_-_-MatchOptions, Options, _Graph) :-
+	% Do nothing if max < measure or measure < min
+	option(measure(Measure), MatchOptions, 1.0),
+	option(min(Min), Options, 0.0),
+	option(max(Max), Options, 1.0),
+	(   Measure < Min
+	;   Measure > Max
 	),
-	rdf_assert(C1, R, C2, SkosGraph).
+	!.
+
+assert_as_single_triple(C1-C2-MatchOptions, Options, TargetGraph) :-
+	rdf_equal(skos:closeMatch, DefaultRelation),
+	append([MatchOptions,
+		Options,
+		[DefaultRelation]
+	       ],
+	       AllOptions),
+	memberchk(relation(R), AllOptions),
+	rdf_assert(C1, R, C2, TargetGraph).
+
+
+
+

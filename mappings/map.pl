@@ -4,7 +4,8 @@
 	   has_map/4,              % ?Map, ?Format ?Options, ?Graph
 	   has_map/3,		   % ?Map, ?Format ?Graph
 	   has_map_chk/3,	   % ?Map, ?Format ?Graph
-	   retract_map/3           % +Map, +Format, +Graph
+	   retract_map/3 ,	   % +Map, +Format, +Graph
+	   supported_map_relations/1 % ?URIList
 	  ]
 	 ).
 
@@ -22,7 +23,7 @@ from the underlying formats.
 
 :- dynamic
 	mapping_props/1,
-	mapping_format/2.
+	mapping_relation/2.
 
 init_mapping_props :-
 	P = [align:measure,
@@ -34,14 +35,22 @@ init_mapping_props :-
 	retractall(mapping_props(_)),
 	assert(mapping_props(Props)).
 
-init_mapping_format :-
-	rdf_equal(skos:mappingRelation, SkosRelation), assert(mapping_format(skos, SkosRelation)),
-	rdf_equal(dcterms:replaces, DcRelation),       assert(mapping_format(dc, DcRelation)),
-	rdf_equal(owl:sameAs, OwlRelation),            assert(mapping_format(owl, OwlRelation)).
+init_mapping_relation :-
+	retractall(mapping_relation(_,_)),
+	rdf_equal(skos:mappingRelation, SkosRelation), assert(mapping_relation(skos, SkosRelation)),
+	rdf_equal(dcterms:replaces, DcRelation),       assert(mapping_relation(dc, DcRelation)),
+	rdf_equal(owl:sameAs, OwlRelation),            assert(mapping_relation(owl, OwlRelation)).
 
 :- init_mapping_props.
-:- init_mapping_format.
+:- init_mapping_relation.
 
+supported_map_relations(List) :-
+	findall(Relation,
+		(   mapping_relation(_, Super),
+		    rdfs_subproperty_of(Relation, Super),
+		    \+ rdf_equal(skos:mappingRelation, Relation)
+		),
+		List).
 
 %%	map_iterator(-Map) is non_det.
 %
@@ -82,7 +91,7 @@ has_map([E1, E2], edoal, Properties, Graph) :-
 		Properties).
 
 has_map([E1, E2], Format, [relation(RealProp)], Graph) :-
-	mapping_format(Format,MappingProp),
+	mapping_relation(Format,MappingProp),
 	(   ground(E1), ground(E2)
 	->  rdf_has(E1, MappingProp, E2, RealProp),
 	    rdf(E1, RealProp, E2, Graph)
@@ -98,7 +107,7 @@ has_map([E1, E2], Format, Graph) :-
 	->  fail
 	;   true
 	),
-	mapping_format(Format,MappingProp),
+	mapping_relation(Format,MappingProp),
 	(   ground(E1), ground(E2)
 	->  rdf_has(E1, MappingProp, E2, RealProp),
 	    rdf(E1, RealProp, E2, Graph)

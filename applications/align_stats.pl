@@ -6,6 +6,8 @@
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
+:- use_module(library(semweb/rdf_label)).
+
 
 :- use_module(user(user_db)).
 :- use_module(components(label)).
@@ -143,12 +145,16 @@ http_delete_alignment_graphs(_Request) :-
 
 
 http_skos_export(Request) :-
-	http_parameters(Request, [graph(Graph, []),
-				  relation(MapRelation, [default('http://www.w3.org/2004/02/skos/core#closeMatch')])
+	http_parameters(Request, [graph(Graph, [description('URI of source graph to export from')]),
+				  min(Min, [between(0.0, 1.0), description('Minimal confidence level')]),
+				  max(Max, [between(0.0, 1.0), description('Maximal confidence level')]),
+				  relation(MapRelation,
+					   [default('http://www.w3.org/2004/02/skos/core#closeMatch')])
 				 ]),
-	format(atom(SkosGraph), '~p_skos', [Graph]),
+
+	format(atom(SkosGraph), '~w_skos', [Graph]),
 	(rdf_graph(SkosGraph) -> rdf_unload(SkosGraph); true),
-	edoal_to_skos(Graph, SkosGraph, [relation(MapRelation)]),
+	edoal_to_triples(Graph, SkosGraph, [relation(MapRelation), min(Min), max(Max)]),
 	http_link_to_id(list_graph, [graph(SkosGraph)], ListGraph),
 	http_redirect(moved, ListGraph, Request).
 
@@ -283,14 +289,39 @@ show_alignment_overview(Graph) -->
 			 [graph=Graph, condition=sourceType], STLink),
 	 http_link_to_id(http_split_alignment,
 			 [graph=Graph, condition=targetType], TTLink),
-	 http_link_to_id(http_skos_export, [graph(Graph)], ExportLink),
-	 http_link_to_id(http_sample_alignment, [graph(Graph)], SampleLink),
+	 http_link_to_id(http_skos_export, [], ExportLink),
+	 http_link_to_id(http_sample_alignment, [], SampleLink),
 
+	 rdf_equal(skos:closeMatch, DefaultRelation),
+	 supported_map_relations(MapRelations),
 	 align_get_computed_props(Graph, Props),
 	 memberchk(format(Format), Props),
 	 (   Format == skos
 	 ->  SkosExportLink = ''
-	 ;   SkosExportLink = li(a([href(ExportLink)], 'Export to SKOS'))
+	 ;   SkosExportLink = li(form([action(ExportLink)],
+				      [input([type(submit),
+					      value('Export')
+					     ],[]),
+				       ' to a SKOS-like single triple format, confidence level between : ',
+				       input([type(text),
+					      name(min),
+					      value('0.0'),
+					      size(3)
+					     ],[]),
+				       ' and ',
+				       input([type(text),
+					      name(max),
+					      value('1.0'),
+					      size(3)
+					     ],[]),
+				       input([type(hidden),
+					      name(graph),
+					      value(Graph)],[]),
+				       ' and default map relation: ',
+				       select([name(relation)],
+					      [\show_mapping_relations(MapRelations, DefaultRelation)])
+				      ]
+				     ))
 	 )
 	},
 	html([p(['Alignment graph: ', a([href(Graph)], Graph)]),
@@ -300,8 +331,8 @@ show_alignment_overview(Graph) -->
 	      p('Actions: '),
 	      ul([
 		  li(a([href(GraphLink)], 'View/download graph')),
-		  SkosExportLink,
 		  li(a([href(EvalLink)], 'Evaluate all mappings in graph')),
+		  SkosExportLink,
 		  li(form([action(SampleLink)],
 		     [input([type(hidden), name(graph), value(Graph)],[]),
 		      input([type(submit), value('Create')],[]),
@@ -322,6 +353,18 @@ show_alignment_overview(Graph) -->
 		 ])
 	     ]
 	    ).
+
+show_mapping_relations([],_) --> !.
+show_mapping_relations([H|T], Selected) -->
+	{
+	  (   H=Selected
+	  ->  SelectedAttr = selected(selected)
+	  ;   SelectedAttr = true
+	  )
+	},
+	html(option([SelectedAttr, name(relation), value(H)], \turtle_label(H))),
+	show_mapping_relations(T, Selected).
+
 
 show_alignment(Graph) -->
 	{
