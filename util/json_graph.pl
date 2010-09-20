@@ -404,6 +404,10 @@ iface_key_resource_graph(Rs, Ps0, Graph, _Options) :-
                 Graph
                ).
 
+hooked_rdf_has(S, P, O) :-
+	rdf_has(S,P,literal(lang(en, L))),
+	O = literal(lang(en,L)),!.
+
 hooked_rdf_has(S,P,O) :-
 	rdf_has(S,P,O).
 
