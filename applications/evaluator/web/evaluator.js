@@ -562,8 +562,8 @@ var formatItem = function(sMatch, oInfo, bHTML) {
         if(oInfo) {
                 if (oInfo.altlabel) sAltLabel = oInfo.altlabel; else sAltLabel = {};
                 if (oInfo.prelabel) sPreLabel = oInfo.prelabel[0].value; else sPreLabel = '';
-                if (oInfo.endlabel) sEndLabel = oInfo.endlabel[0].value; else sEndLabel = '';
-                if (oInfo.extlabel) sExtLabel = oInfo.extlabel[0].value; else sExtLabel = '';
+                if (oInfo.deflabel) sDefLabel = oInfo.deflabel[0].value; else sDefLabel = '';
+                if (oInfo.scopelabel) sScopeLabel = oInfo.scopelabel[0].value; else sScopeLabel = '';
                 if (oInfo.sublabel) sSubLabel = oInfo.sublabel[0].value; else sSubLabel = '';
                 if (oInfo.preflabel) {
 			sMatch= oInfo.preflabel[0].value;   
@@ -583,11 +583,12 @@ var formatItem = function(sMatch, oInfo, bHTML) {
 			sLabel += alt==0 ? '' : ', ';
 			sLabel += oInfo.altlabel[alt].value;
 		}
-                sLabel += sExtLabel ? '<span class="acExtLabel">, '+sExtLabel+'</span>' : '';
+                sLabel += sDefLabel ? '<div class="acDefLabel">'+sDefLabel+'</div>' : '';
 
-                sHTML =   sEndLabel ? '<div class="acEndLabel">'+sEndLabel+'</div>' : '';
+                sHTML =   '';
                 sHTML +=  '<div class="acLabel">'+sLabel+'</div>';
                 sHTML +=  '<div class="acSubLabel">'+sSubLabel+'</div>';
+		sHTML +=  sScopeLabel ? '<div class="acScopeLabel"><span class=scopelabel>scope:</span> '+sScopeLabel+'</div>' : '';
                 return sHTML;
         }
         else {
