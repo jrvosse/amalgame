@@ -261,7 +261,7 @@ classify_graph_type(Graph) :-
 classify_graph_type(Graph) :-
 	has_map(_, Format, Graph),!,
 	rdf_assert(Graph, rdf:type, amalgame:'LoadedAlignment', amalgame),
-	rdf_assert(Graph, amalgame:format, Format, amalgame).
+	rdf_assert(Graph, amalgame:format, literal(Format), amalgame).
 
 classify_graph_type(Graph) :-
 	rdf_assert(Graph, rdf:type, amalgame:'NoAlignmentGraph', amalgame).
