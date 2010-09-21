@@ -25,7 +25,7 @@ matchers. It assumes matchers assert mappings in different name graphs.
 :- use_module(amalgame(namespaces)).
 
 find_overlap(ResultsSorted, [cached(true)]) :-
-	rdf(_, amalgame:member, _),
+	rdf(_, rdf:type, amalgame:'OverlapAlignment'),
 	!, % assume overlap stats have been computed already and can be gathered from the RDF
 	findall(C:G:E, is_precomputed_overlap(G,C,E), Results),
 	sort(Results, ResultsSorted).
