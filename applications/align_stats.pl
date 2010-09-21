@@ -69,10 +69,11 @@ http_split_alignment(Request) :-
 			]).
 
 http_compute_stats(Request) :-
+	http_link_to_id(http_list_alignments, [], Link),
 	http_parameters(Request, [graph(all, [])]),
 	call_showing_messages(compute_stats,
 			      [head(title('Amalgame: computing alignment statistics')),
-			       footer(h4('Done'))
+			       footer(div([class(readymeassage)],['Done, ', a([href(Link)],['See alignment overview to check results'])]))
 			      ]).
 
 http_compute_stats(Request) :-
@@ -190,12 +191,10 @@ sample(Method, Graph, Name, Size) :-
 	randset(Size, Length, RandSet),
 	assert_from_list(Method, Name, Graph, 1, RandSet, Maps).
 
-spyme.
 assert_from_list(_,_,_,_,[], _).
 assert_from_list(Method, Name, Graph, Nr, [Rand|RandSet], [[E1,E2]|Maps]) :-
 	(   Rand = Nr
 	->  has_map([E1,E2], _, Options, Graph),!,
-	    spyme,
 	    (	Method = randommaps
 	    ->	AltMaps = [E1-E2-Options]
 	    ;	Method = random_alt_in_graph
