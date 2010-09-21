@@ -3,10 +3,10 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/http_path)).
+:- use_module(library(version)).
 
 :- use_module(cliopatria(hooks)).
 :- use_module(cliopatria(skin)).
-:- use_module(cliopatria(version)).
 :- use_module(components(menu)).
 :- use_module(components(simple_search)).
 

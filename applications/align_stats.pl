@@ -71,7 +71,9 @@ http_split_alignment(Request) :-
 http_compute_stats(Request) :-
 	http_parameters(Request, [graph(all, [])]),
 	call_showing_messages(compute_stats,
-			      [head(title('Amalgame: computing alignment statistics'))]).
+			      [head(title('Amalgame: computing alignment statistics')),
+			       footer(h4('Done'))
+			      ]).
 
 http_compute_stats(Request) :-
 	http_parameters(Request,
