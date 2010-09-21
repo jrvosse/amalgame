@@ -253,10 +253,10 @@ target_graph([E1, E2], OldGraph, Condition, Graph) :-
 	).
 
 classify_graph_type(Graph) :-
-	rdfs_individual_of(Graph, amalgame:'Alignement'), !.
+	rdfs_individual_of(Graph, amalgame:'Alignment'), !.
 
 classify_graph_type(Graph) :-
-	rdfs_individual_of(Graph, amalgame:'NoAlignementGraph'), !.
+	rdfs_individual_of(Graph, amalgame:'NoAlignmentGraph'), !.
 
 classify_graph_type(Graph) :-
 	has_map(_, Format, Graph),!,
