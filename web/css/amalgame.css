@@ -1,0 +1,60 @@
+body {
+    	margin: .5%;
+	color: #202020;
+	font-family: Arial;
+}
+a {
+	color: #E2003B;
+	text-decoration: none;
+}
+#nav li a {
+	color: #E2003B;
+	cursor: pointer;
+	text-decoration: none;
+	font-family: Arial;
+	font-weight: bold;
+
+}
+
+table a {
+	color: #2B477F;
+}
+
+a:hover {
+	color: #2B477F;
+	text-decoration: underline;
+}
+
+table {
+	margin: 1%;
+	border-style: solid;
+	border-width: thin;
+	border-color: #BBBBBB;
+	border-collapse: collapse;
+}
+
+tr.finalrow {
+	border-top: solid thin #BBBBBB;	
+	font-style: italic;
+}
+
+address#amalgame {
+        color: #3B5998;
+	letter-spacing: 1px;
+	font-size: 0.8em;
+	text-align: right;
+}
+
+
+th, table.rdf_browse th { 	
+ 	font-family: Arial, sans-serif;
+ 	font-style: italic;
+ 	font-weight: normal;
+	background-color: #E7E7E7;
+	color: #020202;
+	/* 
+	 * background-color: #E2003B; 
+       	 * color: white;
+	 */
+}
+

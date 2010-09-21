@@ -81,16 +81,7 @@ align_get_computed_props(Graph, Props) :-
 %
 
 align_ensure_stats(found) :-
-	rdf(_, amalgame:format, _, amalgame), !.
-align_ensure_stats(found) :-
-	findall(Graph:[format(literal(Format))],
-		(   rdf_graph(Graph),
-		    has_map_chk(_,Format, Graph:_)
-		),
-		Graphs),
-	length(Graphs, GraphsFound),
-	print_message(informational, map(found, graphs, total, GraphsFound)),
-	assert_alignment_props(Graphs, amalgame).
+	forall(rdf_graph(Graph), classify_graph_type(Graph)).
 
 align_ensure_stats(format(Graph)) :-
 	rdf(Graph, amalgame:format, _, amalgame), !.
@@ -260,3 +251,17 @@ target_graph([E1, E2], OldGraph, Condition, Graph) :-
 	->  format(atom(Graph), '~p_~p', [OldGraph, FirstType])
 	;   Graph = OldGraph
 	).
+
+classify_graph_type(Graph) :-
+	rdfs_individual_of(Graph, amalgame:'Alignement'), !.
+
+classify_graph_type(Graph) :-
+	rdfs_individual_of(Graph, amalgame:'NoAlignementGraph'), !.
+
+classify_graph_type(Graph) :-
+	has_map(_, Format, Graph),!,
+	rdf_assert(Graph, rdf:type, amalgame:'LoadedAlignment', amalgame),
+	rdf_assert(Graph, amalgame:format, Format, amalgame).
+
+classify_graph_type(Graph) :-
+	rdf_assert(Graph, rdf:type, amalgame:'NoAlignmentGraph', amalgame).

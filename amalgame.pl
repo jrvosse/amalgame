@@ -17,5 +17,5 @@ ag_load_schemas :-
     amalgame_apps(concept_finder/concept_finder),
     amalgame_apps(equalizer/equalizer),
     amalgame_apps(evaluator/evaluator),
-    menu
+    menu, skin
    ].

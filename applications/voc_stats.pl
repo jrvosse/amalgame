@@ -27,10 +27,7 @@
 
 http_list_skos_vocs(_Request) :-
 	reply_html_page(cliopatria(default),
-			[title('SKOS vocabularies'),
-			 style('#skosvoctable { border-collapse: collapse; border: solid #CCCCCC; }'),
-			 style('#skosvoctable td, th { border: solid #CCCCCC; }'),
-			 style('#finalrow td { border-top: solid #AAAAAA; }')
+			[title('SKOS vocabularies')
 			],
 			[ h4('SKOS concept schemes in the RDF store'),
 			  \show_schemes
@@ -97,9 +94,9 @@ show_schemes -->
 	     ]).
 
 show_schemes([], _, [C, P, A, M , U]) -->
-	html(tr([id(finalrow)],
+	html(tr([class(finalrow)],
 		[
-		 td(''), 
+		 td(''),
 		 td('Total'),
 		 td([style('text-align: right')],C),
 		 td([style('text-align: right')],P),
