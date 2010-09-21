@@ -48,9 +48,9 @@ http_list_alignments(_Request) :-
 http_list_alignment(Request) :-
 	http_parameters(Request, [graph(Graph, [])]),
 	reply_html_page(cliopatria(default),
-			[title('Amalgame: alignment overview')
+			[title('Amalgame: alignment manipulation')
 			],
-			[ h4('Alignment overview'),
+			[ h4('Alignment manipulations'),
 			  \show_alignment_overview(Graph)
 			]).
 
@@ -175,10 +175,15 @@ sample(Method, Graph, Name, Size) :-
 	    rdf_retractall(Name,_,_,amalgame)
 	;   true
 	),
+	get_time(T), format_time(atom(Time), '%a, %d %b %Y %H:%M:%S %z', T),
+	logged_on(User, 'anonymous'),
 	rdf_assert(Name, rdf:type, amalgame:'SampleAlignment', Name),
 	rdf_assert(Name, amalgame:sampleSize, literal(type(xsd:int, Size)), Name),
 	rdf_assert(Name, amalgame:sampleMethod, literal(Method), Name),
-	rdf_assert(Name, amalgame:sampleSource, Graph, Name),
+	rdf_assert(Name, dc:source, Graph, Name),
+	rdf_assert(Name, dc:date, literal(Time), Name),
+	rdf_assert(Name, dc:creator, literal(User), Name),
+
 	align_get_computed_props(Graph, SourceProps),
 	findall(member(M),
 		member(member(M), SourceProps),
@@ -273,7 +278,6 @@ show_alignment_overview(Graph) -->
 
 	 rdf_equal(skos:closeMatch, DefaultRelation),
 	 supported_map_relations(MapRelations),
-	 align_get_computed_props(Graph, Props),
 	 ExportOption = li(form([action(ExportLink)],
 				      [input([type(submit),
 					      value('Export maps')
@@ -303,9 +307,7 @@ show_alignment_overview(Graph) -->
 
 	},
 	html([p(['Alignment graph: ', a([href(Graph)], Graph)]),
-	      table(tr([th(property), th(value)]),
-		    \show_align_props(Graph, Props)
-		   ),
+	      %table(tr([th(property), th(value)]), \show_align_props(Graph, Props)),
 	      p('Actions: '),
 	      ul([
 		  li(a([href(GraphLink)], 'View/download graph')),
