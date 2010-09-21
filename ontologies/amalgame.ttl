@@ -6,6 +6,10 @@
 @prefix skos:	  <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd:      <http://www.w3.org/2001/XMLSchema#> .
 
+amalgame:NoAlignmentGraph a rdfs:Class ;
+	rdfs:label "No Alignment Graph"@en ;
+	rdfs:comment "The class of all Named Graphs containing no mappings and/or alignments."@en.
+
 amalgame:Alignment a rdfs:Class ;
 	rdfs:label "Amalgame Alignment Graph"@en ;
 	rdfs:comment "The class of all Named Graphs containing mappings and/or alignments."@en.
