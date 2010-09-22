@@ -32,7 +32,16 @@ amalgame:OverlapAlignment a rdfs:Class;
 amalgame:SampleAlignment a rdfs:Class;
 	rdfs:subClassOf amalgame:DerivedAlignment ;
 	rdfs:label "Amalgame Sample"@en ;
-	rdfs:comment "A Named Graph that describes a sample of another named graph, denoted amalgame:sampleSource property."@en .
+	rdfs:comment "A Named Graph that describes a sample of another named graph, denoted by dcterms:source in the amalgame:provenance section."@en .
+
+amalgame:ExportedAlignment a rdfs:Class;
+	rdfs:subClassOf amalgame:DerivedAlignment ;
+	rdfs:label "Amalgame Exported"@en ;
+	rdfs:comment "A Named Graph that has been created by exporting another named graph into a new format. The source graph is recorded by dcterms:source in the amalgame:provenance section."@en .
+
+amalgame:Provenance a rdfs:Class;
+	rdfs:label "Amalgame Provenance"@en ;
+	rdfs:comment "Any resource that describes provenance information of graphs that are relevant for amalgame"@en .
 
 amalgame:member a rdf:Property ;
 	rdfs:label "overlap member"@en ;
@@ -125,3 +134,33 @@ amalgame:numberOfMappedConcepts a rdf:Property , owl:FunctionalProperty ;
 	rdfs:domain skos:ConceptScheme ;
 	rdfs:range xsd:int .
 
+amalgame:provenance a rdf:Property ;
+	rdfs:label "provenance informaton"@en;
+	rdfs:comment "Could link to any resource describing provenance information about this alignment graph"@en ;
+	rdfs:domain amalgame:Alignment ;
+	rdfs:range amalgame:Provenance .
+
+amalgame:request a rdf:Property, owl:FunctionalProperty ;
+	rdfs:label "URI of the HTTP request used to create this graph"@en ;
+	rdfs:domain amalgame:Provenance ;
+	rdfs:range rdfs:Resource .
+
+amalgame:sampleMethod a rdf:Property; 
+	rdfs:label "sample method used create this sample graph"@en ;
+	rdfs:domain amalgame:Provenance ;
+	rdfs:range rdfs:Literal .
+
+amalgame:sampleSize a rdf:Property, owl:FunctionalProperty ;
+	rdfs:label "sample size used create this sample graph"@en ;
+	rdfs:domain amalgame:Provenance ;
+	rdfs:range xsd:int .
+
+amalgame:minimalConfidence a rdf:Property, owl:FunctionalProperty ;
+	rdfs:comment "Mappings with confidence below this level have not been exported to this graph"@en ;
+	rdfs:domain amalgame:Provenance ;
+	rdfs:range xsd:float .
+
+amalgame:maximalConfidence a rdf:Property, owl:FunctionalProperty ;
+	rdfs:comment "Mappings with confidence above this level have not been exported to this graph"@en ;
+	rdfs:domain amalgame:Provenance ;
+	rdfs:range xsd:float .

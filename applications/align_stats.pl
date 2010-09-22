@@ -187,6 +187,7 @@ sample(Request, Method, Graph, Name, Size) :-
 	memberchk(protocol(Protocol), Request),
 	format(atom(ReqUsed), '~w://~w:~w~w', [Protocol,Hostname,Port,ReqURI]),
 	rdf_bnode(Provenance),
+	rdf_assert(Provenance, rdf:type, amalgame:'Provenance', Name),
 	rdf_assert(Provenance, dcterms:title, literal('Provenance: about this sample'), Name),
 	rdf_assert(Provenance, dcterms:source, Graph, Name),
 	rdf_assert(Provenance, dcterms:date, literal(Time), Name),
