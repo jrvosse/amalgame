@@ -151,9 +151,10 @@ http_skos_export(Request) :-
 				 ]),
 
 	(rdf_graph(TargetGraph) -> rdf_unload(TargetGraph); true),
-	edoal_to_triples(Graph, TargetGraph, [relation(MapRelation), min(Min), max(Max)]),
+	edoal_to_triples(Request, Graph, TargetGraph, [relation(MapRelation), min(Min), max(Max)]),
 	http_link_to_id(list_graph, [graph(TargetGraph)], ListGraph),
 	http_redirect(moved, ListGraph, Request).
+
 
 http_sample_alignment(Request) :-
 	authorized(write(default, create(sample))),
@@ -186,11 +187,11 @@ sample(Request, Method, Graph, Name, Size) :-
 	memberchk(protocol(Protocol), Request),
 	format(atom(ReqUsed), '~w://~w:~w~w', [Protocol,Hostname,Port,ReqURI]),
 	rdf_bnode(Provenance),
-	rdf_assert(Provenance, dc:title, literal('Provenance: about this sample'), Name),
-	rdf_assert(Provenance, dc:source, Graph, Name),
-	rdf_assert(Provenance, dc:date, literal(Time), Name),
-	rdf_assert(Provenance, dc:creator, literal(User), Name),
-	rdf_assert(Provenance, owl:version, literal(Version), Name),
+	rdf_assert(Provenance, dcterms:title, literal('Provenance: about this sample'), Name),
+	rdf_assert(Provenance, dcterms:source, Graph, Name),
+	rdf_assert(Provenance, dcterms:date, literal(Time), Name),
+	rdf_assert(Provenance, dcterms:creator, literal(User), Name),
+	rdf_assert(Provenance, owl:versionInfo, literal(Version), Name),
 	rdf_assert(Provenance, amalgame:request, literal(ReqUsed), Name),
 	rdf_assert(Provenance, amalgame:sampleSize, literal(type(xsd:int, Size)), Name),
 	rdf_assert(Provenance, amalgame:sampleMethod, literal(Method), Name),

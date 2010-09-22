@@ -1,7 +1,7 @@
 :-module(edoal, [
 		 assert_alignment/2, 	% +URI, +OptionList
 		 assert_cell/3,	        % +E1, +E2, +OptionList
-		 edoal_to_triples/3	% +EdoalGraph, +Options, +TargetGraph
+		 edoal_to_triples/4	% +Request, +EdoalGraph, +Options, +TargetGraph
 		]
 	).
 
@@ -15,9 +15,12 @@ http://alignapi.gforge.inria.fr/edoal.html
 
 */
 
-
+:- use_module(library(http/http_host)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
+:- use_module(library(version)).
+
+:- use_module(user(user_db)).
 
 :- use_module(amalgame(namespaces)).
 :- use_module(map).
@@ -106,7 +109,8 @@ assert_cell(C1, C2, Options) :-
 	;   true
 	).
 
-%%	edoal_to_triples(+EdoalGraph, +SkosGraph, +Options) is det.
+%%	edoal_to_triples(+Request, +EdoalGraph, +SkosGraph, +Options) is
+%%	det.
 %
 %	Convert mappings in EdoalGraph to some triple-based format using
 %	simple mapping relations such as defined by as SKOS, owl:sameAs
@@ -118,7 +122,7 @@ assert_cell(C1, C2, Options) :-
 %	* min(Measure): minimal confidence level, defaults to 0.0.
 %	* max(Measure): max confidence level, default to 1.0
 
-edoal_to_triples(EdoalGraph, TargetGraph, Options) :-
+edoal_to_triples(Request, EdoalGraph, TargetGraph, Options) :-
 	rdf_transaction(
 			forall(has_map([C1, C2], edoal, MatchOptions, EdoalGraph),
 			       assert_as_single_triple(C1-C2-MatchOptions, Options, TargetGraph)
@@ -126,14 +130,27 @@ edoal_to_triples(EdoalGraph, TargetGraph, Options) :-
 		       ),
 	option(min(Min), Options, 0.0),
 	option(max(Max), Options, 1.0),
-	rdf_bnode(ConditionBnode),
-	rdf_assert(ConditionBnode, amalgame:minimalConfidence, literal(type(xsd:float, Min)), TargetGraph),
-	rdf_assert(ConditionBnode, amalgame:maximalConfidence, literal(type(xsd:float, Max)), TargetGraph),
-	rdf_assert(TargetGraph, rdf:type, amalgame:'ExportedAlignment', TargetGraph),
-	rdf_assert(TargetGraph, amalgame:exportFrom, EdoalGraph, TargetGraph),
-	rdf_assert(TargetGraph, amalgame:exportCondition, ConditionBnode, TargetGraph).
 
-
+	get_time(T), format_time(atom(Time), '%a, %d %b %Y %H:%M:%S %z', T),
+	logged_on(User, 'anonymous'),
+	git_version(CP_version),
+	format(atom(Version), 'Made using Amalgame/Cliopatria ~w', [CP_version]),
+	http_current_host(Request, Hostname, Port, [global(true)]),
+	memberchk(request_uri(ReqURI), Request),
+	memberchk(protocol(Protocol), Request),
+	format(atom(ReqUsed), '~w://~w:~w~w', [Protocol,Hostname,Port,ReqURI]),
+	rdf_bnode(Provenance),
+	rdf_assert(Provenance, rdf:type, amalgame:'Provenance', TargetGraph),
+	rdf_assert(Provenance, dcterms:title, literal('Provenance: about this exported alignment'), TargetGraph),
+	rdf_assert(Provenance, dcterms:date, literal(Time), TargetGraph),
+	rdf_assert(Provenance, dcterms:creator, literal(User), TargetGraph),
+	rdf_assert(Provenance, owl:versionInfo, literal(Version), TargetGraph),
+	rdf_assert(Provenance, amalgame:request, literal(ReqUsed), TargetGraph),
+	rdf_assert(Provenance, amalgame:exportedFrom, EdoalGraph, TargetGraph),
+	rdf_assert(Provenance, amalgame:minimalConfidence, literal(type(xsd:float, Min)), TargetGraph),
+	rdf_assert(Provenance, amalgame:maximalConfidence, literal(type(xsd:float, Max)), TargetGraph),
+	rdf_assert(TargetGraph, amalgame:provenance, Provenance, TargetGraph),
+	rdf_assert(TargetGraph, rdf:type, amalgame:'ExportedAlignment', TargetGraph).
 
 assert_as_single_triple(_-_-MatchOptions, Options, _Graph) :-
 	% Do nothing if max < measure or measure < min
