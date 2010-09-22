@@ -6,3 +6,4 @@
 %
 :- rdf_register_ns(align,      'http://knowledgeweb.semanticweb.org/heterogeneity/alignment#').
 :- rdf_register_ns(amalgame,   'http://purl.org/vocabularies/amalgame#').
+:- rdf_register_ns(evaluator,  'http://purl.org/vocabularies/amalgame/evaluator#').

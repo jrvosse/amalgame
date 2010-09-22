@@ -23,6 +23,7 @@
 
 :- use_module(amalgame(skos/vocabularies)).
 :- use_module(amalgame(mappings/map)).
+:- use_module(amalgame(mappings/edoal)).
 :- use_module(amalgame(util/util)).
 :- use_module(amalgame(util/json_graph)).
 
@@ -130,13 +131,17 @@ yui_script(Graph) -->
 json_judge_mapping(Request) :-
 	http_parameters(Request,
                         [
-                         judgement(Judgement),
+                         judgement(Judgement0),
                          subject(Subject),
                          predicate(Predicate),
                          object(Object)
                         ],
                         [attribute_declarations(attribute_decl)]),
+	logged_on(User, anonymous),
+	term_to_atom(Judgement1, Judgement0),
+	rdf_global_term(Judgement1, Judgement),
         debug(evaluator, 'Judgement: ~w', [Judgement]),
+	assert_cell(Subject, Object, [relation(Judgement), prov([relation(Predicate), evaluator(User)])]),
         http_session_assert(judgement(Subject, Predicate, Object, Judgement)),
         reply_json(json([message='judgement processed'])).
 

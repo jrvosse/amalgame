@@ -278,7 +278,7 @@ YAHOO.mazzle.MapCheck.prototype._initForm = function(oParms) {
   elURI.href = serverPrefix() + '/../browse/list_resource?r=' + encodeURIComponent(sURI) ;
   elURI.innerHTML = sURI;
   yuiWrapper.appendChild(elURI);
-  
+
   var dis1 = this.display[sURI];
   if (dis1) {
   	var oLabels = {};
@@ -335,7 +335,7 @@ YAHOO.mazzle.MapCheck.prototype._initForm = function(oParms) {
 	  label: "Exact match",
 	  container: elAppReject,
 	  });
-    this._oExactButton.addListener("click", this._judgeCallback, {oSelf:this, index:i, choice:'exact'});
+    this._oExactButton.addListener("click", this._judgeCallback, {oSelf:this, index:i, choice:'skos:exactMatch'});
 
     this._oCloseButton = new YAHOO.widget.Button({
       id:"closeButton"+i,
@@ -343,7 +343,7 @@ YAHOO.mazzle.MapCheck.prototype._initForm = function(oParms) {
 	  label: "close match",
 	  container: elAppReject,
 	  });
-    this._oCloseButton.addListener("click", this._judgeCallback, {oSelf:this, index:i, choice:'close'});
+    this._oCloseButton.addListener("click", this._judgeCallback, {oSelf:this, index:i, choice:'skos:closeMatch'});
 
     this._oBroaderButton = new YAHOO.widget.Button({
       id:"broaderButton"+i,
@@ -351,7 +351,7 @@ YAHOO.mazzle.MapCheck.prototype._initForm = function(oParms) {
 	  label: "Broader",
 	  container: elSkos,
 	  });
-    this._oBroaderButton.addListener("click", this._judgeCallback, {oSelf:this, index:i, choice:'broader'});
+    this._oBroaderButton.addListener("click", this._judgeCallback, {oSelf:this, index:i, choice:'skos:broadMatch'});
 
     this._oNarrowerButton = new YAHOO.widget.Button({
       id:"narrowerButton"+i,
@@ -359,7 +359,7 @@ YAHOO.mazzle.MapCheck.prototype._initForm = function(oParms) {
 	  label: "narrower",
 	  container: elSkos,
 	  });
-    this._oNarrowerButton.addListener("click", this._judgeCallback, {oSelf:this, index:i, choice:'narrower'});
+    this._oNarrowerButton.addListener("click", this._judgeCallback, {oSelf:this, index:i, choice:'skos:narrowMatch'});
 
     this._oRelatedButton = new YAHOO.widget.Button({
       id:"RelatedButton"+i,
@@ -367,7 +367,7 @@ YAHOO.mazzle.MapCheck.prototype._initForm = function(oParms) {
 	  label: "related match",
 	  container: elSkos,
 	  });
-    this._oRelatedButton.addListener("click", this._judgeCallback, {oSelf:this, index:i, choice:'related'});
+    this._oRelatedButton.addListener("click", this._judgeCallback, {oSelf:this, index:i, choice:'skos:relatedMatch'});
 
     this._oUnsureButton = new YAHOO.widget.Button({
       id:"unsureButton"+i,
@@ -375,7 +375,7 @@ YAHOO.mazzle.MapCheck.prototype._initForm = function(oParms) {
 	  label: "? I'm not sure ?",
 	  container: elUnsure,
 	  });
-    this._oUnsureButton.addListener("click", this._judgeCallback, {oSelf:this, index:i, choice:'unsure'});
+    this._oUnsureButton.addListener("click", this._judgeCallback, {oSelf:this, index:i, choice:'evaluator:unsure'});
 
     this._oUnrelatedButton = new YAHOO.widget.Button({
       id:"unrelatedButton"+i,
@@ -383,7 +383,7 @@ YAHOO.mazzle.MapCheck.prototype._initForm = function(oParms) {
 	  label: "not related",
 	  container: elAppReject,
 	  });
-    this._oUnrelatedButton.addListener("click", this._judgeCallback, {oSelf:this, index:i, choice:'unrelated'});
+    this._oUnrelatedButton.addListener("click", this._judgeCallback, {oSelf:this, index:i, choice:'evaluator:unrelated'});
   };
 
   var elResourceTree = document.createElement("div");
@@ -566,7 +566,7 @@ var formatItem = function(sMatch, oInfo, bHTML) {
                 if (oInfo.scopelabel) sScopeLabel = oInfo.scopelabel[0].value; else sScopeLabel = '';
                 if (oInfo.sublabel) sSubLabel = oInfo.sublabel[0].value; else sSubLabel = '';
                 if (oInfo.preflabel) {
-			sMatch= oInfo.preflabel[0].value;   
+			sMatch= oInfo.preflabel[0].value;
 			separator = ', ';
 		}
 		else {

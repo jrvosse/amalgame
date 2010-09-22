@@ -73,9 +73,14 @@ http_split_alignment(Request) :-
 http_compute_stats(Request) :-
 	http_link_to_id(http_list_alignments, [], Link),
 	http_parameters(Request, [graph(all, [])]),
+	Title = 'Amalgame: computing key alignment statistics',
 	call_showing_messages(compute_stats,
-			      [head(title('Amalgame: computing alignment statistics')),
-			       footer(div([class(readymeassage)],['Done, ', a([href(Link)],['See alignment overview to check results'])]))
+			      [head(title(Title)),
+			       header(h4(Title)),
+			       footer(div([class(readymeassage)],
+					  [h4('All computations done'),
+					   'See ', a([href(Link)],['alignment overview']),
+					   ' to inspect results.']))
 			      ]).
 
 http_compute_stats(Request) :-
@@ -129,8 +134,22 @@ http_list_overlap(_Request) :-
 
 http_clear_alignstats(_Request):-
 	authorized(write(amalgame_cache, clear)),
+	Title = 'Amalgame: clearing caches',
+	http_link_to_id(http_compute_stats, [graph(all)], RecomputeLink),
+	http_link_to_id(http_list_alignments, [graph(all)], ListLink),
+
 	call_showing_messages(clear_alignstats,
-			      [head(title('Amalgame: clearing caches'))]).
+			      [head(title(Title)),
+			       header(h4(Title)),
+			       footer(div([h4('Cleared all caches'),
+					   p('You now may want to proceed by:'),
+					   ul(
+					      [
+					       li(['returning to the ', a([href(ListLink)], 'alignment overview page')]),
+					       li(['recomputing ', a([href(RecomputeLink)],'all key stats')])
+					      ])
+					  ]))
+			      ]).
 
 
 
@@ -456,7 +475,7 @@ show_alignments([],Total) -->
 		 td(''),
 		 td(''),
 		 td([style('text-align: right')],Total),
-		 td(a([href(ComputeLink)], 'Total (double counting)'))
+		 td(a([href(ComputeLink), title('Click to compute missing stats')], 'Total (double counting)'))
 		])).
 
 show_alignments([Graph|Tail], Number) -->
