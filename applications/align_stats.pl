@@ -3,10 +3,12 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/html_write)).
+:- use_module(library(http/http_host)).
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_label)).
+:- use_module(library(version)).
 
 
 :- use_module(user(user_db)).
@@ -160,7 +162,7 @@ http_sample_alignment(Request) :-
 				  name(Name, [length > 0]),
 				  method(Method, [])
 				 ]),
-	sample(Method, Graph, Name, Size),
+	sample(Request, Method, Graph, Name, Size),
 	http_link_to_id(http_list_alignment, [graph(Name)], LinkToSample),
 	reply_html_page(cliopatria(default),
 			title('Amalgame sampled alignment'),
@@ -169,7 +171,7 @@ http_sample_alignment(Request) :-
 			     ' of size ', Size, ' (', Method, ')' ])
 		       ).
 
-sample(Method, Graph, Name, Size) :-
+sample(Request, Method, Graph, Name, Size) :-
 	(   rdf_graph(Name)
 	->  rdf_unload(Name),
 	    rdf_retractall(Name,_,_,amalgame)
@@ -177,12 +179,23 @@ sample(Method, Graph, Name, Size) :-
 	),
 	get_time(T), format_time(atom(Time), '%a, %d %b %Y %H:%M:%S %z', T),
 	logged_on(User, 'anonymous'),
+	git_version(CP_version),
+	format(atom(Version), 'Made using Amalgame/Cliopatria ~w', [CP_version]),
+	http_current_host(Request, Hostname, Port, [global(true)]),
+	memberchk(request_uri(ReqURI), Request),
+	memberchk(protocol(Protocol), Request),
+	format(atom(ReqUsed), '~w://~w:~w~w', [Protocol,Hostname,Port,ReqURI]),
+	rdf_bnode(Provenance),
+	rdf_assert(Provenance, dc:title, literal('Provenance: about this sample'), Name),
+	rdf_assert(Provenance, dc:source, Graph, Name),
+	rdf_assert(Provenance, dc:date, literal(Time), Name),
+	rdf_assert(Provenance, dc:creator, literal(User), Name),
+	rdf_assert(Provenance, owl:version, literal(Version), Name),
+	rdf_assert(Provenance, amalgame:request, literal(ReqUsed), Name),
+	rdf_assert(Provenance, amalgame:sampleSize, literal(type(xsd:int, Size)), Name),
+	rdf_assert(Provenance, amalgame:sampleMethod, literal(Method), Name),
+	rdf_assert(Name, amalgame:provenance, Provenance, Name),
 	rdf_assert(Name, rdf:type, amalgame:'SampleAlignment', Name),
-	rdf_assert(Name, amalgame:sampleSize, literal(type(xsd:int, Size)), Name),
-	rdf_assert(Name, amalgame:sampleMethod, literal(Method), Name),
-	rdf_assert(Name, dc:source, Graph, Name),
-	rdf_assert(Name, dc:date, literal(Time), Name),
-	rdf_assert(Name, dc:creator, literal(User), Name),
 
 	align_get_computed_props(Graph, SourceProps),
 	findall(member(M),
