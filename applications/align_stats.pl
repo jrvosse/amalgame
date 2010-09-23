@@ -199,7 +199,7 @@ sample(Request, Method, Graph, Name, Size) :-
 	),
 	get_time(T), format_time(atom(Time), '%a, %d %b %Y %H:%M:%S %z', T),
 	logged_on(User, 'anonymous'),
-	git_version(CP_version),
+	git_component_property('ClioPatria', version(CP_version)),
 	format(atom(Version), 'Made using Amalgame/Cliopatria ~w', [CP_version]),
 	http_current_host(Request, Hostname, Port, [global(true)]),
 	memberchk(request_uri(ReqURI), Request),

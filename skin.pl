@@ -51,7 +51,7 @@ logo -->
 	    ).
 
 cliopatria:server_address -->
-	{ git_version(CP_Version),
+	{ git_component_property('ClioPatria', version(CP_Version)),
 	  Home = 'http://www.swi-prolog.org/web/ClioPatria.html'
 	},
 	html_requires(css('cliopatria.css')),
