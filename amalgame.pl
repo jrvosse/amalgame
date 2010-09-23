@@ -1,6 +1,8 @@
 :- module(amalgame, [ag_load_schemas/0]).
 
 :- use_module(library(semweb/rdf_library)).
+:- use_module(library(version)).
+
 
 user:file_search_path(amalgame_apps, amalgame('applications')).
 http:location(amalgame, cliopatria(amalgame), []).
@@ -9,6 +11,10 @@ ag_load_schemas :-
 	rdf_attach_library(amalgame(ontologies)),
 	rdf_load_library(amalgame).
 
+:- check_prolog_version(5116).          % Demand >= 5.11.6
+:- register_git_component('amalgame',
+                          [ home_url('http://eculture.cs.vu.nl/git/econnect/amalgame.git')
+                          ]).
 
 :- [
     amalgame(namespaces),
