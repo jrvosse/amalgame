@@ -110,6 +110,7 @@ http_compute_stats(Request) :-
 	http_redirect(moved, location_by_id(http_list_alignments), Request).
 
 compute_stats :-
+	align_ensure_stats(found),
 	findall(G, is_alignment_graph(G,_), Graphs),!,
 	forall(member(G, Graphs),
 	       (   align_ensure_stats(count(G)),
