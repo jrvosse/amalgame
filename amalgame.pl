@@ -11,7 +11,7 @@ ag_load_schemas :-
 	rdf_attach_library(amalgame(ontologies)),
 	rdf_load_library(amalgame).
 
-:- check_prolog_version(5116).          % Demand >= 5.11.6
+:- gtrace, check_prolog_version(51106).          % Demand >= 5.11.6
 :- register_git_component('amalgame',
                           [ home_url('http://eculture.cs.vu.nl/git/econnect/amalgame.git')
                           ]).
