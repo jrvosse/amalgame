@@ -34,7 +34,7 @@ table {
 }
 
 tr.finalrow {
-	border-top: solid thin #BBBBBB;	
+	border-top: solid thin #BBBBBB;
 	font-style: italic;
 }
 
@@ -46,15 +46,23 @@ address#amalgame {
 }
 
 
-th, table.rdf_browse th { 	
+th, table.rdf_browse th {
  	font-family: Arial, sans-serif;
  	font-style: italic;
  	font-weight: normal;
 	background-color: #E7E7E7;
 	color: #020202;
-	/* 
-	 * background-color: #E2003B; 
+	/*
+	 * background-color: #E2003B;
        	 * color: white;
 	 */
 }
 
+div#alignoperations form input.submit {
+	margin-left: 5em;
+	width: 10em;
+}
+
+div#alignoperations form input.target {
+	margin-left: 1em;
+}

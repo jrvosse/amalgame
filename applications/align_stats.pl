@@ -62,12 +62,26 @@ http_split_alignment(Request) :-
 			 condition(Condition, [])
 			]),
 	split_alignment(Graph, Condition, OutGraphs),
-	align_clear_stats(found),
+	forall(member(Out, OutGraphs),
+	       align_ensure_stats(all(Out))),
 	reply_html_page(cliopatria(default),
 			[title('Amalgame: alignment splitted')
 			],
 			[ h4('Alignment splitted'),
-			  div([],OutGraphs)
+			  div('Original alignment:'),
+			  table([class(aligntable)],
+				[tr([
+				     th('Abr'),	th('Source'), th('# mapped'), th('Target'), th('# mapped'), th('Format'), th('# maps'), th('Named Graph URI')
+				    ]),
+				 \show_alignments([Graph], 0)
+				]),
+			  div('splitted into'),
+			  table([class(aligntable)],
+				[tr([
+				     th('Abr'),	th('Source'), th('# mapped'), th('Target'), th('# mapped'), th('Format'), th('# maps'), th('Named Graph URI')
+				    ]),
+				 \show_alignments(OutGraphs, 0)
+				])
 			]).
 
 http_compute_stats(Request) :-
@@ -302,21 +316,25 @@ show_alignment_overview(Graph) -->
 	 align_ensure_stats(mapped(Graph)),
 	 align_ensure_stats(format(Graph)),
 
-	 http_link_to_id(http_evaluator, [graph=Graph], EvalLink),
+	 http_link_to_id(http_evaluator, [], EvalLink),
 	 http_link_to_id(list_graph, [graph=Graph], GraphLink),
-	 http_link_to_id(http_split_alignment,
-			 [graph=Graph, condition=sourceType], STLink),
-	 http_link_to_id(http_split_alignment,
-			 [graph=Graph, condition=targetType], TTLink),
+	 http_link_to_id(http_split_alignment, [graph=Graph], SplitLink),
 	 http_link_to_id(http_skos_export, [], ExportLink),
 	 http_link_to_id(http_sample_alignment, [], SampleLink),
 
 	 rdf_equal(skos:closeMatch, DefaultRelation),
 	 supported_map_relations(MapRelations),
-	 ExportOption = li(form([action(ExportLink)],
-				      [input([type(submit),
+	 ExportOption = div(form([action(ExportLink)],
+				      [input([type(submit), class(submit),
 					      value('Export maps')
 					     ],[]),
+				       ' to graph ',
+				       input([type(text), class(target),
+					      name(name), value(exportedgraph),
+					      size(10)],[]),
+				       input([type(hidden),
+					      name(graph),
+					      value(Graph)],[]),
 				      ' with confidence level between : ',
 				       input([type(text),
 					      name(min),
@@ -329,14 +347,10 @@ show_alignment_overview(Graph) -->
 					      value('1.0'),
 					      size(3)
 					     ],[]),
-				       input([type(hidden),
-					      name(graph),
-					      value(Graph)],[]),
 				       ' and default map relation: ',
 				       select([name(relation)],
 					      [\show_mapping_relations(MapRelations, DefaultRelation)]),
-				       ' to a single triple format in named graph',
-				       input([type(text), name(name), value(exportedgraph), size(25)],[])
+				       ' to a single triple format'
 				      ]
 				     ))
 
@@ -345,16 +359,26 @@ show_alignment_overview(Graph) -->
 	      %table(tr([th(property), th(value)]), \show_align_props(Graph, Props)),
 	      p('Actions: '),
 	      ul([
-		  li(a([href(GraphLink)], 'View/download graph')),
-		  li(a([href(EvalLink)], 'Evaluate all mappings in graph')),
-		  ExportOption,
-		  li(form([action(SampleLink)],
+		  li(a([href(GraphLink)], 'View/download graph'))
+		 ]),
+	      p('Create new graphs from this one: '),
+	      div([id(alignoperations)],
+		  [
+		   form([action(EvalLink)],
+			[input([type(hidden),  name(graph), value(Graph)],[]),
+			 input([class(submit), type(submit), value('Evaluate')]),
+			 ' to graph ',
+			 input([type(text), class(target), name(target), size(10),
+				value(evaluation_results)], [])
+			]
+		     ),
+		  div(form([action(SampleLink)],
 		     [input([type(hidden), name(graph), value(Graph)],[]),
-		      input([type(submit), value('Create')],[]),
-		      ' sample of size N=',
+		      input([class(submit), type(submit), value('Sample')],[]),
+		      ' to graph ',
+		      input([type(text), name(name), value(sample), size(10), class(target)], []),
+		      ' sample size N=',
 		      input([type(text), name(size), value(25), size(4)],[]),
-		      ' in named graph ',
-		      input([type(text), name(name), value(sample)], []),
 		      ' with method ',
 		      select([name(method)],
 			    [option([selected(selected), value(randommaps)],['N random mappings']),
@@ -362,10 +386,20 @@ show_alignment_overview(Graph) -->
 			     option([value(random_alt_all)], ['N random mapped concepts, with alternative mappings from all loaded graphs'])
 			    ])
 		     ])
-		    ),
-		  li(a([href(STLink)], 'Split on source type')),
-		  li(a([href(TTLink)], 'Split on target type'))
-		 ])
+		     ),
+		   ExportOption,
+		   div(form([action(SplitLink)],
+			   [
+			    input([type(hidden), name(graph), value(Graph)],[]),
+			    input([type(submit), class(submit), value('Partition')],[]),
+			    ' on ',
+			    select([name(condition)],
+				   [
+				    option([selected(selected), value(sourceType)],['Source type']),
+				    option([value(targetType)],['Target type'])
+				   ])
+			   ]))
+		  ])
 	     ]
 	    ).
 

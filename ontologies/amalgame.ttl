@@ -39,6 +39,12 @@ amalgame:ExportedAlignment a rdfs:Class;
 	rdfs:label "Amalgame Exported"@en ;
 	rdfs:comment "A Named Graph that has been created by exporting another named graph into a new format. The source graph is recorded by dcterms:source in the amalgame:provenance section."@en .
 
+
+amalgame:PartitionedAlignment a rdfs:Class;
+	rdfs:subClassOf amalgame:DerivedAlignment ;
+	rdfs:label "Amalgame Partitioned"@en ;
+	rdfs:comment "A Named Graph that has been created by partitioning another named graph into one or more new graphs. The source graph is recorded by dcterms:source in the amalgame:provenance section."@en .
+
 amalgame:Provenance a rdfs:Class;
 	rdfs:label "Amalgame Provenance"@en ;
 	rdfs:comment "Any resource that describes provenance information of graphs that are relevant for amalgame"@en .

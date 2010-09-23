@@ -107,6 +107,26 @@ assert_cell(C1, C2, Options) :-
 	->  term_to_atom(Method, MethodAtom),
 	    rdf_assert(Cell, amalgame:method, literal(MethodAtom), Graph)
 	;   true
+	),
+	(   option(prov(Prov), Options)
+	->  true,
+	    git_component_property('ClioPatria', version(CP_version)),
+	    git_component_property('amalgame',   version(AG_version)),
+	    format(atom(Version), 'Manually evaluated using Amalgame ~w/Cliopatria ~w', [AG_version, CP_version]),
+	    get_time(T), format_time(atom(Time), '%a, %d %b %Y %H:%M:%S %z', T),
+	    option(evaluator(Evaluator), Prov, 'anonymous'),
+
+	    rdf_bnode(Provenance),
+	    rdf_assert(Cell, amalgame:provenance, Provenance, Graph),
+	    rdf_assert(Provenance, rdf:type, amalgame:'Provenance', Graph),
+	    rdf_assert(Provenance, owl:versionInfo, Version, Graph),
+	    rdf_assert(Provenance, dcterms:creator, literal(Evaluator), Graph),
+	    rdf_assert(Provenance, dcterms:date, literal(Time), Graph),
+	    (	option(relation(OriginalRelation), Prov)
+	    ->	rdf_assert(Provenance, amalgame:relation, OriginalRelation, Graph)
+	    ;	true
+	    )
+	;   true
 	).
 
 %%	edoal_to_triples(+Request, +EdoalGraph, +SkosGraph, +Options) is
