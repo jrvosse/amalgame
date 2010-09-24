@@ -112,14 +112,7 @@ http_compute_stats(Request) :-
 compute_stats :-
 	align_ensure_stats(found),
 	findall(G, is_alignment_graph(G,_), Graphs),!,
-	forall(member(G, Graphs),
-	       (   align_ensure_stats(count(G)),
-		   align_ensure_stats(mapped(G)),
-		   align_ensure_stats(source(G)),
-		   align_ensure_stats(target(G))
-	       )
-	      ).
-
+	forall(member(G, Graphs), align_ensure_stats(all(G))).
 
 %%	http_list_overlap(+Request) is det.
 %
@@ -516,14 +509,7 @@ show_alignments([],Total) -->
 
 show_alignments([Graph|Tail], Number) -->
 	{
-	 http_link_to_id(http_compute_stats,
-			 [graph(Graph),
-			  stat(count),
-			  stat(source),
-			  stat(target),
-			  stat(mapped)
-			 ],
-			 MissingLink),
+	 http_link_to_id(http_compute_stats, [graph(Graph), stat(all)], MissingLink),
 	 MissingValue = a([href(MissingLink)],'?'),
 	 is_alignment_graph(Graph, Format),
 	 align_get_computed_props(Graph, Props),
