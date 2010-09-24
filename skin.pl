@@ -13,6 +13,8 @@
 user:file_search_path(icons, amalgame('web/img')).
 user:file_search_path(css,   amalgame('web/css')).
 
+:- set_setting(graphviz:format, svg).
+
 :- html_resource(css('amalgame.css'),
 		 [requires([
 			    css('rdf_browse.css')
