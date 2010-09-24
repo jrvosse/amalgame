@@ -14,6 +14,7 @@
 :- use_module(user(user_db)).
 :- use_module(components(label)).
 :- use_module(components(messages)).
+:- use_module(applications(browse)).
 
 :- use_module(amalgame(compare/overlap)).
 :- use_module(amalgame(mappings/alignment)).
@@ -50,11 +51,9 @@ http_list_alignments(_Request) :-
 http_list_alignment(Request) :-
 	http_parameters(Request, [graph(Graph, [])]),
 	reply_html_page(cliopatria(default),
-			[title('Amalgame: alignment manipulation')
-			],
-			[ h4('Alignment manipulations'),
-			  \show_alignment_overview(Graph)
-			]).
+			title('Amalgame: alignment manipulation'),
+			\show_alignment_overview(Graph)
+			).
 
 http_split_alignment(Request) :-
 	http_parameters(Request,
@@ -308,94 +307,27 @@ show_alignment_overview(Graph) -->
 	 align_ensure_stats(target(Graph)),
 	 align_ensure_stats(count(Graph)),
 	 align_ensure_stats(mapped(Graph)),
-	 align_ensure_stats(format(Graph)),
-
-	 http_link_to_id(http_evaluator, [], EvalLink),
-	 http_link_to_id(list_graph, [graph=Graph], GraphLink),
-	 http_link_to_id(http_split_alignment, [graph=Graph], SplitLink),
-	 http_link_to_id(http_skos_export, [], ExportLink),
-	 http_link_to_id(http_sample_alignment, [], SampleLink),
-
-	 rdf_equal(skos:closeMatch, DefaultRelation),
-	 supported_map_relations(MapRelations),
-	 ExportOption = div(form([action(ExportLink)],
-				      [input([type(submit), class(submit),
-					      value('Export maps')
-					     ],[]),
-				       ' to graph ',
-				       input([type(text), class(target),
-					      name(name), value(exportedgraph),
-					      size(10)],[]),
-				       input([type(hidden),
-					      name(graph),
-					      value(Graph)],[]),
-				      ' with confidence level between : ',
-				       input([type(text),
-					      name(min),
-					      value('0.0'),
-					      size(3)
-					     ],[]),
-				       ' and ',
-				       input([type(text),
-					      name(max),
-					      value('1.0'),
-					      size(3)
-					     ],[]),
-				       ' and default map relation: ',
-				       select([name(relation)],
-					      [\show_mapping_relations(MapRelations, DefaultRelation)]),
-				       ' to a single triple format'
-				      ]
-				     ))
-
+	 align_ensure_stats(format(Graph))
 	},
-	html([p(['Alignment graph: ', a([href(Graph)], Graph)]),
-	      %table(tr([th(property), th(value)]), \show_align_props(Graph, Props)),
-	      p('Actions: '),
-	      ul([
-		  li(a([href(GraphLink)], 'View/download graph'))
-		 ]),
-	      p('Create new graphs from this one: '),
-	      div([id(alignoperations)],
+	html([
+	      div([id(ag_graph_info)], \graph_info(Graph)),
+	      % p(['Alignment graph URI: ', a([href(Graph)], Graph)]),
+	      div([id(ag_graph_as_resource)], \graph_as_resource(Graph)),
+	      div([id(ag_graph_basic_actions)],
+		   [
+		    'Basic actions: ',
+		    \graph_actions(Graph)
+		   ]),
+	      p('Create a new graph from this one: '),
+	      ul([id(alignoperations)],
 		  [
-		   form([action(EvalLink)],
-			[input([type(hidden),  name(graph), value(Graph)],[]),
-			 input([class(submit), type(submit), value('Evaluate')]),
-			 ' to graph ',
-			 input([type(text), class(target), name(target), size(10),
-				value(evaluation_results)], [])
-			]
-		     ),
-		  div(form([action(SampleLink)],
-		     [input([type(hidden), name(graph), value(Graph)],[]),
-		      input([class(submit), type(submit), value('Sample')],[]),
-		      ' to graph ',
-		      input([type(text), name(name), value(sample), size(10), class(target)], []),
-		      ' sample size N=',
-		      input([type(text), name(size), value(25), size(4)],[]),
-		      ' with method ',
-		      select([name(method)],
-			    [option([selected(selected), value(randommaps)],['N random mappings']),
-			     option([value(random_alt_in_graph)],['N random mapped concepts, with alternative mappings in same graph']),
-			     option([value(random_alt_all)], ['N random mapped concepts, with alternative mappings from all loaded graphs'])
-			    ])
-		     ])
-		     ),
-		   ExportOption,
-		   div(form([action(SplitLink)],
-			   [
-			    input([type(hidden), name(graph), value(Graph)],[]),
-			    input([type(submit), class(submit), value('Partition')],[]),
-			    ' on ',
-			    select([name(condition)],
-				   [
-				    option([selected(selected), value(sourceType)],['Source type']),
-				    option([value(targetType)],['Target type'])
-				   ])
-			   ]))
-		  ])
-	     ]
-	    ).
+		   \li_eval_graph(Graph),
+		   \li_sample_graph(Graph),
+		   \li_export_graph(Graph),
+		   \li_partition_graph(Graph)
+		  ]
+		)
+	     ]).
 
 show_mapping_relations([],_) --> !.
 show_mapping_relations([H|T], Selected) -->
@@ -570,18 +502,91 @@ show_overlap -->
 		  )
 	     ]).
 
-
-show_align_props(_Graph, []) --> !.
-
-show_align_props(Graph, [PropValue|Tail]) -->
+li_export_graph(Graph) -->
 	{
-	 PropValue =.. [Prop, Value],
-	 rdf_equal(amalgame:'', NS),
-	 format(atom(PropURI), '~w~w', [NS, Prop])
+	 http_link_to_id(http_skos_export, [], ExportLink),
+	 rdf_equal(skos:closeMatch, DefaultRelation),
+	 supported_map_relations(MapRelations)
 	},
-	html(tr([
-		 td(\rdf_link(PropURI)),
-		 td(\rdf_link(Value))
-		])),
-	show_align_props(Graph, Tail).
+	html(li(form([action(ExportLink)],
+		      [input([type(submit), class(submit),
+			      value('Export maps')
+			     ],[]),
+		       ' to graph ',
+		       input([type(text), class(target),
+			      name(name), value(exportedgraph),
+			      size(10)],[]),
+		       input([type(hidden),
+			      name(graph),
+			      value(Graph)],[]),
+		       ' with confidence level between : ',
+		       input([type(text),
+			      name(min),
+			      value('0.0'),
+			      size(3)
+			     ],[]),
+		       ' and ',
+		       input([type(text),
+			      name(max),
+			      value('1.0'),
+			      size(3)
+			     ],[]),
+		       ' and default map relation: ',
+		       select([name(relation)],
+			      [\show_mapping_relations(MapRelations, DefaultRelation)]),
+		       ' to a single triple format'
+		      ]
+		     ))).
 
+li_eval_graph(Graph) -->
+	{
+	 	 http_link_to_id(http_evaluator, [], EvalLink)
+	},
+	html(li(form([action(EvalLink)],
+		     [input([type(hidden),  name(graph), value(Graph)],[]),
+		      input([class(submit), type(submit), value('Evaluate')]),
+		      ' to graph ',
+		      input([type(text), class(target), name(target), size(10),
+			     value(evaluation_results)], [])
+		     ]
+		    ))).
+
+
+li_sample_graph(Graph) -->
+	{
+	 http_link_to_id(http_sample_alignment, [], SampleLink)
+	},
+	html(li(form([action(SampleLink)],
+		     [input([type(hidden), name(graph), value(Graph)],[]),
+		      input([class(submit), type(submit), value('Sample')],[]),
+		      ' to graph ',
+		      input([type(text), name(name), value(sample), size(10), class(target)], []),
+		      ' sample size N=',
+		      input([type(text), name(size), value(25), size(4)],[]),
+		      ' with method ',
+		      select([name(method)],
+			     [option([selected(selected), value(randommaps)],['N random mappings']),
+			      option([value(random_alt_in_graph)],['N random mapped concepts, with alternative mappings in same graph']),
+			      option([value(random_alt_all)], ['N random mapped concepts, with alternative mappings from all loaded graphs'])
+			     ])
+		     ])
+	       )).
+
+
+li_partition_graph(Graph) -->
+	{
+		 http_link_to_id(http_split_alignment, [graph=Graph], SplitLink)
+
+	},
+	html(li(form([action(SplitLink)],
+			   [
+			    input([type(hidden), name(graph), value(Graph)],[]),
+			    input([type(submit), class(submit), value('Partition')],[]),
+			    ' on ',
+			    select([name(condition)],
+				   [
+				    option([selected(selected), value(sourceType)],['Source type']),
+				    option([value(targetType)],['Target type'])
+				   ])
+			   ]))
+		  ).

@@ -58,11 +58,13 @@ th, table.rdf_browse th {
 	 */
 }
 
-div#alignoperations form input.submit {
-	margin-left: 5em;
-	width: 10em;
+#alignoperations form input.submit {
+	width: 8em;
 }
 
-div#alignoperations form input.target {
-	margin-left: 1em;
+#alignoperations form input.target {
 }
+
+#ag_graph_info { float: right }
+#ag_graph_as_resource { float: left }
+#ag_graph_basic_actions { clear: both }
