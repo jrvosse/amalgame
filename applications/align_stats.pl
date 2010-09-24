@@ -361,20 +361,23 @@ show_countlist([], Total) -->
 		 td('Total (unique alignments)')
 		])).
 
-show_countlist([Count:O:Example|T], Number) -->
+show_countlist([Count:Overlap|T], Number) -->
 	{
 	  NewNumber is Number + Count
 	},
 	html(tr([
-		 td(\show_overlap_graphs(O)),
+		 td(\show_overlap_graphs(Overlap)),
 		 td([style('text-align: right')],Count),
-		 \show_example(Example)
+		 \show_example(Overlap)
 		])),
 	show_countlist(T,NewNumber).
 
 
 
-show_example([E1, E2]) -->
+show_example(Overlap) -->
+	{
+	 has_map([E1, E2], edoal, Overlap)
+	},
 	html([td(\rdf_link(E1)),
 	      td(\rdf_link(E2))
 	     ]).

@@ -27,7 +27,7 @@ matchers. It assumes matchers assert mappings in different name graphs.
 find_overlap(ResultsSorted, [cached(true)]) :-
 	rdf(_, rdf:type, amalgame:'OverlapAlignment'),
 	!, % assume overlap stats have been computed already and can be gathered from the RDF
-	findall(C:G:E, is_precomputed_overlap(G,C,E), Results),
+	findall(C:G, is_precomputed_overlap(G,C), Results),
 	sort(Results, ResultsSorted).
 
 find_overlap(ResultsSorted, [cached(false)]) :-
@@ -50,11 +50,9 @@ clear_overlaps :-
 	       )
 	      ).
 
-is_precomputed_overlap(Overlap, C, [E1,E2]) :-
+is_precomputed_overlap(Overlap, C) :-
 	rdf(Overlap, rdf:type, amalgame:'OverlapAlignment', amalgame),
-	rdf(Overlap, amalgame:count, literal(type(_,C)), amalgame),
-	rdf(Overlap, amalgame:entity1, E1, amalgame),
-	rdf(Overlap, amalgame:entity2, E2, amalgame).
+	rdf(Overlap, amalgame:count, literal(type(_,C)), amalgame).
 
 find_overlaps([], Doubles, Uniques) :- sort(Doubles, Uniques).
 find_overlaps([Map|Tail], Accum, Out) :-
@@ -66,18 +64,18 @@ count_overlaps([], Accum, Results) :-
 	assert_overlaps(Accum, [], Results).
 count_overlaps([Graphs:Map|Tail], Accum, Results) :-
 	overlap_uri(Graphs, Overlap),
-	Map = [E1, E2],
-	(   selectchk(Count:Graphs:Example, Accum, NewAccum)
+	(   selectchk(Count:Graphs, Accum, NewAccum)
 	->  true
-	;   Count = 0, NewAccum = Accum, Example=Map,
+	;   Count = 0, NewAccum = Accum,
 	    rdf_persistency(Overlap, false)
 	),
+	Map = [E1, E2],
 	(   Graphs=[G], has_map([E1, E2], edoal, Options, G)
 	->  assert_cell(E1, E2, [graph(Overlap)|Options])
 	;   assert_cell(E1, E2, [graph(Overlap), method(overlap)])
 	),
 	NewCount is Count + 1,
-	count_overlaps(Tail, [NewCount:Graphs:Example|NewAccum], Results).
+	count_overlaps(Tail, [NewCount:Graphs|NewAccum], Results).
 
 overlap_uri(GraphList, URI) :-
 	sort(GraphList, Sorted), assertion(GraphList=Sorted),
@@ -87,15 +85,12 @@ overlap_uri(GraphList, URI) :-
 	debug(uri, 'URI: ~w', [URI]).
 
 assert_overlaps([], Accum, Accum).
-assert_overlaps([C:G:E|Tail], Accum, Results) :-
-	E = [E1,E2],
+assert_overlaps([C:G|Tail], Accum, Results) :-
 	overlap_uri(G, URI),
 	assert_overlap_members(URI, G),
 	rdf_assert(URI, rdf:type, amalgame:'OverlapAlignment', amalgame),
 	rdf_assert(URI, amalgame:count, literal(type('xsd:int', C)), amalgame),
-	rdf_assert(URI, amalgame:entity1, E1, amalgame),
-	rdf_assert(URI, amalgame:entity2, E2, amalgame),
-	assert_overlaps(Tail, [C:URI:E|Accum], Results).
+	assert_overlaps(Tail, [C:URI|Accum], Results).
 
 assert_overlap_members(_URI, []).
 assert_overlap_members(URI, [G|T]) :-
