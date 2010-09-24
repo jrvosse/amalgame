@@ -65,6 +65,6 @@ th, table.rdf_browse th {
 #alignoperations form input.target {
 }
 
-#ag_graph_info { float: right }
-#ag_graph_as_resource { float: left }
+#ag_graph_info { float: right; max-width: 35%; }
+#ag_graph_as_resource { float: left; max-width: 65%; }
 #ag_graph_basic_actions { clear: both }
