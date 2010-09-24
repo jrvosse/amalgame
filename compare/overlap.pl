@@ -51,8 +51,8 @@ clear_overlaps :-
 	      ).
 
 is_precomputed_overlap(Overlap, C) :-
-	rdf(Overlap, rdf:type, amalgame:'OverlapAlignment', amalgame),
-	rdf(Overlap, amalgame:count, literal(type(_,C)), amalgame).
+	rdf(Overlap, rdf:type, amalgame:'OverlapAlignment'),
+	rdf(Overlap, amalgame:count, literal(type(_,C))).
 
 find_overlaps([], Doubles, Uniques) :- sort(Doubles, Uniques).
 find_overlaps([Map|Tail], Accum, Out) :-
@@ -88,13 +88,13 @@ assert_overlaps([], Accum, Accum).
 assert_overlaps([C:G|Tail], Accum, Results) :-
 	overlap_uri(G, URI),
 	assert_overlap_members(URI, G),
-	rdf_assert(URI, rdf:type, amalgame:'OverlapAlignment', amalgame),
+	rdf_assert(URI, rdf:type, amalgame:'OverlapAlignment', URI),
 	rdf_assert(URI, amalgame:count, literal(type('xsd:int', C)), amalgame),
 	assert_overlaps(Tail, [C:URI|Accum], Results).
 
 assert_overlap_members(_URI, []).
 assert_overlap_members(URI, [G|T]) :-
-	rdf_assert(URI, amalgame:member, G, amalgame),
+	rdf_assert(URI, amalgame:member, G, URI),
 	assert_overlap_members(URI, T).
 
 
