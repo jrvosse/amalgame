@@ -4,11 +4,13 @@
 	   skos_label/3,
 	   voc_get_computed_props/2,
 	   voc_clear_stats/0,
-	   voc_ensure_stats/1
+	   voc_ensure_stats/1,
+	   voc_partition/2
           ]).
 
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/html_write)).
+
 :- use_module(library(semweb/rdfs)).
 
 :- use_module(amalgame(mappings/map)).
@@ -64,13 +66,13 @@ voc_ensure_stats(all) :-
 	length(Vocs, N),
 	print_message(informational, map(found, 'SKOS vocabularies (ConceptSchemes)', repository, N)),
 
-	forall(member(V, Vocs),
-	       (   voc_ensure_stats(numberOfConcepts(V)),
-		   voc_ensure_stats(numberOfPrefLabels(V)),
-		   voc_ensure_stats(numberOfAltLabels(V)),
-		   voc_ensure_stats(numberOfMappedConcepts(V))
-	       )
-	      ).
+	forall(member(V, Vocs),voc_ensure_stats(all(V))).
+
+voc_ensure_stats(all(V)) :-
+	voc_ensure_stats(numberOfConcepts(V)),
+	voc_ensure_stats(numberOfPrefLabels(V)),
+	voc_ensure_stats(numberOfAltLabels(V)),
+	voc_ensure_stats(numberOfMappedConcepts(V)).
 
 
 voc_ensure_stats(numberOfConcepts(Voc)) :-
@@ -155,6 +157,29 @@ count_mapped_concepts(Voc, Count) :-
 	sort(Concepts, Sorted),
 	length(Sorted, Count),
 	print_message(informational, map(found, 'SKOS mapped concepts', Voc, Count)).
+
+voc_partition(Voc, [Mapped, Unmapped]) :-
+	format(atom(Mapped), '~w/mapped', [Voc]),
+	format(atom(Unmapped), '~w/unmapped', [Voc]),
+
+	(   rdf_graph(Mapped) -> rdf_unload(Mapped); true),
+	(   rdf_graph(Unmapped) -> rdf_unload(Unmapped); true),
+
+	rdf_assert(Mapped,   rdf:type, skos:'ConceptScheme', Mapped),
+	rdf_assert(Unmapped, rdf:type, skos:'ConceptScheme', Unmapped),
+
+	rdf_transaction(forall(rdf(C, skos:inScheme, Voc),
+			      classify_concept(C, Mapped, Unmapped)
+			     )),
+	voc_ensure_stats(all(Mapped)),
+	voc_ensure_stats(all(Unmapped)).
+
+
+classify_concept(C, Mapped, Unmapped) :-
+	(   (has_map_chk([C, _],_ ,_); has_map_chk([_,C], _, _))
+	->  rdf_assert(C, skos:inScheme, Mapped, Mapped)
+	;   rdf_assert(C, skos:inScheme, Unmapped, Unmapped)
+	).
 
 %%	skos_label(+Concept, -Label, -Options) is det.
 %

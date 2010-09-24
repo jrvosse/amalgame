@@ -20,6 +20,7 @@
 :- http_handler(amalgame(list_skos_vocs),     http_list_skos_vocs,     []).
 :- http_handler(amalgame(compute_voc_stats),  http_compute_voc_stats,  []).
 :- http_handler(amalgame(clear_voc_stats),    http_clear_voc_stats,    []).
+:- http_handler(amalgame(partition_voc),      http_partition_voc,      []).
 
 %%	http_list_skos_vocs(+Request) is det.
 %
@@ -60,6 +61,35 @@ http_clear_voc_stats(_Request):-
 	authorized(write(amalgame_cache, clear)),
 	call_showing_messages(voc_clear_stats,
 			      [head(title('Amalgame: clearing caches'))]).
+
+http_partition_voc(Request) :-
+	authorized(write(default, partition(sample))),
+	http_parameters(Request,
+			[voc(Graph, [])
+			]),
+	voc_partition(Graph, Partitioning),
+	reply_html_page(cliopatria(default),
+			[title('Amalgame: partitioning vocabulary')
+			],
+			[ h4('Amalgame: partitioning vocabulary'),
+			  table([
+				 id(skosvoctable)],
+				[
+				 tr([td('Nr'),
+				     th('Name'),
+				     th('# Concepts'),
+				     th('# prefLabels'),
+				     th('# altLabels'),
+				     th('# not mapped'),
+				     th('# mapped'),
+				     th('%'),
+				     th('Example concept'),
+				     th('License')
+				    ]),
+				 \show_schemes(Partitioning, 1, [0, 0, 0, 0, 0])
+				])
+			]).
+
 
 
 show_schemes -->
@@ -115,6 +145,7 @@ show_schemes([Voc|Tail], Nr, [C,P,A,M,U]) -->
 			  stat(numberOfMappedConcepts)
 			 ],
 			 MissingLink),
+	 http_link_to_id(http_partition_voc, [voc(Voc)], SplitLink),
 	 MissingValue = a([href(MissingLink)],'?'),
 	 NewNr is Nr + 1,
 	 voc_get_computed_props(Voc, Props),
@@ -135,10 +166,14 @@ show_schemes([Voc|Tail], Nr, [C,P,A,M,U]) -->
 	     (	 CCount = 0
 	     ->	 MPercent = '-'
 	     ;	 Perc is 100*(MCount/CCount),
-	         format(atom(MPercent), '(~2f%)', [Perc])
+		 format(atom(MPercent), '(~2f%)', [Perc])
 	     ),
 	     UCount is CCount - MCount, NewU is U + UCount
 	 ;   NewM = M, NewU = U, MCount = MissingValue, UCount = MissingValue
+	 ),
+	 (   MCount = CCount; MCount = 0
+	 ->  Split = ''
+	 ;   Split = a([href(SplitLink), title('Partition into mapped/unmapped concepts')], ' (partition) ')
 	 ),
 	 (rdf_has(Example, skos:inScheme, Voc)
 	 ->  true
@@ -160,7 +195,7 @@ show_schemes([Voc|Tail], Nr, [C,P,A,M,U]) -->
 		 td([style('text-align: right')],CCount),
 		 td([style('text-align: right')],PCount),
 		 td([style('text-align: right')],ACount),
-		 td([style('text-align: right')],UCount),
+		 td([style('text-align: right')],[Split, UCount]),
 		 td([style('text-align: right')],MCount),
 		 td([style('text-align: right')],MPercent),
 		 td(\rdf_link(Example, [resource_format(label)])),
