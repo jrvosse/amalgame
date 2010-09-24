@@ -17,10 +17,11 @@
 
 :- use_module(amalgame(skos/vocabularies)).
 
-:- http_handler(amalgame(list_skos_vocs),     http_list_skos_vocs,     []).
-:- http_handler(amalgame(compute_voc_stats),  http_compute_voc_stats,  []).
-:- http_handler(amalgame(clear_voc_stats),    http_clear_voc_stats,    []).
-:- http_handler(amalgame(partition_voc),      http_partition_voc,      []).
+:- http_handler(amalgame(list_skos_vocs),       http_list_skos_vocs,     []).
+:- http_handler(amalgame(compute_voc_stats),    http_compute_voc_stats,  []).
+:- http_handler(amalgame(clear_voc_stats),      http_clear_voc_stats,    []).
+:- http_handler(amalgame(partition_voc),        http_partition_voc,      []).
+:- http_handler(amalgame(delete_partition_voc),	http_delpart_voc,        []).
 
 %%	http_list_skos_vocs(+Request) is det.
 %
@@ -69,13 +70,13 @@ http_partition_voc(Request) :-
 			]),
 	voc_partition(Graph, Partitioning),
 	reply_html_page(cliopatria(default),
-			[title('Amalgame: partitioning vocabulary')
+			[title('Amalgame: partitioned vocabulary')
 			],
-			[ h4('Amalgame: partitioning vocabulary'),
+			[ h4('Amalgame: partitioned vocabulary (mapped vs unmapped concepts).'),
 			  table([
 				 id(skosvoctable)],
 				[
-				 tr([td('Nr'),
+				 tr([th('Nr'),
 				     th('Name'),
 				     th('# Concepts'),
 				     th('# prefLabels'),
@@ -90,25 +91,23 @@ http_partition_voc(Request) :-
 				])
 			]).
 
-
+http_delpart_voc(_Request):-
+	authorized(write(amalgame_cache, clear)),
+	call_showing_messages(voc_delpart,
+			      [head(title('Amalgame: deleting partioning results'))]).
 
 show_schemes -->
 	{
 	 findall(Voc, rdfs_individual_of(Voc, skos:'ConceptScheme'), Schemes),
-	 length(Schemes, Count),
 	 http_link_to_id(http_clear_voc_stats, [], CacheLink),
 	 http_link_to_id(http_compute_voc_stats, [voc(all)], ComputeLink),
-	 Note = ['These are cached results, ',
-		 a([href(CacheLink)], 'clear vocabulary statistics cache'), ' or ',
-		 a([href(ComputeLink)], 'compute'), ' missing statistics.' ]
+	 http_link_to_id(http_delpart_voc, [], DelPartLink)
 	},
 	html([
-	      div(Note),
-	      div([Count, ' SKOS concept schemes have been uploaded:']),
 	      table([
 		     id(skosvoctable)],
 		    [
-		     tr([td('Nr'),
+		     tr([th('Nr'),
 			 th('Name'),
 			 th('# Concepts'),
 			 th('# prefLabels'),
@@ -120,7 +119,12 @@ show_schemes -->
 			 th('License')
 			]),
 		     \show_schemes(Schemes, 1, [0, 0, 0, 0, 0])
-		    ])
+		    ]),
+	      ul([], [
+		      li([a([href(ComputeLink)], 'compute'), ' missing statistics.']),
+		      li(a([href(CacheLink)], 'clear vocabulary statistics cache')),
+		      li(a([href(DelPartLink)], 'delete partitioning results'))
+		     ])
 	     ]).
 
 show_schemes([], _, [C, P, A, M , U]) -->

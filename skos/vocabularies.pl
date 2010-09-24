@@ -5,7 +5,8 @@
 	   voc_get_computed_props/2,
 	   voc_clear_stats/0,
 	   voc_ensure_stats/1,
-	   voc_partition/2
+	   voc_partition/2,
+	   voc_delpart/0
           ]).
 
 :- use_module(library(http/http_dispatch)).
@@ -54,6 +55,16 @@ voc_clear_stats :-
 	->  rdf_unload(amalgame_vocs)
 	;   true),
 	print_message(informational, map(cleared, 'vocabulary statistics', amalgame_vocs, all)).
+
+voc_delpart :-
+	findall(Voc, rdf(Voc, rdf:type, amalgame:'UnmappedConceptScheme'), Unmapped),
+	findall(Voc, rdf(Voc, rdf:type, amalgame:'FullyMappedConceptScheme'), Mapped),
+	append(Unmapped, Mapped, Partitioned),
+	forall(member(Voc, Partitioned),
+	       ( rdf_unload(Voc),
+		 print_message(informational, map(cleared, 'vocabulary', Voc, all))
+	       )
+	      ).
 
 
 %%	voc_ensure_stats(+Type) is det.
@@ -110,7 +121,7 @@ assert_voc_props([Head|Tail]) :-
 
 assert_voc_props(Voc:Props) :-
 	rdf_equal(amalgame:'', NS),
-	(   rdf(Voc, rdf:type, skos:'ConceptScheme')
+	(   rdfs_individual_of(Voc, skos:'ConceptScheme')
 	->  true
 	;   rdf_assert(Voc, rdf:type, skos:'ConceptScheme', amalgame_vocs)
 	),
@@ -165,8 +176,8 @@ voc_partition(Voc, [Mapped, Unmapped]) :-
 	(   rdf_graph(Mapped) -> rdf_unload(Mapped); true),
 	(   rdf_graph(Unmapped) -> rdf_unload(Unmapped); true),
 
-	rdf_assert(Mapped,   rdf:type, skos:'ConceptScheme', Mapped),
-	rdf_assert(Unmapped, rdf:type, skos:'ConceptScheme', Unmapped),
+	rdf_assert(Mapped,   rdf:type, amalgame:'FullyMappedConceptScheme', Mapped),
+	rdf_assert(Unmapped, rdf:type, amalgame:'UnmappedConceptScheme', Unmapped),
 
 	rdf_transaction(forall(rdf(C, skos:inScheme, Voc),
 			      classify_concept(C, Mapped, Unmapped)
