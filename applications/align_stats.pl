@@ -123,12 +123,12 @@ http_list_overlap(_Request) :-
 			 title('Amalgame: alignment overlap')
 			],
 			[
-			 div([class(lfloat)],
+			 div([class(alignlist)],
 			     [
 			      h4('Alignments in the RDF store'),
 			      \show_alignments
 			     ]),
-			 div([class(lfloat)],
+			 div([class(overlaplist)],
 			     [
 			      h4('Alignment overlap'),
 			      \show_overlap
