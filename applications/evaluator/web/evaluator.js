@@ -315,6 +315,14 @@ YAHOO.mazzle.MapCheck.prototype._initForm = function(oParms) {
   elForm.appendChild(elWrapper);
 
  if (id==3) {
+    var elComment = document.createElement("textarea");
+    var elCommentLabel = document.createElement("label");
+    elCommentLabel.innerHTML = "comment (optional): ";
+    elCommentLabel.setAttribute("class", "commentLabel");
+    elComment.setAttribute("type", "text");
+    elComment.setAttribute("name", "comment");
+    elComment.setAttribute("size", "50");
+    elWrapper.appendChild(elCommentLabel);
     var elButtons = document.createElement("div");
     elWrapper.appendChild(elButtons);
     elButtons.setAttribute('id', "target"+i);
@@ -325,19 +333,11 @@ YAHOO.mazzle.MapCheck.prototype._initForm = function(oParms) {
     var elAppReject  = document.createElement("div");
     var elSkos  = document.createElement("div");
     var elUnsure  = document.createElement("div");
-    var elComment = document.createElement("input");
-    var elCommentLabel = document.createElement("span");
-    elCommentLabel.innerHTML = "comment (optional): ";
-    elCommentLabel.setAttribute("class", "commentLabel");
-    elComment.setAttribute("type", "text");
-    elComment.setAttribute("name", "comment");
-    elComment.setAttribute("size", "50");
 
     elButtons.appendChild(elAppReject);
     elButtons.appendChild(elSkos);
     elButtons.appendChild(elUnsure);
-    elButtons.appendChild(elCommentLabel);
-    elButtons.appendChild(elComment);
+    elCommentLabel.appendChild(elComment);
 
 
     ButtonType="push";
