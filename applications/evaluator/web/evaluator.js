@@ -191,7 +191,9 @@ YAHOO.mazzle.MapCheck.prototype._judgeCallback = function(ev,oParams) {
   index = oParams.index;
   mapping = oSelf.mappings[index];
   choice = oParams.choice;
+  comment = oParams.comment.value;
 
+  console.log(comment);
   function successhandler() { oSelf.delete_mapping(ev,oParams); };
   function failurehandler() { };
   var callback = { success:successhandler,
@@ -201,7 +203,8 @@ YAHOO.mazzle.MapCheck.prototype._judgeCallback = function(ev,oParams) {
   "&" + queryString('subject',     mapping.subject.value) +
   "&" + queryString('predicate',    mapping.predicate.value) +
   "&" + queryString('object',     mapping.object.value) +
-  "&" + queryString('target',  oSelf.targetgraph) ;
+  "&" + queryString('target',  oSelf.targetgraph) +
+  "&" + queryString('comment',  comment) ;
   var request = YAHOO.util.Connect.asyncRequest('GET', sLink, callback);
 };
 
@@ -323,9 +326,20 @@ YAHOO.mazzle.MapCheck.prototype._initForm = function(oParms) {
     var elAppReject  = document.createElement("div");
     var elSkos  = document.createElement("div");
     var elUnsure  = document.createElement("div");
+    var elComment = document.createElement("input");
+    var elCommentLabel = document.createElement("span");
+    elCommentLabel.innerHTML = "comment (optional): ";
+    elCommentLabel.setAttribute("class", "commentLabel");
+    elComment.setAttribute("type", "text");
+    elComment.setAttribute("name", "comment");
+    elComment.setAttribute("size", "50");
+
     elButtons.appendChild(elAppReject);
     elButtons.appendChild(elSkos);
     elButtons.appendChild(elUnsure);
+    elButtons.appendChild(elCommentLabel);
+    elButtons.appendChild(elComment);
+
 
     ButtonType="push";
 
@@ -335,7 +349,7 @@ YAHOO.mazzle.MapCheck.prototype._initForm = function(oParms) {
 	  label: "Exact match",
 	  container: elAppReject,
 	  });
-    this._oExactButton.addListener("click", this._judgeCallback, {oSelf:this, index:i, choice:'skos:exactMatch'});
+    this._oExactButton.addListener("click", this._judgeCallback, {oSelf:this, index:i, choice:'skos:exactMatch', comment:elComment});
 
     this._oCloseButton = new YAHOO.widget.Button({
       id:"closeButton"+i,
@@ -384,6 +398,8 @@ YAHOO.mazzle.MapCheck.prototype._initForm = function(oParms) {
 	  container: elAppReject,
 	  });
     this._oUnrelatedButton.addListener("click", this._judgeCallback, {oSelf:this, index:i, choice:'evaluator:unrelated'});
+
+
   };
 
   var elResourceTree = document.createElement("div");

@@ -116,12 +116,17 @@ assert_cell(C1, C2, Options) :-
 	    get_time(T), format_time(atom(Time), '%a, %d %b %Y %H:%M:%S %z', T),
 	    option(evaluator(Evaluator), Prov, 'anonymous'),
 
+
 	    rdf_bnode(Provenance),
 	    rdf_assert(Cell, amalgame:provenance, Provenance, Graph),
 	    rdf_assert(Provenance, rdf:type, amalgame:'Provenance', Graph),
 	    rdf_assert(Provenance, owl:versionInfo, Version, Graph),
 	    rdf_assert(Provenance, dcterms:creator, literal(Evaluator), Graph),
 	    rdf_assert(Provenance, dcterms:date, literal(Time), Graph),
+	    (	option(comment(Comment), Prov), Comment \= ''
+	    ->	rdf_assert(Provenance, rdfs:comment, literal(Comment), Graph)
+	    ;	true
+	    ),
 	    (	option(relation(OriginalRelation), Prov)
 	    ->	rdf_assert(Provenance, amalgame:relation, OriginalRelation, Graph)
 	    ;	true

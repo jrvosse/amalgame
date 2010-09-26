@@ -137,7 +137,8 @@ json_judge_mapping(Request) :-
                          subject(Subject),
                          predicate(Predicate),
                          object(Object),
-			 target(Target, [default(evaluation_results)])
+			 target(Target, [default(evaluation_results)]),
+			 comment(Comment, [default('')])
                         ],
                         [attribute_declarations(attribute_decl)]),
 	logged_on(User, anonymous),
@@ -148,7 +149,9 @@ json_judge_mapping(Request) :-
 		    [graph(Target),
 		     relation(Judgement),
 		     prov([relation(Predicate),
-			   evaluator(User)])
+			   evaluator(User),
+			   comment(Comment)
+			  ])
 		    ]),
         http_session_assert(judgement(Subject, Predicate, Object, Judgement)),
         reply_json(json([message='judgement processed'])).
