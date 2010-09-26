@@ -168,13 +168,13 @@ YAHOO.mazzle.MapCheck.prototype._initContainer = function() {
 // 	});
 //         this._oNextButton.addListener("click", this.goto_next , {oSelf:this});
 
- 	this._oSaveButton = new YAHOO.widget.Button({
- 	       id:"saveButton",
- 	       type: "Button",
-                label: "Save intermediate results to file",
-                container: elPanelFooter
- 	});
-         this._oSaveButton.addListener("click", this.save_results , {oSelf:this});
+// 	this._oSaveButton = new YAHOO.widget.Button({
+// 	       id:"saveButton",
+// 	       type: "Button",
+//                label: "Save intermediate results to file",
+//                container: elPanelFooter
+// 	});
+//         this._oSaveButton.addListener("click", this.save_results , {oSelf:this});
 
 
         var counter = document.createElement('span');
