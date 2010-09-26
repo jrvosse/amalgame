@@ -8,11 +8,11 @@
 
 amalgame:NoAlignmentGraph a rdfs:Class ;
 	rdfs:label "No Alignment Graph"@en ;
-	rdfs:comment "The class of all Named Graphs containing no mappings and/or alignments."@en.
+	rdfs:comment "The class of all Named Graphs in the repository containing no mappings and/or alignments."@en.
 
 amalgame:Alignment a rdfs:Class ;
 	rdfs:label "Amalgame Alignment Graph"@en ;
-	rdfs:comment "The class of all Named Graphs containing mappings and/or alignments."@en.
+	rdfs:comment "The class of all Named Graphs in the repository containing mappings and/or alignments."@en.
 
 amalgame:LoadedAlignment a rdfs:Class ;
 	rdfs:subClassOf amalgame:Alignment ;
@@ -43,6 +43,11 @@ amalgame:PartitionedAlignment a rdfs:Class;
 	rdfs:subClassOf amalgame:DerivedAlignment ;
 	rdfs:label "Amalgame Partitioned"@en ;
 	rdfs:comment "A Named Graph that has been created by partitioning another named graph into one or more new graphs. The source graph is recorded by dcterms:source in the amalgame:provenance section."@en .
+
+amalgame:EvaluatedAlignment a rdfs:Class;
+	rdfs:subClassOf amalgame:DerivedAlignment ;
+	rdfs:label "Amalgame Evaluation Results"@en ;
+	rdfs:comment "A Named Graph that has been created by manually evaluating another named graph into a new graph. The source graph is recorded by dcterms:source in the amalgame:provenance section."@en .
 
 amalgame:Provenance a rdfs:Class;
 	rdfs:label "Amalgame Provenance"@en ;

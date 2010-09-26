@@ -81,7 +81,10 @@ attribute_decl(method,           [oneof([head,next]),default(head)]).
 %	HTTP handler for web page with the alignment evaluator
 
 http_evaluator(Request) :-
-	http_parameters(Request, [graph(Graph, [])]),
+	http_parameters(Request, [
+				  graph(Graph, []),
+				  target(Target, [default(evaluation_results)])
+				 ]),
 	http_link_to_id(http_evaluator_reset, [], ResetLink),
   	reply_html_page(cliopatria(default),
 			[ title(['Amalgame alignment evaluator']),
@@ -103,7 +106,7 @@ http_evaluator(Request) :-
 				 [ div(id(evaluator), [])
 				 ])),
 			 script(type('text/javascript'),
-				[ \yui_script(Graph)]),
+				[ \yui_script(Graph, Target)]),
 			 div(a([href(ResetLink)],'reset all(!)'))
 
 			]).
@@ -115,16 +118,15 @@ http_evaluator_reset(_Request) :-
 			title(['Evaluator reset']),
 			p('The Amalgame alignment evaluator has been reset')).
 
-yui_script(Graph) -->
+yui_script(Graph, Target) -->
 	{
 	 setting(http:prefix, Prefix)
 	},
 	html(['function serverPrefix() { return "', Prefix, '/amalgame";}\n',
 	      'var evaluator = new YAHOO.mazzle.MapCheck(',
 	      '\'evaluator\', ',
-	      '{graph:\'',
-		Graph,
-		'\'});'
+	      '{graph:\'', Graph, '\',',
+	      ' targetgraph:\'', Target, '\'});'
 	     ]
 	    ).
 
@@ -134,41 +136,50 @@ json_judge_mapping(Request) :-
                          judgement(Judgement0),
                          subject(Subject),
                          predicate(Predicate),
-                         object(Object)
+                         object(Object),
+			 target(Target, [default(evaluation_results)])
                         ],
                         [attribute_declarations(attribute_decl)]),
 	logged_on(User, anonymous),
 	term_to_atom(Judgement1, Judgement0),
 	rdf_global_term(Judgement1, Judgement),
         debug(evaluator, 'Judgement: ~w', [Judgement]),
-	assert_cell(Subject, Object, [relation(Judgement), prov([relation(Predicate), evaluator(User)])]),
+	assert_cell(Subject, Object,
+		    [graph(Target),
+		     relation(Judgement),
+		     prov([relation(Predicate),
+			   evaluator(User)])
+		    ]),
         http_session_assert(judgement(Subject, Predicate, Object, Judgement)),
         reply_json(json([message='judgement processed'])).
 
 
 
 json_get_mapping(Request) :-
-	http_parameters(Request, [graph(Graph, []), method(Method, [])]),
+	http_parameters(Request, [graph(Graph, []), method(Method, []), target(Target, [])]),
 	(   Method = head
-	->  get_first_mappings(Graph,Mappings, Nr)
-        ;   get_next_mappings(Graph, Mappings, Nr)
+	->  get_first_mappings(Graph, Target, Mappings, Nr)
+        ;   get_next_mappings(Graph, Target, Mappings, Nr)
         ),
 	(   Mappings = error
 	->  reply_json(json([nr_to_go=0, mappings='Error, no mappings found']))
+	;   Mappings = done-done
+	->  http_link_to_id(http_list_alignment, [graph(Target)], Redirect),
+	    reply_json(json([nr_to_go=0, redirect=Redirect]))
 	;   compose_json_answer(Nr, Mappings, Json),
 	    reply_json(Json)
 	).
 
-get_first_mappings(Graph, Mappings, Nr) :-
-	ensure_todo_list(Graph),
+get_first_mappings(Graph, Target, Mappings, Nr) :-
+	ensure_todo_list(Graph, Target),
 	http_session_data(mappings_to_do(Graph,Todo)),
 	Todo = [_Subject-Mappings|_],
 	length(Todo,Nr),!.
 
-get_first_mappings(_,error, 0).
+get_first_mappings(_, _, error, 0).
 
-get_next_mappings(Graph, Mappings, Nr) :-
-	ensure_todo_list(Graph),
+get_next_mappings(Graph, Target, Mappings, Nr) :-
+	ensure_todo_list(Graph, Target),
 	http_session_data(mappings_to_do(Graph,[_|ToDo])),!,
 	http_session_retractall(mappings_to_do(Graph,_)),
 	http_session_assert(mappings_to_do(Graph,ToDo)),
@@ -178,10 +189,17 @@ get_next_mappings(Graph, Mappings, Nr) :-
         ;   [_Subject-Mappings|_] = ToDo
         ).
 
-ensure_todo_list(Graph) :-
+ensure_todo_list(Graph, _Target) :-
 	http_session_data(mappings_to_do(Graph,Todo)),
 	ground(Todo),!.
-ensure_todo_list(Graph) :-
+ensure_todo_list(Graph, Target) :-
+	% We have no do to list...
+	% Assume we start from scratch
+	(   rdf_graph(Target) -> rdf_unload(Target); true),
+	rdf_assert(Target, rdf:type, amalgame:'EvaluatedAlignment', Target),
+	rdf_bnode(Provenance),
+	rdf_assert(Target, amalgame:provenance, Provenance, Target),
+	rdf_assert(Provenance, dcterms:source, Graph, Target),
 	rdf_equal(skos:closeMatch, CM),
 	setting(evaluator:maxMappings, N),
 	find_unique(rdf(Subject,Predicate,Object),

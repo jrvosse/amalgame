@@ -63,8 +63,8 @@ YAHOO.mazzle.MapCheck.prototype._initMap = function(headornext) {
   function successhandler(o) {
     var response = YAHOO.lang.JSON.parse(o.responseText);
     if(!response.mappings) {
-      window.alert('Your results have been saved in ' + response.dir + ', you are done. Thanks a lot!');
-      window.location.href='http://e-culture.multimedian.nl/'
+      window.alert('Thanks a lot! After your press OK you will be redirected to the page showing the saved RDF graph containing your results');
+      window.location.href=response.redirect;
       return;
     }
 
@@ -99,7 +99,9 @@ YAHOO.mazzle.MapCheck.prototype._initMap = function(headornext) {
   };
   function failurehandler() { };
 
-  var link = serverPrefix()+'/api/evaluator/get?method='+headornext+'&graph='+encodeURIComponent(this.graph);
+  var link = serverPrefix()+'/api/evaluator/get?method='+headornext+
+	  '&target='+encodeURIComponent(this.targetgraph)+
+	  '&graph='+encodeURIComponent(this.graph);
   var oCallback = { success:successhandler,
 		    failure:this.failurehandler,
 		    scope: this
@@ -198,10 +200,8 @@ YAHOO.mazzle.MapCheck.prototype._judgeCallback = function(ev,oParams) {
   "?" + queryString('judgement', choice) +
   "&" + queryString('subject',     mapping.subject.value) +
   "&" + queryString('predicate',    mapping.predicate.value) +
-  "&" + queryString('object',     mapping.object.value);
-  // "&" + queryString('oldUrl',  mapping.subject.value) +
-  // "&" + queryString('oldType', mapping.predicate.value) +
-  // "&" + queryString('oldTag',  mapping.object.value) ;
+  "&" + queryString('object',     mapping.object.value) +
+  "&" + queryString('target',  oSelf.targetgraph) ;
   var request = YAHOO.util.Connect.asyncRequest('GET', sLink, callback);
 };
 
