@@ -199,7 +199,15 @@ ensure_todo_list(Graph, Target) :-
 	rdf_assert(Target, rdf:type, amalgame:'EvaluatedAlignment', Target),
 	rdf_bnode(Provenance),
 	rdf_assert(Target, amalgame:provenance, Provenance, Target),
+	rdf_assert(Provenance, dcterms:title, literal('Provenance: about this evaluation'), Target),
 	rdf_assert(Provenance, dcterms:source, Graph, Target),
+	(   rdf(Graph, amalgame:provenance, OrigProvenance, Graph),!
+	->  rdf_assert(Graph, amalgame:provenance, OrigProvenance, Target),
+	    rdf_transaction(
+			    forall(rdf(OrigProvenance, PPred, PSubject),
+				   rdf_assert(OrigProvenance, PPred, PSubject, Target)))
+	;   true
+	),
 	rdf_equal(skos:closeMatch, CM),
 	setting(evaluator:maxMappings, N),
 	find_unique(rdf(Subject,Predicate,Object),
