@@ -199,6 +199,7 @@ ensure_todo_list(Graph, Target) :-
 	rdf_assert(Target, rdf:type, amalgame:'EvaluatedAlignment', Target),
 	rdf_bnode(Provenance),
 	rdf_assert(Target, amalgame:provenance, Provenance, Target),
+	rdf_assert(Provenance, rdf:type, amalgame:'Provenance', Target),
 	rdf_assert(Provenance, dcterms:title, literal('Provenance: about this evaluation'), Target),
 	rdf_assert(Provenance, dcterms:source, Graph, Target),
 	(   rdf(Graph, amalgame:provenance, OrigProvenance, Graph),!
