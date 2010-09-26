@@ -193,7 +193,6 @@ YAHOO.mazzle.MapCheck.prototype._judgeCallback = function(ev,oParams) {
   choice = oParams.choice;
   comment = oParams.comment.value;
 
-  console.log(comment);
   function successhandler() { oSelf.delete_mapping(ev,oParams); };
   function failurehandler() { };
   var callback = { success:successhandler,
@@ -346,58 +345,65 @@ YAHOO.mazzle.MapCheck.prototype._initForm = function(oParms) {
     this._oExactButton = new YAHOO.widget.Button({
       id:"exactButton"+i,
 	  type: ButtonType,
-	  label: "Exact match",
+	  label: "Exact match (=)",
 	  container: elAppReject,
 	  });
     this._oExactButton.addListener("click", this._judgeCallback, {oSelf:this, index:i, choice:'skos:exactMatch', comment:elComment});
+    this._oExactButton._button.setAttribute("accesskey", "=");
 
     this._oCloseButton = new YAHOO.widget.Button({
       id:"closeButton"+i,
 	  type: ButtonType,
-	  label: "close match",
+	  label: "close match (c)",
 	  container: elAppReject,
 	  });
     this._oCloseButton.addListener("click", this._judgeCallback, {oSelf:this, index:i, choice:'skos:closeMatch'});
+    this._oCloseButton._button.setAttribute("accesskey", "c");
 
     this._oBroaderButton = new YAHOO.widget.Button({
       id:"broaderButton"+i,
 	  type: ButtonType,
-	  label: "Broader",
+	  label: "Broader (b)",
 	  container: elSkos,
 	  });
     this._oBroaderButton.addListener("click", this._judgeCallback, {oSelf:this, index:i, choice:'skos:broadMatch'});
+    this._oBroaderButton._button.setAttribute("accesskey", "b");
 
     this._oNarrowerButton = new YAHOO.widget.Button({
       id:"narrowerButton"+i,
 	  type: ButtonType,
-	  label: "narrower",
+	  label: "narrower (n)",
 	  container: elSkos,
 	  });
     this._oNarrowerButton.addListener("click", this._judgeCallback, {oSelf:this, index:i, choice:'skos:narrowMatch'});
+    this._oNarrowerButton._button.setAttribute("accesskey", "n");
 
     this._oRelatedButton = new YAHOO.widget.Button({
       id:"RelatedButton"+i,
 	  type: ButtonType,
-	  label: "related match",
+	  label: "related match (r)",
 	  container: elSkos,
 	  });
     this._oRelatedButton.addListener("click", this._judgeCallback, {oSelf:this, index:i, choice:'skos:relatedMatch'});
+    this._oRelatedButton._button.setAttribute("accesskey", "r");
 
     this._oUnsureButton = new YAHOO.widget.Button({
       id:"unsureButton"+i,
 	  type: ButtonType,
-	  label: "? I'm not sure ?",
+	  label: "? I'm not sure (u)?",
 	  container: elUnsure,
 	  });
     this._oUnsureButton.addListener("click", this._judgeCallback, {oSelf:this, index:i, choice:'evaluator:unsure'});
+    this._oUnsureButton._button.setAttribute("accesskey", "u");
 
     this._oUnrelatedButton = new YAHOO.widget.Button({
       id:"unrelatedButton"+i,
 	  type: ButtonType,
-	  label: "not related",
+	  label: "not related (x)",
 	  container: elAppReject,
 	  });
     this._oUnrelatedButton.addListener("click", this._judgeCallback, {oSelf:this, index:i, choice:'evaluator:unrelated'});
+    this._oUnrelatedButton._button.setAttribute("accesskey", "x");
 
 
   };
