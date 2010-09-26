@@ -68,3 +68,21 @@ th, table.rdf_browse th {
 #ag_graph_info { float: right; max-width: 35%; }
 #ag_graph_as_resource { float: left; max-width: 65%; }
 #ag_graph_basic_actions { clear: both }
+
+/* Fixed small abbreviated alginlist as a legend for overlap list: */
+div.overlaplist { max-width: 73%; }
+div.alignlist table { width: 100%; }
+div.alignlist { position: fixed; top: 4em; right: 0.5em; width: 25%; font-size: 0.7em; background-color: white}
+div.alignlist td.graph div { text-align:right; overflow: hidden; height: 1.4em; }
+div.alignlist td.graph div a { float: right; width:300%; text-align: right}
+div.alignlist .cachenote { display: none }
+div.alignlist td.format { display: none }
+div.alignlist th.format { display: none }
+div.alignlist td.src { display: none }
+div.alignlist th.src { display: none }
+div.alignlist td.target { display: none }
+div.alignlist th.target { display: none }
+div.alignlist td.src_mapped { display: none }
+div.alignlist th.src_mapped { display: none }
+div.alignlist td.target_mapped { display: none }
+div.alignlist th.target_mapped { display: none }

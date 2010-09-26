@@ -125,7 +125,6 @@ http_list_overlap(_Request) :-
 			[
 			 div([class(alignlist)],
 			     [
-			      h4('Alignments in the RDF store'),
 			      \show_alignments
 			     ]),
 			 div([class(overlaplist)],
@@ -409,17 +408,17 @@ show_alignments -->
 		 a([href(ClearAlignLink)], 'clear all alignments from repository (!)')
 		]
 	},
-	html([div([id(cachenote)], Note),
-	      table([id(aligntable)],
+	html([div([class(cachenote)], Note),
+	      table([class(aligntable)],
 		    [tr([
-			 th('Abr'),
-			 th('Source'),
-			 th('# mapped'),
-			 th('Target'),
-			 th('# mapped'),
-			 th('Format'),
-			 th('# maps'),
-			 th('Named Graph URI')
+			 th([class(nick)],'Abr'),
+			 th([class(src)],'Source'),
+			 th([class(src_mapped)],'# mapped'),
+			 th([class(target)],'Target'),
+			 th([class(target_mapped)],'# mapped'),
+			 th([class(format)],'Format'),
+			 th([class(count)],'# maps'),
+			 th([class(graph)],'Named Graph URI')
 
 		       ]),
 		    \show_alignments(Graphs,0)
@@ -431,14 +430,14 @@ show_alignments([],Total) -->
 		 http_link_to_id(http_compute_stats, [graph(all)], ComputeLink)
 	},
 	html(tr([class(finalrow)],
-		[td(''),
-		 td(''),
-		 td(''),
-		 td(''),
-		 td(''),
-		 td(''),
-		 td([style('text-align: right')],Total),
-		 td(a([href(ComputeLink), title('Click to compute missing stats')], 'Total (double counting)'))
+		[td([class(nick)],''),
+		 td([class(src)],''),
+		 td([class(src_mapped)],''),
+		 td([class(target)],''),
+		 td([class(target_mapped)],''),
+		 td([class(format)],''),
+		 td([class(count),style('text-align: right')],Total),
+		 td([class(graph)],a([href(ComputeLink), title('Click to compute missing stats')], 'Total (double counting)'))
 		])).
 
 show_alignments([Graph|Tail], Number) -->
@@ -474,14 +473,14 @@ show_alignments([Graph|Tail], Number) -->
 	 )
 	},
 	html(tr([
-		 td(\show_alignment(Graph)),
-		 td(Source),
-		 td([style('text-align: right')],SourcesMapped),
-		 td(Target),
-		 td([style('text-align: right')],TargetsMapped),
-		 td(FormatLink),
-		 td([style('text-align: right')],Count),
-		 td(\show_graph(Graph))
+		 td([class(nick)],\show_alignment(Graph)),
+		 td([class(src)],Source),
+		 td([class(src_mapped),style('text-align: right')],SourcesMapped),
+		 td([class(target)],Target),
+		 td([class(target_mapped), style('text-align: right')],TargetsMapped),
+		 td([class(format)],FormatLink),
+		 td([class(count),style('text-align: right')],Count),
+		 td([class(graph)],div(\show_graph(Graph)))
 		])),
 	show_alignments(Tail, NewNumber).
 
