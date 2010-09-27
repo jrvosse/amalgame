@@ -22,6 +22,7 @@
 :- use_module(user(user_db)).
 
 :- use_module(amalgame(skos/vocabularies)).
+:- use_module(amalgame(mappings/alignment)).
 :- use_module(amalgame(mappings/map)).
 :- use_module(amalgame(mappings/edoal)).
 :- use_module(amalgame(util/util)).
@@ -206,6 +207,7 @@ ensure_todo_list(Graph, Target) :-
 	% Assume we start from scratch
 	(   rdf_graph(Target) -> rdf_unload(Target); true),
 	rdf_assert(Target, rdf:type, amalgame:'EvaluatedAlignment', Target),
+	align_clear_stats(graph(Target)),
 	rdf_bnode(Provenance),
 	rdf_assert(Target, amalgame:provenance, Provenance, Target),
 	rdf_assert(Provenance, rdf:type, amalgame:'Provenance', Target),
