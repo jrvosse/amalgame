@@ -444,7 +444,7 @@ show_alignments([Graph|Tail], Number) -->
 	{
 	 http_link_to_id(http_compute_stats, [graph(Graph), stat(all)], MissingLink),
 	 MissingValue = a([href(MissingLink)],'?'),
-	 is_alignment_graph(Graph, Format),
+	 (   is_alignment_graph(Graph, Format) -> true; Format=empty),
 	 align_get_computed_props(Graph, Props),
 	 (   memberchk(count(literal(type(_,Count))), Props)
 	 ->  NewNumber is Number + Count
