@@ -28,6 +28,7 @@
 :- use_module(amalgame(util/json_graph)).
 
 :- setting(evaluator:maxMappings, nonneg, 1000, 'Max number of mappings per mapping file to put in the todo list of the mapping evaluator').
+:- setting(evaluator:authorization, oneof([required, optional]), required, 'Login required to evaluate or not').
 
 % add local web directories from which static files are served.
 
@@ -85,6 +86,11 @@ http_evaluator(Request) :-
 				  graph(Graph, []),
 				  target(Target, [default(evaluation_results)])
 				 ]),
+	(   setting(evaluator:authorization, required)
+	->  authorized(write(default, create(evaluation)))
+	;   true
+	),
+
 	http_link_to_id(http_evaluator_reset, [], ResetLink),
   	reply_html_page(cliopatria(default),
 			[ title(['Amalgame alignment evaluator']),
