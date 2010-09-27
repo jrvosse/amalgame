@@ -30,7 +30,7 @@
 is_alignment_graph(Graph, Format) :-
 	ground(Graph),!,
 	rdf_graph(Graph),
-	has_map(_, Format, Graph),!.
+	graph_format(Graph, Format).
 
 is_alignment_graph(Graph, Format) :-
 	var(Graph),
@@ -41,7 +41,12 @@ is_alignment_graph(Graph, Format) :-
 graph_format(Graph, Format) :-
 	rdf(Graph, amalgame:format, literal(Format), amalgame), !.
 graph_format(Graph, Format) :-
-	has_map(_,Format, Graph), !.
+	(   has_map(_,Format, Graph), !
+	->  true
+	;   rdfs_individual_of(Graph, amalgame:'Alignment')
+	->  Format = empty
+	;   fail
+	).
 
 %%	find_graphs(+Map, -Graphs) is det.
 %
@@ -94,7 +99,11 @@ align_ensure_stats(all(Graph)) :-
 align_ensure_stats(format(Graph)) :-
 	rdf(Graph, amalgame:format, _, amalgame), !.
 align_ensure_stats(format(Graph)) :-
-	has_map(_,Format, Graph:_),!,
+	(   has_map(_,Format, Graph:_)
+	->  true
+	;   Format = empty
+	),
+	!,
 	assert_alignment_props([Graph:[format(literal(Format))]], amalgame),!.
 align_ensure_stats(format(_)) :- !.
 
@@ -166,6 +175,11 @@ align_clear_stats(found) :-
 align_clear_stats(nicknames) :-
 	rdf_retractall(_, _, _, amalgame_nicknames).
 
+align_clear_stats(graph(Graph)) :-
+	rdf_retractall(Graph, _,_,amalgame),
+	rdf_retractall(Graph, _,_,amalgame).
+
+
 %%	align_recompute_stats(+Type) is det.
 %%	align_recompute_stats(-Type) is nondet.
 %
@@ -189,6 +203,7 @@ find_source(Graph, Format, Source) :-
 	->  true
 	;   iri_xml_namespace(E1, Source)
 	).
+find_source(_, _, null).
 
 find_target(Graph, Format, Target) :-
 	has_map([_, E2], Format, Graph), !,
@@ -196,6 +211,7 @@ find_target(Graph, Format, Target) :-
 	->  true
 	;   iri_xml_namespace(E2, Target)
 	).
+find_target(_, _, null).
 
 assert_alignment_props(Alignment, Props, Graph) :-
 	assert_alignment_props(Alignment:Props, Graph).
