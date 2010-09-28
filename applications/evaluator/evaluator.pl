@@ -79,7 +79,7 @@ attribute_decl(object,           [default(none)]).
 attribute_decl(method,           [oneof([head,next]),default(head)]).
 
 :- dynamic
-	is_locked/2.
+	is_locked/3.
 
 %%	http_evaluator(+Request)
 %
@@ -95,12 +95,12 @@ http_evaluator(Request) :-
 	;   true
 	),
 	logged_on(User, 'anonymous'),
-	(   is_locked(OtherUser, Target), User \= OtherUser
+	(   is_locked(OtherUser, Target, TimeStamp), User \= OtherUser
 	->  http_link_to_id(http_list_alignment, [graph(Graph)], TryAgainLink),
 	    reply_html_page(cliopatria(default),
 			    title('Amalgame: target locked'),
 			    [h4('Error target locked by other user'),
-			     p([],['Target graph: ', Target, ' is locked by ', OtherUser]),
+			     p([],['Target graph: ', Target, ' is locked by ', OtherUser, ' since ', TimeStamp]),
 			     p([],['Please ', a([href(TryAgainLink)], 'select'),' another target graph name'])
 			    ])
 	;   http_link_to_id(http_evaluator_reset, [target(Target)], ResetLink),
@@ -137,7 +137,7 @@ http_evaluator_reset(Request) :-
 	http_session_retractall(mappings_to_do(_,_)),
 	http_session_retractall(judgement(_,_,_,_)),
 	logged_on(User, 'anonymous'),
-	(   unlock_graph(User, Target)
+	(   unlock_graph(User, Target, _TimeStamp)
 	->  format(atom(LockMessage), 'Target graph ~p unlocked for user ~w', [Target, User])
 	;   format(atom(LockMessage), 'Warning: cannot unlock ~p for user ~w', [Target, User])
 	),
@@ -228,7 +228,7 @@ ensure_todo_list(Graph, Target) :-
 	% We have no do to list...
 	% Assume we start from scratch
 	logged_on(User, anonymous),
-	lock_graph(User, Target),
+	lock_graph(User, Target, TimeStamp),
 	(   rdf_graph(Target) -> rdf_unload(Target); true),
 	rdf_assert(Target, rdf:type, amalgame:'EvaluatedAlignment', Target),
 	align_clear_stats(graph(Target)),
@@ -238,6 +238,7 @@ ensure_todo_list(Graph, Target) :-
 	rdf_assert(Provenance, dcterms:title, literal('Provenance: about this evaluation'), Target),
 	rdf_assert(Provenance, dcterms:source, Graph, Target),
 	rdf_assert(Provenance, dcterms:creator, literal(User), Target),
+	rdf_assert(Provenance, dcterms:date, literal(TimeStamp), Target),
 	(   rdf(Graph, amalgame:provenance, OrigProvenance, Graph),!
 	->  rdf_assert(Graph, amalgame:provenance, OrigProvenance, Target),
 	    rdf_transaction(
@@ -453,15 +454,16 @@ attr_param(hit, hit=Bool) :-
         bool_to_json(true, Bool).
 
 
-lock_graph(Graph, User) :-
-	(   is_locked(Graph, OtherUser)
-	->  debug(evaluator, 'Error ~w already locked by ~w', [Graph, OtherUser]),
+lock_graph(Graph, User, Timestamp) :-
+	(   is_locked(Graph, OtherUser, OtherTimeStamp)
+	->  debug(evaluator, 'Error ~w already locked by ~w since', [Graph, OtherUser, OtherTimeStamp]),
 	    fail
-	;   asserta(is_locked(Graph, User))
+	;   get_time(T), format_time(atom(Timestamp), '%a, %d %b %Y %H:%M:%S %z', T),
+	asserta(is_locked(Graph, User, Timestamp))
 	).
-unlock_graph(Graph, User) :-
-	(   is_locked(Graph, User)
-	->  retractall(is_locked(Graph, User))
+unlock_graph(Graph, User, Timestamp) :-
+	(   is_locked(Graph, User, Timestamp)
+	->  retractall(is_locked(Graph, User, Timestamp))
 	;   debug(evaluator, 'Error ~w not locked by ~w', [Graph, User]),
 	    fail
 	).
