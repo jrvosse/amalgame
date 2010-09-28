@@ -95,6 +95,7 @@ file_search_path(ontology,   '../../demo/metadata/').
 
 :- use_module(library(semweb/rdf_zlib_plugin)).
 :- use_module(amalgame(amalgame)).
+:- use_module(cliopatria('examples/customise/EDM')).
 
 
 		 /*******************************
