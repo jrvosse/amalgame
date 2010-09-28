@@ -541,14 +541,19 @@ li_export_graph(Graph) -->
 
 li_eval_graph(Graph) -->
 	{
-	 	 http_link_to_id(http_evaluator, [], EvalLink)
+	 http_link_to_id(http_evaluator, [], EvalLink),
+	 Base=evaluation,
+	 reset_gensym(Base),
+	 repeat,
+	 gensym(Base, Target),
+	 \+ rdf_graph(Target),!
 	},
 	html(li(form([action(EvalLink)],
 		     [input([type(hidden),  name(graph), value(Graph)],[]),
 		      input([class(submit), type(submit), value('Evaluate')]),
 		      ' to graph ',
 		      input([type(text), class(target), name(target), size(10),
-			     value(evaluation_results)], [])
+			     value(Target)], [])
 		     ]
 		    ))).
 
