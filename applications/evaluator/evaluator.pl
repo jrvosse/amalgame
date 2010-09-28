@@ -78,6 +78,9 @@ attribute_decl(predicate,        [default(none)]).
 attribute_decl(object,           [default(none)]).
 attribute_decl(method,           [oneof([head,next]),default(head)]).
 
+:- dynamic
+	is_locked/2.
+
 %%	http_evaluator(+Request)
 %
 %	HTTP handler for web page with the alignment evaluator
@@ -91,39 +94,58 @@ http_evaluator(Request) :-
 	->  authorized(write(default, create(evaluation)))
 	;   true
 	),
+	logged_on(User, 'anonymous'),
+	(   is_locked(OtherUser, Target), User \= OtherUser
+	->  http_link_to_id(http_list_alignment, [graph(Graph)], TryAgainLink),
+	    reply_html_page(cliopatria(default),
+			    title('Amalgame: target locked'),
+			    [h4('Error target locked by other user'),
+			     p([],['Target graph: ', Target, ' is locked by ', OtherUser]),
+			     p([],['Please ', a([href(TryAgainLink)], 'select'),' another target graph name'])
+			    ])
+	;   http_link_to_id(http_evaluator_reset, [target(Target)], ResetLink),
+	    reply_html_page(cliopatria(default),
+			    [ title(['Amalgame alignment evaluator']),
+			      script([type('text/javascript'),
+				      src('http://yui.yahooapis.com/2.7.0/build/yahoo/yahoo.js')
+				     ],[]),
+			      script([type('text/javascript'),
+				      src('http://yui.yahooapis.com/2.7.0/build/json/json.js')
+				     ], []),
+			      link([rel(stylesheet),
+				    type('text/css'),
+				    href('http://yui.yahooapis.com/2.7.0/build/reset-fonts-grids/reset-fonts-grids.css')
+				   ],[]),
+			      \html_requires(evaluator)
+			    ],
+			    [
+			     div(id(main),
+				 div(class('main-content'),
+				     [ div(id(evaluator), [])
+				     ])),
+			     script(type('text/javascript'),
+				    [ \yui_script(Graph, Target)]),
+			     div(a([href(ResetLink)],'reset all(!)'))
+			    ]
+			   )
+	).
 
-	http_link_to_id(http_evaluator_reset, [], ResetLink),
-  	reply_html_page(cliopatria(default),
-			[ title(['Amalgame alignment evaluator']),
-			  script([type('text/javascript'),
-				  src('http://yui.yahooapis.com/2.7.0/build/yahoo/yahoo.js')
-				 ],[]),
-			  script([type('text/javascript'),
-				  src('http://yui.yahooapis.com/2.7.0/build/json/json.js')
-				 ], []),
-			  link([rel(stylesheet),
-				type('text/css'),
-				href('http://yui.yahooapis.com/2.7.0/build/reset-fonts-grids/reset-fonts-grids.css')
-			       ],[]),
-			  \html_requires(evaluator)
-			],
-			[
-			 div(id(main),
-			     div(class('main-content'),
-				 [ div(id(evaluator), [])
-				 ])),
-			 script(type('text/javascript'),
-				[ \yui_script(Graph, Target)]),
-			 div(a([href(ResetLink)],'reset all(!)'))
-
-			]).
-
-http_evaluator_reset(_Request) :-
+http_evaluator_reset(Request) :-
+	http_parameters(Request, [
+				  target(Target, [default(evaluation_results)])
+				 ]),
 	http_session_retractall(mappings_to_do(_,_)),
 	http_session_retractall(judgement(_,_,_,_)),
+	logged_on(User, 'anonymous'),
+	(   unlock_graph(User, Target)
+	->  format(atom(LockMessage), 'Target graph ~p unlocked for user ~w', [Target, User])
+	;   format(atom(LockMessage), 'Warning: cannot unlock ~p for user ~w', [Target, User])
+	),
 	reply_html_page(cliopatria(default),
 			title(['Evaluator reset']),
-			p('The Amalgame alignment evaluator has been reset')).
+			[p('The Amalgame alignment evaluator has been reset'),
+			 p(LockMessage)
+			]).
 
 yui_script(Graph, Target) -->
 	{
@@ -205,6 +227,8 @@ ensure_todo_list(Graph, _Target) :-
 ensure_todo_list(Graph, Target) :-
 	% We have no do to list...
 	% Assume we start from scratch
+	logged_on(User, anonymous),
+	lock_graph(User, Target),
 	(   rdf_graph(Target) -> rdf_unload(Target); true),
 	rdf_assert(Target, rdf:type, amalgame:'EvaluatedAlignment', Target),
 	align_clear_stats(graph(Target)),
@@ -213,6 +237,7 @@ ensure_todo_list(Graph, Target) :-
 	rdf_assert(Provenance, rdf:type, amalgame:'Provenance', Target),
 	rdf_assert(Provenance, dcterms:title, literal('Provenance: about this evaluation'), Target),
 	rdf_assert(Provenance, dcterms:source, Graph, Target),
+	rdf_assert(Provenance, dcterms:creator, literal(User), Target),
 	(   rdf(Graph, amalgame:provenance, OrigProvenance, Graph),!
 	->  rdf_assert(Graph, amalgame:provenance, OrigProvenance, Target),
 	    rdf_transaction(
@@ -426,3 +451,19 @@ attr_param(Term, Key=Value) :-
         !.
 attr_param(hit, hit=Bool) :-
         bool_to_json(true, Bool).
+
+
+lock_graph(Graph, User) :-
+	(   is_locked(Graph, OtherUser)
+	->  debug(evaluator, 'Error ~w already locked by ~w', [Graph, OtherUser]),
+	    fail
+	;   asserta(is_locked(Graph, User))
+	).
+unlock_graph(Graph, User) :-
+	(   is_locked(Graph, User)
+	->  retractall(is_locked(Graph, User))
+	;   debug(evaluator, 'Error ~w not locked by ~w', [Graph, User]),
+	    fail
+	).
+
+
