@@ -1,7 +1,8 @@
 :-module(edoal, [
 		 assert_alignment/2, 	% +URI, +OptionList
 		 assert_cell/3,	        % +E1, +E2, +OptionList
-		 edoal_to_triples/4	% +Request, +EdoalGraph, +Options, +TargetGraph
+		 edoal_to_triples/4,	% +Request, +EdoalGraph, +Options, +TargetGraph
+		 edoal_select/4	        % +Request, +EdoalGraph, +Options, +TargetGraph
 		]
 	).
 
@@ -93,11 +94,12 @@ assert_cell(C1, C2, Options) :-
 	% Relation should be a literal according to the specs, but we do not like this ...
 	% rdf_assert(Cell, align:relation, literal(R), Graph),
 	rdf_assert(Cell, align:relation, R, Graph),
-	% FIXME. Jan, asserting this triple slows things down dramatically
-	%(   option(alignment(A), Options)
-	%->  rdf_assert(A, align:map, Cell, Graph)
-	%;   debug(edoal, 'Warning: asserting EDOAL cell without parent alignment', [])
-	%).
+
+	% Asserting this triple slows things down dramatically on Prolog < 5.11.6
+	(   option(alignment(A), Options)
+	->  rdf_assert(A, align:map, Cell, Graph)
+	;   debug(edoal, 'Warning: asserting EDOAL cell without parent alignment', [])
+	),
 	(   option(source(Source), Options)
 	->  term_to_atom(Source, SourceAtom),
 	    rdf_assert(Cell, amalgame:source, literal(SourceAtom), Graph)
@@ -153,9 +155,48 @@ edoal_to_triples(Request, EdoalGraph, TargetGraph, Options) :-
 			       assert_as_single_triple(C1-C2-MatchOptions, Options, TargetGraph)
 			      )
 		       ),
+	provenance_stamp(Request, EdoalGraph, TargetGraph, Provenance),
+	rdf_assert(Provenance, dcterms:title, literal('Provenance: about this exported alignment'), TargetGraph),
+	rdf_assert(TargetGraph, rdf:type, amalgame:'ExportedAlignment', TargetGraph).
+
+
+assert_as_single_triple(C1-C2-MatchOptions, Options, TargetGraph) :-
+	rdf_equal(skos:closeMatch, DefaultRelation),
+	append([
+		Options,
+		MatchOptions,
+		[DefaultRelation]
+	       ],
+	       AllOptions),
+	member(relation(R), AllOptions),
+	R \= no_override, !,
+	rdf_assert(C1, R, C2, TargetGraph).
+
+
+
+edoal_select(Request, EdoalGraph, TargetGraph, Options) :-
 	option(min(Min), Options, 0.0),
 	option(max(Max), Options, 1.0),
+	rdf_transaction(
+			forall(has_map([C1, C2], edoal, MatchOptions, EdoalGraph),
+			       (   	option(measure(Measure), MatchOptions, 1.0),
+					(   (Measure < Min ; Measure > Max)
+					->  true
+					;   append(Options, MatchOptions, NewOptions),
+					    assert_cell(C1, C2, [graph(TargetGraph),
+								 alignment(TargetGraph)
+								|NewOptions])
+					)
+			       )
+			      )
+		       ),
+	provenance_stamp(Request, EdoalGraph, TargetGraph, Provenance),
+	rdf_assert(Provenance, dcterms:title, literal('Provenance: about this selected alignment'), TargetGraph),
+	rdf_assert(Provenance, amalgame:minimalConfidence, literal(type(xsd:float, Min)), TargetGraph),
+	rdf_assert(Provenance, amalgame:maximalConfidence, literal(type(xsd:float, Max)), TargetGraph),
+	rdf_assert(TargetGraph, rdf:type, amalgame:'SelectionAlignment', TargetGraph).
 
+provenance_stamp(Request, EdoalGraph, TargetGraph, Provenance) :-
 	get_time(T), format_time(atom(Time), '%a, %d %b %Y %H:%M:%S %z', T),
 	logged_on(User, 'anonymous'),
 	git_component_property('ClioPatria', version(CP_version)),
@@ -167,37 +208,10 @@ edoal_to_triples(Request, EdoalGraph, TargetGraph, Options) :-
 	format(atom(ReqUsed), '~w://~w:~w~w', [Protocol,Hostname,Port,ReqURI]),
 	rdf_bnode(Provenance),
 	rdf_assert(Provenance, rdf:type, amalgame:'Provenance', TargetGraph),
-	rdf_assert(Provenance, dcterms:title, literal('Provenance: about this exported alignment'), TargetGraph),
 	rdf_assert(Provenance, dcterms:date, literal(Time), TargetGraph),
 	rdf_assert(Provenance, dcterms:creator, literal(User), TargetGraph),
 	rdf_assert(Provenance, dcterms:source, EdoalGraph, TargetGraph),
 	rdf_assert(Provenance, owl:versionInfo, literal(Version), TargetGraph),
 	rdf_assert(Provenance, amalgame:request, literal(ReqUsed), TargetGraph),
-	rdf_assert(Provenance, amalgame:minimalConfidence, literal(type(xsd:float, Min)), TargetGraph),
-	rdf_assert(Provenance, amalgame:maximalConfidence, literal(type(xsd:float, Max)), TargetGraph),
-	rdf_assert(TargetGraph, amalgame:provenance, Provenance, TargetGraph),
-	rdf_assert(TargetGraph, rdf:type, amalgame:'ExportedAlignment', TargetGraph).
-
-assert_as_single_triple(_-_-MatchOptions, Options, _Graph) :-
-	% Do nothing if max < measure or measure < min
-	option(measure(Measure), MatchOptions, 1.0),
-	option(min(Min), Options, 0.0),
-	option(max(Max), Options, 1.0),
-	(   Measure < Min
-	;   Measure > Max
-	),
-	!.
-
-assert_as_single_triple(C1-C2-MatchOptions, Options, TargetGraph) :-
-	rdf_equal(skos:closeMatch, DefaultRelation),
-	append([MatchOptions,
-		Options,
-		[DefaultRelation]
-	       ],
-	       AllOptions),
-	memberchk(relation(R), AllOptions),
-	rdf_assert(C1, R, C2, TargetGraph).
-
-
-
+	rdf_assert(TargetGraph, amalgame:provenance, Provenance, TargetGraph).
 

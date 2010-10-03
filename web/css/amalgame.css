@@ -3,6 +3,17 @@ body {
 	color: #202020;
 	font-family: Arial;
 }
+
+#sidebar {
+	  position: fixed;
+}
+
+#search_form {
+	      position: fixed;
+	      right: 0.5em;
+
+}
+
 a {
 	color: #E2003B;
 	text-decoration: none;

@@ -31,6 +31,7 @@
 :- http_handler(amalgame(split_alignment),    http_split_alignment,     []).
 :- http_handler(amalgame(skos_export),        http_skos_export,         []).
 :- http_handler(amalgame(sample_alignment),   http_sample_alignment,	[]).
+:- http_handler(amalgame(select_from_graph),  http_select_from_graph,	[]).
 
 %%	http_list_alignments(+Request) is det.
 %
@@ -169,15 +170,13 @@ http_delete_alignment_graphs(_Request) :-
 http_skos_export(Request) :-
 	http_parameters(Request, [graph(Graph, [description('URI of source graph to export from')]),
 				  name(TargetGraph, [default(default_export_graph)]),
-				  min(Min, [between(0.0, 1.0), description('Minimal confidence level')]),
-				  max(Max, [between(0.0, 1.0), description('Maximal confidence level')]),
 				  relation(MapRelation,
 					   [default('http://www.w3.org/2004/02/skos/core#closeMatch')])
 				 ]),
 
 	(rdf_graph(TargetGraph) -> rdf_unload(TargetGraph); true),
-	edoal_to_triples(Request, Graph, TargetGraph, [relation(MapRelation), min(Min), max(Max)]),
-	http_link_to_id(list_graph, [graph(TargetGraph)], ListGraph),
+	edoal_to_triples(Request, Graph, TargetGraph, [relation(MapRelation)]),
+	http_link_to_id(http_list_alignment, [graph(TargetGraph)], ListGraph),
 	http_redirect(moved, ListGraph, Request).
 
 
@@ -189,13 +188,21 @@ http_sample_alignment(Request) :-
 				  method(Method, [])
 				 ]),
 	sample(Request, Method, Graph, Name, Size),
-	http_link_to_id(http_list_alignment, [graph(Name)], LinkToSample),
-	reply_html_page(cliopatria(default),
-			title('Amalgame sampled alignment'),
-			div(['Sampled alignment ', Graph,
-			     ' into named graph ', a([href(LinkToSample)], Name),
-			     ' of size ', Size, ' (', Method, ')' ])
-		       ).
+	http_link_to_id(http_list_alignment, [graph(Name)], ListGraph),
+	http_redirect(moved, ListGraph, Request).
+
+http_select_from_graph(Request) :-
+	http_parameters(Request, [graph(Graph, [description('URI of source graph to export from')]),
+				  name(TargetGraph, [default(default_export_graph)]),
+				  min(Min, [between(0.0, 1.0), description('Minimal confidence level')]),
+				  max(Max, [between(0.0, 1.0), description('Maximal confidence level')])
+				 ]),
+
+	(rdf_graph(TargetGraph) -> rdf_unload(TargetGraph); true),
+	edoal_select(Request, Graph, TargetGraph, [min(Min), max(Max)]),
+	http_link_to_id(http_list_alignment, [graph(TargetGraph)], ListGraph),
+	http_redirect(moved, ListGraph, Request).
+
 
 sample(Request, Method, Graph, Name, Size) :-
 	(   rdf_graph(Name)
@@ -321,9 +328,15 @@ show_alignment_overview(Graph) -->
 		  [
 		   \li_eval_graph(Graph),
 		   \li_sample_graph(Graph),
-		   \li_export_graph(Graph),
-		   \li_partition_graph(Graph)
+		   \li_select_from_graph(Graph),
+		   \li_export_graph(Graph)
 		  ]
+		),
+	      p('Create multiple new graphs from this one: '),
+	      ul([id(alignoperations)],
+		 [
+		   \li_partition_graph(Graph)
+		 ]
 		)
 	     ]).
 
@@ -506,36 +519,29 @@ show_overlap -->
 li_export_graph(Graph) -->
 	{
 	 http_link_to_id(http_skos_export, [], ExportLink),
-	 rdf_equal(skos:closeMatch, DefaultRelation),
-	 supported_map_relations(MapRelations)
+	 % rdf_equal(skos:closeMatch, DefaultRelation),
+	 Override=no_override,
+	 supported_map_relations(MapRelations),
+	 Base=export,
+	 reset_gensym(Base),
+	 repeat,
+	 gensym(Base, Target),
+	 \+ rdf_graph(Target),!
 	},
 	html(li(form([action(ExportLink)],
 		      [input([type(submit), class(submit),
-			      value('Export maps')
+			      value('Export')
 			     ],[]),
 		       ' to graph ',
 		       input([type(text), class(target),
-			      name(name), value(exportedgraph),
+			      name(name), value(Target),
 			      size(10)],[]),
 		       input([type(hidden),
 			      name(graph),
 			      value(Graph)],[]),
-		       ' with confidence level between : ',
-		       input([type(text),
-			      name(min),
-			      value('0.0'),
-			      size(3)
-			     ],[]),
-		       ' and ',
-		       input([type(text),
-			      name(max),
-			      value('1.0'),
-			      size(3)
-			     ],[]),
-		       ' and default map relation: ',
+		       ' to export to a single triple format. Override provided map relation by: ',
 		       select([name(relation)],
-			      [\show_mapping_relations(MapRelations, DefaultRelation)]),
-		       ' to a single triple format'
+			      [\show_mapping_relations([Override|MapRelations], Override)])
 		      ]
 		     ))).
 
@@ -560,13 +566,18 @@ li_eval_graph(Graph) -->
 
 li_sample_graph(Graph) -->
 	{
-	 http_link_to_id(http_sample_alignment, [], SampleLink)
+	 http_link_to_id(http_sample_alignment, [], SampleLink),
+	 Base=sample,
+	 reset_gensym(Base),
+	 repeat,
+	 gensym(Base, Target),
+	 \+ rdf_graph(Target),!
 	},
 	html(li(form([action(SampleLink)],
 		     [input([type(hidden), name(graph), value(Graph)],[]),
 		      input([class(submit), type(submit), value('Sample')],[]),
 		      ' to graph ',
-		      input([type(text), name(name), value(sample), size(10), class(target)], []),
+		      input([type(text), name(name), value(Target), size(10), class(target)], []),
 		      ' sample size N=',
 		      input([type(text), name(size), value(25), size(4)],[]),
 		      ' with method ',
@@ -581,7 +592,7 @@ li_sample_graph(Graph) -->
 
 li_partition_graph(Graph) -->
 	{
-		 http_link_to_id(http_split_alignment, [graph=Graph], SplitLink)
+	 http_link_to_id(http_split_alignment, [], SplitLink)
 
 	},
 	html(li(form([action(SplitLink)],
@@ -596,3 +607,37 @@ li_partition_graph(Graph) -->
 				   ])
 			   ]))
 		  ).
+
+li_select_from_graph(Graph) -->
+	{
+	 is_alignment_graph(Graph, edoal),
+	 http_link_to_id(http_select_from_graph, [], SelectLink),
+	 Base=select,
+	 reset_gensym(Base),
+	 repeat,
+	 gensym(Base, Target),
+	 \+ rdf_graph(Target),!
+	},
+	html(li(form([action(SelectLink)],
+		     [input([type(hidden), name(graph), value(Graph)],[]),
+		      input([type(submit), class(submit), value('Select')],[]),
+		      	       ' to graph ',
+		       input([type(text), class(target),
+			      name(name), value(Target),
+			      size(10)],[]),
+		       ' with confidence level between : ',
+		       input([type(text),
+			      name(min),
+			      value('0.0'),
+			      size(3)
+			     ],[]),
+		       ' and ',
+		       input([type(text),
+			      name(max),
+			      value('1.0'),
+			      size(3)
+			     ],[])
+		     ]
+		    )
+	       )
+	    ).
