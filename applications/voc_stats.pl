@@ -1,5 +1,6 @@
 :- module(voc_stats,
 	  [
+	   show_schemes//0
 	  ]).
 
 :- use_module(library(http/http_dispatch)).
