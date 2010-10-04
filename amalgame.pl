@@ -4,7 +4,9 @@
 :- use_module(library(version)).
 
 
-user:file_search_path(amalgame_apps, amalgame('applications')).
+user:file_search_path(ontology,   	amalgame(ontologies)).
+user:file_search_path(amalgame_apps,	amalgame('applications')).
+
 http:location(amalgame, cliopatria(amalgame), []).
 
 ag_load_schemas :-
