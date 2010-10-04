@@ -35,6 +35,7 @@
 :- use_module(library('http/json')).
 :- use_module(library('http/json_convert')).
 :- use_module(library('http/http_json')).
+:- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_label)).
 
 
