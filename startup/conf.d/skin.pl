@@ -37,25 +37,9 @@ cliopatria:page_body(Body) -->
 
 
 cliopatria:server_address -->
-	{
-	  git_component_property('ClioPatria', version(CP_Version)),
-	  git_component_property('ClioPatria', home_url(CP_Home)),
-	  git_component_property('amalgame', version(AG_Version)),
-	  git_component_property('amalgame', home_url(AG_Home))
-
-	},
 	html_requires(css('cliopatria.css')),
 	html([ 	\logo,
-		address([id(amalgame)],
-			a(href(AG_Home),
-			  'Amalgame ~w'-[AG_Version])
-		       ),
-	       address(class(cliopatria),
-		       [
-			 a(href(CP_Home),
-			   'ClioPatria ~w'-[CP_Version]),
-			 \current_page_doc_link
-		       ])
+		\server_address(amalgame)
 	     ]).
 
 user:body(amalgame(search), Body) -->
