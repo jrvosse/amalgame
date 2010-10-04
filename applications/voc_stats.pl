@@ -99,6 +99,18 @@ http_delpart_voc(_Request):-
 
 show_schemes -->
 	{
+	 \+  rdfs_individual_of(_Voc, skos:'ConceptScheme'),!,
+	 http_link_to_id(load_library_ontology_form, [], LoadLink)
+	},
+	html(div([class('error novocs')],
+		 ['Warning: No SKOS concept schemes have been ',
+		  a([href(LoadLink)],'loaded'),
+		  ' yet.'
+		 ])
+	    ).
+
+show_schemes -->
+	{
 	 findall(Voc, rdfs_individual_of(Voc, skos:'ConceptScheme'), Schemes),
 	 http_link_to_id(http_clear_voc_stats, [], CacheLink),
 	 http_link_to_id(http_compute_voc_stats, [voc(all)], ComputeLink),
@@ -106,22 +118,22 @@ show_schemes -->
 	},
 	html([
 	      table([
-		     id(skosvoctable)],
+		     class(ag_skosvoctable)],
 		    [
-		     tr([th('Nr'),
-			 th('Name'),
-			 th('# Concepts'),
-			 th('# prefLabels'),
-			 th('# altLabels'),
-			 th('# not mapped'),
-			 th('# mapped'),
-			 th('%'),
-			 th('Example concept'),
-			 th('License')
+		     tr([th([class(nr)],        'Nr'),
+			 th([class(name)],	'Name'),
+			 th([class(count)],     '# Concepts'),
+			 th([class(preflabels)],'# prefLabels'),
+			 th([class(altlabels)], '# altLabels'),
+			 th([class(notmapped)], '# not mapped'),
+			 th([class(mapped)],    '# mapped'),
+			 th([class(pmapped)],   '%'),
+			 th([class(example)],   'Example concept'),
+			 th([class(license)],	'License')
 			]),
 		     \show_schemes(Schemes, 1, [0, 0, 0, 0, 0])
 		    ]),
-	      ul([], [
+	      ul([class(ag_voc_actions)], [
 		      li([a([href(ComputeLink)], 'compute'), ' missing statistics.']),
 		      li(a([href(CacheLink)], 'clear vocabulary statistics cache')),
 		      li(a([href(DelPartLink)], 'delete partitioning results'))
@@ -131,14 +143,16 @@ show_schemes -->
 show_schemes([], _, [C, P, A, M , U]) -->
 	html(tr([class(finalrow)],
 		[
-		 td(''),
-		 td('Total'),
-		 td([style('text-align: right')],C),
-		 td([style('text-align: right')],P),
-		 td([style('text-align: right')],A),
-		 td([style('text-align: right')],U),
-		 td([style('text-align: right')],M),
-		 td(''),td(''), td('')
+		 td([class(nr)], ''),
+		 td([class(name)], 'Total'),
+		 td([class(count), style('text-align: right')],C),
+		 td([class(preflabels), style('text-align: right')],P),
+		 td([clas(altlabels), style('text-align: right')],A),
+		 td([class(notmapped), style('text-align: right')],U),
+		 td([class(mapped), style('text-align: right')],M),
+		 td([class(pmapped)], ''),
+		 td([class(example)], ''),
+		 td([class(license)], '')
 		])).
 show_schemes([Voc|Tail], Nr, [C,P,A,M,U]) -->
 	{
@@ -195,15 +209,24 @@ show_schemes([Voc|Tail], Nr, [C,P,A,M,U]) -->
 	 ;   Rights = '-'
 	 )
 	},
-	html(tr([td(Nr),
+	html(tr([td([class(nr)], Nr),
 		 td(\rdf_link(Voc, [resource_format(label)])),
-		 td([style('text-align: right')],CCount),
-		 td([style('text-align: right')],PCount),
-		 td([style('text-align: right')],ACount),
-		 td([style('text-align: right')],[Split, UCount]),
-		 td([style('text-align: right')],MCount),
-		 td([style('text-align: right')],MPercent),
-		 td(\rdf_link(Example, [resource_format(label)])),
-		 td(Rights)
+		 td([class(count), style('text-align: right')],CCount),
+		 td([class(preflabels), style('text-align: right')],PCount),
+		 td([class(altlabels),  style('text-align: right')],ACount),
+		 td([class(notmapped), style('text-align: right')],[Split, UCount]),
+		 td([class(mapped), style('text-align: right')],MCount),
+		 td([class(pmapped), style('text-align: right')],MPercent),
+		 td([class(example)],\rdf_link(Example, [resource_format(label)])),
+		 td([class(license)], Rights)
 		])),
 	show_schemes(Tail, NewNr, [NewC, NewP, NewA, NewM, NewU]).
+
+
+
+
+
+
+
+
+
