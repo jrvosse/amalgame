@@ -102,7 +102,7 @@ show_schemes -->
 	 \+  rdfs_individual_of(_Voc, skos:'ConceptScheme'),!,
 	 http_link_to_id(load_library_ontology_form, [], LoadLink)
 	},
-	html(div([class('error novocs')],
+	html(p([class('error novocs')],
 		 ['Warning: No SKOS concept schemes have been ',
 		  a([href(LoadLink)],'loaded'),
 		  ' yet.'
