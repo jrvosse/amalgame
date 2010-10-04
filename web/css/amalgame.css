@@ -4,16 +4,31 @@ body {
 	font-family: Arial;
 }
 
-#sidebar {
-	  position: fixed;
+#sidebar { position: fixed; }
+#search_form { position: fixed; right: 0.5em; }
+
+div.ag_search {
+	background-image: url(/icons/econnect-logo-big.jpg);
+	background-repeat: no-repeat;
+	background-position: left top;
+	margin: 5% 0% 0% 5%;
 }
 
-#search_form {
-	      position: fixed;
-	      right: 0.5em;
+.ag_search #search_form {
+	/* override fixed/float right from the other pages: */
+	position: relative;
+	right: auto;
+	float: none;
 
+	/* new position: */
+	padding: 15% 0% 15% 35%;
 }
 
+.ag_search .logo { display: none }
+.ag_search .backoffice { 
+	font-size: smaller;
+	margin-top: -1em;
+}
 a {
 	color: #E2003B;
 	text-decoration: none;
@@ -80,7 +95,7 @@ th, table.rdf_browse th {
 #ag_graph_as_resource { float: left; max-width: 65%; }
 #ag_graph_basic_actions { clear: both }
 
-/* Fixed small abbreviated alginlist as a legend for overlap list: */
+/* Created a fixed, small, abbreviated alignlist as a legend for overlap list: */
 div.overlaplist { max-width: 73%; }
 div.alignlist table { width: 100%; }
 div.alignlist { position: fixed; top: 4em; right: 0.5em; width: 25%; font-size: 0.7em; background-color: white}
