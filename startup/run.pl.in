@@ -10,24 +10,19 @@ After that, the created run.pl can be   edited to suit your installation
 requirements.  See comments in the file.
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-% Setup search paths.  Adding cliopatria allows using this script from
-% any directory and adding ontology makes RDF files visible in the
-% interface.  Vizualization of graphs requires graphviz in the search
-% path.  This is default on Unix systems.  On Windows, either add the
-% folder holding dot.exe to %PATH% or uncomment and localise the path-line
-% below.
+% Setup search paths. Adding cliopatria allows   using  this script from
+% any directory and adding  ontology  makes   RDF  files  visible in the
+% interface.
+%
+% Adding path(s) for ontology makes  the   system  look for Manifest.ttl
+% files in the target directory and any subdirectory thereof.
+%
 
 file_search_path(amalgame, '@PARENTDIR@').
 file_search_path(cliopatria,   amalgame('ClioPatria')).
-file_search_path(ontology,   amalgame(ontologies)).
-file_search_path(ontology,   '../../demo/vocs/').
-file_search_path(ontology,   '../../demo/metadata/').
-% file_search_path(path,       'C:/Program Files/Graphviz2.26.3/bin').
-% file_search_path(path,       'C:/Program Files/Git/bin').
-% file_search_path(path,       'C:/Program Files (x86)/Graphviz2.26.3/bin').
-% file_search_path(path,       'C:/Program Files (x86)/Git/bin').
 
-% Make loading files silent.
+% Make loading files silent. Comment if you  want to see all files being
+% loaded.
 
 :- set_prolog_flag(verbose, silent).
 
@@ -37,75 +32,25 @@ file_search_path(ontology,   '../../demo/metadata/').
 
 % Use the ClioPatria help system.  If used, it must be loaded first!
 
-:- use_module(cliopatria(applications/help/load)).
+:- use_module(cliopatria('applications/help/load')).
 
 % Load ClioPatria itself.  Better keep this line.
 
 :- use_module(cliopatria(cliopatria)).				% (*)
-
-% Log HTTP traffic to httpd.log.
-
-:- use_module(library(http/http_log)).
-
-% Turn uncaught exceptions into a 500 error-page that includes a stack-dump.
-
-:- use_module(library(http/http_error)).
-
-% Make the toplevel and debugger print RDF resources as prefix:local.
-
-:- use_module(library(semweb/rdf_portray)).
-
-% Load the core RDF store.  Needed to register namespaces and to allow for
-% ?- rdf(Subject, Predicate, Object). from the toplevel.
-
-:- use_module(library(semweb/rdf_db)).
-
-% Register additional namespaces that we want to be able to use in code
-% and from the toplevel.  If you do this, you also need the line above.
-
-:- rdf_register_ns(cornetto, 'http://purl.org/vocabularies/cornetto/').
-
-		 /*******************************
-		 *	  CHANGE SETTINGS	*
-		 *******************************/
-
-% Change defaults for settings for your application.  To see what settings
-% are available, use the web-interface or ?- list_settings.
-
-:- use_module(library(settings)).
-
-% :- set_setting_default(http:port, 8080).
-
-% If you login, the system will  redirect   you  to  its public address.
-% I.e., if you connected to http://localhost:3020/  it will redirect you
-% do http://my.domain.org:3020/ This  can  be   undesirable  on  e.g., a
-% notebook that is not  always  connected   to  the  internet and/or may
-% change address and/or may  be  behind   a  firewall.  You  can disable
-% redirection using the settings  below.  These   settings  may  also be
-% necessary if the server is behind a proxy.
-
-% :- set_setting_default(http:public_host, localhost).
-% :- set_setting_default(http:public_port, setting(http:port)).
-
-
-
-		 /*******************************
-		 *     LOAD YOUR CODE BELOW	*
-		 *******************************/
-
-:- use_module(library(semweb/rdf_zlib_plugin)).
 :- use_module(amalgame(amalgame)).
-:- use_module(cliopatria('examples/customise/EDM')).
 
+% Load the remainder of the configuration. The directory conf.d can also
+% be used to load additional (plugin) functionality. It is *not* adviced
+% to put the actual code there,  but   merely  small files that load and
+% configure the code.
 
-		 /*******************************
-		 *     SET CONSOLE VERBOSITY	*
-		 *******************************/
+:- use_module(library(conf_d)).
 
-% Print HTTP requests to the console
-
-:- debug(http(request)).
+:- load_conf_d(cliopatria('conf.d'), []).
+:- load_conf_d('conf.d', []).
 
 % Get back normal verbosity of the toplevel.
 
 :- set_prolog_flag(verbose, normal).
+
+
