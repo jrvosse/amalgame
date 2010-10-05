@@ -63,6 +63,11 @@ amalgame:UnmappedConceptScheme a rdfs:Class;
 	rdfs:label "Unmapped concept scheme"@en ;
 	rdfs:comment "A SKOS Concept Scheme of which none concepts have been mapped to another scheme"@en .
 
+amalgame:DerivedConceptScheme a rdfs:Class;
+	rdfs:subClassOf skos:ConceptScheme;
+	rdfs:label "Derived concept scheme"@en ;
+	rdfs:comment "A SKOS Concept Scheme which has been derived from another scheme"@en .
+	
 amalgame:member a rdf:Property ;
 	rdfs:label "overlap member"@en ;
 	rdfs:comment "Used to define the alignment graphs that define an Overlap."@en ;

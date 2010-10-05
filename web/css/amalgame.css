@@ -22,7 +22,7 @@ div.ag_search {
 	float: none;
 
 	/* new position: */
-	padding: 15% 0% 5% 35%;
+	padding: 5% 0% 5% 35%;
 }
 
 .zag_search #content { padding: 0% 0% 15% 24%; }
@@ -37,6 +37,7 @@ div.ag_search {
 .ag_search table .mapped, { display: none }
 .ag_search table .pmapped { display: none }
 .ag_search table .nr { display: none }
+.ag_search table .DerivedConceptScheme { display: none }
 
 .ag_search .backoffice { 
 	font-size: smaller;

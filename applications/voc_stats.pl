@@ -150,6 +150,13 @@ show_schemes([], _, [C, P, A, M , U]) -->
 		])).
 show_schemes([Voc|Tail], Nr, [C,P,A,M,U]) -->
 	{
+	 findall(Label,
+		 (   rdfs_individual_of(Voc, Class),
+		     rdf_global_id(_NS:Label, Class)
+		 ),
+		 VocTypes),
+	 sort(VocTypes, VocTypesUnique),
+	 atomic_list_concat(VocTypesUnique, ' ', VocTypesAtom),
 	 http_link_to_id(http_compute_voc_stats,
 			 [voc(Voc),
 			  stat(numberOfConcepts),
@@ -203,7 +210,7 @@ show_schemes([Voc|Tail], Nr, [C,P,A,M,U]) -->
 	 ;   Rights = '-'
 	 )
 	},
-	html(tr([td([class(nr)], Nr),
+	html(tr([class(VocTypesAtom)],[td([class(nr)], Nr),
 		 td(\rdf_link(Voc, [resource_format(label)])),
 		 td([class(count), style('text-align: right')],CCount),
 		 td([class(preflabels), style('text-align: right')],PCount),

@@ -179,8 +179,9 @@ voc_partition(Voc, [Mapped, Unmapped]) :-
 	(   rdf_graph(Unmapped) -> rdf_unload(Unmapped); true),
 
 	rdf_assert(Mapped,   rdf:type, amalgame:'FullyMappedConceptScheme', Mapped),
+	rdf_assert(Mapped,   rdf:type, amalgame:'DerivedConceptScheme', Mapped),
 	rdf_assert(Unmapped, rdf:type, amalgame:'UnmappedConceptScheme', Unmapped),
-
+	rdf_assert(Unmapped,   rdf:type, amalgame:'DerivedConceptScheme', Unmapped),
 	rdf_transaction(forall(rdf(C, skos:inScheme, Voc),
 			      classify_concept(C, Mapped, Unmapped)
 			     )),
