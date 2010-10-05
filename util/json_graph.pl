@@ -38,6 +38,8 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_label)).
 
+:- use_module(user(preferences)).
+
 
 %%	graph_to_json(+Type, +Graph, -JSON, +Options)
 %
@@ -406,8 +408,9 @@ iface_key_resource_graph(Rs, Ps0, Graph, _Options) :-
                ).
 
 hooked_rdf_has(S, P, O) :-
-	rdf_has(S,P,literal(lang(en, L))),
-	O = literal(lang(en,L)),!.
+	user_preference(user:lang, literal(PrefLang)),
+	rdf_has(S,P,literal(lang(PrefLang, L))),
+	O = literal(lang(PrefLang,L)),!.
 
 hooked_rdf_has(S,P,O) :-
 	rdf_has(S,P,O).
