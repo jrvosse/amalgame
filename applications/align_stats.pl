@@ -316,7 +316,8 @@ show_alignment_overview(Graph) -->
 	 align_ensure_stats(format(Graph))
 	},
 	html([
-	      div([id(ag_graph_as_resource)], \graph_as_resource(Graph)),
+	      div([id(ag_graph_as_resource)],
+		  \graph_as_resource(Graph, [])),
 	      div([id(ag_graph_info)], \graph_info(Graph)),
 	      div([id(ag_graph_basic_actions)],
 		   [
