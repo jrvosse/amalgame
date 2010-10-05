@@ -107,7 +107,6 @@ th, table.rdf_browse th {
 
 #ag_graph_info { float: right; max-width: 35%; }
 #ag_graph_as_resource { float: left; max-width: 65%; }
-#ag_graph_basic_actions { clear: both }
 
 /* Created a fixed, small, abbreviated alignlist as a legend for overlap list: */
 div.overlaplist { max-width: 73%; }

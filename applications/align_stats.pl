@@ -313,11 +313,11 @@ show_alignment_overview(Graph) -->
 	 align_ensure_stats(target(Graph)),
 	 align_ensure_stats(count(Graph)),
 	 align_ensure_stats(mapped(Graph)),
-	 align_ensure_stats(format(Graph))
+	 align_ensure_stats(format(Graph)),
+	 rdf_display_label(Graph, GraphLabel)
 	},
 	html([
-	      div([id(ag_graph_as_resource)],
-		  \graph_as_resource(Graph, [])),
+	      h3([class(align_overview_header)], ['Alignment actions & details: ', GraphLabel]),
 	      div([id(ag_graph_info)], \graph_info(Graph)),
 	      div([id(ag_graph_basic_actions)],
 		   [
@@ -338,7 +338,10 @@ show_alignment_overview(Graph) -->
 		 [
 		   \li_partition_graph(Graph)
 		 ]
-		)
+		),
+	      div([id(ag_graph_as_resource)],
+		  \graph_as_resource(Graph, []))
+
 	     ]).
 
 show_mapping_relations([],_) --> !.
@@ -584,8 +587,8 @@ li_sample_graph(Graph) -->
 		      ' with method ',
 		      select([name(method)],
 			     [option([selected(selected), value(randommaps)],['N random mappings']),
-			      option([value(random_alt_in_graph)],['N random mapped concepts, with alternative mappings in same graph']),
-			      option([value(random_alt_all)], ['N random mapped concepts, with alternative mappings from all loaded graphs'])
+			      option([value(random_alt_in_graph)],['idem, with alternatives in graph']),
+			      option([value(random_alt_all)], ['idem, with alternatives from all graphs'])
 			     ])
 		     ])
 	       )).
