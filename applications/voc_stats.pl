@@ -77,17 +77,7 @@ http_partition_voc(Request) :-
 			  table([
 				 id(skosvoctable)],
 				[
-				 tr([th('Nr'),
-				     th('Name'),
-				     th('# Concepts'),
-				     th('# prefLabels'),
-				     th('# altLabels'),
-				     th('# not mapped'),
-				     th('# mapped'),
-				     th('%'),
-				     th('Example concept'),
-				     th('License')
-				    ]),
+				 \voctable_header,
 				 \show_schemes(Partitioning, 1, [0, 0, 0, 0, 0])
 				])
 			]).
@@ -120,17 +110,7 @@ show_schemes -->
 	      table([
 		     class(ag_skosvoctable)],
 		    [
-		     tr([th([class(nr)],        'Nr'),
-			 th([class(name)],	'Name'),
-			 th([class(count)],     '# Concepts'),
-			 th([class(preflabels)],'# prefLabels'),
-			 th([class(altlabels)], '# altLabels'),
-			 th([class(notmapped)], '# not mapped'),
-			 th([class(mapped)],    '# mapped'),
-			 th([class(pmapped)],   '%'),
-			 th([class(example)],   'Example concept'),
-			 th([class(license)],	'License')
-			]),
+		     \voctable_header,
 		     \show_schemes(Schemes, 1, [0, 0, 0, 0, 0])
 		    ]),
 	      ul([class(ag_voc_actions)], [
@@ -138,6 +118,20 @@ show_schemes -->
 		      li(a([href(CacheLink)], 'clear vocabulary statistics cache')),
 		      li(a([href(DelPartLink)], 'delete partitioning results'))
 		     ])
+	     ]).
+
+voctable_header -->
+	html([tr([th([class(nr)],        'Nr'),
+		  th([class(name)],	'Name'),
+		  th([class(count)],     '# Concepts'),
+		  th([class(preflabels)],'# prefLabels'),
+		  th([class(altlabels)], '# altLabels'),
+		  th([class(notmapped)], '# not mapped'),
+		  th([class(mapped)],    '# mapped'),
+		  th([class(pmapped)],   '%'),
+		  th([class(example)],   'Example concept'),
+		  th([class(license)],	'License')
+		 ])
 	     ]).
 
 show_schemes([], _, [C, P, A, M , U]) -->

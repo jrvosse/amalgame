@@ -26,12 +26,16 @@ div.ag_search {
 }
 
 .zag_search #content { padding: 0% 0% 15% 24%; }
-.ag_search #content table, p.error  { margin: 0% 0% 5% 35%; }
+.ag_search #content table  { margin: 0% 0% 5% 35%; }
+.ag_search #content p.error  { margin: 0% 0% 5% 35%; }
 .ag_search .logo { display: none }
 .ag_search .ag_voc_actions { display: none }
 .ag_search table .example { display: none }
-.ag_search table .preflabels, .altlabels { display: none }
-.ag_search table .notmapped, .mapped, .pmapped { display: none }
+.ag_search table .preflabels { display: none }
+.ag_search table .altlabels { display: none }
+.ag_search table .notmapped { display: none }
+.ag_search table .mapped, { display: none }
+.ag_search table .pmapped { display: none }
 .ag_search table .nr { display: none }
 
 .ag_search .backoffice { 
