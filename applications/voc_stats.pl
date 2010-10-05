@@ -211,7 +211,7 @@ show_schemes([Voc|Tail], Nr, [C,P,A,M,U]) -->
 		 td([class(notmapped), style('text-align: right')],[Split, UCount]),
 		 td([class(mapped), style('text-align: right')],MCount),
 		 td([class(pmapped), style('text-align: right')],MPercent),
-		 td([class(example)],\rdf_link(Example, [resource_format(label)])),
+		 td([class(example)],\rdf_link(Example, [resource_format(nslabel)])),
 		 td([class(license)], Rights)
 		])),
 	show_schemes(Tail, NewNr, [NewC, NewP, NewA, NewM, NewU]).
