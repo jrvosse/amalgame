@@ -95,7 +95,7 @@ http_evaluator(Request) :-
 	;   true
 	),
 	logged_on(User, 'anonymous'),
-	(   is_locked(OtherUser, Target, TimeStamp), User \= OtherUser
+	(   is_locked(Target, OtherUser, TimeStamp), User \= OtherUser
 	->  http_link_to_id(http_list_alignment, [graph(Graph)], TryAgainLink),
 	    reply_html_page(cliopatria(default),
 			    title('Amalgame: target locked'),
@@ -137,7 +137,7 @@ http_evaluator_reset(Request) :-
 	http_session_retractall(mappings_to_do(_,_)),
 	http_session_retractall(judgement(_,_,_,_)),
 	logged_on(User, 'anonymous'),
-	(   unlock_graph(User, Target, _TimeStamp)
+	(   unlock_graph(Target, User, _TimeStamp)
 	->  format(atom(LockMessage), 'Target graph ~p unlocked for user ~w', [Target, User])
 	;   format(atom(LockMessage), 'Warning: cannot unlock ~p for user ~w', [Target, User])
 	),
@@ -228,7 +228,7 @@ ensure_todo_list(Graph, Target) :-
 	% We have no do to list...
 	% Assume we start from scratch
 	logged_on(User, anonymous),
-	lock_graph(User, Target, TimeStamp),
+	lock_graph(Target, User, TimeStamp),
 	(   rdf_graph(Target) -> rdf_unload(Target); true),
 	rdf_assert(Target, rdf:type, amalgame:'EvaluatedAlignment', Target),
 	align_clear_stats(graph(Target)),
