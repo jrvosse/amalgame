@@ -6,7 +6,7 @@
 	   voc_clear_stats/0,
 	   voc_ensure_stats/1,
 	   voc_partition/2,
-	   voc_delpart/0
+	   voc_delete_derived/0
           ]).
 
 :- use_module(library(http/http_dispatch)).
@@ -58,13 +58,11 @@ voc_clear_stats :-
 	;   true),
 	print_message(informational, map(cleared, 'vocabulary statistics', amalgame_vocs, all)).
 
-voc_delpart :-
-	findall(Voc, rdf(Voc, rdf:type, amalgame:'UnmappedConceptScheme'), Unmapped),
-	findall(Voc, rdf(Voc, rdf:type, amalgame:'FullyMappedConceptScheme'), Mapped),
-	append(Unmapped, Mapped, Partitioned),
-	forall(member(Voc, Partitioned),
+voc_delete_derived :-
+	findall(Voc, rdf(Voc, rdf:type, amalgame:'DerivedConceptScheme'), Derived),
+	forall(member(Voc, Derived),
 	       ( rdf_unload(Voc),
-		 print_message(informational, map(cleared, 'vocabulary', Voc, all))
+		 print_message(informational, map(cleared, 'vocabulary', Voc, 1))
 	       )
 	      ).
 

@@ -84,7 +84,7 @@ http_partition_voc(Request) :-
 
 http_delpart_voc(_Request):-
 	authorized(write(amalgame_cache, clear)),
-	call_showing_messages(voc_delpart,
+	call_showing_messages(voc_delete_derived,
 			      [head(title('Amalgame: deleting partioning results'))]).
 
 show_schemes -->
@@ -101,10 +101,10 @@ show_schemes -->
 
 show_schemes -->
 	{
-	 findall(Voc, rdfs_individual_of(Voc, skos:'ConceptScheme'), Schemes),
+	 findall(Voc, rdfs_individual_of(Voc, skos:'ConceptScheme'), SchemesDoubles),
+	 sort(SchemesDoubles, Schemes),
 	 http_link_to_id(http_clear_voc_stats, [], CacheLink),
-	 http_link_to_id(http_compute_voc_stats, [voc(all)], ComputeLink),
-	 http_link_to_id(http_delpart_voc, [], DelPartLink)
+	 http_link_to_id(http_compute_voc_stats, [voc(all)], ComputeLink)
 	},
 	html([
 	      table([
@@ -113,12 +113,20 @@ show_schemes -->
 		     \voctable_header,
 		     \show_schemes(Schemes, 1, [0, 0, 0, 0, 0])
 		    ]),
-	      ul([class(ag_voc_actions)], [
-		      li([a([href(ComputeLink)], 'compute'), ' missing statistics.']),
-		      li(a([href(CacheLink)], 'clear vocabulary statistics cache')),
-		      li(a([href(DelPartLink)], 'delete partitioning results'))
-		     ])
+	      ul([class(ag_voc_actions)],
+		 [
+		  li([a([href(ComputeLink)], 'compute'), ' missing statistics.']),
+		  li(a([href(CacheLink)], 'clear vocabulary statistics cache')),
+		  \li_del_derived
+		 ])
 	     ]).
+
+li_del_derived -->
+	{
+	 rdfs_individual_of(_, amalgame:'DerivedConceptScheme'),
+	 http_link_to_id(http_delpart_voc, [], DelPartLink)
+	},
+	html(li(a([href(DelPartLink)], 'delete derived concept schemes'))).
 
 voctable_header -->
 	html([tr([th([class(nr)],        'Nr'),
