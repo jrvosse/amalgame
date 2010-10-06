@@ -393,8 +393,8 @@ show_example(Overlap) -->
 	{
 	 has_map([E1, E2], edoal, Overlap)
 	},
-	html([td(\rdf_link(E1)),
-	      td(\rdf_link(E2))
+	html([td(\rdf_link(E1, [resource_format(nslabel)])),
+	      td(\rdf_link(E2, [resource_format(nslabel)]))
 	     ]).
 
 show_overlap_graphs(Overlap) -->
