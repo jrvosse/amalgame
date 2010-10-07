@@ -473,11 +473,11 @@ show_alignments([Graph|Tail], Number) -->
 	 ;   FormatLink = Format
 	 ),
 	 (   memberchk(source(SourceGraph), Props)
-	 ->  Source = \rdf_link(SourceGraph, [resource_format(label)])
+	 ->  Source = \rdf_link(SourceGraph, [resource_format(nslabel)])
 	 ;   Source = MissingValue
 	 ),
 	 (   memberchk(target(TargetGraph), Props)
-	 ->  Target = \rdf_link(TargetGraph, [resource_format(label)])
+	 ->  Target = \rdf_link(TargetGraph, [resource_format(nslabel)])
 	 ;   Target = MissingValue
 	 ),
 	 (   memberchk(mappedSourceConcepts(MSC), Props)
