@@ -24,7 +24,7 @@
 		# <align.rdfs> .
 		<align.owl> .
 
-<amalgame>
+<Amalgame>
 	a lib:Ontology ;
 	a lib:Virtual ;
 	dcterms:title "Schema for the Amalgame RDF vocabulary"@en ;
