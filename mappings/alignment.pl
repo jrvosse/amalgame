@@ -197,6 +197,10 @@ count_alignment(Graph, Format, Count) :-
 	print_message(informational, map(found, maps, Graph, Count)),
 	!.
 
+find_source(Graph, edoal, Source) :-
+	rdf(_, align:onto1, Source, Graph),
+	!.
+
 find_source(Graph, Format, Source) :-
 	has_map([E1, _], Format, Graph),!,
 	(   rdf_has(E1, skos:inScheme, Source)
@@ -204,6 +208,10 @@ find_source(Graph, Format, Source) :-
 	;   iri_xml_namespace(E1, Source)
 	).
 find_source(_, _, null).
+
+find_target(Graph, edoal, Source) :-
+	rdf(_, align:onto2, Source, Graph),
+	!.
 
 find_target(Graph, Format, Target) :-
 	has_map([_, E2], Format, Graph), !,
