@@ -14,11 +14,13 @@
 :- use_module(user(user_db)).
 :- use_module(components(label)).
 :- use_module(components(messages)).
+:- use_module(applications(browse)).
 
 
 :- use_module(amalgame(skos/vocabularies)).
 
 :- http_handler(amalgame(list_skos_vocs),       http_list_skos_vocs,     []).
+:- http_handler(amalgame(list_skos_voc),        http_list_skos_voc,      []).
 :- http_handler(amalgame(compute_voc_stats),    http_compute_voc_stats,  []).
 :- http_handler(amalgame(clear_voc_stats),      http_clear_voc_stats,    []).
 :- http_handler(amalgame(partition_voc),        http_partition_voc,      []).
@@ -34,6 +36,16 @@ http_list_skos_vocs(_Request) :-
 			],
 			[ h4('SKOS concept schemes in the RDF store'),
 			  \show_schemes
+			]).
+
+http_list_skos_voc(Request) :-
+	http_parameters(Request,
+			[voc(Scheme, [])
+			]),
+	reply_html_page(cliopatria(default),
+			[title('SKOS concept scheme')
+			],
+			[ \show_scheme(Scheme)
 			]).
 
 http_compute_voc_stats(Request) :-
@@ -178,7 +190,9 @@ show_schemes([Voc|Tail], Nr, [C,P,A,M,U]) -->
 			  stat(numberOfMappedConcepts)
 			 ],
 			 MissingLink),
-	 http_link_to_id(http_partition_voc, [voc(Voc)], SplitLink),
+	 http_link_to_id(http_list_skos_voc, [voc(Voc)], VocLink),
+	 rdf_display_label(Voc, VocName),
+	 VocLabel = a([href(VocLink)],[VocName]),
 	 MissingValue = a([href(MissingLink)],'?'),
 	 NewNr is Nr + 1,
 	 voc_get_computed_props(Voc, Props),
@@ -204,10 +218,6 @@ show_schemes([Voc|Tail], Nr, [C,P,A,M,U]) -->
 	     UCount is CCount - MCount, NewU is U + UCount
 	 ;   NewM = M, NewU = U, MCount = MissingValue, UCount = MissingValue
 	 ),
-	 (   MCount = CCount; MCount = 0
-	 ->  Split = ''
-	 ;   Split = a([href(SplitLink), title('Partition into mapped/unmapped concepts')], ' (partition) ')
-	 ),
 	 (rdf_has(Example, skos:inScheme, Voc)
 	 ->  true
 	 ;   Example = '-'
@@ -224,11 +234,11 @@ show_schemes([Voc|Tail], Nr, [C,P,A,M,U]) -->
 	 )
 	},
 	html(tr([class(VocTypesAtom)],[td([class(nr)], Nr),
-		 td(\rdf_link(Voc, [resource_format(label)])),
+		 td([class(name)],[VocLabel]),
 		 td([class(count), style('text-align: right')],CCount),
 		 td([class(preflabels), style('text-align: right')],PCount),
 		 td([class(altlabels),  style('text-align: right')],ACount),
-		 td([class(notmapped), style('text-align: right')],[Split, UCount]),
+		 td([class(notmapped), style('text-align: right')],UCount),
 		 td([class(mapped), style('text-align: right')],MCount),
 		 td([class(pmapped), style('text-align: right')],MPercent),
 		 td([class(example)],\rdf_link(Example, [resource_format(nslabel)])),
@@ -236,11 +246,52 @@ show_schemes([Voc|Tail], Nr, [C,P,A,M,U]) -->
 		])),
 	show_schemes(Tail, NewNr, [NewC, NewP, NewA, NewM, NewU]).
 
+show_scheme(Voc) -->
+	{
+	 voc_ensure_stats(all(Voc)),
+	 rdf_display_label(Voc, VocLabel),
+	 findall(Graph, rdf(_, skos:inScheme, Voc, Graph:_), GraphsDoubles),
+	 sort(GraphsDoubles, Graphs)
+	},
+	(   { Graphs = [Graph] }
+	->  html([
+	      h3([class(align_overview_header)],
+		 ['Vocabulary actions & details: ', VocLabel]),
+		  % div([id(ag_graph_info)], \graph_info(Graph)),
+		  div([id(ag_graph_as_resource), style('float: right')],
+		      \graph_as_resource(Graph, [])),
+		  div([id(ag_graph_basic_actions)],
+		   [
+		    'Basic actions: ',
+		    \graph_actions(Graph)
+		   ]),
+		  %p('Create a new graph from this one: '),
+		  p('Create multiple new graphs from this one: '),
+		  ul([
+		      \li_partition(Voc)
+		     ]),
+		  div([id(ag_voc_as_resource)],
+		      [h4(['Local view for "', Voc,'"']),
+		       \local_view(Voc, _, [])
+		      ])
+	     ])
+	;   html([
+		  h3([class(align_overview_header)],
+		     ['Please merge graphs into one ...'])
+		 ])
+	).
 
 
-
-
-
-
-
+li_partition(Voc) -->
+	{
+	 rdf(Voc, amalgame:numberOfConcepts, literal(type(_,CCount))),
+	 rdf(Voc, amalgame:numberOfMappedConcepts, literal(type(_,MCount))),
+	 http_link_to_id(http_partition_voc, [voc(Voc)], SplitLink),
+	 Partition = a([href(SplitLink)],
+		       'Partition into mapped/unmapped concepts')
+	},
+	(   { (CCount = MCount; MCount =0) }
+	->  html([])
+	;   html(li(Partition))
+	).
 
