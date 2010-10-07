@@ -123,6 +123,11 @@ show_schemes -->
 
 li_del_derived -->
 	{
+	 \+ rdfs_individual_of(_, amalgame:'DerivedConceptScheme')
+	},!.
+
+li_del_derived -->
+	{
 	 rdfs_individual_of(_, amalgame:'DerivedConceptScheme'),
 	 http_link_to_id(http_delpart_voc, [], DelPartLink)
 	},

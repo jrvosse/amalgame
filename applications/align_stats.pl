@@ -612,6 +612,15 @@ li_partition_graph(Graph) -->
 			   ]))
 		  ).
 
+/*
+	Selection on confidence level now only works on edoal graphs that have conf. level data:
+*/
+
+li_select_from_graph(Graph) -->
+	{
+	 \+ is_alignment_graph(Graph, edoal)
+	},!.
+
 li_select_from_graph(Graph) -->
 	{
 	 is_alignment_graph(Graph, edoal),
