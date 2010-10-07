@@ -108,7 +108,7 @@ has_map([E1, E2], Format, Graph) :-
 	;   true
 	),
 	mapping_relation(Format,MappingProp),
-	(   ground(E1), ground(E2)
+	(   (ground(E1); ground(E2))
 	->  rdf_has(E1, MappingProp, E2, RealProp),
 	    rdf(E1, RealProp, E2, Graph)
 	;   rdfs_subproperty_of(RealProp, MappingProp),
