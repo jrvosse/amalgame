@@ -21,17 +21,17 @@ server and all RDF URIs start with http://www.purl.org/mydata/
 @see cliopatria(api/lod)
 */
 
-:- http_handler('/lod/purl/vocabularies/', lod_api,
+:- http_handler(root('lod/purl/vocabularies/'), lod_api,
                 [ redirected_from('http://purl.org/vocabularies/'),
                   prefix
                 ]).
 
-:- http_handler('/lod/purl/collections/', lod_api,
+:- http_handler(root('lod/purl/collections/'), lod_api,
                 [ redirected_from('http://purl.org/collections/'),
                   prefix
                 ]).
 
-:- http_handler('/ns/gtaa/', lod_api,
+:- http_handler(root('ns/gtaa/'), lod_api,
                 [ redirected_from('http://data.beeldengeluid.nl/gtaa/'),
                   prefix
                 ]).
