@@ -262,24 +262,26 @@ show_scheme(Voc) -->
 		      \graph_as_resource(Graph, [])),
 		  div([id(ag_graph_basic_actions)],
 		   [
-		    'Basic actions: ',
+		    'Basic actions on (skos:inScheme) graph: ', Graph,
 		    \graph_actions(Graph)
 		   ]),
 		  %p('Create a new graph from this one: '),
 		  p('Create multiple new graphs from this one: '),
 		  ul([
 		      \li_partition(Voc)
-		     ]),
-		  div([id(ag_voc_as_resource)],
+		     ])
+	     ])
+	;   html([
+		  h3([class(align_overview_header)], ['Warning: multiple graphs problem']),
+		  p([], ['Thesaurus has skos:inScheme triples in multiple files. ',
+			 'Please merge into one to access graph-based actions.'])
+		 ])
+	),
+	html(div([id(ag_voc_as_resource)],
 		      [
 		       \list_resource(Voc, [])
 		      ])
-	     ])
-	;   html([
-		  h3([class(align_overview_header)],
-		     ['Please merge graphs into one ...'])
-		 ])
-	).
+	    ).
 
 
 li_partition(Voc) -->
