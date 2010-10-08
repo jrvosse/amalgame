@@ -20,7 +20,7 @@ http:location(amalgame, cliopatria(amalgame), []).
 
 ag_load_schemas :-
 	rdf_attach_library(amalgame(ontologies)),
-	rdf_load_library(amalgame).
+	rdf_load_library('Amalgame').
 
 :- cp_after_load(ag_load_schemas).
 
