@@ -21,13 +21,27 @@ server and all RDF URIs start with http://www.purl.org/mydata/
 @see cliopatria(api/lod)
 */
 
-:- http_handler('/rdf/vocabularies/cornetto/', lod_api,
-                [ redirected_from('http://purl.org/vocabularies/cornetto/'),
-                  prefix
-                ]).
+%%      cliopatria:lod_description(+URI, -Graph) is det.
+%
+%	Override standard CBD by Symmetric CMD (scbd) expansion.
 
 cliopatria:lod_description(URI, Graph) :-
 	rdf_bounded_description(rdf, scbd, URI, Graph).
+
+:- http_handler('/lod/purl/vocabularies/', lod_api,
+                [ redirected_from('http://purl.org/vocabularies/'),
+                  prefix
+                ]).
+
+:- http_handler('/lod/purl/collections/', lod_api,
+                [ redirected_from('http://purl.org/collections/'),
+                  prefix
+                ]).
+
+:- http_handler('/gtaa/', lod_api,
+                [ redirected_from('http://data.beeldengeluid.nl/gtaa/'),
+                  prefix
+                ]).
 
 
 
