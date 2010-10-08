@@ -274,13 +274,11 @@ assert_from_list(Method, Name, Graph, Nr, [Rand|RandSet], [[E1,E2]|Maps]) :-
 		sort(AltMapsDoubles, AltMaps)
 	    ),
 	    assert_map_list(AltMaps, Name),
-	    NewRandSet = RandSet,
-	    NewMaps = Maps
-	;   NewRandSet = [Rand|RandSet],
-	    NewMaps = [[E1,E2]|Maps]
+	    NewRandSet = RandSet
+	;   NewRandSet = [Rand|RandSet]
 	),
 	NewNr is Nr + 1,
-	assert_from_list(Method, Name, Graph, NewNr, NewRandSet, NewMaps).
+	assert_from_list(Method, Name, Graph, NewNr, NewRandSet, Maps).
 
 assert_map_list([],_).
 assert_map_list([H|T], Graph) :-
