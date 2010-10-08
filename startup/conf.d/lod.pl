@@ -31,7 +31,7 @@ server and all RDF URIs start with http://www.purl.org/mydata/
                   prefix
                 ]).
 
-:- http_handler('/gtaa/', lod_api,
+:- http_handler('/ns/gtaa/', lod_api,
                 [ redirected_from('http://data.beeldengeluid.nl/gtaa/'),
                   prefix
                 ]).
