@@ -7,18 +7,16 @@
 :- use_module(api(lod)).
 
 
-/** <module> Configure Linked Data (LOD) access
+/** <module> Configure Linked Data (LOD) access for amalgame demo
 
-Load the linked-data server and the   library to register HTTP handlers.
-and then register your LOD areas and/or  handlers for locations that are
-redirected from e.g., http://www.purl.org. Multiple   handlers can point
-to lod_api/1, but one handler should not be  a prefix of another one (as
-in /rdf/ and /rdf/time/). The first   example  assumes that requests for
-RDF URIs arrive at this server directly   or through a proxy. The latter
-assumes that /mydata/ on purl.org is   redirected  to /purl/rdf/ on this
-server and all RDF URIs start with http://www.purl.org/mydata/
+We serve Symmetric CBDs for a number of resources, most of them redirect
+from:
+* purl.org/vocabularies/
+* purl.org/collections/
+* data.beeldengeluid.nl/
 
 @see cliopatria(api/lod)
+
 */
 
 :- http_handler(root('lod/purl/vocabularies/'), lod_api,
@@ -39,10 +37,28 @@ server and all RDF URIs start with http://www.purl.org/mydata/
 
 %%      cliopatria:lod_description(+URI, -Graph) is det.
 %
-%	Override standard CBD by Symmetric CMD (scbd) expansion.
+%	Override standard CBD by Symmetric CBD (scbd) expansion.
+%	Calls rdf_bounded_description/4 with
+%	rdf_bounded_description(rdf, scbd, URI, Graph).
 
 cliopatria:lod_description(URI, Graph) :-
 	rdf_bounded_description(rdf, scbd, URI, Graph).
+
+%%	cliopatria:redirect_uri(+Format, +URI, -SeeOther) is det.
+%
+%	Defines redirections for LOD clients requesting html.
+%	Currently supported are:
+%	* Redirects to ens:landingPage (Europeana EDM)
+%	* Redirects to bibliopolis (FIXME: why is this not a subproperty
+%	of ens:landingPage?)
+%	* redirects to wordnet.princeton.edu
+%	* redirects to the AAT pages at getty.edu
+
+% Redirect HTML requests to resource's landing page if defined
+cliopatria:redirect_uri(html, URI, SeeOther) :-
+	rdf(URI, 'http://www.europeana.eu/schemas/edm/landingPage', SeeOther),!.
+cliopatria:redirect_uri(html, URI, SeeOther) :-
+	rdf(URI, 'http://purl.org/collections/bibliopolis/landingPage', SeeOther),!.
 
 cliopatria:redirect_uri(html, URI, SeeOther) :-
 	rdf(URI,
@@ -53,12 +69,6 @@ cliopatria:redirect_uri(html, URI, SeeOther) :-
         Index is IndexOffByOne - 1,
         Base='http://wordnetweb.princeton.edu/perl/webwn?s=~w&i=~w',
         sformat(SeeOther, Base, [SL,Index]).
-
-% Redirect HTML requests to resource's landing page if defined
-cliopatria:redirect_uri(html, URI, SeeOther) :-
-	rdf(URI, 'http://www.europeana.eu/schemas/edm/landingPage', SeeOther),!.
-cliopatria:redirect_uri(html, URI, SeeOther) :-
-	rdf(URI, 'http://purl.org/collections/bibliopolis/landingPage', SeeOther),!.
 
 % Redirect HTML requests for wordnet to Princeton
 cliopatria:redirect_uri(html, URI, SeeOther) :-
