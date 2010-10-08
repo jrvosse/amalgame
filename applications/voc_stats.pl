@@ -271,8 +271,8 @@ show_scheme(Voc) -->
 		      \li_partition(Voc)
 		     ]),
 		  div([id(ag_voc_as_resource)],
-		      [h4(['Local view for "', Voc,'"']),
-		       \local_view(Voc, _, [])
+		      [
+		       \list_resource(Voc, [])
 		      ])
 	     ])
 	;   html([
