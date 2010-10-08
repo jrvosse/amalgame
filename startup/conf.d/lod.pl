@@ -85,6 +85,6 @@ cliopatria:redirect_uri(html, URI, SeeOther) :-
 % Redirect HTML requests for AAT to Getty
 cliopatria:redirect_uri(html, URI, SeeOther) :-
         rdf(URI, skos:inScheme, 'http://purl.org/vocabularies/getty/aat'),
-        rdf(URI, vp:id, literal(Id)),
+        rdf(URI, 'http://purl.org/vocabularies/getty/vp/id', literal(Id)),
         Base='http://www.getty.edu/vow/AATFullDisplay?find=&logic=AND&note=&english=N&subjectid=',
         atom_concat(Base, Id, SeeOther).
