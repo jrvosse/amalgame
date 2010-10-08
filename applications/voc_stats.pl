@@ -51,8 +51,14 @@ http_list_skos_voc(Request) :-
 http_compute_voc_stats(Request) :-
 	http_parameters(Request, [voc(all, [])]),
 	authorized(write(amalgame_cache, write)),
+	http_link_to_id(http_list_skos_vocs, [], Link),
 	call_showing_messages(voc_ensure_stats(all),
-			      [head(title('Amalgame: calculating vocabulary stats'))]).
+			      [head(title('Amalgame: calculating vocabulary stats')),
+			       footer(div([class(readymeassage)],
+					  [h4('All computations done'),
+					   'See ', a([href(Link)],['vocabulary overview']),
+					   ' to inspect results.']))
+			      ]).
 
 http_compute_voc_stats(Request) :-
 	http_parameters(Request,
@@ -73,8 +79,14 @@ http_compute_voc_stats(Request) :-
 
 http_clear_voc_stats(_Request):-
 	authorized(write(amalgame_cache, clear)),
+	http_link_to_id(http_list_skos_vocs, [], Link),
 	call_showing_messages(voc_clear_stats,
-			      [head(title('Amalgame: clearing caches'))]).
+			      [head(title('Amalgame: clearing caches')),
+			       footer(div([class(readymeassage)],
+					  [h4('All computations done'),
+					   'See ', a([href(Link)],['vocabulary overview']),
+					   ' to inspect results.']))
+			      ]).
 
 http_partition_voc(Request) :-
 	authorized(write(default, partition(sample))),
@@ -96,8 +108,15 @@ http_partition_voc(Request) :-
 
 http_delpart_voc(_Request):-
 	authorized(write(amalgame_cache, clear)),
+	http_link_to_id(http_list_skos_vocs, [], Link),
 	call_showing_messages(voc_delete_derived,
-			      [head(title('Amalgame: deleting partioning results'))]).
+			      [head(title('Amalgame: deleting partioning results')),
+			       footer(div([class(readymeassage)],
+					  [h4('All computations done'),
+					   'See ', a([href(Link)],['vocabulary overview']),
+					   ' to inspect results.']))
+			      ]
+			     ).
 
 show_schemes -->
 	{
