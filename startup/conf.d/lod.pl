@@ -1,6 +1,11 @@
 :- module(conf_lod, []).
-:- use_module(api(lod)).
+
 :- use_module(library(http/http_dispatch)).
+:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_describe)).
+:- use_module(cliopatria(hooks)).
+:- use_module(api(lod)).
+
 
 /** <module> Configure Linked Data (LOD) access
 
@@ -20,3 +25,9 @@ server and all RDF URIs start with http://www.purl.org/mydata/
                 [ redirected_from('http://purl.org/vocabularies/cornetto/'),
                   prefix
                 ]).
+
+cliopatria:lod_description(URI, Graph) :-
+	rdf_bounded_description(rdf, scbd, URI, Graph).
+
+
+
