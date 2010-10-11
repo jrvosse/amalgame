@@ -20,32 +20,26 @@ from:
 */
 
 :- http_handler(root('lod/purl/vocabularies/'),
-		lod_api([ redirected_from('http://purl.org/vocabularies/')
+		lod_api([ redirected_from('http://purl.org/vocabularies/'),
+			  bounded_description(scbd)
 			]),
 		[ prefix
                 ]).
 
 :- http_handler(root('lod/purl/collections/'),
-		lod_api([ redirected_from('http://purl.org/collections/')
+		lod_api([ redirected_from('http://purl.org/collections/'),
+			  bounded_description(scbd)
 			]),
 		[ prefix
                 ]).
 
 :- http_handler(root('ns/gtaa/'),
-		lod_api([ redirected_from('http://data.beeldengeluid.nl/gtaa/')
+		lod_api([ redirected_from('http://data.beeldengeluid.nl/gtaa/'),
+			  bounded_description(scbd)
 			]),
 		[ prefix
                 ]).
 
-
-%%      cliopatria:lod_description(+URI, -Graph) is det.
-%
-%	Override standard CBD by Symmetric CBD (scbd) expansion.
-%	Calls rdf_bounded_description/4 with
-%	rdf_bounded_description(rdf, scbd, URI, Graph).
-
-cliopatria:lod_description(URI, Graph) :-
-	rdf_bounded_description(rdf, scbd, URI, Graph).
 
 %%	cliopatria:redirect_uri(+Format, +URI, -SeeOther) is det.
 %
