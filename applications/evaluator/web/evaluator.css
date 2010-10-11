@@ -14,3 +14,8 @@ font-weight:bold;
 }
 
 label.commentLabel { float: right; padding: .5em; }
+
+span.hit { 
+	font-weight: bold;
+	border-bottom: 1pt solid gray;
+}
