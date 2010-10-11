@@ -20,7 +20,7 @@
                  *   USER/SESSION PREFERENCES   *
                  *******************************/
 
-%%      user_preference_db(?Property:atom, ?Value:rdf_object) is nondet.
+%%      cliopatria:user_preference_db(?Property:atom, ?Value:rdf_object) is nondet.
 %
 %       Query properties for the current   user/session.  This mechanism
 %       allows code to access information about the user/session without
@@ -39,7 +39,7 @@ set_user_preferences(Property, Value) :-
 	logged_on(User, anonymous),
 	http_session_assert(rdf(User, Property, Value)).
 
-%%      user_preference_default(?Property:atom, ?Value:rdf_object) is nondet.
+%%      cliopatria:user_preference_default(?Property:atom, ?Value:rdf_object) is nondet.
 %
 %       Provides defaults for the user_preference/2.
 %
