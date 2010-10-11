@@ -19,19 +19,22 @@ from:
 
 */
 
-:- http_handler(root('lod/purl/vocabularies/'), lod_api,
-                [ redirected_from('http://purl.org/vocabularies/'),
-                  prefix
+:- http_handler(root('lod/purl/vocabularies/'),
+		lod_api([ redirected_from('http://purl.org/vocabularies/')
+			]),
+		[ prefix
                 ]).
 
-:- http_handler(root('lod/purl/collections/'), lod_api,
-                [ redirected_from('http://purl.org/collections/'),
-                  prefix
+:- http_handler(root('lod/purl/collections/'),
+		lod_api([ redirected_from('http://purl.org/collections/')
+			]),
+		[ prefix
                 ]).
 
-:- http_handler(root('ns/gtaa/'), lod_api,
-                [ redirected_from('http://data.beeldengeluid.nl/gtaa/'),
-                  prefix
+:- http_handler(root('ns/gtaa/'),
+		lod_api([ redirected_from('http://data.beeldengeluid.nl/gtaa/')
+			]),
+		[ prefix
                 ]).
 
 
