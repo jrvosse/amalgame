@@ -15,6 +15,7 @@ matchers. It assumes matchers assert mappings in different name graphs.
 @license GPL
 */
 
+:- use_module(library(settings)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_persistency)).
@@ -23,6 +24,8 @@ matchers. It assumes matchers assert mappings in different name graphs.
 :- use_module(amalgame(mappings/alignment)).
 :- use_module(amalgame(mappings/edoal)).
 :- use_module(amalgame(namespaces)).
+
+:- setting(overlaps_persistent, boolean, false, 'Set to true if you want overlaps to survive server restarts').
 
 find_overlap(ResultsSorted, [cached(true)]) :-
 	rdf(_, rdf:type, amalgame:'OverlapAlignment'),
@@ -63,11 +66,12 @@ find_overlaps([Map|Tail], Accum, Out) :-
 count_overlaps([], Accum, Results) :-
 	assert_overlaps(Accum, [], Results).
 count_overlaps([Graphs:Map|Tail], Accum, Results) :-
+	setting(overlaps_persistent, Persistency),
 	overlap_uri(Graphs, Overlap),
 	(   selectchk(Count:Graphs, Accum, NewAccum)
 	->  true
 	;   Count = 0, NewAccum = Accum,
-	    rdf_persistency(Overlap, false)
+	    rdf_persistency(Overlap, Persistency)
 	),
 	Map = [E1, E2],
 	(   Graphs=[G], has_map([E1, E2], edoal, Options, G)
