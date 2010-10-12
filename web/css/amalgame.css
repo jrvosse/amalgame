@@ -132,7 +132,7 @@ div.alignlist td.src_mapped { display: none }
 div.alignlist th.src_mapped { display: none }
 div.alignlist td.target_mapped { display: none }
 div.alignlist th.target_mapped { display: none }
-
+div.alignlist .ag_align_actions { display: none }
 
 /* Footer */
 
