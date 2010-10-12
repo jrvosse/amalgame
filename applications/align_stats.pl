@@ -26,6 +26,7 @@
 :- http_handler(amalgame(clear_alignstats),   http_clear_alignstats,    []).
 :- http_handler(amalgame(compute_stats),      http_compute_stats,       []).
 :- http_handler(amalgame(find_overlap),       http_list_overlap,        []).
+:- http_handler(amalgame(compute_overlap),    http_compute_overlaps,    []).
 :- http_handler(amalgame(list_alignment),     http_list_alignment,      []).
 :- http_handler(amalgame(list_alignments),    http_list_alignments,     []).
 :- http_handler(amalgame(split_alignment),    http_split_alignment,     []).
@@ -83,6 +84,18 @@ http_split_alignment(Request) :-
 				 \show_alignments(OutGraphs, 0)
 				])
 			]).
+http_compute_overlaps(_Request) :-
+	http_link_to_id(http_list_overlap, [], Link),
+	Title = 'Amalgame: computing overlap statistics',
+	call_showing_messages(compute_overlaps,
+			      [head(title(Title)),
+			       header(h4(Title)),
+			       footer(div([class(readymeassage)],
+					  [h4('All computations done'),
+					   'See ', a([href(Link)],['overlap overview']),
+					   ' to inspect results.']))
+			      ]).
+
 
 http_compute_stats(Request) :-
 	http_link_to_id(http_list_alignments, [], Link),
@@ -96,6 +109,8 @@ http_compute_stats(Request) :-
 					   'See ', a([href(Link)],['alignment overview']),
 					   ' to inspect results.']))
 			      ]).
+
+
 
 http_compute_stats(Request) :-
 	http_parameters(Request,
@@ -139,13 +154,18 @@ http_list_overlap(_Request) :-
 %
 %	Clears named graphs with cached amalgame results.
 
-http_clear_alignstats(_Request):-
+http_clear_alignstats(Request):-
 	authorized(write(amalgame_cache, clear)),
+	http_parameters(Request,
+			[what(What, [oneof(all, overlaps), default(all)])
+			]),
+
 	Title = 'Amalgame: clearing caches',
 	http_link_to_id(http_compute_stats, [graph(all)], RecomputeLink),
 	http_link_to_id(http_list_alignments, [graph(all)], ListLink),
+	http_link_to_id(http_list_overlap, [], OverlapLink),
 
-	call_showing_messages(clear_alignstats,
+	call_showing_messages(clear_alignstats(What),
 			      [head(title(Title)),
 			       header(h4(Title)),
 			       footer(div([h4('Cleared all caches'),
@@ -153,6 +173,7 @@ http_clear_alignstats(_Request):-
 					   ul(
 					      [
 					       li(['returning to the ', a([href(ListLink)], 'alignment overview page')]),
+					       li(['returning to the ', a([href(OverlapLink)], 'overlap page')]),
 					       li(['recomputing ', a([href(RecomputeLink)],'all key stats')])
 					      ])
 					  ]))
@@ -289,8 +310,10 @@ assert_map_list([H|T], Graph) :-
 	),
 	assert_map_list(T,Graph).
 
-clear_alignstats :-
+clear_alignstats(all) :-
 	align_clear_stats(all),
+	clear_overlaps.
+clear_alignstats(overlaps) :-
 	clear_overlaps.
 
 delete_alignment_graphs :-
@@ -416,14 +439,11 @@ show_alignments -->
 		 ),
 		 AllGraphs),
 	 sort(AllGraphs, Graphs),
-	 http_link_to_id(http_clear_alignstats, [], CacheLink),
+	 http_link_to_id(http_clear_alignstats, [what(all)], CacheLink),
 	 http_link_to_id(http_delete_alignment_graphs, [], ClearAlignLink),
-	 Note = ['These are cached results, ',
-		 a([href(CacheLink)], 'clear cache'), ', ',
-		 a([href(ClearAlignLink)], 'clear all alignments from repository (!)')
-		]
+	 http_link_to_id(http_compute_stats, [graph(all)], ComputeLink)
 	},
-	html([div([class(cachenote)], Note),
+	html([
 	      table([class(aligntable)],
 		    [tr([
 			 th([class(nick)],'Abr'),
@@ -434,15 +454,21 @@ show_alignments -->
 			 th([class(format)],'Format'),
 			 th([class(count)],'# maps'),
 			 th([class(graph)],'Named Graph URI')
-
-		       ]),
-		    \show_alignments(Graphs,0)
-		   ])
+			]),
+		     \show_alignments(Graphs,0)
+		    ]),
+	      ul([class(ag_align_actions)],
+		 [
+		  li([a([href(ComputeLink)], 'Compute'), ' all missing statistics.']),
+		  li([a([href(CacheLink)], 'Clear'), ' vocabulary statistics and overlap cache']),
+		  li([a([href(ClearAlignLink)], 'Delete all (!)'),  ' alignments from the repository'])
+		  %\li_del_derived
+		 ])
 	     ]).
 
 show_alignments([],Total) -->
 	{
-		 http_link_to_id(http_compute_stats, [graph(all)], ComputeLink)
+	 http_link_to_id(http_list_alignments, [], Link)
 	},
 	html(tr([class(finalrow)],
 		[td([class(nick)],''),
@@ -452,7 +478,7 @@ show_alignments([],Total) -->
 		 td([class(target_mapped)],''),
 		 td([class(format)],''),
 		 td([class(count),style('text-align: right')],Total),
-		 td([class(graph)],a([href(ComputeLink), title('Click to compute missing stats')], 'Total (double counting)'))
+		 td([class(graph)], a(href(Link),'Total (double counting)'))
 		])).
 
 show_alignments([Graph|Tail], Number) -->
@@ -501,22 +527,37 @@ show_alignments([Graph|Tail], Number) -->
 
 show_overlap -->
 	{
-	 find_overlap(CountList, [cached(Cached)]),
-	 (   Cached
-	 ->  http_link_to_id(http_clear_alignstats, [], CacheLink),
-	     Note = ['These are results from the cache, ', a([href(CacheLink)], 'clear cache'), ' to recompute']
-	 ;   Note = ''
-	 )
+	 precomputed_overlaps(CountList),!,
+	 http_link_to_id(http_clear_alignstats, [what(overlaps)], ClearCacheLink)
 	},
 	html([
-	      div([id(cachenote)], Note),
 	      table([id(aligntable)],
 		    [
 		     tr([th('Overlap'),th('# maps'), th([colspan(2)],'Example')]),
 		     \show_countlist(CountList,0)
 		    ]
-		  )
+		  ),
+	      ul([class(ag_overlap_actions)],
+		 [
+		  % li([a([href(ComputeLink)], 'Compute'), ' all missing statistics.']),
+		  li([a([href(ClearCacheLink)], 'Clear'), ' vocabulary statistics cache'])
+		  %\li_del_derived
+		 ])
 	     ]).
+show_overlap -->
+	{
+	 http_link_to_id(http_compute_overlaps, [], ComputeLink)
+	},
+	html([
+	      p([class(no_overlaps_yet)],['No overlaps have been computed yet.']),
+	      h4(class(ag_overlap_actions), 'Overlap actions'),
+	      ul([class(ag_overlap_actions)],
+		 [
+		  li([a([href(ComputeLink)], 'Compute'), ' all alignment overlaps (might take a while).'])
+		  %\li_del_derived
+		 ])
+	     ]).
+
 
 li_export_graph(Graph) -->
 	{
