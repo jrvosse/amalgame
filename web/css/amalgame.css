@@ -29,6 +29,7 @@ div.ag_search {
 .ag_search #content table  { margin: 0% 0% 5% 35%; }
 .ag_search #content p.error  { margin: 0% 0% 5% 35%; }
 .ag_search .logo { display: none }
+
 .ag_search .ag_voc_actions { display: none }
 .ag_search table .example { display: none }
 .ag_search table .preflabels { display: none }
@@ -131,3 +132,23 @@ div.alignlist td.src_mapped { display: none }
 div.alignlist th.src_mapped { display: none }
 div.alignlist td.target_mapped { display: none }
 div.alignlist th.target_mapped { display: none }
+
+
+/* Footer */
+
+#econnectlink.logo {
+	float: left;
+	background-color: white;
+	margin-top: -34px;
+	padding-left: 10px;
+}
+#econnectlink.logo img {
+	border-style: none;
+	padding: 0px 0px 0px 10px;
+}
+
+address.cliopatria {
+	border-color:#e0e0e0;
+	border-style: solid;
+	border-width:1px 0 0;
+}
