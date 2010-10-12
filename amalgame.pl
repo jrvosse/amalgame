@@ -1,8 +1,8 @@
 :- module(amalgame, [ag_load_schemas/0]).
 
-:- use_module(cliopatria(cliopatria)).
-:- use_module(library(semweb/rdf_library)).
-:- use_module(library(version)).
+		 /*******************************
+		 *	   SEARCH PATHS		*
+		 *******************************/
 
 :- multifile user:file_search_path/2.
 :- dynamic   user:file_search_path/2.
@@ -15,6 +15,18 @@
 
 user:file_search_path(ontology,   	amalgame(ontologies)).
 user:file_search_path(amalgame_apps,	amalgame('applications')).
+user:file_search_path(cliopatria,	amalgame('ClioPatria')).
+
+:- use_module(cliopatria(cliopatria)).
+:- use_module(library(semweb/rdf_library)).
+:- use_module(library(version)).
+
+
+		 /*******************************
+		 *	  WEB SERVER SETUP	*
+		 *******************************/
+
+:- multifile http:location/3.
 
 http:location(amalgame, cliopatria(amalgame), []).
 
