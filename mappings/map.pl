@@ -167,6 +167,8 @@ prolog:message(map(found, What, From, Number)) -->
         [ 'Found ', Number, ' ', What, ' (', From, ') to process.' ].
 prolog:message(map(cleared, What, From, Number)) -->
         [ 'Cleared ', Number, ' ', What, ' (', From, ').' ].
+prolog:message(map(created, What, From, _Number)) -->
+        [ 'Created ', What, ' (', From, ').' ].
 
 
 
