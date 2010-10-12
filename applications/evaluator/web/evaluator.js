@@ -399,11 +399,11 @@ YAHOO.mazzle.MapCheck.prototype._initForm = function(oParms) {
     this._oUnrelatedButton = new YAHOO.widget.Button({
       id:"unrelatedButton"+i,
 	  type: ButtonType,
-	  label: "not related (x)",
+	  label: "not related (-)",
 	  container: elAppReject,
 	  });
     this._oUnrelatedButton.addListener("click", this._judgeCallback, {oSelf:this, index:i, choice:'evaluator:unrelated' , comment:elComment});
-    this._oUnrelatedButton._button.setAttribute("accesskey", "x");
+    this._oUnrelatedButton._button.setAttribute("accesskey", "-");
 
 
   };
