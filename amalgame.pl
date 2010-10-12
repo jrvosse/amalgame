@@ -13,6 +13,10 @@
        assert(user:file_search_path(amalgame, Amalgame))
    ).
 
+user:file_search_path(cliopatria, amalgame('ClioPatria')).
+
+:- use_module(cliopatria(cliopatria)).
+
 user:file_search_path(ontology,   	amalgame(ontologies)).
 user:file_search_path(amalgame_apps,	amalgame('applications')).
 user:file_search_path(cliopatria,	amalgame('ClioPatria')).
