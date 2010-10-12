@@ -1,6 +1,5 @@
 :- module(amalgame, [ag_load_schemas/0]).
 
-:- use_module(cliopatria(cliopatria)).
 :- use_module(library(semweb/rdf_library)).
 :- use_module(library(version)).
 
@@ -12,6 +11,10 @@
    ;   prolog_load_context(directory, Amalgame),
        assert(user:file_search_path(amalgame, Amalgame))
    ).
+
+user:file_search_path(cliopatria, amalgame('ClioPatria')).
+
+:- use_module(cliopatria(cliopatria)).
 
 user:file_search_path(ontology,   	amalgame(ontologies)).
 user:file_search_path(amalgame_apps,	amalgame('applications')).
