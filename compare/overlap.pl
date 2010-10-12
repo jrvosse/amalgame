@@ -66,11 +66,11 @@ find_overlaps([Map|Tail], Accum, Out) :-
 count_overlaps([], Accum, Results) :-
 	assert_overlaps(Accum, [], Results).
 count_overlaps([Graphs:Map|Tail], Accum, Results) :-
-	setting(overlaps_persistent, Persistency),
 	overlap_uri(Graphs, Overlap),
 	(   selectchk(Count:Graphs, Accum, NewAccum)
 	->  true
 	;   Count = 0, NewAccum = Accum,
+	    setting(overlaps_persistent, Persistency),
 	    rdf_persistency(Overlap, Persistency)
 	),
 	Map = [E1, E2],
