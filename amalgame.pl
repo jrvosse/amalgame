@@ -19,9 +19,7 @@ user:file_search_path(cliopatria, amalgame('ClioPatria')).
 
 user:file_search_path(ontology,   	amalgame(ontologies)).
 user:file_search_path(amalgame_apps,	amalgame('applications')).
-user:file_search_path(cliopatria,	amalgame('ClioPatria')).
 
-:- use_module(cliopatria(cliopatria)).
 :- use_module(library(semweb/rdf_library)).
 :- use_module(library(version)).
 
