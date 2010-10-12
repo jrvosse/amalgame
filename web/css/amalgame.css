@@ -147,6 +147,9 @@ div.alignlist th.target_mapped { display: none }
 	padding: 0px 0px 0px 10px;
 }
 
+#address {
+	margin-top: 34px;
+}
 address.cliopatria {
 	border-color:#e0e0e0;
 	border-style: solid;
