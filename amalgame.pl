@@ -39,9 +39,9 @@ ag_load_schemas :-
 :- cp_after_load(ag_load_schemas).
 
 :- check_prolog_version(51106).          % Demand >= 5.11.6
-:- register_git_component('amalgame',
-                          [ home_url('http://eculture.cs.vu.nl/git/econnect/amalgame.git')
-                          ]).
+:- register_git_module('amalgame',
+		       [ home_url('http://eculture.cs.vu.nl/git/econnect/amalgame.git')
+		       ]).
 
 :- use_module([ amalgame(namespaces),
 		amalgame_apps(align_stats),
