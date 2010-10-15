@@ -161,31 +161,45 @@ http_clear_alignstats(Request):-
 			]),
 
 	Title = 'Amalgame: clearing caches',
-	http_link_to_id(http_compute_stats, [graph(all)], RecomputeLink),
-	http_link_to_id(http_list_alignments, [graph(all)], ListLink),
-	http_link_to_id(http_list_overlap, [], OverlapLink),
-
+	clear_actions(ClearActions),
 	call_showing_messages(clear_alignstats(What),
 			      [head(title(Title)),
 			       header(h4(Title)),
-			       footer(div([h4('Cleared all caches'),
-					   p('You now may want to proceed by:'),
-					   ul(
-					      [
-					       li(['returning to the ', a([href(ListLink)], 'alignment overview page')]),
-					       li(['returning to the ', a([href(OverlapLink)], 'overlap page')]),
-					       li(['recomputing ', a([href(RecomputeLink)],'all key stats')])
-					      ])
+			       footer(div([h4('Cleared all caches')|
+					   ClearActions
 					  ]))
 			      ]).
 
+clear_actions(ClearActions) :-
+	http_link_to_id(http_compute_stats, [graph(all)], RecomputeLink),
+	http_link_to_id(http_list_alignments, [graph(all)], ListLink),
+	http_link_to_id(http_list_overlap, [], OverlapLink),
+	ClearActions = [
+			p('You now may want to proceed by:'),
+			ul(
+			   [
+			    li(['returning to the ', a([href(ListLink)], 'alignment overview page')]),
+			    li(['returning to the ', a([href(OverlapLink)], 'overlap page')]),
+			    li(['recomputing ', a([href(RecomputeLink)],'all key stats')])
+			   ])
+		       ].
 
 
-http_delete_alignment_graphs(_Request) :-
+
+
+http_delete_alignment_graphs(Request) :-
 	authorized(write(amalgame_cache, clear)),
 	authorized(write(default, unload(_))),
-	call_showing_messages(delete_alignment_graphs,
-			      [head(title('Amalgame: deleting graphs'))]).
+	clear_actions(ClearActions),
+	rdf_equal(amalgame:'Alignment', DefaultType),
+	http_parameters(Request,
+			[type(Type, [default(DefaultType), description('What type of graphs to delete, defaults to all amalgame:Alignment, deleting all alignments')])]),
+	rdf_display_label(Type, TypeLabel),
+	http_link_to_id(list_resource, [r(Type)], TypeLink),
+	call_showing_messages(delete_alignment_graphs(Type),
+			      [header(div([h4(['Amalgame: deleted graphs of type ', a([href(TypeLink)],TypeLabel)])])),
+			       footer(div([h4('Graphs deleted')|ClearActions]))
+			      ]).
 
 
 http_skos_export(Request) :-
@@ -316,17 +330,17 @@ clear_alignstats(all) :-
 clear_alignstats(overlaps) :-
 	clear_overlaps.
 
-delete_alignment_graphs :-
+delete_alignment_graphs(Type) :-
 	align_ensure_stats(found),
 	findall(Graph, is_alignment_graph(Graph, _Format), Graphs),
-	forall(member(Graph, Graphs),
+	forall((member(Graph, Graphs),
+		rdfs_individual_of(Graph, Type)
+	       ),
 	       (
 		   print_message(informational, map(cleared, graph, 1, Graph)),
 		   rdf_unload(Graph)
 	       )
-	      ),
-	align_clear_stats(all).
-
+	      ).
 
 show_alignment_overview(Graph) -->
 	{
@@ -439,8 +453,10 @@ show_alignments -->
 		 ),
 		 AllGraphs),
 	 sort(AllGraphs, Graphs),
+	 rdf_equal(amalgame:'DerivedAlignment', DerivedAlignments),
 	 http_link_to_id(http_clear_alignstats, [what(all)], CacheLink),
-	 http_link_to_id(http_delete_alignment_graphs, [], ClearAlignLink),
+	 http_link_to_id(http_delete_alignment_graphs, [], ClearAllAlignLink),
+	 http_link_to_id(http_delete_alignment_graphs, [type(DerivedAlignments)], ClearDerivedLink),
 	 http_link_to_id(http_compute_stats, [graph(all)], ComputeLink)
 	},
 	html([
@@ -461,7 +477,8 @@ show_alignments -->
 		 [
 		  li([a([href(ComputeLink)], 'Compute'), ' all missing statistics.']),
 		  li([a([href(CacheLink)], 'Clear'), ' vocabulary statistics and overlap cache']),
-		  li([a([href(ClearAlignLink)], 'Delete all (!)'),  ' alignments from the repository'])
+		  li([a([href(ClearDerivedLink)], 'Delete derived'),  ' alignments from the repository']),
+		  li([a([href(ClearAllAlignLink)], 'Delete all (!)'),  ' alignments from the repository'])
 		  %\li_del_derived
 		 ])
 	     ]).
