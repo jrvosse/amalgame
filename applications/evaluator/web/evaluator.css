@@ -15,7 +15,7 @@ font-weight:bold;
 
 label.commentLabel { float: right; padding: .5em; }
 
-span.hit { 
+#evaluator span.hit {
 	font-weight: bold;
-	border-bottom: 1pt solid gray;
+	border-bottom: solid 1px #A0A0A0;
 }

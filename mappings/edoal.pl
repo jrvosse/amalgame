@@ -112,8 +112,8 @@ assert_cell(C1, C2, Options) :-
 	),
 	(   option(prov(Prov), Options)
 	->  true,
-	    git_component_property('ClioPatria', version(CP_version)),
-	    git_component_property('amalgame',   version(AG_version)),
+	    git_module_property('ClioPatria', version(CP_version)),
+	    git_module_property('amalgame',   version(AG_version)),
 	    format(atom(Version), 'Manually evaluated using Amalgame ~w/Cliopatria ~w', [AG_version, CP_version]),
 	    get_time(T), format_time(atom(Time), '%a, %d %b %Y %H:%M:%S %z', T),
 	    option(evaluator(Evaluator), Prov, 'anonymous'),
@@ -199,8 +199,8 @@ edoal_select(Request, EdoalGraph, TargetGraph, Options) :-
 provenance_stamp(Request, EdoalGraph, TargetGraph, Provenance) :-
 	get_time(T), format_time(atom(Time), '%a, %d %b %Y %H:%M:%S %z', T),
 	logged_on(User, 'anonymous'),
-	git_component_property('ClioPatria', version(CP_version)),
-	git_component_property('amalgame',   version(AG_version)),
+	git_module_property('ClioPatria', version(CP_version)),
+	git_module_property('amalgame',   version(AG_version)),
 	format(atom(Version), 'Made using Amalgame ~w/Cliopatria ~w', [AG_version, CP_version]),
 	http_current_host(Request, Hostname, Port, [global(true)]),
 	memberchk(request_uri(ReqURI), Request),

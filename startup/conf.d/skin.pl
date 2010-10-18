@@ -70,11 +70,9 @@ logo -->
 	html(a([class(logo),
 		id(econnectlink),
 		target(new),
-		href('http://www.europeanaconnect.eu/'),
-		style('float: left; margin-right: 1%;')
+		href('http://www.europeanaconnect.eu/')
 	       ],
 	       img([src(LogoImg),
-		    style('border-style: none;'),
 		    alt('EuropeanaConnect project logo')
 		   ],[])
 	      )

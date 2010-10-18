@@ -267,8 +267,8 @@ reassert([Map:Options|Tail], OldGraph, Condition, Accum, Results) :-
 
 	    rdf_assert(NewGraph, rdf:type, amalgame:'PartitionedAlignment', NewGraph),
 	    rdf_bnode(Provenance),
-	    git_component_property('ClioPatria', version(CP_version)),
-	    git_component_property('amalgame',   version(AG_version)),
+	    git_module_property('ClioPatria', version(CP_version)),
+	    git_module_property('amalgame',   version(AG_version)),
 	    format(atom(Version), 'Partitioned using Amalgame ~w/Cliopatria ~w', [AG_version, CP_version]),
 	    get_time(T), format_time(atom(Time), '%a, %d %b %Y %H:%M:%S %z', T),
 	    rdf_assert(NewGraph, amalgame:provenance, Provenance, NewGraph),

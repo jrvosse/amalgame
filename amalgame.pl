@@ -1,8 +1,8 @@
 :- module(amalgame, [ag_load_schemas/0]).
 
-:- use_module(cliopatria(cliopatria)).
-:- use_module(library(semweb/rdf_library)).
-:- use_module(library(version)).
+		 /*******************************
+		 *	   SEARCH PATHS		*
+		 *******************************/
 
 :- multifile user:file_search_path/2.
 :- dynamic   user:file_search_path/2.
@@ -13,8 +13,22 @@
        assert(user:file_search_path(amalgame, Amalgame))
    ).
 
+user:file_search_path(cliopatria, amalgame('ClioPatria')).
+
+:- use_module(cliopatria(cliopatria)).
+
 user:file_search_path(ontology,   	amalgame(ontologies)).
 user:file_search_path(amalgame_apps,	amalgame('applications')).
+
+:- use_module(library(semweb/rdf_library)).
+:- use_module(library(version)).
+
+
+		 /*******************************
+		 *	  WEB SERVER SETUP	*
+		 *******************************/
+
+:- multifile http:location/3.
 
 http:location(amalgame, cliopatria(amalgame), []).
 
@@ -25,9 +39,9 @@ ag_load_schemas :-
 :- cp_after_load(ag_load_schemas).
 
 :- check_prolog_version(51106).          % Demand >= 5.11.6
-:- register_git_component('amalgame',
-                          [ home_url('http://eculture.cs.vu.nl/git/econnect/amalgame.git')
-                          ]).
+:- register_git_module('amalgame',
+		       [ home_url('http://eculture.cs.vu.nl/git/econnect/amalgame.git')
+		       ]).
 
 :- use_module([ amalgame(namespaces),
 		amalgame_apps(align_stats),

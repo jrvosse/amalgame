@@ -1,6 +1,7 @@
 :- module(ag_overlap,
 	  [
-	   find_overlap/2,
+	   precomputed_overlaps/1,
+	   compute_overlaps/0,
 	   clear_overlaps/0
 	  ]
 	 ).
@@ -15,6 +16,7 @@ matchers. It assumes matchers assert mappings in different name graphs.
 @license GPL
 */
 
+:- use_module(library(settings)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_persistency)).
@@ -24,35 +26,72 @@ matchers. It assumes matchers assert mappings in different name graphs.
 :- use_module(amalgame(mappings/edoal)).
 :- use_module(amalgame(namespaces)).
 
-find_overlap(ResultsSorted, [cached(true)]) :-
+:- setting(overlaps_persistent, boolean, false, 'Set to true if you want overlaps to survive server restarts').
+
+%%	precomputed_overlaps(-Overlaps) is semidet.
+%
+%	Fails if not a single overlap alignment has been computed yet.
+%	Otherwise, it will return all precomputed overlaps in the list
+%	Overlaps, which is a sorted list of the form
+%	[Count1:OverlapURI1, Count2:OverlapURI2 ... ],
+%	where the counts indicate the number of mappings contained in
+%	the overlap subset corresponding to the URI.
+%
+precomputed_overlaps(Overlaps) :-
 	rdf(_, rdf:type, amalgame:'OverlapAlignment'),
 	!, % assume overlap stats have been computed already and can be gathered from the RDF
 	findall(C:G, is_precomputed_overlap(G,C), Results),
-	sort(Results, ResultsSorted).
+	sort(Results, Overlaps).
 
-find_overlap(ResultsSorted, [cached(false)]) :-
+%%	compute_overlaps is det.
+%
+%	Computes for each mapping between two concepts, which alignment
+%	graphs have mappings between these two concepts. Based on this,
+%	the entire set of mappings is partitioned, where each mapping
+%	appears in (and only in) the subset corresponding to the set of
+%	all graphs which also have mappings bewteen the same concepts.
+%	So for example, if a mapping M1 in alignment graph G1 defines a
+%	mapping between concepts C1 and C2, and mapping M2 in graph G2
+%	and mapping M3 in graph G3 also define mappings between C1 and
+%	C2, we create a single new mapping M' between C1 and C2 that
+%	will put in the overlap graph corresponding to the overlap of
+%	G1,G2,G3.
+%
+compute_overlaps :-
+	% Find all maps in the store:
 	findall(Map, map_iterator(Map), AllMaps),
 	length(AllMaps, L1),
 	print_message(informational, map(found, maps, total, L1)),
+
+	% For each map, find in which graphs these mappings occur:
 	find_overlaps(AllMaps, [], Overlaps),
 	length(Overlaps, L2),
 	print_message(informational, map(found, overlaps, total, L2)),
-	count_overlaps(Overlaps, [], Results),
-	sort(Results, ResultsSorted).
 
+	% Count how many mappings are in each set:
+	count_overlaps(Overlaps, [], _Results).
+
+%%	clear_overlaps is det.
+%
+%	Clears all overlap graphs by unloading any graph of type
+%	amalgame:OverlapAlignment.
+%
 clear_overlaps :-
-	forall(
-		(   rdf_graph(Graph),
-		    sub_atom(Graph,_,_,_,'amalgame_overlap')
+	findall(Graph,
+		( rdfs_individual_of(Graph, amalgame:'OverlapAlignment'),
+		  rdf_graph(Graph)
 		),
+		OverlapGraphs),
+	forall(member(Graph, OverlapGraphs),
 	       (   rdf_unload(Graph),
 		   print_message(informational, map(cleared, overlap, Graph, 1))
 	       )
 	      ).
 
-is_precomputed_overlap(Overlap, C) :-
+
+is_precomputed_overlap(Overlap, Count) :-
 	rdf(Overlap, rdf:type, amalgame:'OverlapAlignment'),
-	rdf(Overlap, amalgame:count, literal(type(_,C))).
+	rdf(Overlap, amalgame:count, literal(type(_,Count))).
 
 find_overlaps([], Doubles, Uniques) :- sort(Doubles, Uniques).
 find_overlaps([Map|Tail], Accum, Out) :-
@@ -67,7 +106,9 @@ count_overlaps([Graphs:Map|Tail], Accum, Results) :-
 	(   selectchk(Count:Graphs, Accum, NewAccum)
 	->  true
 	;   Count = 0, NewAccum = Accum,
-	    rdf_persistency(Overlap, false)
+	    print_message(informational, map(created, 'overlap graph', Overlap, 1)),
+	    setting(overlaps_persistent, Persistency),
+	    rdf_persistency(Overlap, Persistency)
 	),
 	Map = [E1, E2],
 	(   Graphs=[G], has_map([E1, E2], edoal, Options, G)
