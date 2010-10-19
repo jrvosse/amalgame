@@ -25,6 +25,8 @@
 :- use_module(amalgame(mappings/alignment)).
 :- use_module(amalgame(mappings/map)).
 :- use_module(amalgame(mappings/edoal)).
+:- use_module(amalgame(mappings/opm)).
+
 :- use_module(amalgame(util/util)).
 :- use_module(amalgame(util/json_graph)).
 
@@ -228,10 +230,17 @@ ensure_todo_list(Graph, Target) :-
 	% We have no do to list...
 	% Assume we start from scratch
 	logged_on(User, anonymous),
-	lock_graph(Target, User, TimeStamp),
+	lock_graph(Target, User, TimeStamp),!,
 	(   rdf_graph(Target) -> rdf_unload(Target); true),
 	rdf_assert(Target, rdf:type, amalgame:'EvaluatedAlignment', Target),
 	align_clear_stats(graph(Target)),
+
+	atom_concat('Amalgame evaluation process/',Target, Label),
+	rdf_bnode(BN_Process),
+	rdf_assert(BN_Process, rdf:type, opm:'Process', Target),
+	rdf_assert(BN_Process, opm:label, literal(Label), Target),
+
+	opm_was_generated_by(BN_Process, Target, Target, [was_derived_from(Graph)]),
 	rdf_bnode(Provenance),
 	rdf_assert(Target, amalgame:provenance, Provenance, Target),
 	rdf_assert(Provenance, rdf:type, amalgame:'Provenance', Target),
