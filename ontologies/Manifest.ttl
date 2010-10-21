@@ -4,16 +4,22 @@
 @prefix      lib: <http://www.swi-prolog.org/rdf/library/> .
 @prefix      owl: <http://www.w3.org/2002/07/owl#> .
 @prefix	 dcterms: <http://purl.org/dc/terms/> .
+@prefix	     opm: <http://openprovenance.org/ontology#> .
+
+:amalgame
+        a lib:Namespace ;
+        lib:mnemonic "amalgame" ;
+        lib:namespace amalgame: .
 
 :align
         a lib:Namespace ;
         lib:mnemonic "align" ;
         lib:namespace align: .
 
-:amalgame
+:opm
         a lib:Namespace ;
-        lib:mnemonic "amalgame" ;
-        lib:namespace amalgame: .
+        lib:mnemonic "opm" ;
+        lib:namespace opm: .
 
 <alignmentschema>
 	a lib:Ontology ;
@@ -24,6 +30,13 @@
 		# <align.rdfs> .
 		<align.owl> .
 
+<opm>
+	a lib:Ontology ;
+	a lib:Virtual ;
+	dcterms:title "Schema for the Alignment format"@en ;
+	lib:source <http://openprovenance.org/model/> ;
+	owl:imports <opm.owl> .
+
 <Amalgame>
 	a lib:Ontology ;
 	a lib:Virtual ;
@@ -31,6 +44,7 @@
 	lib:source amalgame: ;
 	owl:imports
 		clbase:skos ,
+		<opm> ,
 		<alignmentschema> ,
 		<amalgame.ttl> .
 

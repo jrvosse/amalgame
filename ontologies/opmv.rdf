@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rdf:RDF
+  xmlns:dct="http://purl.org/dc/terms/"
+  xmlns:dcterms="http://purl.org/dc/terms/"
+  xmlns:foaf="http://xmlns.com/foaf/0.1/"
+  xmlns:opmv="http://purl.org/net/opmv/ns#"
+  xmlns:owl="http://www.w3.org/2002/07/owl#"
+  xmlns:prv="http://purl.org/net/provenance/ns#"
+  xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+  xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+  xmlns:wot="http://xmlns.com/wot/0.1/"
+  xmlns:xhv="http://www.w3.org/1999/xhtml/vocab#"
+  xmlns:xml="http://www.w3.org/XML/1998/namespace"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+>
+  <foaf:Document rdf:about="http://open-biomed.sourceforge.net/opmv/ns.html">
+    <xhv:alternate rdf:resource="http://open-biomed.sourceforge.net/opmv/opmv-20101006.owl"/>
+    <dct:conformsTo rdf:resource="http://www.w3.org/TR/rdfa-syntax"/>
+    <rdfs:label xml:lang="en">Document that defines the core ontology of the Open Provenance Model Vocabulary</rdfs:label>
+    <dct:title xml:lang="en">Open Provenance Model Vocabulary Specification</dct:title>
+    <xhv:license rdf:resource="http://creativecommons.org/licenses/by/1.0/"/>
+    <foaf:primaryTopic>
+      <owl:Ontology rdf:about="http://purl.org/net/opmv/ns#">
+        <rdf:type rdf:resource="http://purl.org/net/provenance/ns#DataItem"/>
+        <prv:createdBy>
+          <prv:DataCreation>
+            <prv:performedBy>
+              <foaf:Person rdf:about="http://users.ox.ac.uk/~zool0770/foaf.rdf#me">
+                <foaf:name xml:lang="en">Jun Zhao</foaf:name>
+                <foaf:homepage rdf:resource="http://users.ox.ac.uk/~zool0770/"/>
+              </foaf:Person>
+            </prv:performedBy>
+            <prv:performedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2010-10-05T14:39:00Z</prv:performedAt>
+          </prv:DataCreation>
+        </prv:createdBy>
+        <dct:created rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2010-10-05T14:39:00Z</dct:created>
+        <dct:title xml:lang="en">Open Provenance Model Vocabulary Core namespace</dct:title>
+        <dct:creator rdf:resource="http://users.ox.ac.uk/~zool0770/foaf.rdf#me"/>
+        <dct:description rdf:parseType="Literal">OPMV, the Open Provenance Model Vocabulary, provides terms to enable practitioners of data publishing to publish their data responsibly. The Open Provenance Model Vocabulary is closely based on the community provenance data model, the Open Provenance Model (OPM) <a href="#ref-Moreau09" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">[Moreau09]</a>. Since release 1.0 OPMV becomes a profile of OPM. OPMV can be used together with other provenance-related RDF/OWL vocabularies/ontologies, such as <a href="http://purl.org/dc/terms/" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">Dublin Core</a>, <a href="http://xmlns.com/foaf/0.1/" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">FOAF</a>, <a href="http://vocab.org/changeset/schema.html" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">the Changeset Vocabulary</a>, and <a href="http://purl.org/net/provenance/ns#" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">the Provenance Vocabulary</a>. As being grounded on OPM, the OPMV aims to assist the interoperability between provenance information on the Semantic Web. The Open Provenance Model Vocabulary is defined as an OWL-DL ontology and it is partitioned into a core ontology and supplementary modules. In order to avoid making the core ontology too complex, the core module only implements structures defined in OPM and the supplementary modules provide less frequently used terms and a broad range of specializations of the core terms. </dct:description>
+      </owl:Ontology>
+    </foaf:primaryTopic>
+    <dct:description xml:lang="en">This documents specifies the classes and properties introduced by the OPMV core ontology.</dct:description>
+  </foaf:Document>
+  <owl:ObjectProperty rdf:about="http://purl.org/net/opmv/ns#wasTriggeredBy">
+    <rdfs:isDefinedBy rdf:resource="http://purl.org/net/opmv/ns"/>
+    <rdfs:range>
+      <owl:Class rdf:about="http://purl.org/net/opmv/ns#Process">
+        <rdfs:isDefinedBy rdf:resource="http://purl.org/net/opmv/ns"/>
+        <rdfs:comment xml:lang="en">Process refers to an action or series of actions performed on or caused by artifacts, and resulting in new artifacts.</rdfs:comment>
+        <owl:disjointWith>
+          <owl:Class rdf:about="http://purl.org/net/opmv/ns#Agent">
+            <owl:equivalentClass>
+              <owl:Class rdf:about="http://xmlns.com/foaf/0.1/Agent"/>
+            </owl:equivalentClass>
+            <rdfs:isDefinedBy rdf:resource="http://purl.org/net/opmv/ns"/>
+            <rdfs:label xml:lang="en">Agent</rdfs:label>
+            <owl:disjointWith rdf:resource="http://purl.org/net/opmv/ns#Process"/>
+            <rdfs:comment xml:lang="en">Agent is a contextual entity acting as a catalyst of a process, enabling, facilitating, controlling, or affecting its execution.
+</rdfs:comment>
+          </owl:Class>
+        </owl:disjointWith>
+        <owl:disjointWith>
+          <owl:Class rdf:about="http://purl.org/net/opmv/ns#Artifact">
+            <rdfs:isDefinedBy rdf:resource="http://purl.org/net/opmv/ns"/>
+            <rdfs:comment xml:lang="en">Artifact is a general concept that represents immutable piece of state, which may have a physical embodiment in a physical object, or a digital representation in a computer system.</rdfs:comment>
+            <owl:disjointWith rdf:resource="http://purl.org/net/opmv/ns#Process"/>
+            <rdfs:label xml:lang="en">Artifact</rdfs:label>
+          </owl:Class>
+        </owl:disjointWith>
+        <rdfs:label xml:lang="en">Process</rdfs:label>
+      </owl:Class>
+    </rdfs:range>
+    <rdfs:domain rdf:resource="http://purl.org/net/opmv/ns#Process"/>
+    <rdfs:comment xml:lang="en">
+    wasTriggeredBy is an abstract property to express that a process was triggered by another process.
+  </rdfs:comment>
+    <rdfs:label xml:lang="en">wasTriggeredBy</rdfs:label>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="http://purl.org/net/opmv/ns#withRespectOf">
+    <rdfs:isDefinedBy rdf:resource="http://purl.org/net/opmv/ns"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2006/time#Instant"/>
+    <rdfs:domain rdf:resource="http://purl.org/net/opmv/ns#Artifact"/>
+    <rdfs:comment rdf:parseType="Literal">
+    withRespectOf is an object property to associate a time instant at which an artifact was used or generated with the process that used or generated that artifact. At a very fine-grained distinction, the time when an artifact was used or generated might not be exactly the same as the starting or ending time of the process in which the artifact was involved. The related properties <a href="#wasUsedAt" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">opmv:wasUsedAt</a> and <a href="#wasGeneratedAt" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">opmv:wasGeneratedAt</a> can be used as shortcuts to express time-related information about an artifact. The property  <a href="#wasUsedAt" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">opmv:wasUsedAt</a> is only used when users want to express precisely in which process an artifact was used or generated. It can be omitted in most cases.</rdfs:comment>
+    <rdfs:label xml:lang="en">withRespectOf</rdfs:label>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="http://purl.org/net/opmv/ns#wasDerivedFrom">
+    <rdfs:isDefinedBy rdf:resource="http://purl.org/net/opmv/ns"/>
+    <rdfs:range rdf:resource="http://purl.org/net/opmv/ns#Artifact"/>
+    <rdfs:domain rdf:resource="http://purl.org/net/opmv/ns#Artifact"/>
+    <rdfs:comment xml:lang="en">
+        wasDerivedFrom is an abstract property to express that an artifact was derived from another artifact.
+      </rdfs:comment>
+    <rdfs:label xml:lang="en">wasDerivedFrom</rdfs:label>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="http://purl.org/net/opmv/ns#used">
+    <rdfs:isDefinedBy rdf:resource="http://purl.org/net/opmv/ns"/>
+    <rdfs:range rdf:resource="http://purl.org/net/opmv/ns#Artifact"/>
+    <rdfs:domain rdf:resource="http://purl.org/net/opmv/ns#Process"/>
+    <rdfs:comment xml:lang="en">used is an abstract property to express that an artifact was used by a process.</rdfs:comment>
+    <rdfs:label xml:lang="en">used</rdfs:label>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="http://purl.org/net/opmv/ns#wasControlledBy">
+    <rdfs:isDefinedBy rdf:resource="http://purl.org/net/opmv/ns"/>
+    <rdfs:range rdf:resource="http://purl.org/net/opmv/ns#Agent"/>
+    <rdfs:domain rdf:resource="http://purl.org/net/opmv/ns#Process"/>
+    <rdfs:comment xml:lang="en">
+    wasControlledBy is an abstract property to express that a process was controlled an agent.
+</rdfs:comment>
+    <rdfs:label xml:lang="en">wasControlledBy</rdfs:label>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="http://purl.org/net/opmv/ns#wasPerformedAt">
+    <rdfs:isDefinedBy rdf:resource="http://purl.org/net/opmv/ns"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2006/time#TemporalEntity"/>
+    <rdfs:domain rdf:resource="http://purl.org/net/opmv/ns#Process"/>
+    <rdfs:comment rdf:parseType="Literal">
+      wasPerformedAt is an object property to express that a process was performed at a given time <a href="http://www.w3.org/2006/time#Instant" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">instant</a> or during a given time <a href="http://www.w3.org/2006/time#Interval" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">interval</a>.
+    </rdfs:comment>
+    <rdfs:label xml:lang="en">wasPerformedAt</rdfs:label>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="http://purl.org/net/opmv/ns#wasUsedAt">
+    <rdfs:isDefinedBy rdf:resource="http://purl.org/net/opmv/ns"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2006/time#Instant"/>
+    <rdfs:domain rdf:resource="http://purl.org/net/opmv/ns#Artifact"/>
+    <rdfs:comment rdf:parseType="Literal">
+    wasUsedAt is an object property to express that an artifact was used at a specific time <a href="http://www.w3.org/2006/time#Instant" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">instant</a>. An artifact might not be used at the starting time of the process that actually consumed it. Hence, we provide a different time-related property to express when an artifact was used.</rdfs:comment>
+    <rdfs:label xml:lang="en">wasUsedAt</rdfs:label>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="http://purl.org/net/opmv/ns#wasStartedAt">
+    <rdfs:isDefinedBy rdf:resource="http://purl.org/net/opmv/ns"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2006/time#Instant"/>
+    <rdfs:domain rdf:resource="http://purl.org/net/opmv/ns#Process"/>
+    <rdfs:comment rdf:parseType="Literal">
+      wasStartedAt is an object property to express that a process was started at a given time <a href="http://www.w3.org/2006/time#Instant" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">instant</a>. The property chain defines that all processes, that were performed during a specific time period which began at a specific instant, were actually started at that specific time instant.
+    </rdfs:comment>
+    <rdfs:label xml:lang="en">wasStartedAt</rdfs:label>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="http://purl.org/net/opmv/ns#wasEndedAt">
+    <rdfs:isDefinedBy rdf:resource="http://purl.org/net/opmv/ns"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2006/time#Instant"/>
+    <rdfs:domain rdf:resource="http://purl.org/net/opmv/ns#Process"/>
+    <rdfs:comment rdf:parseType="Literal">
+      wasEndedAt is an object property to express that a process was finished at a specific time <a href="http://www.w3.org/2006/time#Instant" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">instant</a>. The property chain defines that all processes, that were performed during a specific time period which ended at a specific instant, were actually finished at that specific time instant.
+    </rdfs:comment>
+    <rdfs:label xml:lang="en">wasEndedAt</rdfs:label>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="http://purl.org/net/opmv/ns#wasGeneratedAt">
+    <rdfs:isDefinedBy rdf:resource="http://purl.org/net/opmv/ns"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2006/time#Instant"/>
+    <rdfs:domain rdf:resource="http://purl.org/net/opmv/ns#Artifact"/>
+    <rdfs:comment rdf:parseType="Literal">
+    wasGeneratedAt is an object property to express that an artifact was generated at a specific time <a href="http://www.w3.org/2006/time#Instant" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">instant</a>. This property is very similar to <a href="http://purl.org/dc/terms/created" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">dct:created</a>. Note that in a very fine-grained case the time when an artifact was generated might not be the same as the time when the process producing that artifact finished.
+    </rdfs:comment>
+    <rdfs:label xml:lang="en">wasGeneratedAt</rdfs:label>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="http://purl.org/net/opmv/ns#wasGeneratedBy">
+    <rdfs:isDefinedBy rdf:resource="http://purl.org/net/opmv/ns"/>
+    <rdfs:range rdf:resource="http://purl.org/net/opmv/ns#Process"/>
+    <rdfs:domain rdf:resource="http://purl.org/net/opmv/ns#Artifact"/>
+    <rdfs:comment xml:lang="en">
+    wasGeneratedBy is an abstract property to express that an artifact was generated by a process.
+  </rdfs:comment>
+    <rdfs:label xml:lang="en">wasGeneratedBy</rdfs:label>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="http://purl.org/net/opmv/ns#wasEncodedBy">
+    <rdfs:isDefinedBy rdf:resource="http://purl.org/net/opmv/ns"/>
+    <rdfs:range rdf:resource="http://purl.org/net/opmv/ns#Artifact"/>
+    <rdfs:domain rdf:resource="http://purl.org/net/opmv/ns#Artifact"/>
+    <rdfs:comment xml:lang="en">
+    wasEncodedBy is an object property to express that an artifact is encoded by another artifact. The property is useful for expressing the relationship between the data and the file encoding the data.
+  </rdfs:comment>
+    <rdfs:label xml:lang="en">wasEncodedBy</rdfs:label>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="http://purl.org/net/opmv/ns#wasPerformedBy">
+    <rdfs:isDefinedBy rdf:resource="http://purl.org/net/opmv/ns"/>
+    <rdfs:range rdf:resource="http://purl.org/net/opmv/ns#Agent"/>
+    <rdfs:domain rdf:resource="http://purl.org/net/opmv/ns#Process"/>
+    <rdfs:comment rdf:parseType="Literal">
+    wasPerformedBy is an object property to express that a process was performed by another process. It is a sub-property of <a href="#wasControlledBy" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">wasControlledBy</a>.
+  </rdfs:comment>
+    <rdfs:label xml:lang="en">wasPerformedBy</rdfs:label>
+  </owl:ObjectProperty>
+</rdf:RDF>
