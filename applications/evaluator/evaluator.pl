@@ -237,7 +237,6 @@ ensure_todo_list(Graph, Target) :-
 
 	atom_concat('Amalgame evaluation process/',Target, Label),
 	rdf_bnode(BN_Process),
-	rdf_assert(BN_Process, rdf:type, opmv:'Process', Target),
 	rdf_assert(BN_Process, rdfs:label, literal(Label), Target),
 
 	opm_was_generated_by(BN_Process, Target, Target, [was_derived_from(Graph)]),
