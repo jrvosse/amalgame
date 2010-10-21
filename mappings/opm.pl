@@ -56,5 +56,5 @@ opm_was_generated_by(Process, Artifact, Graph, Options) :-
 
 get_xml_dateTime(TimeStamp) :-
 	get_time(T),
-	format_time(atom(TimeStamp), '%Y-%m-%dT%H-%M-%S%z', T).
+	format_time(atom(TimeStamp), '%Y-%m-%dT%H-%M-%S%Oz', T).
 
