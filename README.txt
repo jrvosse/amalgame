@@ -1,5 +1,17 @@
 This is the AMsterdam ALignment GenerAtion MEtatool (amalgame)
-This open source tool is part of the EuropeanaConnect project
+This open source tool is part of the EuropeanaConnect project.
+
+To get the correct version of the ClioPatria submodule, run:
+
+shell> git submodule update --init
+
+To setup the amalgame server for the first time, run:
+
+shell> cd startup
+shell> ../ClioPatria/configure
+
+To start the server run:
+shell> ./run.pl
 
 Authors: Victor, Jan & Jacco (VU University Amsterdam)
 
