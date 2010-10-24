@@ -18,6 +18,7 @@
 :- use_module(library(version)).
 :- use_module(edoal).
 :- use_module(map).
+:- use_module(opm).
 
 %%	is_alignment_graph(+Graph, ?Format) is semidet.
 %       is_alignment_graph(-Graph, ?Format) is nondet.
@@ -266,18 +267,9 @@ reassert([Map:Options|Tail], OldGraph, Condition, Accum, Results) :-
 	    (	rdf_graph(NewGraph) -> rdf_unload(NewGraph); true),
 
 	    rdf_assert(NewGraph, rdf:type, amalgame:'PartitionedAlignment', NewGraph),
-	    rdf_bnode(Provenance),
-	    git_module_property('ClioPatria', version(CP_version)),
-	    git_module_property('amalgame',   version(AG_version)),
-	    format(atom(Version), 'Partitioned using Amalgame ~w/Cliopatria ~w', [AG_version, CP_version]),
-	    get_time(T), format_time(atom(Time), '%a, %d %b %Y %H:%M:%S %z', T),
-	    rdf_assert(NewGraph, amalgame:provenance, Provenance, NewGraph),
-	    rdf_assert(Provenance, rdf:type, amalgame:'Provenance', NewGraph),
-	    rdf_assert(Provenance, dcterms:title, literal('Provenance: about this partition'), NewGraph),
-	    rdf_assert(Provenance, dcterms:source, OldGraph, NewGraph),
-	    rdf_assert(Provenance, dcterms:date, literal(Time), NewGraph),
-	    rdf_assert(Provenance, owl:versionInfo, literal(Version), NewGraph),
-	    rdf_assert(Provenance, amalgame:condition, literal(Condition))
+	    rdf_bnode(Process),
+	    rdf_assert(Process, amalgame:condition, literal(Condition), NewGraph),
+	    opm_was_generated_by(Process, NewGraph, NewGraph, [was_derived_from(OldGraph)])
 	),
 	Map = [E1,E2],
 	assert_cell(E1, E2, [graph(NewGraph), Options]),

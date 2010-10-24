@@ -25,6 +25,7 @@ http://alignapi.gforge.inria.fr/edoal.html
 
 :- use_module(amalgame(namespaces)).
 :- use_module(map).
+:- use_module(opm).
 
 %%	assert_alignment(+URI, +OptionList) is det.
 %
@@ -112,17 +113,11 @@ assert_cell(C1, C2, Options) :-
 	),
 	(   option(prov(Prov), Options)
 	->  true,
-	    git_module_property('ClioPatria', version(CP_version)),
-	    git_module_property('amalgame',   version(AG_version)),
-	    format(atom(Version), 'Manually evaluated using Amalgame ~w/Cliopatria ~w', [AG_version, CP_version]),
-	    get_time(T), format_time(atom(Time), '%a, %d %b %Y %H:%M:%S %z', T),
+	    get_time(T), format_time(atom(Time), '%Y-%m-%dT%H-%M-%S%Oz', T),
 	    option(evaluator(Evaluator), Prov, 'anonymous'),
-
-
 	    rdf_bnode(Provenance),
 	    rdf_assert(Cell, amalgame:provenance, Provenance, Graph),
 	    rdf_assert(Provenance, rdf:type, amalgame:'Provenance', Graph),
-	    rdf_assert(Provenance, owl:versionInfo, Version, Graph),
 	    rdf_assert(Provenance, dcterms:creator, literal(Evaluator), Graph),
 	    rdf_assert(Provenance, dcterms:date, literal(Time), Graph),
 	    (	option(comment(Comment), Prov), Comment \= ''
@@ -150,15 +145,16 @@ assert_cell(C1, C2, Options) :-
 %	* max(Measure): max confidence level, default to 1.0
 
 edoal_to_triples(Request, EdoalGraph, TargetGraph, Options) :-
+	rdf_assert(TargetGraph, rdf:type, amalgame:'ExportedAlignment', TargetGraph),
 	rdf_transaction(
 			forall(has_map([C1, C2], edoal, MatchOptions, EdoalGraph),
 			       assert_as_single_triple(C1-C2-MatchOptions, Options, TargetGraph)
 			      )
 		       ),
-	provenance_stamp(Request, EdoalGraph, TargetGraph, Provenance),
-	rdf_assert(Provenance, dcterms:title, literal('Provenance: about this exported alignment'), TargetGraph),
-	rdf_assert(TargetGraph, rdf:type, amalgame:'ExportedAlignment', TargetGraph).
-
+	rdf_bnode(Process),
+	opm_was_generated_by(Process, TargetGraph, TargetGraph,
+			     [was_derived_from(EdoalGraph),
+			     request(Request)]).
 
 assert_as_single_triple(C1-C2-MatchOptions, Options, TargetGraph) :-
 	rdf_equal(skos:closeMatch, DefaultRelation),
@@ -179,7 +175,6 @@ edoal_select(Request, EdoalGraph, TargetGraph, Options) :-
 	option(max(Max), Options, 1.0),
 	rdf_transaction(
 			forall(has_map([C1, C2], edoal, MatchOptions, EdoalGraph),
-			       (   	option(measure(Measure), MatchOptions, 1.0),
 					(   (Measure < Min ; Measure > Max)
 					->  true
 					;   append(Options, MatchOptions, NewOptions),
@@ -187,31 +182,17 @@ edoal_select(Request, EdoalGraph, TargetGraph, Options) :-
 								 alignment(TargetGraph)
 								|NewOptions])
 					)
-			       )
 			      )
 		       ),
-	provenance_stamp(Request, EdoalGraph, TargetGraph, Provenance),
-	rdf_assert(Provenance, dcterms:title, literal('Provenance: about this selected alignment'), TargetGraph),
-	rdf_assert(Provenance, amalgame:minimalConfidence, literal(type(xsd:float, Min)), TargetGraph),
-	rdf_assert(Provenance, amalgame:maximalConfidence, literal(type(xsd:float, Max)), TargetGraph),
-	rdf_assert(TargetGraph, rdf:type, amalgame:'SelectionAlignment', TargetGraph).
+	rdf_assert(TargetGraph, rdf:type, amalgame:'SelectionAlignment', TargetGraph),
+	rdf_bnode(Process),
+	rdf_assert(Process, amalgame:minimalConfidence, literal(type(xsd:float, Min)), TargetGraph),
+	rdf_assert(Process, amalgame:maximalConfidence, literal(type(xsd:float, Max)), TargetGraph),
+	opm_was_generated_by(Process, TargetGraph, TargetGraph,
+			     [was_derived_from(EdoalGraph),
+			      request(Request)
+			     ]).
 
-provenance_stamp(Request, EdoalGraph, TargetGraph, Provenance) :-
-	get_time(T), format_time(atom(Time), '%a, %d %b %Y %H:%M:%S %z', T),
-	logged_on(User, 'anonymous'),
-	git_module_property('ClioPatria', version(CP_version)),
-	git_module_property('amalgame',   version(AG_version)),
-	format(atom(Version), 'Made using Amalgame ~w/Cliopatria ~w', [AG_version, CP_version]),
-	http_current_host(Request, Hostname, Port, [global(true)]),
-	memberchk(request_uri(ReqURI), Request),
-	memberchk(protocol(Protocol), Request),
-	format(atom(ReqUsed), '~w://~w:~w~w', [Protocol,Hostname,Port,ReqURI]),
-	rdf_bnode(Provenance),
-	rdf_assert(Provenance, rdf:type, amalgame:'Provenance', TargetGraph),
-	rdf_assert(Provenance, dcterms:date, literal(Time), TargetGraph),
-	rdf_assert(Provenance, dcterms:creator, literal(User), TargetGraph),
-	rdf_assert(Provenance, dcterms:source, EdoalGraph, TargetGraph),
-	rdf_assert(Provenance, owl:versionInfo, literal(Version), TargetGraph),
-	rdf_assert(Provenance, amalgame:request, literal(ReqUsed), TargetGraph),
-	rdf_assert(TargetGraph, amalgame:provenance, Provenance, TargetGraph).
+
+
 

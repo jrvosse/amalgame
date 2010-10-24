@@ -10,7 +10,6 @@
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(version)).
 
-
 :- use_module(user(user_db)).
 :- use_module(components(label)).
 :- use_module(components(messages)).
@@ -20,7 +19,7 @@
 :- use_module(amalgame(mappings/alignment)).
 :- use_module(amalgame(mappings/edoal)).
 :- use_module(amalgame(mappings/map)).
-
+:- use_module(amalgame(mappings/opm)).
 
 :- http_handler(amalgame(clear_alignments),   http_delete_alignment_graphs, []).
 :- http_handler(amalgame(clear_alignstats),   http_clear_alignstats,    []).
@@ -245,27 +244,17 @@ sample(Request, Method, Graph, Name, Size) :-
 	    rdf_retractall(Name,_,_,amalgame)
 	;   true
 	),
-	get_time(T), format_time(atom(Time), '%a, %d %b %Y %H:%M:%S %z', T),
-	logged_on(User, 'anonymous'),
-	git_module_property('ClioPatria', version(CP_version)),
-	git_module_property('amalgame',   version(AG_version)),
-	format(atom(Version), 'Made using Amalgame ~w/Cliopatria ~w', [AG_version, CP_version]),
+	rdf_assert(Name, rdf:type, amalgame:'SampleAlignment', Name),
+
 	http_current_host(Request, Hostname, Port, [global(true)]),
 	memberchk(request_uri(ReqURI), Request),
 	memberchk(protocol(Protocol), Request),
 	format(atom(ReqUsed), '~w://~w:~w~w', [Protocol,Hostname,Port,ReqURI]),
-	rdf_bnode(Provenance),
-	rdf_assert(Provenance, rdf:type, amalgame:'Provenance', Name),
-	rdf_assert(Provenance, dcterms:title, literal('Provenance: about this sample'), Name),
-	rdf_assert(Provenance, dcterms:source, Graph, Name),
-	rdf_assert(Provenance, dcterms:date, literal(Time), Name),
-	rdf_assert(Provenance, dcterms:creator, literal(User), Name),
-	rdf_assert(Provenance, owl:versionInfo, literal(Version), Name),
-	rdf_assert(Provenance, amalgame:request, literal(ReqUsed), Name),
-	rdf_assert(Provenance, amalgame:sampleSize, literal(type(xsd:int, Size)), Name),
-	rdf_assert(Provenance, amalgame:sampleMethod, literal(Method), Name),
-	rdf_assert(Name, amalgame:provenance, Provenance, Name),
-	rdf_assert(Name, rdf:type, amalgame:'SampleAlignment', Name),
+	rdf_bnode(Process),
+	rdf_assert(Process, amalgame:request, literal(ReqUsed), Name),
+	rdf_assert(Process, amalgame:sampleSize, literal(type(xsd:int, Size)), Name),
+	rdf_assert(Process, amalgame:sampleMethod, literal(Method), Name),
+	opm_was_generated_by(Process, Name, Name, [was_derived_from(Graph)]),
 
 	align_get_computed_props(Graph, SourceProps),
 	findall(member(M),
@@ -576,6 +565,10 @@ show_overlap -->
 	     ]).
 
 
+li_export_graph(Graph) -->
+	{
+	 \+ is_alignment_graph(Graph, edoal)
+	},!.
 li_export_graph(Graph) -->
 	{
 	 http_link_to_id(http_skos_export, [], ExportLink),
