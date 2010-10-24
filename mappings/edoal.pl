@@ -153,7 +153,7 @@ edoal_to_triples(Request, EdoalGraph, TargetGraph, Options) :-
 		       ),
 	rdf_bnode(Process),
 	opm_was_generated_by(Process, TargetGraph, TargetGraph,
-			     [was_derived_from(EdoalGraph),
+			     [was_derived_from([EdoalGraph]),
 			     request(Request)]).
 
 assert_as_single_triple(C1-C2-MatchOptions, Options, TargetGraph) :-
@@ -174,14 +174,16 @@ edoal_select(Request, EdoalGraph, TargetGraph, Options) :-
 	option(min(Min), Options, 0.0),
 	option(max(Max), Options, 1.0),
 	rdf_transaction(
-			forall(has_map([C1, C2], edoal, MatchOptions, EdoalGraph),
-					(   (Measure < Min ; Measure > Max)
-					->  true
-					;   append(Options, MatchOptions, NewOptions),
-					    assert_cell(C1, C2, [graph(TargetGraph),
-								 alignment(TargetGraph)
-								|NewOptions])
-					)
+			forall((has_map([C1, C2], edoal, MatchOptions, EdoalGraph),
+				memberchk(measure(Measure), MatchOptions)
+			       ),
+			       (   (Measure < Min ; Measure > Max)
+			       ->  true
+			       ;   append(Options, MatchOptions, NewOptions),
+				   assert_cell(C1, C2, [graph(TargetGraph),
+							alignment(TargetGraph)
+						       |NewOptions])
+			       )
 			      )
 		       ),
 	rdf_assert(TargetGraph, rdf:type, amalgame:'SelectionAlignment', TargetGraph),
@@ -189,7 +191,7 @@ edoal_select(Request, EdoalGraph, TargetGraph, Options) :-
 	rdf_assert(Process, amalgame:minimalConfidence, literal(type(xsd:float, Min)), TargetGraph),
 	rdf_assert(Process, amalgame:maximalConfidence, literal(type(xsd:float, Max)), TargetGraph),
 	opm_was_generated_by(Process, TargetGraph, TargetGraph,
-			     [was_derived_from(EdoalGraph),
+			     [was_derived_from([EdoalGraph]),
 			      request(Request)
 			     ]).
 

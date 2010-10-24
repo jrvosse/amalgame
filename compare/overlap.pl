@@ -24,6 +24,7 @@ matchers. It assumes matchers assert mappings in different name graphs.
 :- use_module(amalgame(mappings/map)).
 :- use_module(amalgame(mappings/alignment)).
 :- use_module(amalgame(mappings/edoal)).
+:- use_module(amalgame(mappings/opm)).
 :- use_module(amalgame(namespaces)).
 
 :- setting(overlaps_persistent, boolean, false, 'Set to true if you want overlaps to survive server restarts').
@@ -108,7 +109,10 @@ count_overlaps([Graphs:Map|Tail], Accum, Results) :-
 	;   Count = 0, NewAccum = Accum,
 	    print_message(informational, map(created, 'overlap graph', Overlap, 1)),
 	    setting(overlaps_persistent, Persistency),
-	    rdf_persistency(Overlap, Persistency)
+	    rdf_persistency(Overlap, Persistency),
+	    rdf_bnode(Process),
+	    opm_was_generated_by(Process, Overlap, Overlap,
+				 [was_derived_from(Graphs)])
 	),
 	Map = [E1, E2],
 	(   Graphs=[G], has_map([E1, E2], edoal, Options, G)

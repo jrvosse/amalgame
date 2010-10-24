@@ -269,7 +269,7 @@ reassert([Map:Options|Tail], OldGraph, Condition, Accum, Results) :-
 	    rdf_assert(NewGraph, rdf:type, amalgame:'PartitionedAlignment', NewGraph),
 	    rdf_bnode(Process),
 	    rdf_assert(Process, amalgame:condition, literal(Condition), NewGraph),
-	    opm_was_generated_by(Process, NewGraph, NewGraph, [was_derived_from(OldGraph)])
+	    opm_was_generated_by(Process, NewGraph, NewGraph, [was_derived_from([OldGraph])])
 	),
 	Map = [E1,E2],
 	assert_cell(E1, E2, [graph(NewGraph), Options]),

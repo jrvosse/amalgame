@@ -34,8 +34,9 @@ opm_was_generated_by(Process, Artifact, Graph, Options) :-
 	rdf_assert(Process, opmv:wasPerformedBy, Agent, Graph),
 	rdf_assert(Process, opmv:wasStartedAt,  BN_TimeStamp , Graph),
 
-	(   memberchk(was_derived_from(Source), Options)
-	->  rdf_assert(Artifact, opmv:wasDerivedFrom,  Source,  Graph)
+	(   memberchk(was_derived_from(Sources), Options)
+	->  forall(member(Source, Sources),
+		   rdf_assert(Artifact, opmv:wasDerivedFrom,  Source,  Graph))
 	;   true
 	),
 	(   memberchk(request(Request), Options)

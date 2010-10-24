@@ -84,6 +84,7 @@ http_split_alignment(Request) :-
 				])
 			]).
 http_compute_overlaps(_Request) :-
+	authorized(write(repository, clear)),
 	http_link_to_id(http_list_overlap, [], Link),
 	Title = 'Amalgame: computing overlap statistics',
 	call_showing_messages(compute_overlaps,
@@ -254,7 +255,7 @@ sample(Request, Method, Graph, Name, Size) :-
 	rdf_assert(Process, amalgame:request, literal(ReqUsed), Name),
 	rdf_assert(Process, amalgame:sampleSize, literal(type(xsd:int, Size)), Name),
 	rdf_assert(Process, amalgame:sampleMethod, literal(Method), Name),
-	opm_was_generated_by(Process, Name, Name, [was_derived_from(Graph)]),
+	opm_was_generated_by(Process, Name, Name, [was_derived_from([Graph])]),
 
 	align_get_computed_props(Graph, SourceProps),
 	findall(member(M),
