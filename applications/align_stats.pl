@@ -342,7 +342,7 @@ show_alignment_overview(Graph) -->
 	 rdf_display_label(Graph, GraphLabel)
 	},
 	html([
-	      h3([class(align_overview_header)], ['Alignment actions & details: ', GraphLabel]),
+	      h1([class(align_overview_header)], ['Alignment actions & details: ', GraphLabel]),
 	      div([id(ag_graph_info)], \graph_info(Graph)),
 	      div([id(ag_graph_basic_actions)],
 		   [

@@ -273,7 +273,7 @@ show_scheme(Voc) -->
 	},
 	(   { Graphs = [Graph] }
 	->  html([
-	      h3([class(align_overview_header)],
+	      h1([class(align_overview_header)],
 		 ['Vocabulary actions & details: ', VocLabel]),
 		  % div([id(ag_graph_info)], \graph_info(Graph)),
 		  div([id(ag_graph_as_resource), style('float: right')],
@@ -290,7 +290,7 @@ show_scheme(Voc) -->
 		     ])
 	     ])
 	;   html([
-		  h3([class(align_overview_header)], ['Warning: multiple graphs problem']),
+		  h1([class(align_overview_header)], ['Warning: multiple graphs problem']),
 		  p([], ['Thesaurus has skos:inScheme triples in multiple files. ',
 			 'Please merge into one to access graph-based actions.'])
 		 ])
