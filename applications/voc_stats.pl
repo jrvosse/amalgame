@@ -276,18 +276,13 @@ show_scheme(Voc) -->
 	      h1([class(align_overview_header)],
 		 ['Vocabulary actions & details: ', VocLabel]),
 		  % div([id(ag_graph_info)], \graph_info(Graph)),
-		  div([id(ag_graph_as_resource), style('float: right')],
+		  div([id(ag_graph_as_resource), class(component)],
 		      \graph_as_resource(Graph, [])),
-		  div([id(ag_graph_basic_actions)],
+		  div([id(ag_graph_basic_actions), class(component)],
 		   [
 		    'Basic actions on (skos:inScheme) graph: ', Graph,
 		    \graph_actions(Graph)
-		   ]),
-		  %p('Create a new graph from this one: '),
-		  p('Create multiple new graphs from this one: '),
-		  ul([
-		      \li_partition(Voc)
-		     ])
+		   ])
 	     ])
 	;   html([
 		  h1([class(align_overview_header)], ['Warning: multiple graphs problem']),
@@ -295,11 +290,17 @@ show_scheme(Voc) -->
 			 'Please merge into one to access graph-based actions.'])
 		 ])
 	),
-	html(div([id(ag_voc_as_resource)],
-		      [
-		       \list_resource(Voc, [])
-		      ])
-	    ).
+	html([
+	      %p('Create a new graph from this one: '),
+	      p('Other action: '),
+	      ul([
+		  \li_partition(Voc)
+		 ]),
+	      div([id(ag_voc_as_resource), class(component)],
+		  [
+		   \list_resource(Voc, [])
+		  ])
+	     ]).
 
 
 li_partition(Voc) -->

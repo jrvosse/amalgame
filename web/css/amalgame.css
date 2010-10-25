@@ -8,6 +8,12 @@ body {
 #search_form { position: fixed; right: 0.5em; }
 #content h1, #content h4 { background-color: white } /* Override blue background of ClioPatria ... */
 
+#content div.component h1 { font-size: 1.1em }
+#ag_graph_as_resource.component {
+	float: right;
+	font-size: smaller;
+}
+
 div.ag_search {
 	background-repeat: no-repeat;
 	background-position: left top;
