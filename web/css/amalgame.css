@@ -9,7 +9,6 @@ body {
 #content h1, #content h4 { background-color: white } /* Override blue background of ClioPatria ... */
 
 div.ag_search {
-	background-image: url(/icons/econnect-logo-big.jpg);
 	background-repeat: no-repeat;
 	background-position: left top;
 	margin: 5% 0% 0% 5%;
