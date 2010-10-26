@@ -267,6 +267,8 @@ reassert(Request, [Map:Options|Tail], OldGraph, Condition, Accum, Results) :-
 	    (	rdf_graph(NewGraph) -> rdf_unload(NewGraph); true),
 
 	    rdf_assert(NewGraph, rdf:type, amalgame:'PartitionedAlignment', NewGraph),
+	    rdf_assert(OldGraph, void:subset, NewGraph, NewGraph),
+
 	    rdf_bnode(Process),
 	    rdf_assert(Process, rdfs:label, literal('Amalgame split operation'), NewGraph),
 	    rdf_assert(Process, amalgame:condition, literal(Condition), NewGraph),
