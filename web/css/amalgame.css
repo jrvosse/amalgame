@@ -45,6 +45,7 @@ div.ag_search {
 .ag_search table .pmapped { display: none }
 .ag_search table .nr { display: none }
 .ag_search table .DerivedConceptScheme { display: none }
+.ag_search table .subscheme { display: none }
 
 .ag_search .backoffice { 
 	font-size: smaller;
@@ -106,7 +107,7 @@ th, table.rdf_browse th {
 	 */
 }
 
-.DerivedConceptScheme {
+.DerivedConceptScheme, .DerivedAlignment, .subscheme {
 	font-style: italic;
 	font-size: smaller;
 }

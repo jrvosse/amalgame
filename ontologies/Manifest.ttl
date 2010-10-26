@@ -28,8 +28,15 @@
 	a lib:Ontology ;
 	a lib:Virtual ;
 	dcterms:title "Schema for the open provenance model vocabulary "@en ;
-	lib:source <http://open-biomed.sourceforge.net/opmv/opmv-20101006.owl> ;
-	owl:imports <opmv.rdf> .
+	lib:source <http://open-biomed.sourceforge.net/opmv/opmv.owl> ;
+	owl:imports <opmv.ttl> .
+
+<opmvc>
+	a lib:Ontology ;
+	a lib:Virtual ;
+	dcterms:title "Schema for the common extensions to the open provenance model vocabulary "@en ;
+	lib:source <http://opmv.googlecode.com/svn/trunk/schema/types/common.rdf> ;
+	owl:imports <opmv>, <opmvc.rdf> .
 
 <Amalgame>
 	a lib:Ontology ;
@@ -38,7 +45,7 @@
 	lib:source amalgame: ;
 	owl:imports
 		clbase:skos ,
-		<opmv> ,
+		<opmvc> ,
 		<alignmentschema> ,
 		<amalgame.ttl> .
 

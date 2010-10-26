@@ -61,7 +61,7 @@ http_split_alignment(Request) :-
 			[graph(Graph, []),
 			 condition(Condition, [])
 			]),
-	split_alignment(Graph, Condition, OutGraphs),
+	split_alignment(Request, Graph, Condition, OutGraphs),
 	forall(member(Out, OutGraphs),
 	       align_ensure_stats(all(Out))),
 	reply_html_page(cliopatria(default),
@@ -490,6 +490,13 @@ show_alignments([],Total) -->
 
 show_alignments([Graph|Tail], Number) -->
 	{
+	 findall(Label,
+		 (   rdfs_individual_of(Graph, Class),
+		     rdf_global_id(_NS:Label, Class)
+		 ),
+		 AlignmentTypes),
+	 sort(AlignmentTypes, VocTypesUnique),
+	 atomic_list_concat(VocTypesUnique, ' ', AlignmentTypesAtom),
 	 http_link_to_id(http_compute_stats, [graph(Graph), stat(all)], MissingLink),
 	 MissingValue = a([href(MissingLink)],'?'),
 	 (   is_alignment_graph(Graph, Format) -> true; Format=empty),
@@ -520,7 +527,8 @@ show_alignments([Graph|Tail], Number) -->
 	 ;   TargetsMapped = MissingValue
 	 )
 	},
-	html(tr([
+	html(tr([class(AlignmentTypesAtom)],
+		[
 		 td([class(nick)],\show_alignment(Graph)),
 		 td([class(src)],Source),
 		 td([class(src_mapped),style('text-align: right')],SourcesMapped),

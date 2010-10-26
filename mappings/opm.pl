@@ -28,7 +28,6 @@ opm_was_generated_by(Process, Artifact, Graph, Options) :-
 	rdf_assert(BN_TimeStamp, rdf:type, time:'Instant',  Graph),
 	rdf_assert(BN_TimeStamp, time:inXSDDateTime, literal(type(xsd:dateTime, TimeStamp)), Graph),
 
-	% rdf_assert(Artifact, opmv:wasGeneratedAt, BN_TimeStamp,	  Graph),
 	rdf_assert(Artifact, opmv:wasGeneratedBy, Process,	  Graph),
 
 	rdf_assert(Process, opmv:wasPerformedBy, Agent, Graph),
@@ -36,7 +35,10 @@ opm_was_generated_by(Process, Artifact, Graph, Options) :-
 
 	(   memberchk(was_derived_from(Sources), Options)
 	->  forall(member(Source, Sources),
-		   rdf_assert(Artifact, opmv:wasDerivedFrom,  Source,  Graph))
+		   (   rdf_assert(Artifact, opmv:wasDerivedFrom,  Source,  Graph),
+		       rdf_assert(Process, opmv:used, Source, Graph)
+		   )
+		  )
 	;   true
 	),
 	(   memberchk(request(Request), Options)
@@ -44,7 +46,7 @@ opm_was_generated_by(Process, Artifact, Graph, Options) :-
 	    memberchk(request_uri(ReqURI), Request),
 	    memberchk(protocol(Protocol), Request),
 	    format(atom(ReqUsed), '~w://~w:~w~w', [Protocol,Hostname,Port,ReqURI]),
-	    rdf_assert(Process, amalgame:request, literal(ReqUsed), Graph)
+	    rdf_assert(Process, amalgame:request, ReqUsed, Graph)
 	;   true
 	),
 
