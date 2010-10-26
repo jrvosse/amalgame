@@ -253,12 +253,16 @@ li_align(Voc) -->
 	 findall(V, rdfs_individual_of(V, skos:'ConceptScheme'), SchemesDoubles),
 	 sort(SchemesDoubles, Schemes),
 	 select(Voc, Schemes, OtherSchemes),
-	 maplist(make_option_element, OtherSchemes, Options)
+	 maplist(make_option_element, OtherSchemes, Options),
+	 http_link_to_id(http_align_form, [], AlignLink)
 	},
 	html(li([],
-		['Align with',
-		 select(Options)
-		])).
+		form([action(AlignLink)],
+		[input([type(submit), value(align), class(submit)],[]),
+		 'with',
+		 select([name(target)],Options),
+		 input([type(hidden), name(source), value(Voc)],[])
+		]))).
 
 
 make_option_element(Voc, Options) :-
