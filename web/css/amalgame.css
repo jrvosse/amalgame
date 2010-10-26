@@ -106,7 +106,7 @@ th, table.rdf_browse th {
 	 */
 }
 
-.DerivedConceptScheme {
+.DerivedConceptScheme, .DerivedAlignment {
 	font-style: italic;
 	font-size: smaller;
 }
