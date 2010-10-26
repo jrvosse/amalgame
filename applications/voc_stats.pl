@@ -294,7 +294,8 @@ show_scheme(Voc) -->
 	      %p('Create a new graph from this one: '),
 	      p('Other action: '),
 	      ul([
-		  \li_partition(Voc)
+		  \li_partition(Voc),
+		  \li_align(Voc)
 		 ]),
 	      div([id(ag_voc_as_resource), class(component)],
 		  [
@@ -316,3 +317,19 @@ li_partition(Voc) -->
 	;   html(li(Partition))
 	).
 
+li_align(Voc) -->
+	{
+	 findall(V, rdfs_individual_of(V, skos:'ConceptScheme'), SchemesDoubles),
+	 sort(SchemesDoubles, Schemes),
+	 select(Voc, Schemes, OtherSchemes),
+	 maplist(make_option_element, OtherSchemes, Options)
+	},
+	html(li([],
+		['Align with',
+		 select(Options)
+		])).
+
+
+make_option_element(Voc, Options) :-
+	rdf_display_label(Voc, Label),
+	Options = option([value(Voc)],[Label]).
