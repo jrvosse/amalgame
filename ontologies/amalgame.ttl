@@ -11,13 +11,18 @@ amalgame:NoAlignmentGraph a rdfs:Class ;
 	rdfs:comment "The class of all Named Graphs in the repository containing no mappings and/or alignments."@en.
 
 amalgame:Alignment a rdfs:Class ;
-	rdfs:label "Amalgame Alignment Graph"@en ;
+	rdfs:label "Alignment Graph"@en ;
 	rdfs:comment "The class of all Named Graphs in the repository containing mappings and/or alignments."@en.
 
 amalgame:LoadedAlignment a rdfs:Class ;
 	rdfs:subClassOf amalgame:Alignment ;
 	rdfs:label "Loaded Alignment Graph"@en ;
 	rdfs:comment "An alignment loaded from file, e.g. not derived from another alignment"@en.
+
+amalgame:AmalgameAlignment a rdfs:Class ;
+	rdfs:subClassOf amalgame:Alignment ;
+	rdfs:label "Amalgame Alignment Graph"@en ;
+	rdfs:comment "An alignment created by Amalgame's matchers, e.g. not derived from another alignment"@en.
 
 amalgame:DerivedAlignment a rdfs:Class ;
 	rdfs:subClassOf amalgame:Alignment ;
