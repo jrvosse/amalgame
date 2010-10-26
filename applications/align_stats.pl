@@ -61,7 +61,7 @@ http_split_alignment(Request) :-
 			[graph(Graph, []),
 			 condition(Condition, [])
 			]),
-	split_alignment(Graph, Condition, OutGraphs),
+	split_alignment(Request, Graph, Condition, OutGraphs),
 	forall(member(Out, OutGraphs),
 	       align_ensure_stats(all(Out))),
 	reply_html_page(cliopatria(default),

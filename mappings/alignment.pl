@@ -3,7 +3,7 @@
 	  is_alignment_graph/2,
 	  find_graphs/2,
 	  nickname/2,
-	  split_alignment/3,
+	  split_alignment/4,
 
 	  align_get_computed_props/2,
 	  align_ensure_stats/1,
@@ -253,13 +253,13 @@ coin_nickname(_Graph, Nick) :-
 	char_type(Nick, alpha),
 	\+ has_nickname(_, Nick),!.
 
-split_alignment(SourceGraph, Condition, SplittedGraphs) :-
+split_alignment(Request, SourceGraph, Condition, SplittedGraphs) :-
 	has_map(_,Format,SourceGraph),!,
 	findall(Map:Options, has_map(Map, Format, Options, SourceGraph), Maps),
-	reassert(Maps, SourceGraph, Condition, [], SplittedGraphs).
+	reassert(Request, Maps, SourceGraph, Condition, [], SplittedGraphs).
 
-reassert([], _ , _, Graphs, Graphs).
-reassert([Map:Options|Tail], OldGraph, Condition, Accum, Results) :-
+reassert(_, [], _ , _, Graphs, Graphs).
+reassert(Request, [Map:Options|Tail], OldGraph, Condition, Accum, Results) :-
 	target_graph(Map, OldGraph, Condition, NewGraph),
 	(   memberchk(NewGraph, Accum)
 	->  NewAccum = Accum
@@ -268,12 +268,16 @@ reassert([Map:Options|Tail], OldGraph, Condition, Accum, Results) :-
 
 	    rdf_assert(NewGraph, rdf:type, amalgame:'PartitionedAlignment', NewGraph),
 	    rdf_bnode(Process),
+	    rdf_assert(Process, rdfs:label, literal('Amalgame split operation'), NewGraph),
 	    rdf_assert(Process, amalgame:condition, literal(Condition), NewGraph),
-	    opm_was_generated_by(Process, NewGraph, NewGraph, [was_derived_from([OldGraph])])
+	    opm_was_generated_by(Process, NewGraph, NewGraph,
+				 [was_derived_from([OldGraph]),
+				  request(Request)
+				 ])
 	),
 	Map = [E1,E2],
 	assert_cell(E1, E2, [graph(NewGraph), Options]),
-	reassert(Tail, OldGraph, Condition, NewAccum, Results).
+	reassert(Request, Tail, OldGraph, Condition, NewAccum, Results).
 
 target_graph([E1, E2], OldGraph, Condition, Graph) :-
 	(   Condition = sourceType
