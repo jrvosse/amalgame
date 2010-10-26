@@ -45,7 +45,7 @@ ag_load_schemas :-
 
 :- use_module([ amalgame(namespaces),
 		amalgame_apps(align_stats),
-		amalgame_apps(voc_stats),
+		amalgame_apps(vocabularies/vocabularies),
 		amalgame_apps(concept_finder/concept_finder),
 		amalgame_apps(equalizer/equalizer),
 		amalgame_apps(evaluator/evaluator)
