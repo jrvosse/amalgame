@@ -4,6 +4,7 @@
 :- use_module(library(http/html_write)).
 
 :- use_module(amalgame_apps(vocabularies/vocabularies)).
+:- use_module(amalgame_apps(vocabularies/components)).
 
 /** <module> Configure Amalgame Home Page
 
