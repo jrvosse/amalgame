@@ -178,8 +178,8 @@ voc_partition(Voc, [Mapped, Unmapped]) :-
 	(   rdf_graph(Mapped) -> rdf_unload(Mapped); true),
 	(   rdf_graph(Unmapped) -> rdf_unload(Unmapped); true),
 
-	rdf_assert(Mapped, rdfs:label, literal(MappedL)),
-	rdf_assert(Unmapped, rdfs:label, literal(UnmappedL)),
+	rdf_assert(Mapped, rdfs:label, literal(MappedL), Mapped),
+	rdf_assert(Unmapped, rdfs:label, literal(UnmappedL), Unmapped),
 
 	rdf_assert(Mapped,   rdf:type, amalgame:'FullyMappedConceptScheme', Mapped),
 	rdf_assert(Mapped,   rdf:type, amalgame:'DerivedConceptScheme', Mapped),
