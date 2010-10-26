@@ -219,25 +219,37 @@ show_schemes([Voc|Tail], Nr, [C,P,A,M,U]) -->
 	 NewNr is Nr + 1,
 	 voc_get_computed_props(Voc, Props),
 	 (   memberchk(numberOfConcepts(literal(type(_,  CCount))), Props)
-	 ->  NewC is C + CCount
+	 ->  (SubSuper = superscheme
+	     ->  NewC is C + CCount
+	     ;	 NewC is C
+	     )
 	 ;   NewC = C, CCount = MissingValue
 	 ),
 	 (   memberchk(numberOfPrefLabels(literal(type(_,PCount))), Props)
-	 ->  NewP is P + PCount
+	 ->  (SubSuper = superscheme
+	     ->  NewP is P + PCount
+	     ;	 NewP = P
+	     )
 	 ;   NewP = P, PCount = MissingValue
 	 ),
 	 (   memberchk(numberOfAltLabels(literal(type(_, ACount))), Props)
-	 ->  NewA is A + ACount
+	 ->  (SubSuper = superscheme
+	     ->  NewA is A + ACount
+	     ;	 NewA is A
+	     )
 	 ;   NewA = A, ACount = MissingValue
 	 ),
 	 (   memberchk(numberOfMappedConcepts(literal(type(_, MCount))), Props)
-	 ->  NewM is M + MCount,
+	 ->  UCount is CCount - MCount,
+	     (SubSuper = superscheme
+	     ->	 NewU is U + UCount, NewM is M + MCount
+	     ;	 NewU is U, NewM is M
+	     ),
 	     (	 CCount = 0
 	     ->	 MPercent = '-'
 	     ;	 Perc is 100*(MCount/CCount),
 		 format(atom(MPercent), '(~2f%)', [Perc])
-	     ),
-	     UCount is CCount - MCount, NewU is U + UCount
+	     )
 	 ;   NewM = M, NewU = U, MCount = MissingValue, UCount = MissingValue
 	 ),
 	 (rdf_has(Example, skos:inScheme, Voc)
