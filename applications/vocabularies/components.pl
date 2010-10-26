@@ -17,6 +17,11 @@
 
 :- use_module(amalgame(skos/vocabularies)).
 
+%%	show_schemes// is det.
+%
+%	Generates an HTML table with an overview of all SKOS Concept
+%	Schemes loaded in the repository, or a warning if none have been
+%	loaded.
 
 show_schemes -->
 	{
@@ -52,17 +57,11 @@ show_schemes -->
 		 ])
 	     ]).
 
-li_del_derived -->
-	{
-	 \+ rdfs_individual_of(_, amalgame:'DerivedConceptScheme')
-	},!.
 
-li_del_derived -->
-	{
-	 rdfs_individual_of(_, amalgame:'DerivedConceptScheme'),
-	 http_link_to_id(http_delpart_voc, [], DelPartLink)
-	},
-	html(li(a([href(DelPartLink)], 'delete derived concept schemes'))).
+%%	voctable_header// is det.
+%
+%	Generates the head of the vocabulary table so it can be easily
+%	reused to generate sub tables.
 
 voctable_header -->
 	html([tr([th([class(nr)],        'Nr'),
@@ -77,6 +76,17 @@ voctable_header -->
 		  th([class(license)],	'License')
 		 ])
 	     ]).
+
+%%	show_schemes(+SchemeList, +Nr, +Countlist)// is det.
+%
+%	Generate the scheme table with total counts.
+%	Countlist is currently a list with the counts for the total
+%	number of:
+%       * Concepts
+%       * Preferred labels
+%       * Alternative labels
+%       * Concepts mapped
+%       * Concepts not mapped
 
 show_schemes([], _, [C, P, A, M , U]) -->
 	html(tr([class(finalrow)],
@@ -181,6 +191,10 @@ show_schemes([Voc|Tail], Nr, [C,P,A,M,U]) -->
 		])),
 	show_schemes(Tail, NewNr, [NewC, NewP, NewA, NewM, NewU]).
 
+%%	show_scheme(+Voc)// is det.
+%
+%	Generate HTML with detailed info about and actions on given Voc.
+
 show_scheme(Voc) -->
 	{
 	 voc_ensure_stats(all(Voc)),
@@ -233,3 +247,14 @@ li_partition(Voc) -->
 	;   html(li(Partition))
 	).
 
+li_del_derived -->
+	{
+	 \+ rdfs_individual_of(_, amalgame:'DerivedConceptScheme')
+	},!.
+
+li_del_derived -->
+	{
+	 rdfs_individual_of(_, amalgame:'DerivedConceptScheme'),
+	 http_link_to_id(http_delpart_voc, [], DelPartLink)
+	},
+	html(li(a([href(DelPartLink)], 'delete derived concept schemes'))).

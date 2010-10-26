@@ -1,7 +1,13 @@
 :- module(voc_stats,
 	  [
-	   show_schemes//0
 	  ]).
+
+/** <module> Amalgame vocabulary services
+
+This module provides (all private) HTTP handlers for vocabulary-centric
+pages and services.
+
+*/
 
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/html_write)).
