@@ -13,6 +13,7 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_label)).
 
 :- use_module(amalgame(mappings/map)).
 
@@ -168,11 +169,17 @@ count_mapped_concepts(Voc, Count) :-
 	print_message(informational, map(found, 'SKOS mapped concepts', Voc, Count)).
 
 voc_partition(Voc, [Mapped, Unmapped]) :-
-	format(atom(Mapped), '~w/mapped', [Voc]),
-	format(atom(Unmapped), '~w/unmapped', [Voc]),
+	rdf_display_label(Voc, VocL),
+	format(atom(Mapped),    '~w_mapped', [Voc]),
+	format(atom(Unmapped),  '~w_unmapped', [Voc]),
+	format(atom(MappedL),   '~w (mapped)', [VocL]),
+	format(atom(UnmappedL), '~w (unmapped)', [VocL]),
 
 	(   rdf_graph(Mapped) -> rdf_unload(Mapped); true),
 	(   rdf_graph(Unmapped) -> rdf_unload(Unmapped); true),
+
+	rdf_assert(Mapped, rdfs:label, literal(MappedL)),
+	rdf_assert(Unmapped, rdfs:label, literal(UnmappedL)),
 
 	rdf_assert(Mapped,   rdf:type, amalgame:'FullyMappedConceptScheme', Mapped),
 	rdf_assert(Mapped,   rdf:type, amalgame:'DerivedConceptScheme', Mapped),
