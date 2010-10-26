@@ -13,8 +13,10 @@
 %	from SKOS scheme S. Result is an RDF graph in (extended) EDOAL format
 %
 %	Options include:
-%	- labels_must_match(true):
-%           Find candidates with match labels (cheap)
+%	* labels_must_match(true): Find candidates with match labels
+%	(cheap)
+%	* lang(Lang): only match labels with given language tag
+%
 
 skos_find_candidates(SourceConcept, TargetConceptScheme, Options):-
 	forall(candidate(SourceConcept, TargetConceptScheme, Options),
@@ -41,33 +43,15 @@ candidate(SourceConcept, TargetConceptScheme, Options) :-
 	ground(TargetConceptScheme),
 	ground(Options),
 	option(candidate_matchers(Matchers), Options, []),
+	(   option(language(Lan),Options),
+	    LanLabel = Lan
+	;   LanLabel = all
+	),
 	memberchk(labelmatch, Matchers),
-	rdf_has(SourceConcept, rdfs:label, literal(lang(_, Label)), RealLabel1Predicate),
-	rdf_has(TargetConcept, rdfs:label, literal(lang(_, Label)), RealLabel2Predicate),
-	rdf_has(TargetConcept, skos:inScheme, TargetConceptScheme),
-	format(atom(Method), 'exact match: ~p-~p', [RealLabel1Predicate, RealLabel2Predicate]),
-	CellOptions = [measure(0.001), % Only label match, this is just a candidate
-		       method(Method)
-		       |Options
-		      ],
-	assert_cell(SourceConcept, TargetConcept, CellOptions).
-
-
-
-%	This versions matches only the language specific labels (passed
-%	through option language(Lan). It is not case sensitive
-
-candidate(SourceConcept, TargetConceptScheme, Options) :-
-	ground(SourceConcept),
-	ground(TargetConceptScheme),
-	ground(Options),
-	option(candidate_matchers(Matchers), Options, []),
-	option(language(Lan),Options,[]),
-	memberchk(labelmatchLang, Matchers),
 	rdf_has(SourceConcept, rdfs:label, literal(lang(Lan, Label)), RealLabel1Predicate),
 	rdf_has(TargetConcept, rdfs:label, literal(exact(Label),lang(_, _RealLabel)), RealLabel2Predicate),
 	rdf_has(TargetConcept, skos:inScheme, TargetConceptScheme),
-	format(atom(Method), 'exact EN match: ~p-~p', [RealLabel1Predicate, RealLabel2Predicate]),
+	format(atom(Method), 'exact match@~p: ~p-~p', [LanLabel, RealLabel1Predicate, RealLabel2Predicate]),
 	CellOptions = [measure(0.001), % Only label match, this is just a candidate
 		       method(Method)
 		       |Options
