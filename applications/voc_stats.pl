@@ -199,7 +199,11 @@ show_schemes([Voc|Tail], Nr, [C,P,A,M,U]) -->
 		 ),
 		 VocTypes),
 	 sort(VocTypes, VocTypesUnique),
-	 atomic_list_concat(VocTypesUnique, ' ', VocTypesAtom),
+	 (   rdf(Voc, amalgame:subSchemeOf, _SuperScheme)
+	 ->  SubSuper = subscheme
+	 ;   SubSuper = superscheme
+	 ),
+	 atomic_list_concat([SubSuper|VocTypesUnique], ' ', VocTypesAtom),
 	 http_link_to_id(http_compute_voc_stats,
 			 [voc(Voc),
 			  stat(numberOfConcepts),
