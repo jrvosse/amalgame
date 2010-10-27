@@ -43,14 +43,15 @@ candidate(SourceConcept, TargetConceptScheme, Options) :-
 	ground(TargetConceptScheme),
 	ground(Options),
 	option(candidate_matchers(Matchers), Options, []),
+	memberchk(labelmatch, Matchers),
 	(   option(language(Lan),Options),
 	    LanLabel = Lan
 	;   LanLabel = all
 	),
-	memberchk(labelmatch, Matchers),
 	rdf_has(SourceConcept, rdfs:label, literal(lang(Lan, Label)), RealLabel1Predicate),
 	rdf_has(TargetConcept, rdfs:label, literal(exact(Label),lang(_, _RealLabel)), RealLabel2Predicate),
 	rdf_has(TargetConcept, skos:inScheme, TargetConceptScheme),
+
 	format(atom(Method), 'exact match@~p: ~p-~p', [LanLabel, RealLabel1Predicate, RealLabel2Predicate]),
 	CellOptions = [measure(0.001), % Only label match, this is just a candidate
 		       method(Method)
