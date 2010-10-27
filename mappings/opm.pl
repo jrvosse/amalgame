@@ -18,11 +18,14 @@ opm_was_generated_by(Process, Artifact, Graph, Options) :-
 	ensure_logged_on(User),
         user_property(User, url(Agent)),
 	user_property(User, realname(UserName)),
+	rdf_assert(Agent,    rdfs:label, literal(UserName),     Graph),
 
+	rdf_bnode(Program),
+
+	rdf_assert(Agent,    rdf:type,   opmv:'Agent',          Graph),
 	rdf_assert(Artifact, rdf:type,   opmv:'Artifact',       Graph),
 	rdf_assert(Process,  rdf:type,   opmv:'Process',        Graph),
-	rdf_assert(Agent,    rdf:type,   opmv:'Agent',          Graph),
-	rdf_assert(Agent,    rdfs:label, literal(UserName),     Graph),
+	rdf_assert(Program,  rdf:type,   opmvc:'Program',       Graph),
 
 	rdf_bnode(BN_TimeStamp),
 	rdf_assert(BN_TimeStamp, rdf:type, time:'Instant',  Graph),
@@ -30,7 +33,9 @@ opm_was_generated_by(Process, Artifact, Graph, Options) :-
 
 	rdf_assert(Artifact, opmv:wasGeneratedBy, Process,	  Graph),
 
+	rdf_assert(Process, opmv:wasPerformedBy, Program, Graph),
 	rdf_assert(Process, opmv:wasPerformedBy, Agent, Graph),
+
 	rdf_assert(Process, opmv:wasStartedAt,  BN_TimeStamp , Graph),
 
 	(   memberchk(was_derived_from(Sources), Options)
@@ -50,10 +55,16 @@ opm_was_generated_by(Process, Artifact, Graph, Options) :-
 	;   true
 	),
 
-	git_module_property('ClioPatria', version(CP_version)),
 	git_module_property('amalgame',   version(AG_version)),
-	format(atom(Version), 'Made using Amalgame ~w/Cliopatria ~w', [AG_version, CP_version]),
-	rdf_assert(Process, opmvc:software, literal(Version), Graph),
+	git_module_property('ClioPatria', version(CP_version)),
+	current_prolog_flag(version_git, PL_version),
+	format(atom(AG), 'Amalgame: ~w', [AG_version]),
+	format(atom(CP), 'ClioPatria: ~w', [CP_version]),
+	format(atom(PL), 'SWI-Prolog: ~w', [PL_version]),
+	rdf_assert(Program, rdfs:label, literal('Amalgame'), Graph),
+	rdf_assert(Program, opmvc:software, literal(AG), Graph),
+	rdf_assert(Program, opmvc:software, literal(CP), Graph),
+	rdf_assert(Program, opmvc:software, literal(PL), Graph),
 	true.
 
 
