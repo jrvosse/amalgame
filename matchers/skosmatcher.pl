@@ -23,7 +23,7 @@ skos_find_candidates(SourceConcept, TargetConceptScheme, Options):-
 	       true
 	      ).
 
-%%	candidate(+C, +S, +Options) is semidet.
+%%	candidate(+C, +S, +Options) is det.
 %
 %	Asserts a correspondence as an EDOAL cell
 %	describing a match from C to a target concept from
@@ -51,7 +51,6 @@ candidate(SourceConcept, TargetConceptScheme, Options) :-
 	rdf_has(SourceConcept, rdfs:label, literal(lang(Lan, Label)), RealLabel1Predicate),
 	rdf_has(TargetConcept, rdfs:label, literal(exact(Label),lang(_, _RealLabel)), RealLabel2Predicate),
 	rdf_has(TargetConcept, skos:inScheme, TargetConceptScheme),
-	!, % Dubious cut ...
 	format(atom(Method), 'exact match@~p: ~p-~p', [LanLabel, RealLabel1Predicate, RealLabel2Predicate]),
 	CellOptions = [measure(0.001), % Only label match, this is just a candidate
 		       method(Method)
