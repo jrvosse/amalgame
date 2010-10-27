@@ -7,7 +7,7 @@
 :- use_module(amalgame(mappings/edoal)).
 :- use_module(levenshtein).
 
-%%	skos_find_candidates(+C, +S, +Options, -Result) is det.
+%%	skos_find_candidates(+C, +S, +Options, -Result) is semidet.
 %
 %	Return all correspondences candidates for for SKOS concept C
 %	from SKOS scheme S. Result is an RDF graph in (extended) EDOAL format
