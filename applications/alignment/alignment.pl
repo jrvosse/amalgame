@@ -19,6 +19,7 @@ pages and services.
 
 :- use_module(amalgame_apps(vocabularies/components)).
 :- use_module(amalgame(matchers/skosmatcher)).
+:- use_module(amalgame(mappings/alignment)).
 :- use_module(amalgame(mappings/opm)).
 
 
@@ -59,7 +60,9 @@ http_align_vocs(Request) :-
 	->  rdf_unload(Graph)
 	;   true
 	),
+	rdf_retractall(Graph,_,_,amalgame),
 	align(Source, Target, [graph(Graph)]),
+	align_ensure_stats(all(Graph)),
 	http_redirect(moved, location_by_id(http_list_alignments), Request).
 
 li_align(Source, Target) -->
