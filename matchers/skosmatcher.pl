@@ -10,7 +10,7 @@
 
 %%	skos_find_candidates(+C, +S, +Options, -Result) is semidet.
 %
-%	Return all correspondences candidates for for SKOS concept C
+%	Find all correspondences candidates for for SKOS concept C
 %	from SKOS scheme S. Result is an RDF graph in (extended) EDOAL format
 %
 %	Options include:
@@ -24,7 +24,23 @@ skos_find_candidates(SourceConcept, TargetConceptScheme, Options):-
 	       true
 	      ).
 
-%%	candidate(+C, +S, +Options) is det.
+/* work in progress */
+
+find_single_label_match(Label, Lang, TargetScheme, TargetConcept, Method) :-
+	rdf_has(TargetConcept, rdfs:label, literal(exact(Label),lang(Lang, RealLabel)), RealLabel2Predicate),
+	rdf_has(TargetConcept, skos:inScheme, TargetScheme),
+	format(atom(Method), '~p:~p', [RealLabel2Predicate, RealLabel]).
+
+find_label_match_method(Source, Target, SourceLang, TargetLang, Method):-
+	rdf_has(Source, rdfs:label, literal(lang(SourceLang, Label1)), RealLabel1Predicate),
+	rdf_has(Target, rdfs:label, literal(exact(Label1),lang(TargetLang, Label2)), RealLabel2Predicate),
+	format(atom(Method), '~p:~w@~w,~p:~w@~w', [RealLabel1Predicate, Label1, SourceLang,RealLabel2Predicate, Label2, TargetLang]).
+
+
+
+%%	candidate(+C, +S, +Options) is nondet.
+%
+%	(code assumes this to be semidet ...)
 %
 %	Asserts a correspondence as an EDOAL cell
 %	describing a match from C to a target concept from
