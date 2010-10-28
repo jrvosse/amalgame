@@ -15,7 +15,9 @@
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
+:- use_module(library(semweb/rdf_portray)).
 :- use_module(library(version)).
+
 :- use_module(edoal).
 :- use_module(map).
 :- use_module(opm).
