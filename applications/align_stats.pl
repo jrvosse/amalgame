@@ -32,6 +32,7 @@
 :- http_handler(amalgame(skos_export),        http_skos_export,         []).
 :- http_handler(amalgame(sample_alignment),   http_sample_alignment,	[]).
 :- http_handler(amalgame(select_from_graph),  http_select_from_graph,	[]).
+:- http_handler(amalgame(select_one_to_one),  http_select_11_from_graph, []).
 
 %%	http_list_alignments(+Request) is det.
 %
@@ -149,6 +150,15 @@ http_list_overlap(_Request) :-
 			      \show_overlap
 			     ])
 			]).
+
+http_select_11_from_graph(Request) :-
+	http_parameters(Request, [graph(Graph,   [description('URI of the source graph')]),
+				  target(Target, [description('URI of the target graph')])
+				 ]),
+	select_one_to_one(Request, Graph, Target),
+	reply_html_page(cliopatria(default),
+			title('Amalgame: selecting unique alignments from graph'),
+			[ \show_alignment_overview(Target)]).
 
 %%	http_clear_alignstats(?Request) is det.
 %
@@ -355,6 +365,7 @@ show_alignment_overview(Graph) -->
 		   \li_eval_graph(Graph),
 		   \li_sample_graph(Graph),
 		   \li_select_from_graph(Graph),
+		   \li_one_to_one(Graph),
 		   \li_export_graph(Graph)
 		  ]
 		),
@@ -708,6 +719,25 @@ li_select_from_graph(Graph) -->
 			      value('1.0'),
 			      size(3)
 			     ],[])
+		     ]
+		    )
+	       )
+	    ).
+
+li_one_to_one(Graph) -->
+	{
+	 http_link_to_id(http_select_11_from_graph, [], SelectLink),
+	 atom_concat(Graph,'_1-1-only', Target)
+	},
+
+	html(li(form([action(SelectLink)],
+		     [input([type(hidden), name(graph), value(Graph)],[]),
+		      input([type(submit), class(submit), value('Select')],[]),
+		      	       ' to graph ',
+		       input([type(text), class(target),
+			      name(target), value(Target),
+			      size(10)],[]),
+		      ' only the one-to-one-mappings '
 		     ]
 		    )
 	       )
