@@ -52,7 +52,7 @@ show_schemes -->
 	      ul([class(ag_voc_actions)],
 		 [
 		  li([a([href(ComputeLink)], 'compute'), ' missing statistics.']),
-		  li(a([href(CacheLink)], 'clear overlap statistics cache')),
+		  li(a([href(CacheLink)], 'clear vocabulary statistics cache')),
 		  \li_del_derived
 		 ])
 	     ]).
