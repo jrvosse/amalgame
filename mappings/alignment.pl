@@ -4,6 +4,7 @@
 	  find_graphs/2,
 	  nickname/2,
 	  split_alignment/4,
+	  select_one_to_one/3,
 
 	  align_get_computed_props/2,
 	  align_ensure_stats/1,
@@ -259,6 +260,31 @@ split_alignment(Request, SourceGraph, Condition, SplittedGraphs) :-
 	has_map(_,Format,SourceGraph),!,
 	findall(Map:Options, has_map(Map, Format, Options, SourceGraph), Maps),
 	reassert(Request, Maps, SourceGraph, Condition, [], SplittedGraphs).
+
+
+select_one_to_one(Request, SourceGraph, TargetGraph) :-
+	findall([C1,C2,MapProps], has_map([C1,C2], _, MapProps, SourceGraph), Maps),
+	forall(member([C1,C2,MapProps], Maps),
+	       (   is_unique_mapping(C1,C2, SourceGraph)
+	       ->  assert_cell(C1, C2, [graph(TargetGraph)|MapProps])
+	       ;   true
+	       )
+	      ),
+	(   rdf_graph(TargetGraph)
+	->  rdf_bnode(Process),
+	    rdf_assert(Process, rdfs:label, literal('Amalgame one-to-one mapping filter'), TargetGraph),
+	    opm_was_generated_by(Process, TargetGraph, TargetGraph,
+				 [was_derived_from([SourceGraph]),
+				  request(Request)
+				 ])
+	;   true
+	).
+
+is_unique_mapping(C1,C2, Graph) :-
+	has_map([C1, C2], _, Graph),
+	\+ ((has_map([A1, C2], _, Graph), A1 \= C1);
+	    (has_map([C1, A2], _, Graph), A2 \= C2)
+	   ).
 
 reassert(_, [], _ , _, Graphs, Graphs).
 reassert(Request, [Map:Options|Tail], OldGraph, Condition, Accum, Results) :-
