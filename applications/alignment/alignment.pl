@@ -18,6 +18,8 @@ pages and services.
 :- use_module(components(messages)).
 
 :- use_module(amalgame_apps(vocabularies/components)).
+:- use_module(amalgame_apps(align_stats)).
+
 :- use_module(amalgame(matchers/skosmatcher)).
 :- use_module(amalgame(mappings/alignment)).
 :- use_module(amalgame(mappings/opm)).
@@ -54,16 +56,33 @@ http_align_vocs(Request) :-
 	http_parameters(Request,
 			[source(Source, [description('URI of source ConceptScheme')]),
 			 target(Target,[description('URI of target ConceptScheme')]),
-			 graph(Graph, [description('URI of named graph containing alignment')])
+			 graph(Graph, [description('URI of named graph containing alignment')]),
+			 case_sensitive(CaseSensitive, [boolean, description('Matching type')]),
+			 sourcelabel(SourceLabel, [oneof([any, pref, alt])]),
+			 targetlabel(TargetLabel, [oneof([any, pref, alt])])
 			]),
 	(   rdf_graph(Graph)
 	->  rdf_unload(Graph)
 	;   true
 	),
 	rdf_retractall(Graph,_,_,amalgame),
-	align(Source, Target, [graph(Graph)]),
+	match_label_prop(SourceLabel, SourceLabelProp),
+	match_label_prop(TargetLabel, TargetLabelProp),
+	align(Source, Target,
+	      [graph(Graph),
+	       case_sensitive(CaseSensitive),
+	       sourcelabel(SourceLabelProp),
+	       targetlabel(TargetLabelProp)
+	      ]),
 	align_ensure_stats(all(Graph)),
-	http_redirect(moved, location_by_id(http_list_alignments), Request).
+
+	reply_html_page(cliopatria(default),
+			title('Amalgame: selecting unique alignments from graph'),
+			[ \show_alignment_overview(Graph)]).
+
+match_label_prop(any,  P) :- rdf_equal(rdfs:label, P).
+match_label_prop(pref, P) :- rdf_equal(skos:prefLabel, P).
+match_label_prop(alt,  P) :- rdf_equal(skos:alyLabel, P).
 
 li_align(Source, Target) -->
 	{
@@ -79,10 +98,36 @@ li_align(Source, Target) -->
 		      [input([type(hidden),name(source),  value(Source)],[]),
 		       input([type(hidden),name(target), value(Target)],[]),
 		       input([type(submit), class(submit), value('Align')], []),
-		       ' into graph ',
-		       input([type(text), class(aligngraph),
-			     name(graph), size(10), value(AlignGraph)],[])
-
+		       ' above vocabularies',
+		       ul([],[
+			      li([], ['into graph ',
+				      input([type(text), class(aligngraph),
+					     name(graph), size(10), value(AlignGraph)],[])
+				     ]),
+			      li([], [
+				      ' matching case senstive: ',
+				      select([name(case_sensitive)],
+					     [option([value(false), selected(selected)],['false']),
+					      option([value(true)],['true'])
+					     ])
+				     ]),
+			      li([],[ ' matching source label type: ',
+				      select([name(sourcelabel)],
+					     [
+					      option([value(any), selected(selected)], 'all labels'),
+					      option([value(pref)], 'Preferred labels only'),
+					      option([value(alt)], 'Alternative labels only')
+					     ])
+				    ]),
+			      li([],[ ' matching target label type: ',
+				      select([name(targetlabel)],
+					     [
+					      option([value(any), selected(selected)], 'all labels'),
+					      option([value(pref)], 'Preferred labels only'),
+					      option([value(alt)], 'Alternative labels only')
+					     ])
+				    ])
+			     ])
 		      ]
 		     )
 		]
