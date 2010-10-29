@@ -106,9 +106,15 @@ assert_cell(C1, C2, Options) :-
 	    rdf_assert(Cell, amalgame:source, literal(SourceAtom), Graph)
 	;   true
 	),
-	(   option(method(Method), Options)
-	->  term_to_atom(Method, MethodAtom),
-	    rdf_assert(Cell, amalgame:method, literal(MethodAtom), Graph)
+	(   option(method(Methods), Options)
+	->  (   is_list(Methods)
+	    ->	forall(member(Method, Methods),
+		       (   term_to_atom(Method, MethodAtom),
+			   rdf_assert(Cell, amalgame:method, literal(MethodAtom), Graph)
+		       ))
+	    ;	term_to_atom(Methods, MethodAtom),
+		rdf_assert(Cell, amalgame:method, literal(MethodAtom), Graph)
+	    )
 	;   true
 	),
 	(   option(prov(Prov), Options)
