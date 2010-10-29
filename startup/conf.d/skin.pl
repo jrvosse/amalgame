@@ -18,7 +18,6 @@ user:file_search_path(css,   amalgame('web/css')).
 
 :- html_resource(css('amalgame.css'),
 		 [requires([
-			    css('rdf_browse.css')
 			   ])
 		 ]).
 
