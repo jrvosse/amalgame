@@ -20,16 +20,23 @@
 %
 
 skos_find_candidates(SourceConcept, TargetConceptScheme, Options):-
-	forall(candidate(SourceConcept, TargetConceptScheme, Options),
-	       true
+	% forall(candidate(SourceConcept, TargetConceptScheme, Options),true).
+	findall(TargetConcept,
+		find_candidate(SourceConcept, TargetConceptScheme, TargetConcept, Options),
+		Targets),
+	sort(Targets, TargetsUnique),
+	gtrace,
+	forall(member(TargetConcept, TargetsUnique),
+	       (   find_label_match_methods(SourceConcept, TargetConcept, Methods, Options),
+		   assert_cell(SourceConcept, TargetConcept, [Methods|Options])
+	       )
 	      ).
 
-/* work in progress */
-
-find_single_label_match(Label, Lang, TargetScheme, TargetConcept, Method) :-
-	rdf_has(TargetConcept, rdfs:label, literal(exact(Label),lang(Lang, RealLabel)), RealLabel2Predicate),
-	rdf_has(TargetConcept, skos:inScheme, TargetScheme),
-	format(atom(Method), '~p:~p', [RealLabel2Predicate, RealLabel]).
+find_candidate(Source, TargetScheme, Target, Options) :-
+	option(language(Lang1),Options, _),
+	rdf_has(Source, rdfs:label, literal(lang(Lang1, Label1))),
+	rdf_has(Target, rdfs:label, literal(exact(Label1),lang(_TargetLang, _Label2))),
+	rdf_has(Target, skos:inScheme, TargetScheme).
 
 find_label_match_method(Source, Target, SourceLang, TargetLang, Method):-
 	rdf_has(Source, rdfs:label, literal(lang(SourceLang, Label1)), RealLabel1Predicate),
@@ -55,7 +62,46 @@ find_label_match_method(Source, Target, SourceLang, TargetLang, Method):-
 %
 %       For descriptions of possible Options, see above.
 
-candidate(SourceConcept, TargetConceptScheme, Options) :-
+candidate(Source, TargetScheme, Options) :-
+	ground(Source),
+	ground(TargetScheme),
+	ground(Options),
+	option(candidate_matchers(Matchers), Options, []),
+	memberchk(labelmatch, Matchers),
+	(   option(language(Lang1),Options),
+	    LangLabel = Lang1
+	;   LangLabel = all
+	),
+	findall(Label-Lang1,
+		rdf_has(Source, rdfs:label, literal(lang(Lang1, Label))),
+		Labels),
+	forall(member(Label-Lang1, Labels),
+	       (   findall(Target,
+			   (   rdf_has(Target, rdfs:label, literal(exact(Label),lang(_,_))),
+			       rdf_has(Target, skos:inScheme, TargetScheme)
+			   ),
+			   TargetConcepts),
+		   sort(TargetConcepts, TargetConceptsUnique),
+		   forall(member(Target, TargetConceptsUnique),
+			  (   findall(Method,
+				      find_label_match_method(Source, Target, Lang1, _, Method),
+				      Methods
+				     ),
+			      CellOptions = [measure(0.001), % Only label match, this is just a candidate
+					     method([labelmatch|Methods])
+					    |Options
+					    ],
+			      assert_cell(Source, Target, CellOptions)
+			  )
+			 )
+	       )
+	      ),
+	!.
+
+
+
+
+xcandidate(SourceConcept, TargetConceptScheme, Options) :-
 	ground(SourceConcept),
 	ground(TargetConceptScheme),
 	ground(Options),
@@ -86,7 +132,7 @@ candidate(SourceConcept, TargetConceptScheme, Options) :-
 % retrieved from stringdist_setting/2) are considered.
 % Here, a confidence of 0.0005 is used.
 
-candidate(SourceConcept, TargetConceptScheme, Options) :-
+xcandidate(SourceConcept, TargetConceptScheme, Options) :-
 	ground(SourceConcept),
 	ground(TargetConceptScheme),
 	ground(Options),
