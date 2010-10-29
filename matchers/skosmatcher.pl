@@ -44,8 +44,15 @@ find_candidate(Source, TargetScheme, Target, Options) :-
 	option(candidate_matchers(Matchers), Options, []),
 	memberchk(labelmatch, Matchers),
 	option(language(Lang1),Options, _),
-	rdf_has(Source, rdfs:label, literal(lang(Lang1, Label1))),
-	rdf_has(Target, rdfs:label, literal(exact(Label1),lang(_TargetLang, _Label2))),
+	option(case_sensitive(CaseSensitive), Options, false),
+	option(sourcelabel(MatchProp1), Options, any),
+	option(targetlabel(MatchProp2), Options, any),
+
+	rdf_has(Source, MatchProp1, literal(lang(Lang1, Label1))),
+	(   CaseSensitive == true
+	->  rdf_has(Target, MatchProp2, literal(Label1))
+	;   rdf_has(Target, MatchProp2, literal(exact(Label1),lang(_TargetLang, _Label2)))
+	),
 	rdf_has(Target, skos:inScheme, TargetScheme).
 
 find_label_match_method(Source, Target, Method):-
