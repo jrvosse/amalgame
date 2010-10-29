@@ -19,85 +19,39 @@
 %	* lang(Lang): only match labels with given language tag
 %
 
-skos_find_candidates(SourceConcept, TargetConceptScheme, Options):-
-	% forall(candidate(SourceConcept, TargetConceptScheme, Options),true).
-	findall(TargetConcept,
-		find_candidate(SourceConcept, TargetConceptScheme, TargetConcept, Options),
+skos_find_candidates(Source, TargetScheme, Options):-
+	ground(Source),
+	ground(TargetScheme),
+	ground(Options),
+
+	findall(Target,
+		find_candidate(Source, TargetScheme, Target, Options),
 		Targets),
 	sort(Targets, TargetsUnique),
-	gtrace,
-	forall(member(TargetConcept, TargetsUnique),
-	       (   find_label_match_methods(SourceConcept, TargetConcept, Methods, Options),
-		   assert_cell(SourceConcept, TargetConcept, [Methods|Options])
+	forall(member(Target, TargetsUnique),
+	       (   find_label_match_methods(Source, Target, Methods),
+		   assert_cell(Source, Target, [method(Methods)|Options])
 	       )
 	      ).
 
+find_label_match_methods(Source, Target, Methods) :-
+	findall(Method,
+		find_label_match_method(Source, Target, Method),
+		Methods
+	       ).
+
 find_candidate(Source, TargetScheme, Target, Options) :-
+	option(candidate_matchers(Matchers), Options, []),
+	memberchk(labelmatch, Matchers),
 	option(language(Lang1),Options, _),
 	rdf_has(Source, rdfs:label, literal(lang(Lang1, Label1))),
 	rdf_has(Target, rdfs:label, literal(exact(Label1),lang(_TargetLang, _Label2))),
 	rdf_has(Target, skos:inScheme, TargetScheme).
 
-find_label_match_method(Source, Target, SourceLang, TargetLang, Method):-
+find_label_match_method(Source, Target, Method):-
 	rdf_has(Source, rdfs:label, literal(lang(SourceLang, Label1)), RealLabel1Predicate),
 	rdf_has(Target, rdfs:label, literal(exact(Label1),lang(TargetLang, Label2)), RealLabel2Predicate),
 	format(atom(Method), '~p:~w@~w,~p:~w@~w', [RealLabel1Predicate, Label1, SourceLang,RealLabel2Predicate, Label2, TargetLang]).
-
-
-
-%%	candidate(+C, +S, +Options) is nondet.
-%
-%	(code assumes this to be semidet ...)
-%
-%	Asserts a correspondence as an EDOAL cell
-%	describing a match from C to a target concept from
-%	ConceptScheme S.
-%
-%       Correspondence has a low confidence level,
-%       to indicate that further checking will be needed to
-%       evaluate the quality of this candidate.
-%
-%       The method will list which (pref/alt) labels properties
-%       where used for the match.
-%
-%       For descriptions of possible Options, see above.
-
-candidate(Source, TargetScheme, Options) :-
-	ground(Source),
-	ground(TargetScheme),
-	ground(Options),
-	option(candidate_matchers(Matchers), Options, []),
-	memberchk(labelmatch, Matchers),
-	(   option(language(Lang1),Options),
-	    LangLabel = Lang1
-	;   LangLabel = all
-	),
-	findall(Label-Lang1,
-		rdf_has(Source, rdfs:label, literal(lang(Lang1, Label))),
-		Labels),
-	forall(member(Label-Lang1, Labels),
-	       (   findall(Target,
-			   (   rdf_has(Target, rdfs:label, literal(exact(Label),lang(_,_))),
-			       rdf_has(Target, skos:inScheme, TargetScheme)
-			   ),
-			   TargetConcepts),
-		   sort(TargetConcepts, TargetConceptsUnique),
-		   forall(member(Target, TargetConceptsUnique),
-			  (   findall(Method,
-				      find_label_match_method(Source, Target, Lang1, _, Method),
-				      Methods
-				     ),
-			      CellOptions = [measure(0.001), % Only label match, this is just a candidate
-					     method([labelmatch|Methods])
-					    |Options
-					    ],
-			      assert_cell(Source, Target, CellOptions)
-			  )
-			 )
-	       )
-	      ),
-	!.
-
 
 
 
