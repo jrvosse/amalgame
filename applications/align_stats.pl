@@ -264,6 +264,7 @@ sample(Request, Method, Graph, Name, Size) :-
 	memberchk(protocol(Protocol), Request),
 	format(atom(ReqUsed), '~w://~w:~w~w', [Protocol,Hostname,Port,ReqURI]),
 	rdf_bnode(Process),
+	rdf_assert(Process, rdfs:label, literal('Amalgame sample process')),
 	rdf_assert(Process, amalgame:request, literal(ReqUsed), Name),
 	rdf_assert(Process, amalgame:sampleSize, literal(type(xsd:int, Size)), Name),
 	rdf_assert(Process, amalgame:sampleMethod, literal(Method), Name),
