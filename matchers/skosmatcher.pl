@@ -14,9 +14,12 @@
 %	from SKOS scheme S. Result is an RDF graph in (extended) EDOAL format
 %
 %	Options include:
-%	* labels_must_match(true): Find candidates with match labels
-%	(cheap)
+%	* candidate_matchers(M): list of matcher to use, defaults to
+%	[labelmatch]
 %	* lang(Lang): only match labels with given language tag
+%	* case_sensitive(boolean): defaults to false
+%	* sourcelabel(URI): defaults to rdfs:label
+%       * targetlabel(URI): defaults to rdfs:label
 %
 
 skos_find_candidates(Source, TargetScheme, Options):-
@@ -29,24 +32,32 @@ skos_find_candidates(Source, TargetScheme, Options):-
 		Targets),
 	sort(Targets, TargetsUnique),
 	forall(member(Target, TargetsUnique),
-	       (   find_label_match_methods(Source, Target, Methods),
-		   assert_cell(Source, Target, [method(Methods)|Options])
+	       (   find_label_match_methods(Source, Target, Methods, Options),
+		   (   Methods \= []
+		   ->  assert_cell(Source, Target, [method(Methods)|Options])
+		   ;   true
+		   )
 	       )
 	      ).
 
-find_label_match_methods(Source, Target, Methods) :-
-	findall(Method,
-		find_label_match_method(Source, Target, Method),
-		Methods
-	       ).
+%%	find_candidate(+Source, +TargetScheme, -Target, +Options) is
+%%	nondet.
+%
+%	Find a candidate mapping Target from TargetScheme for Source
+%	given Options (see skos_find_candidates/3).
+%
+%	Warning: this is very efficient for indexed labelmatches, but
+%	very inefficient for non-indexed methods.
+%
 
 find_candidate(Source, TargetScheme, Target, Options) :-
-	option(candidate_matchers(Matchers), Options, []),
+	option(candidate_matchers(Matchers), Options, [labelmatch]),
 	memberchk(labelmatch, Matchers),
 	option(language(Lang1),Options, _),
 	option(case_sensitive(CaseSensitive), Options, false),
-	option(sourcelabel(MatchProp1), Options, any),
-	option(targetlabel(MatchProp2), Options, any),
+	rdf_equal(rdfs:label, DefaultProp),
+	option(sourcelabel(MatchProp1), Options, DefaultProp),
+	option(targetlabel(MatchProp2), Options, DefaultProp),
 
 	rdf_has(Source, MatchProp1, literal(lang(Lang1, Label1))),
 	(   CaseSensitive == true
@@ -55,35 +66,56 @@ find_candidate(Source, TargetScheme, Target, Options) :-
 	),
 	rdf_has(Target, skos:inScheme, TargetScheme).
 
-find_label_match_method(Source, Target, Method):-
-	rdf_has(Source, rdfs:label, literal(lang(SourceLang, Label1)), RealLabel1Predicate),
-	rdf_has(Target, rdfs:label, literal(exact(Label1),lang(TargetLang, Label2)), RealLabel2Predicate),
-	format(atom(Method), '~p:~w@~w,~p:~w@~w', [RealLabel1Predicate, Label1, SourceLang,RealLabel2Predicate, Label2, TargetLang]).
+find_candidate(Source, TargetScheme, Target, Options) :-
+	option(candidate_matchers(Matchers), Options),
+	memberchk(stringdist, Matchers),
+	option(language(Lang1),Options, _),
+	rdf_equal(rdfs:label, DefaultProp),
+	option(sourcelabel(MatchProp1), Options, DefaultProp),
+	option(targetlabel(MatchProp2), Options, DefaultProp),
+	option(prefixdepth(PrefLen), Options, 2),
 
+	rdf_has(Source, MatchProp1, literal(lang(Lang1, Label1))),
+	sub_atom(Label1,0,PrefLen,_,Prefix),
+	rdf_has(Target, MatchProp2, literal(prefix(Prefix), lang(_TargetLang,_Label2))),
+	rdf_has(Target, skos:inScheme, TargetScheme).
 
+%%	find_label_match_methods(+Source, +Target, -Methods, +Options)
+%%	is det.
+%
+%	True if Methods is the list of all label match methods to match
+%	Source and Target.
 
-xcandidate(SourceConcept, TargetConceptScheme, Options) :-
-	ground(SourceConcept),
-	ground(TargetConceptScheme),
-	ground(Options),
-	option(candidate_matchers(Matchers), Options, []),
-	memberchk(labelmatch, Matchers),
-	(   option(language(Lan),Options),
-	    LanLabel = Lan
-	;   LanLabel = all
-	),
-	rdf_has(SourceConcept, rdfs:label, literal(lang(Lan, Label)), RealLabel1Predicate),
-	rdf_has(TargetConcept, rdfs:label, literal(exact(Label),lang(_, _RealLabel)), RealLabel2Predicate),
-	rdf_has(TargetConcept, skos:inScheme, TargetConceptScheme),
+find_label_match_methods(Source, Target, Methods, Options) :-
+	findall(Method,
+		find_label_match_method(Source, Target, Method, Options),
+		Methods
+	       ).
 
-	format(atom(Method), 'exact match@~p: ~p-~p', [LanLabel, RealLabel1Predicate, RealLabel2Predicate]),
-	CellOptions = [measure(0.001), % Only label match, this is just a candidate
-		       method(Method)
-		       |Options
-		      ],
-	assert_cell(SourceConcept, TargetConcept, CellOptions).
+%%	find_label_match_method(?Source, ?Target, Method:atom) is
+%%	nondet.
+%
+%	True if Source and Target share at least one pair that matches.
+%	Details about this match are encoded in Method
 
+find_label_match_method(Source, Target, Method, _Options):-
+	rdf_equal(rdfs:label, DefaultProp),
+	option(sourcelabel(MatchProp1), Options, DefaultProp),
+	option(targetlabel(MatchProp2), Options, DefaultProp),
+	rdf_has(Source, MatchProp1, literal(lang(SourceLang, Label1)), RealLabel1Predicate),
+	rdf_has(Target, MatchProp2, literal(exact(Label1),lang(TargetLang, Label2)), RealLabel2Predicate),
+	format(atom(Method), 'exact (~p:~w@~w,~p:~w@~w)', [RealLabel1Predicate, Label1, SourceLang,RealLabel2Predicate, Label2, TargetLang]).
 
+find_label_match_method(Source, Target, Method, Options):-
+	option(candidate_matchers(Matchers), Options),
+	memberchk(stringdist, Matchers),
+	rdf_equal(rdfs:label, DefaultProp),
+	option(sourcelabel(MatchProp1), Options, DefaultProp),
+	option(targetlabel(MatchProp2), Options, DefaultProp),
+	rdf_has(Source, MatchProp1, literal(lang(SourceLang, Label1)), RealLabel1Predicate),
+	rdf_has(Target, MatchProp2, literal(lang(TargetLang, Label2)), RealLabel2Predicate),
+	max_stringdist(Label1, Label2, 1),
+	format(atom(Method), 'dist<2 (~p:~w@~w,~p:~w@~w)', [RealLabel1Predicate, Label1, SourceLang,RealLabel2Predicate, Label2, TargetLang]).
 
 
 % This version of candidate/3 asserts a match when the
@@ -128,8 +160,10 @@ max_stringdist(Label1, Label2, MaxDist):-
 	levenshtein(L1N,L2N,Dist),!,
 	Dist =< MaxDist,!.
 
-max_stringdist(Label1, Label2, _MaxDist):-
-	Label1 = Label2.
+% Label1=Label2 case is already taken care of by running exact match
+% always before the levenshtein distance ...
+% max_stringdist(Label1, Label2, _MaxDist):-
+% Label1 = Label2.
 
 labnorm(L,LN):-
 	downcase_atom(L, LD),
