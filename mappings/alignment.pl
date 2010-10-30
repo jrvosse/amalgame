@@ -271,7 +271,8 @@ select_one_to_one(Request, SourceGraph, TargetGraph) :-
 	       )
 	      ),
 	(   rdf_graph(TargetGraph)
-	->  rdf_bnode(Process),
+	->  rdf_assert(TargetGraph, rdf:type, amalgame:'SelectionAlignment', TargetGraph),
+	    rdf_bnode(Process),
 	    rdf_assert(Process, rdfs:label, literal('Amalgame one-to-one mapping filter'), TargetGraph),
 	    opm_was_generated_by(Process, TargetGraph, TargetGraph,
 				 [was_derived_from([SourceGraph]),
