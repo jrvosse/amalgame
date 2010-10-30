@@ -18,6 +18,7 @@
 
 
 :- use_module(amalgame(mappings/map)).
+:- use_module(amalgame(mappings/opm)).
 
 /** <module> Compute and store vocabulary-oriented statistics as RDF.
 
@@ -183,10 +184,18 @@ voc_partition(Voc, [Mapped, Unmapped]) :-
 	rdf_assert(Mapped, rdfs:label, literal(MappedL), Mapped),
 	rdf_assert(Unmapped, rdfs:label, literal(UnmappedL), Unmapped),
 
+	rdf_bnode(Process),
+	rdf_assert(Process, rdfs:label, literal('Amalgame vocabulary partitioning process'), Mapped),
+	rdf_assert(Process, rdfs:label, literal('Amalgame vocabulary partitioning process'), Unmapped),
+	opm_was_generated_by(Process, Mapped,   Mapped,   [was_derived_from([Voc])]),
+	opm_was_generated_by(Process, Unmapped, Unmapped, [was_derived_from([Voc])]),
+
 	rdf_assert(Mapped,   rdf:type, amalgame:'FullyMappedConceptScheme', Mapped),
+	rdf_assert(Unmapped, rdf:type, amalgame:'UnmappedConceptScheme',  Unmapped),
+
 	rdf_assert(Mapped,   rdf:type, amalgame:'DerivedConceptScheme', Mapped),
-	rdf_assert(Unmapped, rdf:type, amalgame:'UnmappedConceptScheme', Unmapped),
-	rdf_assert(Unmapped,   rdf:type, amalgame:'DerivedConceptScheme', Unmapped),
+	rdf_assert(Unmapped, rdf:type, amalgame:'DerivedConceptScheme', Unmapped),
+
 	rdf_transaction(forall(rdf(C, skos:inScheme, Voc),
 			      classify_concept(C, Mapped, Unmapped)
 			     )),
