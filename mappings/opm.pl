@@ -17,7 +17,12 @@ opm_was_generated_by(Process, Artifact, Graph, Options) :-
 	get_xml_dateTime(TimeStamp),
 	ensure_logged_on(User),
         user_property(User, url(Agent)),
-	user_property(User, realname(UserName)),
+	(   user_property(User, realname(UserName))
+	->  true
+	;   user_property(User, openid(UserName))
+	->  true
+	;   UserName = Agent
+	),
 	rdf_assert(Agent,    rdfs:label, literal(UserName),     Graph),
 
 	rdf_bnode(Program),
