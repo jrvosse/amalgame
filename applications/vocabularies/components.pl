@@ -250,10 +250,15 @@ li_partition(Voc) -->
 
 li_align(Voc) -->
 	{
-	 findall(V, rdfs_individual_of(V, skos:'ConceptScheme'), SchemesDoubles),
+	 findall(V,
+		 (   rdfs_individual_of(V, skos:'ConceptScheme'),
+		     \+ rdf_has(V, opmv:wasDerivedFrom, Voc),
+		     \+ rdf_has(Voc, opmv:wasDerivedFrom, V),
+		     \+ V=Voc
+		 ),
+		 SchemesDoubles),
 	 sort(SchemesDoubles, Schemes),
-	 select(Voc, Schemes, OtherSchemes),
-	 maplist(make_option_element, OtherSchemes, Options),
+	 maplist(make_option_element, Schemes, Options),
 	 http_link_to_id(http_align_form, [], AlignLink)
 	},
 	html(li([],
