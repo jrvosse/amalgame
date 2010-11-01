@@ -70,6 +70,7 @@ http_align_vocs(Request) :-
 	match_label_prop(TargetLabel, TargetLabelProp),
 	align(Source, Target,
 	      [graph(Graph),
+	       request(Request),
 	       case_sensitive(CaseSensitive),
 	       sourcelabel(SourceLabelProp),
 	       targetlabel(TargetLabelProp)
@@ -145,7 +146,7 @@ align(Source, Target, Options) :-
 	rdf_bnode(Process),
 	rdf_assert(Graph, rdf:type, amalgame:'AmalgameAlignment', Graph),
 	rdf_assert(Process, rdfs:label, literal('amalgame skos:matcher:skos_find_candidates/3'), Graph),
-	opm_was_generated_by(Process, Graph, Graph, [was_derived_from([Source, Target])]).
+	opm_was_generated_by(Process, Graph, Graph, [was_derived_from([Source, Target])|Options]).
 
 
 
