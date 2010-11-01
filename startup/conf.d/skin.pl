@@ -8,6 +8,7 @@
 
 :- use_module(cliopatria(hooks)).
 :- use_module(cliopatria(skin)).
+:- use_module(components(label)).
 :- use_module(components(menu)).
 :- use_module(components(simple_search)).
 
@@ -47,6 +48,11 @@ cliopatria:predicate_order(P, 400) :-
 	rdf_has(P, rdfs:isDefinedBy, 'http://purl.org/net/opmv/ns').
 cliopatria:predicate_order(P, 405) :-
 	rdf_has(P, rdfs:isDefinedBy, 'http://purl.org/vocabularies/amalgame').
+
+cliopatria:bnode_label(TimeInstant) -->
+	{ rdf(TimeInstant, time:inXSDDateTime, Literal)
+	},
+	html(\turtle_label(Literal)).
 
 user:body(amalgame(search), Body) -->
 	{
