@@ -41,10 +41,12 @@ cliopatria:server_address -->
 		\server_address(amalgame)
 	     ]).
 
-:- rdf_meta
-	cliopatria:predicate_order(r,+).
 
-cliopatria:predicate_order(align:map, 0).
+cliopatria:predicate_order(P, "zzz") :- rdf_equal(align:map, P).
+cliopatria:predicate_order(P, 400) :-
+	rdf_has(P, rdfs:isDefinedBy, 'http://purl.org/net/opmv/ns').
+cliopatria:predicate_order(P, 405) :-
+	rdf_has(P, rdfs:isDefinedBy, 'http://purl.org/vocabularies/amalgame').
 
 user:body(amalgame(search), Body) -->
 	{
