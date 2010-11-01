@@ -17,6 +17,7 @@
 :- use_module(components(messages)).
 :- use_module(applications(browse)).
 
+:- use_module(amalgame_apps(vocabularies/vocabularies)).
 :- use_module(amalgame(compare/overlap)).
 :- use_module(amalgame(mappings/alignment)).
 :- use_module(amalgame(mappings/edoal)).
@@ -408,6 +409,12 @@ show_graph(Graph) -->
 	},
 	html(a([href(VLink)],\turtle_label(Graph))).
 
+show_voc(Graph) -->
+	{
+	 http_link_to_id(http_list_skos_voc, [voc(Graph)], VLink)
+	},
+	html(a([href(VLink)],\turtle_label(Graph))).
+
 show_countlist([], Total) -->
 	html(tr([class(finalrow)],
 		[td(''),
@@ -525,11 +532,11 @@ show_alignments([Graph|Tail], Number) -->
 	 ;   FormatLink = Format
 	 ),
 	 (   memberchk(source(SourceGraph), Props)
-	 ->  Source = \rdf_link(SourceGraph, [resource_format(nslabel)])
+	 ->  Source = \show_voc(SourceGraph)
 	 ;   Source = MissingValue
 	 ),
 	 (   memberchk(target(TargetGraph), Props)
-	 ->  Target = \rdf_link(TargetGraph, [resource_format(nslabel)])
+	 ->  Target = \show_voc(TargetGraph)
 	 ;   Target = MissingValue
 	 ),
 	 (   memberchk(mappedSourceConcepts(MSC), Props)
@@ -544,9 +551,9 @@ show_alignments([Graph|Tail], Number) -->
 	html(tr([class(AlignmentTypesAtom)],
 		[
 		 td([class(nick)],\show_alignment(Graph)),
-		 td([class(src)],Source),
+		 td([class(src)], Source),
 		 td([class(src_mapped),style('text-align: right')],SourcesMapped),
-		 td([class(target)],Target),
+		 td([class(target)], Target),
 		 td([class(target_mapped), style('text-align: right')],TargetsMapped),
 		 td([class(format)],FormatLink),
 		 td([class(count),style('text-align: right')],Count),
