@@ -17,7 +17,7 @@ user:file_search_path(css,   amalgame('web/css')).
 :- set_setting_default(graphviz:format, svg).
 
 :- html_resource(css('amalgame.css'),
-		 [requires([
+		 [requires([ css('cliopatria.css')
 			   ])
 		 ]).
 
