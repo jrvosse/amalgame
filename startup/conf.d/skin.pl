@@ -41,6 +41,11 @@ cliopatria:server_address -->
 		\server_address(amalgame)
 	     ]).
 
+:- rdf_meta
+	cliopatria:predicate_order(r,+).
+
+cliopatria:predicate_order(align:map, 0).
+
 user:body(amalgame(search), Body) -->
 	{
 	 http_link_to_id(http_list_skos_vocs, [], BackOfficeLink)

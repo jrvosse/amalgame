@@ -145,6 +145,9 @@ align(Source, Target, Options) :-
 	option(graph(Graph), Options, align),
 	rdf_bnode(Process),
 	rdf_assert(Graph, rdf:type, amalgame:'AmalgameAlignment', Graph),
+	rdf_assert(Graph, amalgame:source, Source, Graph),
+	rdf_assert(Graph, amalgame:target, Target, Graph),
+
 	rdf_assert(Process, rdfs:label, literal('amalgame skos:matcher:skos_find_candidates/3'), Graph),
 	opm_was_generated_by(Process, Graph, Graph, [was_derived_from([Source, Target])|Options]).
 
