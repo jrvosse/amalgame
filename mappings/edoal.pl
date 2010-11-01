@@ -96,10 +96,9 @@ assert_cell(C1, C2, Options) :-
 	% rdf_assert(Cell, align:relation, literal(R), Graph),
 	rdf_assert(Cell, align:relation, R, Graph),
 
-	% Asserting this triple slows things down dramatically on Prolog < 5.11.6
 	(   option(alignment(A), Options)
 	->  rdf_assert(A, align:map, Cell, Graph)
-	;   debug(edoal, 'Warning: asserting EDOAL cell without parent alignment', [])
+	;   rdf_assert(Graph, align:map, Cell, Graph)
 	),
 	(   option(source(Source), Options)
 	->  term_to_atom(Source, SourceAtom),
