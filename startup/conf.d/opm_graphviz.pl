@@ -22,6 +22,9 @@ context_triple(URI, Triple) :-
 	parents(URI, CP, Triples, [URI], 5),
 	member(Triple, Triples).
 
+context_triple(URI, rdf(URI, RP, Process)) :-
+	rdf_has(URI, opmv:wasGeneratedBy, Process, RP).
+
 parents(URI, Up, [rdf(URIx, P, Parentx)|T], Visited, MaxD) :-
 	succ(MaxD2, MaxD),
 	(   rdf_has(URI, Up, Parent, P), URIx = URI, Parentx = Parent
