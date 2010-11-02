@@ -23,6 +23,12 @@ user:file_search_path(css,   amalgame('web/css')).
 		 [requires([ css('cliopatria.css')
 			   ])
 		 ]).
+:- html_resource(cliopatria,
+		 [ virtual(true),
+		   requires([ css('amalgame.css')
+			    ])
+		 ]).
+
 
 cliopatria:display_link(Alignment, _Options) -->
 	{
@@ -52,7 +58,6 @@ cliopatria:page_body(Body) -->
 			 \(cliopatria:server_address)
 			)
 		  ])).
-
 
 cliopatria:server_address -->
 	html_requires(css('cliopatria.css')),
