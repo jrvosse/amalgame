@@ -7,6 +7,7 @@
 
 :- set_setting_default(graphviz:format, svg).
 :- rdf_meta
+        context_triple(r, t),
         transitive_context(r).
 
 cliopatria:context_graph(URI, RDF) :-
@@ -24,6 +25,9 @@ context_triple(URI, Triple) :-
 
 context_triple(URI, rdf(URI, RP, Process)) :-
 	rdf_has(URI, opmv:wasGeneratedBy, Process, RP).
+context_triple(URI, rdf(URI, rdf:type, Class)) :-
+	rdf(URI, rdf:type, Class),
+	rdf_global_id(Class, amalgame:_).
 
 parents(URI, Up, [rdf(URIx, P, Parentx)|T], Visited, MaxD) :-
 	succ(MaxD2, MaxD),
@@ -35,3 +39,16 @@ parents(URI, Up, [rdf(URIx, P, Parentx)|T], Visited, MaxD) :-
 parents(_, _, [], _, _).
 
 transitive_context(opmv:wasDerivedFrom).
+
+cliopatria:node_shape(URI, Shape, _Options) :-
+	rdf_has(URI, rdf:type, opmv:'Artifact'),
+	Shape = [shape(box3d),style(filled),fillcolor('#FF8888')].
+
+cliopatria:node_shape(URI, Shape, _Options) :-
+	rdfs_individual_of(URI, opmv:'Process'),
+	Shape = [style(filled),fillcolor('#FF8888')].
+
+
+cliopatria:node_shape(URI, Shape, _Options) :-
+	rdfs_individual_of(URI, amalgame:'Alignment'),
+	Shape = [shape(box), style(filled),fillcolor('#AAAAAA')].
