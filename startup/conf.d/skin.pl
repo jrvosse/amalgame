@@ -22,8 +22,9 @@ user:file_search_path(css,   amalgame('web/css')).
 			   ])
 		 ]).
 :- html_resource(cliopatria,
-		 [requires([ css('amalgame.css')
-			   ])
+		 [ virtual(true),
+		   requires([ css('amalgame.css')
+			    ])
 		 ]).
 
 
