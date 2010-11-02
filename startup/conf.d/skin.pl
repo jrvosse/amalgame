@@ -21,19 +21,10 @@ user:file_search_path(css,   amalgame('web/css')).
 		 [requires([ css('cliopatria.css')
 			   ])
 		 ]).
-
-cliopatria:page_body(Body) -->
-	html_requires(css('amalgame.css')),
-	html(body(class('yui-skin-sam'),
-		  [ div(id(sidebar), \cp_menu),
-		    \simple_search_form,
-		    br(clear(all)),
-		    div(id(content), Body),
-		    br(clear(all)),
-		    div([id(address)],
-			 \(cliopatria:server_address)
-			)
-		  ])).
+:- html_resource(cliopatria,
+		 [requires([ css('amalgame.css')
+			   ])
+		 ]).
 
 
 cliopatria:server_address -->

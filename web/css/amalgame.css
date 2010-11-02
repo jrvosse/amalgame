@@ -4,11 +4,11 @@ body {
 	font-family: Arial;
 }
 
-#sidebar { position: fixed; }
+div.menu { position: fixed; }
 #search_form { position: fixed; right: 0.5em; }
-#content h1, #content h4 { background-color: white } /* Override blue background of ClioPatria ... */
+.cliopatria h1, .cliopatria h4 { background-color: white } /* Override blue background of ClioPatria ... */
 
-#content div.component h1 { font-size: 1.1em }
+.cliopatria div.component h1 { font-size: 1.1em }
 #ag_graph_as_resource.component {
 	float: right;
 	font-size: smaller;
@@ -47,7 +47,7 @@ div.ag_search {
 .ag_search table .DerivedConceptScheme { display: none }
 .ag_search table .subscheme { display: none }
 
-.ag_search .backoffice { 
+.ag_search .backoffice {
 	font-size: smaller;
 	margin-top: -1em;
 }
