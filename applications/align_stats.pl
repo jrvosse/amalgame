@@ -15,6 +15,7 @@
 :- use_module(user(user_db)).
 :- use_module(components(label)).
 :- use_module(components(messages)).
+:- use_module(components(graphviz)).
 :- use_module(applications(browse)).
 
 :- use_module(amalgame_apps(vocabularies/vocabularies)).
@@ -358,6 +359,15 @@ show_alignment_overview(Graph) -->
 	html([
 	      h1([class(align_overview_header)], ['Alignment actions & details: ', GraphLabel]),
 	      div([id(ag_graph_info)], \graph_info(Graph)),
+	      div([class(graphviz), style('width: 70%')],
+		  [\graphviz_graph(cliopatria:context_graph(Graph),
+			       [ object_attributes([width('100%')]),
+				 wrap_url(cpa_browse:rdf_link),
+				 graph_attributes([ rankdir('RL')
+						  ]),
+				 shape_hook(cpa_browse:shape(Graph))
+			       ])
+		  ]),
 	      div([id(ag_graph_basic_actions)],
 		   [
 		    'Basic actions: ',
