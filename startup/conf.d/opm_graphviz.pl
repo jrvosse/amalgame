@@ -18,7 +18,8 @@ cliopatria:context_graph(URI, RDF) :-
 	sort(RDF0, RDF1),
 	minimise_graph(RDF1, RDF2),		% remove inverse/symmetric/...
 	bagify_graph(RDF2, RDF3, Bags, []), 	% Create bags of similar resources
-	append(RDF3, Bags, RDF).
+	append(RDF3, Bags, RDF),
+	RDF \= [].
 
 context_triple(URI, Triple) :-
 	transitive_context(CP),
