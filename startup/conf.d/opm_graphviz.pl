@@ -11,7 +11,9 @@
         transitive_context(r).
 
 cliopatria:context_graph(URI, RDF) :-
-	rdfs_individual_of(URI, opmv:'Artifact'),
+	(   rdfs_individual_of(URI, opmv:'Artifact')
+	;   rdfs_individual_of(URI, skos:'ConceptScheme')
+	),
 	findall(T, context_triple(URI, T), RDF0),
 	sort(RDF0, RDF1),
 	minimise_graph(RDF1, RDF2),		% remove inverse/symmetric/...
@@ -52,3 +54,6 @@ cliopatria:node_shape(URI, Shape, _Options) :-
 cliopatria:node_shape(URI, Shape, _Options) :-
 	rdfs_individual_of(URI, amalgame:'Alignment'),
 	Shape = [shape(box), style(filled),fillcolor('#AAAAAA')].
+cliopatria:node_shape(URI, Shape, _Options) :-
+	rdfs_individual_of(URI, skos:'ConceptScheme'),
+	Shape = [style(filled),fillcolor('#AAAAAA')].
