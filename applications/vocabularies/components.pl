@@ -200,15 +200,27 @@ show_scheme(Voc) -->
 	 voc_ensure_stats(all(Voc)),
 	 rdf_display_label(Voc, VocLabel),
 	 findall(Graph, rdf(_, skos:inScheme, Voc, Graph:_), GraphsDoubles),
-	 sort(GraphsDoubles, Graphs)
+	 sort(GraphsDoubles, Graphs),
+	 (   Graphs = [Graph], Graph \= Voc
+	 ->  GraphAsResource = div([id(ag_graph_as_resource), class(component)], \graph_as_resource(Graph, []))
+	 ;   GraphAsResource = ''
+	 ),
+	 (   Graphs = [Graph], rdf_statistics(triples_by_file(Graph, TripleCount))
+	 ->  (TripleCount < 10000
+	     ->	 GraphInfo  = div([id(ag_graph_info)], \graph_info(Graph))
+	     ;	 GraphInfo  = div([id(ag_graph_info)], ['Triple count: ', TripleCount])
+	     )
+	 ;   GraphInfo = ''
+	 )
+
 	},
 	(   { Graphs = [Graph] }
 	->  html([
 	      h1([class(align_overview_header)],
 		 ['Vocabulary actions & details: ', VocLabel]),
-		  % div([id(ag_graph_info)], \graph_info(Graph)),
-		  div([id(ag_graph_as_resource), class(component)],
-		      \graph_as_resource(Graph, [])),
+		  GraphAsResource,
+		  GraphInfo,
+
 		  div([id(ag_graph_basic_actions), class(component)],
 		   [
 		    'Basic actions on (skos:inScheme) graph: ', Graph,

@@ -6,13 +6,12 @@ body {
 
 div.menu { position: fixed; }
 #search_form { position: fixed; right: 0.5em; }
-.cliopatria h1, .cliopatria h4 { background-color: white } /* Override blue background of ClioPatria ... */
+h1 { 
+	background-color: white; /* Override blue background of ClioPatria ... */
+	font-size: 1.2em;
+} 
 
-.cliopatria div.component h1 { font-size: 1.1em }
-#ag_graph_as_resource.component {
-	float: right;
-	font-size: smaller;
-}
+div.component h1 { font-size: 1.1em }
 
 div.ag_search {
 	background-repeat: no-repeat;
@@ -119,8 +118,13 @@ th, table.rdf_browse th {
 #alignoperations form input.target {
 }
 
-#ag_graph_info { float: right; max-width: 35%; }
-#ag_graph_as_resource { float: left; max-width: 65%; }
+#ag_graph_info { clear: both; float: right; max-width: 35%; }
+#ag_graph_as_resource.component {
+	float: right;
+	clear: both; 
+	font-size: smaller;
+	max-width: 65%; 
+}
 
 /* Created a fixed, small, abbreviated alignlist as a legend for overlap list: */
 div.overlaplist { max-width: 73%; }
