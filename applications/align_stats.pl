@@ -363,8 +363,7 @@ show_alignment_overview(Graph) -->
 		  [\graphviz_graph(cliopatria:context_graph(Graph),
 			       [ object_attributes([width('100%')]),
 				 wrap_url(cpa_browse:rdf_link),
-				 graph_attributes([ rankdir('RL')
-						  ]),
+				 graph_attributes([ rankdir('RL')]),
 				 shape_hook(cpa_browse:shape(Graph))
 			       ])
 		  ]),
