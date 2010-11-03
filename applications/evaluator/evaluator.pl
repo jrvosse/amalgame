@@ -97,7 +97,7 @@ http_evaluator(Request) :-
 	;   true
 	),
 	logged_on(User, 'anonymous'),
-	(   is_locked(Target, OtherUser, TimeStamp), User \= OtherUser
+	(   is_locked(Target, OtherUser, TimeStamp), User \= OtherUser, rdf_graph(Target)
 	->  http_link_to_id(http_list_alignment, [graph(Graph)], TryAgainLink),
 	    reply_html_page(cliopatria(default),
 			    title('Amalgame: target locked'),
@@ -451,11 +451,16 @@ attr_param(hit, hit=Bool) :-
 
 lock_graph(Graph, User, Timestamp) :-
 	(   is_locked(Graph, OtherUser, OtherTimeStamp)
-	->  debug(evaluator, 'Error ~w already locked by ~w since', [Graph, OtherUser, OtherTimeStamp]),
-	    fail
-	;   get_time(T), format_time(atom(Timestamp), '%a, %d %b %Y %H:%M:%S %z', T),
-	asserta(is_locked(Graph, User, Timestamp))
-	).
+	->  (   rdf_graph(Graph)
+	    ->	debug(evaluator, 'Error ~w already locked by ~w since', [Graph, OtherUser, OtherTimeStamp]),
+		fail
+	    ;	unlock_graph(Graph, _, _)
+	    )
+	;   true
+	),
+	get_time(T), format_time(atom(Timestamp), '%a, %d %b %Y %H:%M:%S %z', T),
+	asserta(is_locked(Graph, User, Timestamp)).
+
 unlock_graph(Graph, User, Timestamp) :-
 	(   is_locked(Graph, User, Timestamp)
 	->  retractall(is_locked(Graph, User, Timestamp))
