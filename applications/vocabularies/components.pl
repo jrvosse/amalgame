@@ -13,9 +13,11 @@
 :- use_module(library(semweb/rdf_label)).
 
 :- use_module(components(label)).
+:- use_module(components(graphviz)).
 :- use_module(applications(browse)).
 
 :- use_module(amalgame(skos/vocabularies)).
+
 
 %%	show_schemes// is det.
 %
@@ -220,6 +222,14 @@ show_scheme(Voc) -->
 		 ['Vocabulary actions & details: ', VocLabel]),
 		  GraphAsResource,
 		  GraphInfo,
+		  div([class(graphviz), style('width: 70%')],
+		  [\graphviz_graph(cliopatria:context_graph(Voc),
+			       [ object_attributes([width('100%')]),
+				 wrap_url(cpa_browse:rdf_link),
+				 graph_attributes([ rankdir('RL')]),
+				 shape_hook(cpa_browse:shape(Graph))
+			       ])
+		  ]),
 
 		  div([id(ag_graph_basic_actions), class(component)],
 		   [
@@ -242,7 +252,7 @@ show_scheme(Voc) -->
 		 ]),
 	      div([id(ag_voc_as_resource), class(component)],
 		  [
-		   \list_resource(Voc, [])
+		   \graph_as_resource(Voc,[])
 		  ])
 	     ]).
 
