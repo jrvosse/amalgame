@@ -54,7 +54,7 @@ cliopatria:node_shape(URI, Shape, _Options) :-
 
 cliopatria:node_shape(URI, Shape, _Options) :-
 	rdfs_individual_of(URI, amalgame:'Alignment'),
-	Shape = [shape(box), style(filled),fillcolor('#AAAAAA')].
+	Shape = [shape(box3d), style(filled),fillcolor('#AAAAAA')].
 cliopatria:node_shape(URI, Shape, _Options) :-
 	rdfs_individual_of(URI, skos:'ConceptScheme'),
-	Shape = [style(filled),fillcolor('#AAAAAA')].
+	Shape = [shape(box),style(filled),fillcolor('#AAAAAA')].
