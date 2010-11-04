@@ -15,6 +15,7 @@ cliopatria:context_graph(URI, RDF) :-
 	;   rdfs_individual_of(URI, opmv:'Process')
 	;   rdfs_individual_of(URI, opmv:'Agent')
 	;   rdfs_individual_of(URI, skos:'ConceptScheme')
+	;   rdfs_individual_of(URI, amalgame:'Alignment')
 	),
 	findall(T, context_triple(URI, T), RDF0),
 	sort(RDF0, RDF1),
@@ -68,6 +69,7 @@ blacklist(Orig, OverlapProcess) :-
 
 cliopatria:node_shape(URI, Shape, _Options) :-
 	rdf_has(URI, rdf:type, opmv:'Artifact'),
+	rdf_has(URI, opmv:wasGeneratedBy, _),
 	Shape = [shape('Mdiamond'),style(filled),fillcolor('#FF8888')].
 
 cliopatria:node_shape(URI, Shape, _Options) :-
@@ -77,7 +79,7 @@ cliopatria:node_shape(URI, Shape, _Options) :-
 
 cliopatria:node_shape(URI, Shape, _Options) :-
 	rdfs_individual_of(URI, amalgame:'Alignment'),
-	Shape = [shape(box3d), style(filled),fillcolor('#AAAAAA')].
+	Shape = [shape('Mdiamond'), style(filled),fillcolor('#AAAAAA')].
 cliopatria:node_shape(URI, Shape, _Options) :-
 	rdfs_individual_of(URI, skos:'ConceptScheme'),
 	Shape = [shape(box),style(filled),fillcolor('#AAAAAA')].

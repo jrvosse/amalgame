@@ -10,6 +10,7 @@
 
 :- use_module(library(http/http_host)).
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdfs)).
 :- use_module(library(version)).
 :- use_module(user(user_db)).
 
@@ -46,7 +47,11 @@ opm_was_generated_by(Process, Artifact, Graph, Options) :-
 	(   memberchk(was_derived_from(Sources), Options)
 	->  forall(member(Source, Sources),
 		   (   rdf_assert(Artifact, opmv:wasDerivedFrom,  Source,  Graph),
-		       rdf_assert(Process, opmv:used, Source, Graph)
+		       rdf_assert(Process, opmv:used, Source, Graph),
+		       (   \+ rdfs_individual_of(Source, opmv:'Artifact')
+		       ->  rdf_assert(Source, rdf:type,	opmv:'Artifact', Graph)
+		       ;   true
+		       )
 		   )
 		  )
 	;   true
