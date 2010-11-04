@@ -24,10 +24,10 @@ cliopatria:context_graph(URI, RDF) :-
 	RDF \= [].
 
 context_triple(URI, Triple) :-
-	up(URI, URI, Triples, [URI], 3),
+	up(URI, URI, Triples, [URI], 4),
 	member(Triple, Triples).
 context_triple(URI, Triple) :-
-	down(URI, URI, Triples, [URI], 3),
+	down(URI, URI, Triples, [URI], 2),
 	member(Triple, Triples).
 
 context_triple(URI, rdf(URI, rdf:type, Class)) :-
