@@ -12,6 +12,8 @@
 
 cliopatria:context_graph(URI, RDF) :-
 	(   rdfs_individual_of(URI, opmv:'Artifact')
+	;   rdfs_individual_of(URI, opmv:'Process')
+	;   rdfs_individual_of(URI, opmv:'Agent')
 	;   rdfs_individual_of(URI, skos:'ConceptScheme')
 	),
 	findall(T, context_triple(URI, T), RDF0),
@@ -22,34 +24,55 @@ cliopatria:context_graph(URI, RDF) :-
 	RDF \= [].
 
 context_triple(URI, Triple) :-
-	transitive_context(CP),
-	parents(URI, CP, Triples, [URI], 5),
+	up(URI, URI, Triples, [URI], 3),
+	member(Triple, Triples).
+context_triple(URI, Triple) :-
+	down(URI, URI, Triples, [URI], 3),
 	member(Triple, Triples).
 
-context_triple(URI, rdf(URI, RP, Process)) :-
-	rdf_has(URI, opmv:wasGeneratedBy, Process, RP).
 context_triple(URI, rdf(URI, rdf:type, Class)) :-
 	rdf(URI, rdf:type, Class),
-	rdf_global_id(Class, amalgame:_).
+	rdf_global_id(amalgame:_, Class).
 
-parents(URI, Up, [rdf(URIx, P, Parentx)|T], Visited, MaxD) :-
+up(Orig,URI, [rdf(URI, P, Parent)|T], Visited, MaxD) :-
 	succ(MaxD2, MaxD),
-	(   rdf_has(URI, Up, Parent, P), URIx = URI, Parentx = Parent
-	;   rdf_has(Parent, Up, URI, P), URIx = Parent, Parentx = URI
-	),
+	transitive_context(Up),
+	rdf_has(URI, Up, Parent, P),
+	\+ blacklist(Orig,Parent),
 	\+ memberchk(Parent, Visited),
-	parents(Parent, Up, T, [Parent|Visited], MaxD2).
-parents(_, _, [], _, _).
+	up(Orig, Parent, T, [Parent|Visited], MaxD2).
+up(_,_, [], _, _).
 
-transitive_context(opmv:wasDerivedFrom).
+down(Orig, URI, [rdf(Child, P, URI)|T], Visited, MaxD) :-
+	succ(MaxD2, MaxD),
+	transitive_context(Up),
+	rdf_has(Child, Up, URI, P),
+	\+ blacklist(Orig, Child),
+	\+ memberchk(Child, Visited),
+	down(Orig, Child, T, [Child|Visited], MaxD2).
+down(_,_, [], _, _).
+
+transitive_context(opmv:used).
+transitive_context(opmv:wasGeneratedBy).
+
+blacklist(Orig, Overlap) :-
+	rdfs_individual_of(Overlap, amalgame:'OverlapAlignment'),
+	\+ rdfs_individual_of(Orig, amalgame:'OverlapAlignment'),
+	\+ rdf_has(_Overlap, opmv:wasGeneratedBy,Orig).
+
+blacklist(Orig, OverlapProcess) :-
+	rdf_has(Overlap, opmv:wasGeneratedBy, OverlapProcess),
+	rdfs_individual_of(Overlap, amalgame:'OverlapAlignment'),
+	\+ rdfs_individual_of(Orig, amalgame:'OverlapAlignment').
+
 
 cliopatria:node_shape(URI, Shape, _Options) :-
 	rdf_has(URI, rdf:type, opmv:'Artifact'),
-	Shape = [shape(box3d),style(filled),fillcolor('#FF8888')].
+	Shape = [shape('Mdiamond'),style(filled),fillcolor('#FF8888')].
 
 cliopatria:node_shape(URI, Shape, _Options) :-
 	rdfs_individual_of(URI, opmv:'Process'),
-	Shape = [style(filled),fillcolor('#FF8888')].
+	Shape = [shape('box'), style(filled),fillcolor('#FF8888')].
 
 
 cliopatria:node_shape(URI, Shape, _Options) :-
