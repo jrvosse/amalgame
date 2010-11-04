@@ -111,6 +111,7 @@ count_overlaps([Graphs:Map|Tail], Accum, Results) :-
 	    setting(overlaps_persistent, Persistency),
 	    rdf_persistency(Overlap, Persistency),
 	    rdf_bnode(Process),
+	    rdf_assert(Process, rdfs:label, literal('amalgame overlap calculator'), Overlap),
 	    opm_was_generated_by(Process, Overlap, Overlap,
 				 [was_derived_from(Graphs)])
 	),
