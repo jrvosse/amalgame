@@ -359,11 +359,11 @@ show_alignment_overview(Graph) -->
 	html([
 	      h1([class(align_overview_header)], ['Alignment actions & details: ', GraphLabel]),
 	      div([id(ag_graph_info)], \graph_info(Graph)),
-	      div([class(graphviz), style('width: 70%')],
+	      div([class(graphviz), style('width: 80%')],
 		  [\graphviz_graph(cliopatria:context_graph(Graph),
 			       [ object_attributes([width('100%')]),
-				 wrap_url(cpa_browse:rdf_link),
-				 graph_attributes([ rankdir('RL')]),
+				 wrap_url(cpa_browse:resource_link),
+				 graph_attributes([rankdir('RL'), fontsize('16.00'), fontname('Helvetica')]),
 				 shape_hook(cpa_browse:shape(Graph))
 			       ])
 		  ]),

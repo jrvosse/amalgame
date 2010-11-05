@@ -1,10 +1,13 @@
 :- module(ag_skin, []).
 
+:- use_module(library(version)).
+
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/http_path)).
-:- use_module(library(version)).
+
+:- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_label)).
 
@@ -28,23 +31,12 @@ user:file_search_path(css,   amalgame('web/css')).
 		   requires([ css('amalgame.css')
 			    ])
 		 ]).
-
-
-cliopatria:display_link(Alignment, _Options) -->
-	{
-	 rdfs_individual_of(Alignment, amalgame:'Alignment'),
-	 http_link_to_id(http_list_alignment, [graph(Alignment)], Link),
-	 rdf_display_label(Alignment, Label)
-	},
-	html(a([href(Link)], Label)).
-
-cliopatria:display_link(Voc, _Options) -->
-	{
-	 rdfs_individual_of(Voc, skos:'ConceptScheme'),
-	 http_link_to_id(http_list_skos_voc, [voc(Voc)], Link),
-	 rdf_display_label(Voc, Label)
-	},
-	html(a([href(Link)], Label)).
+cliopatria:resource_link(Alignment, Link) :-
+	rdfs_individual_of(Alignment, amalgame:'Alignment'),
+	http_link_to_id(http_list_alignment, [graph(Alignment)], Link).
+cliopatria:resource_link(Voc, Link) :-
+	rdfs_individual_of(Voc, skos:'ConceptScheme'),
+	http_link_to_id(http_list_skos_voc, [voc(Voc)], Link).
 
 cliopatria:page_body(Body) -->
 	html_requires(css('amalgame.css')),

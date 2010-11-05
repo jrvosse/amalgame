@@ -2,6 +2,7 @@
 
 
 :- use_module(cliopatria(hooks)).
+:- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_abstract)).
 
@@ -25,7 +26,7 @@ cliopatria:context_graph(URI, RDF) :-
 	RDF \= [].
 
 context_triple(URI, Triple) :-
-	up(URI, URI, Triples, [URI], 4),
+	up(URI, URI, Triples, [URI], 3),
 	member(Triple, Triples).
 context_triple(URI, Triple) :-
 	down(URI, URI, Triples, [URI], 2),
@@ -70,7 +71,7 @@ blacklist(Orig, OverlapProcess) :-
 cliopatria:node_shape(URI, Shape, _Options) :-
 	rdf_has(URI, rdf:type, opmv:'Artifact'),
 	rdf_has(URI, opmv:wasGeneratedBy, _),
-	Shape = [shape('Mdiamond'),style(filled),fillcolor('#FF8888')].
+	Shape = [shape('Mdiamond'),fontize('20.00'), style(filled),fillcolor('#FF8888')].
 
 cliopatria:node_shape(URI, Shape, _Options) :-
 	rdfs_individual_of(URI, opmv:'Process'),
