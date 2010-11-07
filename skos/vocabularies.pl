@@ -3,9 +3,9 @@
 	   skos_label/2,
 	   skos_label/3,
 	   voc_get_computed_props/2,
-	   voc_clear_stats/0,
+	   voc_clear_stats/1,
 	   voc_ensure_stats/1,
-	   voc_partition/2,
+	   voc_partition/4,
 	   voc_delete_derived/0
           ]).
 
@@ -15,7 +15,6 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(semweb/rdf_portray)).
-
 
 :- use_module(amalgame(mappings/map)).
 :- use_module(amalgame(mappings/opm)).
@@ -53,8 +52,7 @@ voc_get_computed_props(Voc, Props) :-
 	       ),
 	maplist(=.., Props, GraphProps).
 
-voc_clear_stats :-
-	Graph = amalgame_vocs,
+voc_clear_stats(Graph) :-
 	(   rdf_graph(Graph)
 	->  rdf_unload(amalgame_vocs)
 	;   true),
@@ -171,43 +169,71 @@ count_mapped_concepts(Voc, Count) :-
 	length(Sorted, Count),
 	print_message(informational, map(found, 'SKOS mapped concepts', Voc, Count)).
 
-voc_partition(Voc, [Mapped, Unmapped]) :-
-	rdf_display_label(Voc, VocL),
-	format(atom(Mapped),    '~w_mapped', [Voc]),
-	format(atom(Unmapped),  '~w_unmapped', [Voc]),
-	format(atom(MappedL),   '~w (mapped)', [VocL]),
-	format(atom(UnmappedL), '~w (unmapped)', [VocL]),
+voc_partition(Request, Voc, PartitionType, Partition) :-
+	findall(C, rdf(C, skos:inScheme, Voc), Concepts),
+	classify_concepts(Request, Concepts, Voc, PartitionType, [], Partition).
 
-	(   rdf_graph(Mapped) -> rdf_unload(Mapped); true),
-	(   rdf_graph(Unmapped) -> rdf_unload(Unmapped); true),
+smush_processes([]).
+smush_processes([_]).
+smush_processes([A1, A2| Tail]) :-
+	rdf_has(A1, opmv:wasGeneratedBy, P1),
+	rdf_has(A2, opmv:wasGeneratedBy, P2),
+	rdf_assert(P1, owl:sameAs, P2, A1),
+	smush_processes([A1|Tail]).
 
-	rdf_assert(Mapped, rdfs:label, literal(MappedL), Mapped),
-	rdf_assert(Unmapped, rdfs:label, literal(UnmappedL), Unmapped),
+classify_concepts(_Req, [], _Voc, _PartitionType, Partition, Partition) :-
+	smush_processes(Partition).
 
+classify_concepts(Req, [H|T], Voc, PartitionType, Accum, Result) :-
+	classify_concept(H, Voc, PartitionType, SubVocURI, SubVocLabelURI),
+	(   member(SubVocURI, Accum)
+	->  NewAccum = Accum
+	;   make_subvoc(Req, Voc, SubVocURI, SubVocLabelURI),
+	    NewAccum = [SubVocURI|Accum]
+	),
+	classify_concepts(Req, T, Voc, PartitionType, NewAccum, Result).
+
+make_subvoc(Request, Voc, SubVoc, PortrayURI) :-
+	rdf_display_label(Voc,  VocL),
+	format(atom(SubVocLabel), '~w (~p)', [VocL, PortrayURI]),
+
+	(   rdf_graph(SubVoc) -> rdf_unload(SubVoc); true),
+
+	rdf_assert(SubVoc, rdfs:label, literal(SubVocLabel), SubVoc),
 	rdf_bnode(Process),
-	rdf_assert(Process, rdfs:label, literal('Amalgame vocabulary partitioning process'), Mapped),
-	rdf_assert(Process, rdfs:label, literal('Amalgame vocabulary partitioning process'), Unmapped),
-	opm_was_generated_by(Process, Mapped,   Mapped,   [was_derived_from([Voc])]),
-	opm_was_generated_by(Process, Unmapped, Unmapped, [was_derived_from([Voc])]),
+	rdf_assert(Process, rdfs:label, literal('Amalgame vocabulary partitioning process'), SubVoc),
+	opm_was_generated_by(Process, SubVoc, SubVoc, [was_derived_from([Voc]), request(Request)]),
+	rdf_assert(SubVoc,   rdf:type, amalgame:'DerivedConceptScheme', SubVoc).
 
-	rdf_assert(Mapped,   rdf:type, amalgame:'FullyMappedConceptScheme', Mapped),
-	rdf_assert(Unmapped, rdf:type, amalgame:'UnmappedConceptScheme',  Unmapped),
-
-	rdf_assert(Mapped,   rdf:type, amalgame:'DerivedConceptScheme', Mapped),
-	rdf_assert(Unmapped, rdf:type, amalgame:'DerivedConceptScheme', Unmapped),
-
-	rdf_transaction(forall(rdf(C, skos:inScheme, Voc),
-			      classify_concept(C, Mapped, Unmapped)
-			     )),
-	voc_ensure_stats(all(Mapped)),
-	voc_ensure_stats(all(Unmapped)).
-
-
-classify_concept(C, Mapped, Unmapped) :-
+classify_concept(C, Voc, mapped, SubVoc, Type) :-
 	(   (has_map_chk([C, _],_ ,_); has_map_chk([_,C], _, _))
-	->  rdf_assert(C, skos:inScheme, Mapped, Mapped)
-	;   rdf_assert(C, skos:inScheme, Unmapped, Unmapped)
-	).
+	->  Type = mapped
+	;   Type = unmapped
+	),
+	assign_to_subvoc(C, Voc, Type, SubVoc).
+
+classify_concept(C, Voc, type, SubVoc, Type) :-
+	findall(Type,
+		(   rdfs_individual_of(C, Type)
+		),
+		AllTypes),
+	findall(Type,
+		(   member(Type, AllTypes),
+		    \+ rdf_equal(Type, skos:'Concept'),
+		    \+ (rdfs_subclass_of(SubType, Type),
+			SubType \= Type,
+			member(SubType, AllTypes)
+		       )
+		),
+		Types),
+	Types = [Type|_],
+	assign_to_subvoc(C, Voc, Type, SubVoc).
+
+assign_to_subvoc(C, Voc, Type, SubVoc) :-
+	format(atom(Suffix), '_~p',  [Type]),
+	atom_concat(Voc, Suffix, SubVoc),
+	rdf_assert(C, skos:inScheme, SubVoc, SubVoc).
+
 
 %%	skos_label(+Concept, -Label, -Options) is det.
 %
