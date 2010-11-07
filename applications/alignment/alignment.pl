@@ -17,13 +17,13 @@ pages and services.
 :- use_module(user(user_db)).
 :- use_module(components(messages)).
 
+:- use_module(amalgame(skos/vocabularies)).
 :- use_module(amalgame_apps(vocabularies/components)).
 :- use_module(amalgame_apps(align_stats)).
 
 :- use_module(amalgame(matchers/skosmatcher)).
 :- use_module(amalgame(mappings/alignment)).
 :- use_module(amalgame(mappings/opm)).
-
 
 :- http_handler(amalgame(align_form),       http_align_form,     []).
 :- http_handler(amalgame(align_vocs),       http_align_vocs,     []).
@@ -75,6 +75,7 @@ http_align_vocs(Request) :-
 	       sourcelabel(SourceLabelProp),
 	       targetlabel(TargetLabelProp)
 	      ]),
+	voc_clear_stats(amalgame_vocs),
 	align_ensure_stats(all(Graph)),
 
 	reply_html_page(cliopatria(default),
