@@ -68,19 +68,23 @@ blacklist(Orig, OverlapProcess) :-
 	\+ rdfs_individual_of(Orig, amalgame:'OverlapAlignment').
 
 
+% Alignment made with amalgame:
 cliopatria:node_shape(URI, Shape, _Options) :-
 	rdf_has(URI, rdf:type, opmv:'Artifact'),
+	rdfs_individual_of(URI, amalgame:'Alignment'),
 	rdf_has(URI, opmv:wasGeneratedBy, _),
 	Shape = [shape('Mdiamond'),fontize('20.00'), style(filled),fillcolor('#FF8888')].
-
+% Amalgame process:
 cliopatria:node_shape(URI, Shape, _Options) :-
 	rdfs_individual_of(URI, opmv:'Process'),
 	Shape = [shape('box'), style(filled),fillcolor('#FF8888')].
 
-
+% Alignment (up)loaded, typically not made with amalgame
 cliopatria:node_shape(URI, Shape, _Options) :-
 	rdfs_individual_of(URI, amalgame:'Alignment'),
 	Shape = [shape('Mdiamond'), style(filled),fillcolor('#AAAAAA')].
+
+% Vocabulary (up)loaded, typically not made with amalgame
 cliopatria:node_shape(URI, Shape, _Options) :-
 	rdfs_individual_of(URI, skos:'ConceptScheme'),
-	Shape = [shape(box),style(filled),fillcolor('#AAAAAA')].
+	Shape = [shape(box3d),style(filled),fillcolor('#AAAAAA')].
