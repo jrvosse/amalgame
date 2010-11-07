@@ -16,6 +16,7 @@
 :- use_module(components(graphviz)).
 :- use_module(applications(browse)).
 
+:- use_module(amalgame_apps(alignment/alignment)).
 :- use_module(amalgame(skos/vocabularies)).
 
 
@@ -27,7 +28,7 @@
 
 show_schemes -->
 	{
-	 \+  rdfs_individual_of(_Voc, skos:'ConceptScheme'),!,
+	 \+  rdf_has(_Voc, skos:inScheme, _Scheme),!,
 	 http_link_to_id(load_library_ontology_form, [], LoadLink)
 	},
 	html(p([class('error novocs')],
@@ -79,6 +80,9 @@ voctable_header -->
 		 ])
 	     ]).
 
+show_schemes(Graph) -->
+	show_schemes([Graph], 0, [0,0,0,0,0]).
+
 %%	show_schemes(+SchemeList, +Nr, +Countlist)// is det.
 %
 %	Generate the scheme table with total counts.
@@ -104,6 +108,15 @@ show_schemes([], _, [C, P, A, M , U]) -->
 		 td([class(example)], ''),
 		 td([class(license)], '')
 		])).
+show_schemes([Voc|Tail], Nr, [C,P,A,M,U]) -->
+	{
+	 \+ rdf_has(_Concept, skos:inScheme, Voc),
+	 rdf_retractall(Voc, _, _, amalgame),
+	 rdf_retractall(Voc, _, _, amalgame_vocs)
+	},
+	show_schemes(Tail, Nr, [C,P,A,M,U]).
+
+
 show_schemes([Voc|Tail], Nr, [C,P,A,M,U]) -->
 	{
 	 findall(Label,
@@ -216,7 +229,7 @@ show_scheme(Voc) -->
 	 )
 
 	},
-	(   { Graphs = [Graph] }
+	(   { Graphs = [Graph]; (Graphs = [], Graph=Voc) }
 	->  html([
 	      h1([class(align_overview_header)],
 		 ['Vocabulary actions & details: ', VocLabel]),
@@ -239,7 +252,8 @@ show_scheme(Voc) -->
 	     ])
 	;   html([
 		  h1([class(align_overview_header)], ['Warning: multiple graphs problem']),
-		  p([], ['Thesaurus has skos:inScheme triples in multiple files. ',
+		  p([], ['Thesaurus has skos:inScheme triples in multiple files: ',
+			 \show_schemes(Graphs),
 			 'Please merge into one to access graph-based actions.'])
 		 ])
 	),
@@ -256,19 +270,38 @@ show_scheme(Voc) -->
 		  ])
 	     ]).
 
+li_partition(Voc) -->
+	{
+	rdf(Voc, amalgame:numberOfConcepts, literal(type(_,0)))
+	}.
 
 li_partition(Voc) -->
 	{
 	 rdf(Voc, amalgame:numberOfConcepts, literal(type(_,CCount))),
 	 rdf(Voc, amalgame:numberOfMappedConcepts, literal(type(_,MCount))),
-	 http_link_to_id(http_partition_voc, [voc(Voc)], SplitLink),
-	 Partition = a([href(SplitLink)],
-		       'Partition into mapped/unmapped concepts')
+	 (   (CCount = MCount; MCount =0)
+	 ->  MappedPart = ''
+	 ;   MappedPart = option([value(mapped)],['Mapped versus unmapped concepts'])
+	 ),
+	 http_link_to_id(http_partition_voc, [], SplitLink),
+	 Partition = form([action(SplitLink)],
+			  [input([type(hidden), name(voc), value(Voc)],[]),
+			   input([type(submit), value('Partition'), class(submit)],[]),
+			   ' based on ',
+			   select([name(partition_method)],
+			   [
+			    MappedPart,
+			    option([value(type)],['Type of concepts'])
+			   ])
+			  ])
 	},
-	(   { (CCount = MCount; MCount =0) }
-	->  html([])
-	;   html(li(Partition))
-	).
+	html(li(Partition)).
+
+li_align(Voc) -->
+	{
+	rdf(Voc, amalgame:numberOfConcepts, literal(type(_,0)))
+	},
+	html(li('Warning: This vocabulary has no associated concepts')).
 
 li_align(Voc) -->
 	{

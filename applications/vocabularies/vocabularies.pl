@@ -90,15 +90,15 @@ http_compute_voc_stats(Request) :-
 
 %%	http_clear_voc_stats(?Request) is det.
 %
-%	Clears named graphs with cached amalgame results.
+%	Clears all named graphs containing cached amalgame results.
 
 http_clear_voc_stats(_Request):-
 	authorized(write(amalgame_cache, clear)),
 	http_link_to_id(http_list_skos_vocs, [], Link),
-	call_showing_messages(voc_clear_stats,
+	call_showing_messages(voc_clear_stats(amalgame_vocs),
 			      [head(title('Amalgame: clearing caches')),
 			       footer(div([class(readymeassage)],
-					  [h4('All computations done'),
+					  [h4('All caches cleared'),
 					   'See ', a([href(Link)],['vocabulary overview']),
 					   ' to inspect results.']))
 			      ]).
@@ -112,9 +112,11 @@ http_clear_voc_stats(_Request):-
 http_partition_voc(Request) :-
 	authorized(write(default, partition(sample))),
 	http_parameters(Request,
-			[voc(Graph, [])
+			[voc(Graph, [description('URI of the vocabulary to be partitioned')]),
+			 partition_method(Method, [oneof([mapped,type]), default(mapped)])
 			]),
-	voc_partition(Graph, Partitioning),
+	voc_partition(Request, Graph, Method, Partitioning),
+	forall(member(PVoc, Partitioning), voc_ensure_stats(all(PVoc))),
 	reply_html_page(cliopatria(default),
 			[title('Amalgame: partitioned vocabulary')
 			],
