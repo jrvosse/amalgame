@@ -99,10 +99,10 @@ li_align(Source, Target) -->
 		[form([action(AlignLink)],
 		      [input([type(hidden),name(source),  value(Source)],[]),
 		       input([type(hidden),name(target), value(Target)],[]),
-		       input([type(submit), class(submit), value('Align')], []),
-		       ' above vocabularies',
+		       input([type(submit), class(submit), value('Find alignment candidates')], []),
+		       ' for above vocabularies',
 		       ul([],[
-			      li([], ['into graph ',
+			      li([], ['put results into graph ',
 				      input([type(text), class(aligngraph),
 					     name(graph), size(10), value(AlignGraph)],[])
 				     ]),
@@ -139,7 +139,7 @@ li_align(Source, Target) -->
 align(Source, Target, Options) :-
 	findall(SourceConcept, rdf(SourceConcept, skos:inScheme, Source), SourceConcepts),
 	forall(member(SourceConcept, SourceConcepts),
-	       rdf_transaction(skos_find_candidates(SourceConcept,
+	       rdf_transaction(skos_find_candidates(SourceConcept, Source,
                                                     Target,
 						    [candidate_matchers([labelmatch])|Options]))
               ),

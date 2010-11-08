@@ -36,7 +36,7 @@
 :- http_handler(amalgame(skos_export),        http_skos_export,         []).
 :- http_handler(amalgame(sample_alignment),   http_sample_alignment,	[]).
 :- http_handler(amalgame(select_from_graph),  http_select_from_graph,	[]).
-:- http_handler(amalgame(select_one_to_one),  http_select_11_from_graph, []).
+
 
 %%	http_list_alignments(+Request) is det.
 %
@@ -155,15 +155,6 @@ http_list_overlap(_Request) :-
 			     ])
 			]).
 
-http_select_11_from_graph(Request) :-
-	http_parameters(Request, [graph(Graph,   [description('URI of the source graph')]),
-				  target(Target, [description('URI of the target graph')])
-				 ]),
-	select_one_to_one(Request, Graph, Target),
-	reply_html_page(cliopatria(default),
-			title('Amalgame: selecting unique alignments from graph'),
-			[ \show_alignment_overview(Target)]).
-
 %%	http_clear_alignstats(?Request) is det.
 %
 %	Clears named graphs with cached amalgame results.
@@ -242,16 +233,20 @@ http_sample_alignment(Request) :-
 
 http_select_from_graph(Request) :-
 	http_parameters(Request, [graph(Graph, [description('URI of source graph to export from')]),
-				  name(TargetGraph, [default(default_export_graph)]),
-				  min(Min, [between(0.0, 1.0), description('Minimal confidence level')]),
-				  max(Max, [between(0.0, 1.0), description('Maximal confidence level')])
+				  target(TargetGraph, [default(default_export_graph)]),
+				  condition(Condition, [description('Selection type'), oneof(confidence, one_to_one, unique_label)]),
+				  min(Min, [default(0.0), between(0.0, 1.0), description('Minimal confidence level')]),
+				  max(Max, [default(1.0), between(0.0, 1.0), description('Maximal confidence level')])
 				 ]),
 
 	(rdf_graph(TargetGraph) -> rdf_unload(TargetGraph); true),
-	edoal_select(Request, Graph, TargetGraph, [min(Min), max(Max)]),
-	http_link_to_id(http_list_alignment, [graph(TargetGraph)], ListGraph),
-	http_redirect(moved, ListGraph, Request).
-
+	(   Condition = confidence
+	->  edoal_select(Request, Graph, TargetGraph, [min(Min), max(Max)])
+	;   select_from_alignment(Request, Graph, Condition, TargetGraph)
+	),
+	reply_html_page(cliopatria(default),
+			title('Amalgame selection results'),
+			\show_alignment_overview(TargetGraph)).
 
 sample(Request, Method, Graph, Name, Size) :-
 	(   rdf_graph(Name)
@@ -379,6 +374,7 @@ show_alignment_overview(Graph) -->
 		   \li_sample_graph(Graph),
 		   \li_select_from_graph(Graph),
 		   \li_one_to_one(Graph),
+		   \li_select_unique_labels(Graph),
 		   \li_export_graph(Graph)
 		  ]
 		),
@@ -721,10 +717,11 @@ li_select_from_graph(Graph) -->
 	},
 	html(li(form([action(SelectLink)],
 		     [input([type(hidden), name(graph), value(Graph)],[]),
+		      input([type(hidden), name(condition), value(confidence)],[]),
 		      input([type(submit), class(submit), value('Select')],[]),
 		      	       ' to graph ',
 		       input([type(text), class(target),
-			      name(name), value(Target),
+			      name(target), value(Target),
 			      size(10)],[]),
 		       ' with confidence level between : ',
 		       input([type(text),
@@ -745,18 +742,38 @@ li_select_from_graph(Graph) -->
 
 li_one_to_one(Graph) -->
 	{
-	 http_link_to_id(http_select_11_from_graph, [], SelectLink),
+	 http_link_to_id(http_select_from_graph, [], SelectLink),
 	 atom_concat(Graph,'_1-1-only', Target)
 	},
 
 	html(li(form([action(SelectLink)],
 		     [input([type(hidden), name(graph), value(Graph)],[]),
+		      input([type(hidden), name(condition), value(one_to_one)],[]),
 		      input([type(submit), class(submit), value('Select')],[]),
 		      	       ' to graph ',
 		       input([type(text), class(target),
 			      name(target), value(Target),
 			      size(10)],[]),
 		      ' only the one-to-one-mappings '
+		     ]
+		    )
+	       )
+	    ).
+li_select_unique_labels(Graph) -->
+	{
+	 http_link_to_id(http_select_from_graph, [], SelectLink),
+	 atom_concat(Graph,'_uniq_labels', Target)
+	},
+
+	html(li(form([action(SelectLink)],
+		     [input([type(hidden), name(graph), value(Graph)],[]),
+		      input([type(hidden), name(condition), value(unique_label)],[]),
+		      input([type(submit), class(submit), value('Select')],[]),
+		      	       ' to graph ',
+		       input([type(text), class(target),
+			      name(target), value(Target),
+			      size(10)],[]),
+		      ' only the unique label mappings '
 		     ]
 		    )
 	       )

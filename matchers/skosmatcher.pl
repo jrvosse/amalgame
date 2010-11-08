@@ -1,11 +1,12 @@
 :- module(skosmatcher,
-	  [skos_find_candidates/3 % +SourceConcept, +TargetScheme, +Options, -Results
+	  [skos_find_candidates/4 % +SourceConcept, +SourceScheme, +TargetScheme, +Options, -Results
 	  ]
 	 ).
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_portray)).
 :- use_module(amalgame(mappings/edoal)).
+:- use_module(amalgame(util/util)).
 :- use_module(levenshtein).
 
 %%	skos_find_candidates(+C, +S, +Options, -Result) is semidet.
@@ -22,7 +23,7 @@
 %       * targetlabel(URI): defaults to rdfs:label
 %
 
-skos_find_candidates(Source, TargetScheme, Options):-
+skos_find_candidates(Source, SourceScheme, TargetScheme, Options):-
 	ground(Source),
 	ground(TargetScheme),
 	ground(Options),
@@ -32,7 +33,7 @@ skos_find_candidates(Source, TargetScheme, Options):-
 		Targets),
 	sort(Targets, TargetsUnique),
 	forall(member(Target, TargetsUnique),
-	       (   find_label_match_methods(Source, Target, Methods, Options),
+	       (   find_label_match_methods(Source, Target, Methods, [scheme1(SourceScheme), scheme2(TargetScheme)|Options]),
 		   (   Methods \= []
 		   ->  assert_cell(Source, Target, [method(Methods)|Options])
 		   ;   true
@@ -98,13 +99,26 @@ find_label_match_methods(Source, Target, Methods, Options) :-
 %	True if Source and Target share at least one pair that matches.
 %	Details about this match are encoded in Method
 
-find_label_match_method(Source, Target, Method, _Options):-
+find_label_match_method(Source, Target, Method, Options):-
 	rdf_equal(rdfs:label, DefaultProp),
 	option(sourcelabel(MatchProp1), Options, DefaultProp),
 	option(targetlabel(MatchProp2), Options, DefaultProp),
 	rdf_has(Source, MatchProp1, literal(lang(SourceLang, Label1)), RealLabel1Predicate),
 	rdf_has(Target, MatchProp2, literal(exact(Label1),lang(TargetLang, Label2)), RealLabel2Predicate),
-	format(atom(Method), 'exact (~p:~w@~w,~p:~w@~w)', [RealLabel1Predicate, Label1, SourceLang,RealLabel2Predicate, Label2, TargetLang]).
+	option(scheme1(Voc1), Options),
+	option(scheme2(Voc2), Options),
+	label_occurences(Voc1, MatchProp1, Label1, Count1),
+	label_occurences(Voc2, MatchProp2, Label2, Count2),
+	format(atom(Method), 'exact ~w/~w (~p:~w@~w,~p:~w@~w)',
+	       [Count1, Count2,
+		RealLabel1Predicate, Label1, SourceLang,
+		RealLabel2Predicate, Label2, TargetLang]).
+
+% This version of asserts a match when the
+% Levenshtein distance between two labels is less than a maximum
+% (retrieved from stringdist_setting/2). For reasons of scalability,
+% only labels with a common prefix of a certain length (also a parameter
+% retrieved from stringdist_setting/2) are considered.
 
 find_label_match_method(Source, Target, Method, Options):-
 	option(candidate_matchers(Matchers), Options),
@@ -117,38 +131,15 @@ find_label_match_method(Source, Target, Method, Options):-
 	max_stringdist(Label1, Label2, 1),
 	format(atom(Method), 'dist<2 (~p:~w@~w,~p:~w@~w)', [RealLabel1Predicate, Label1, SourceLang,RealLabel2Predicate, Label2, TargetLang]).
 
+label_occurences(Voc, Prop, Label, Count) :-
+        find_unique(Alt,
+                    (   rdf_has(Alt, Prop, literal(lang(_,Label))),
+			rdf_has(Alt, skos:inScheme, Voc)
+                    ),
+                    100,
+                    Matches),
+        length(Matches, Count).
 
-% This version of candidate/3 asserts a match when the
-% Levenshtein distance between two labels is less than a maximum
-% (retrieved from stringdist_setting/2). For reasons of scalability,
-% only labels with a common prefix of a certain length (also a parameter
-% retrieved from stringdist_setting/2) are considered.
-% Here, a confidence of 0.0005 is used.
-
-xcandidate(SourceConcept, TargetConceptScheme, Options) :-
-	ground(SourceConcept),
-	ground(TargetConceptScheme),
-	ground(Options),
-	option(candidate_matchers(Matchers), Options, []),
-	memberchk(stringdist, Matchers),
-       	write('.'),flush,
-	rdf_has(TargetConcept, skos:inScheme, TargetConceptScheme),
-	rdf_has(SourceConcept, rdfs:label, literal(lang(_, Label1)), RealLabel1Predicate),
-	stringdist_setting(prefixdepth,PrefLen),
-	sub_atom(Label1,0,PrefLen,_,Prefix),
-	rdf_has(TargetConcept, rdfs:label, literal(prefix(Prefix), Label2), RealLabel2Predicate),
-	%rdf_has(TargetConcept, rdfs:label, literal(lang(_, Label2)), RealLabel2Predicate),
-	max_stringdist(Label1, Label2, 1),
-	format(atom(Method), 'stringdist match: ~p-~p', [RealLabel1Predicate, RealLabel2Predicate]),
-	CellOptions = [measure(0.0001), % Only label match, this is just a candidate
-		       method(Method)
-		       |Options
-		      ],
-	assert_cell(SourceConcept, TargetConcept, CellOptions).
-
-
-stringdist_setting(prefixdepth,2).
-stringdist_setting(maxlevdist,2).
 
 % succeeds if Label1 and Label2 have a levenshtein distance of
 % Maxdist or less after a normalization step where whitespaces and

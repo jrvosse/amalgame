@@ -4,7 +4,7 @@
 	  find_graphs/2,
 	  nickname/2,
 	  split_alignment/4,
-	  select_one_to_one/3,
+	  select_from_alignment/4,
 
 	  align_get_computed_props/2,
 	  align_ensure_stats/1,
@@ -261,11 +261,10 @@ split_alignment(Request, SourceGraph, Condition, SplittedGraphs) :-
 	findall(Map:Options, has_map(Map, Format, Options, SourceGraph), Maps),
 	reassert(Request, Maps, SourceGraph, Condition, [], SplittedGraphs).
 
-
-select_one_to_one(Request, SourceGraph, TargetGraph) :-
+select_from_alignment(Request, SourceGraph, Condition, TargetGraph) :-
 	findall([C1,C2,MapProps], has_map([C1,C2], _, MapProps, SourceGraph), Maps),
 	forall(member([C1,C2,MapProps], Maps),
-	       (   is_unique_mapping(C1,C2, SourceGraph)
+	       (   meets_condition(Condition, C1,C2, MapProps, SourceGraph)
 	       ->  assert_cell(C1, C2, [graph(TargetGraph)|MapProps])
 	       ;   true
 	       )
@@ -273,7 +272,8 @@ select_one_to_one(Request, SourceGraph, TargetGraph) :-
 	(   rdf_graph(TargetGraph)
 	->  rdf_assert(TargetGraph, rdf:type, amalgame:'SelectionAlignment', TargetGraph),
 	    rdf_bnode(Process),
-	    rdf_assert(Process, rdfs:label, literal('Amalgame one-to-one mapping filter'), TargetGraph),
+	    rdf_assert(Process, rdfs:label, literal('Amalgame mapping filter'), TargetGraph),
+	    rdf_assert(Process, amalgame:condition, literal(Condition), TargetGraph),
 	    opm_was_generated_by(Process, TargetGraph, TargetGraph,
 				 [was_derived_from([SourceGraph]),
 				  request(Request)
@@ -281,11 +281,14 @@ select_one_to_one(Request, SourceGraph, TargetGraph) :-
 	;   true
 	).
 
-is_unique_mapping(C1,C2, Graph) :-
+meets_condition(one_to_one, C1, C2, _MapOptions, Graph) :-
 	has_map([C1, C2], _, Graph),
 	\+ ((has_map([A1, C2], _, Graph), A1 \= C1);
 	    (has_map([C1, A2], _, Graph), A2 \= C2)
 	   ).
+meets_condition(unique_label, _C1, _C2, MapOptions, _Graph) :-
+	option(method(Method), MapOptions),
+	sub_atom(Method, _, _, _, 'exact 1/1 ').
 
 reassert(_, [], _ , _, Graphs, Graphs).
 reassert(Request, [Map:Options|Tail], OldGraph, Condition, Accum, Results) :-
