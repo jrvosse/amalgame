@@ -203,6 +203,7 @@ make_subvoc(Request, Voc, SubVoc, PortrayURI) :-
 	rdf_bnode(Process),
 	rdf_assert(Process, rdfs:label, literal('Amalgame vocabulary partitioning process'), SubVoc),
 	opm_was_generated_by(Process, SubVoc, SubVoc, [was_derived_from([Voc]), request(Request)]),
+	rdf_assert(SubVoc,   rdf:type, amalgame:'NoAlignmentGraph', SubVoc),
 	rdf_assert(SubVoc,   rdf:type, amalgame:'DerivedConceptScheme', SubVoc).
 
 classify_concept(C, Voc, mapped, SubVoc, Type) :-
