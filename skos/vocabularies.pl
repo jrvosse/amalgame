@@ -173,38 +173,32 @@ voc_partition(Request, Voc, PartitionType, Partition) :-
 	findall(C, rdf(C, skos:inScheme, Voc), Concepts),
 	classify_concepts(Request, Concepts, Voc, PartitionType, [], Partition).
 
-smush_processes([]).
-smush_processes([_]).
-smush_processes([A1, A2| Tail]) :-
-	rdf_has(A1, opmv:wasGeneratedBy, P1),
-	rdf_has(A2, opmv:wasGeneratedBy, P2),
-	rdf_assert(P1, owl:sameAs, P2, A1),
-	smush_processes([A1|Tail]).
 
-classify_concepts(_Req, [], _Voc, _PartitionType, Partition, Partition) :-
-	smush_processes(Partition).
-
+classify_concepts(Req, [], Voc, _PartitionType, Partition, Partition) :-
+	rdf_bnode(Process),
+	forall(member(SubVoc, Partition),
+	       (
+		   rdf_assert(Process, rdfs:label, literal('Amalgame vocabulary partitioning process'), SubVoc),
+		   opm_was_generated_by(Process, SubVoc, SubVoc, [was_derived_from([Voc]), request(Req)])
+	       )).
 classify_concepts(Req, [H|T], Voc, PartitionType, Accum, Result) :-
 	classify_concept(H, Voc, PartitionType, SubVocURI, SubVocLabelURI),
 	(   member(SubVocURI, Accum)
 	->  NewAccum = Accum
-	;   make_subvoc(Req, Voc, SubVocURI, SubVocLabelURI),
+	;   make_subvoc(Voc, SubVocURI, SubVocLabelURI),
 	    NewAccum = [SubVocURI|Accum]
 	),
 	classify_concepts(Req, T, Voc, PartitionType, NewAccum, Result).
 
-make_subvoc(Request, Voc, SubVoc, PortrayURI) :-
+make_subvoc(Voc, SubVoc, PortrayURI) :-
 	rdf_display_label(Voc,  VocL),
 	format(atom(SubVocLabel), '~w (~p)', [VocL, PortrayURI]),
 
 	(   rdf_graph(SubVoc) -> rdf_unload(SubVoc); true),
 
 	rdf_assert(SubVoc, rdfs:label, literal(SubVocLabel), SubVoc),
-	rdf_bnode(Process),
-	rdf_assert(Process, rdfs:label, literal('Amalgame vocabulary partitioning process'), SubVoc),
-	opm_was_generated_by(Process, SubVoc, SubVoc, [was_derived_from([Voc]), request(Request)]),
-	rdf_assert(SubVoc,   rdf:type, amalgame:'NoAlignmentGraph', SubVoc),
-	rdf_assert(SubVoc,   rdf:type, amalgame:'DerivedConceptScheme', SubVoc).
+	rdf_assert(SubVoc, rdf:type, amalgame:'NoAlignmentGraph', SubVoc),
+	rdf_assert(SubVoc, rdf:type, amalgame:'DerivedConceptScheme', SubVoc).
 
 classify_concept(C, Voc, mapped, SubVoc, Type) :-
 	(   (has_map_chk([C, _],_ ,_); has_map_chk([_,C], _, _))
