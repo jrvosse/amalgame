@@ -3,10 +3,10 @@
 	  ]
 	 ).
 
+:- use_module(library(count)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_portray)).
 :- use_module(amalgame(mappings/edoal)).
-:- use_module(amalgame(util/util)).
 :- use_module(levenshtein).
 
 %%	skos_find_candidates(+C, +S, +Options, -Result) is semidet.
@@ -132,14 +132,12 @@ find_label_match_method(Source, Target, Method, Options):-
 	format(atom(Method), 'dist<2 (~p:~w@~w,~p:~w@~w)', [RealLabel1Predicate, Label1, SourceLang,RealLabel2Predicate, Label2, TargetLang]).
 
 label_occurences(Voc, Prop, Label, Count) :-
-        find_unique(Alt,
+        answer_count(Alt,
                     (   rdf_has(Alt, Prop, literal(lang(_,Label))),
 			rdf_has(Alt, skos:inScheme, Voc)
                     ),
                     100,
-                    Matches),
-        length(Matches, Count).
-
+                    Count).
 
 % succeeds if Label1 and Label2 have a levenshtein distance of
 % Maxdist or less after a normalization step where whitespaces and

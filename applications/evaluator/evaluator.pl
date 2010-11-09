@@ -16,6 +16,7 @@
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_litindex)).
 :- use_module(library(semweb/rdf_label)).
+:- use_module(library(count)).
 :- use_module(library(settings)).
 
 :- use_module(components(label)).
@@ -27,7 +28,6 @@
 :- use_module(amalgame(mappings/edoal)).
 :- use_module(amalgame(mappings/opm)).
 
-:- use_module(amalgame(util/util)).
 :- use_module(amalgame(util/json_graph)).
 
 :- setting(evaluator:maxMappings, nonneg, 1000, 'Max number of mappings per mapping file to put in the todo list of the mapping evaluator').
@@ -243,7 +243,7 @@ ensure_todo_list(Graph, Target) :-
 
 	rdf_equal(skos:closeMatch, CM),
 	setting(evaluator:maxMappings, N),
-	find_unique(rdf(Subject,Predicate,Object),
+	answer_set(rdf(Subject,Predicate,Object),
 		    (
 		    has_map([Subject, Object], _, Options, Graph),
 		    option(relation(Predicate), Options, CM)
