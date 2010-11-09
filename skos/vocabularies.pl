@@ -2,6 +2,7 @@
           [
 	   skos_label/2,
 	   skos_label/3,
+	   topconcepts/2,
 	   voc_get_computed_props/2,
 	   voc_clear_stats/1,
 	   voc_ensure_stats/1,
@@ -256,3 +257,6 @@ skos_label(Concept, Label, _) :-
 % for backwards compatibility
 skos_label(Concept, Label):-
 	skos_label(Concept, Label, []).
+
+topconcepts(Voc, TopConcepts) :-
+	findall(Top, rdf_has(Voc, skos:hasTopConcept, Top), TopConcepts).
