@@ -40,7 +40,7 @@ ag_load_schemas :-
 
 :- check_prolog_version(51108).          % Demand >= 5.11.8
 :- register_git_module('amalgame',
-		       [ home_url('http://eculture.cs.vu.nl/git/public/?p=econnect/amalgame.git;a=summary')
+		       [ home_url('http://semanticweb.cs.vu.nl/amalgame/')
 		       ]).
 
 :- use_module([ amalgame(namespaces),
