@@ -206,7 +206,7 @@ json_get_mapping(Request) :-
 
 get_first_mappings(Graph, Target, Mappings, Nr) :-
 	ensure_todo_list(Graph, Target),
-	http_session_data(mappings_to_do(Graph,Todo)),
+	http_session_data(mappings_to_do(Target,Todo)),
 	Todo = [_Subject-Mappings|_],
 	length(Todo,Nr),!.
 
@@ -214,17 +214,17 @@ get_first_mappings(_, _, error, 0).
 
 get_next_mappings(Graph, Target, Mappings, Nr) :-
 	ensure_todo_list(Graph, Target),
-	http_session_data(mappings_to_do(Graph,[_|ToDo])),!,
-	http_session_retractall(mappings_to_do(Graph,_)),
-	http_session_assert(mappings_to_do(Graph,ToDo)),
+	http_session_data(mappings_to_do(Target,[_|ToDo])),!,
+	http_session_retractall(mappings_to_do(Target,_)),
+	http_session_assert(mappings_to_do(Target,ToDo)),
 	length(ToDo,Nr),
         (   Nr = 0
         ->  Mappings = done-done
         ;   [_Subject-Mappings|_] = ToDo
         ).
 
-ensure_todo_list(Graph, _Target) :-
-	http_session_data(mappings_to_do(Graph,Todo)),
+ensure_todo_list(_Graph, Target) :-
+	http_session_data(mappings_to_do(Target,Todo)),
 	ground(Todo),!.
 ensure_todo_list(Graph, Target) :-
 	% We have no do to list...
@@ -239,7 +239,7 @@ ensure_todo_list(Graph, Target) :-
 	rdf_bnode(BN_Process),
 	rdf_assert(BN_Process, rdfs:label, literal(Label), Target),
 
-	opm_was_generated_by(BN_Process, Target, Target, [was_derived_from(Graph)]),
+	opm_was_generated_by(BN_Process, Target, Target, [was_derived_from([Graph])]),
 
 	rdf_equal(skos:closeMatch, CM),
 	setting(evaluator:maxMappings, N),
@@ -252,7 +252,7 @@ ensure_todo_list(Graph, Target) :-
 		    List
 		   ),
 	rdf_group_by(1, List, Todo),
-	http_session_assert(mappings_to_do(Graph, Todo)).
+	http_session_assert(mappings_to_do(Target, Todo)).
 
 
 compose_json_answer(Nr, Mappings, Json) :-
