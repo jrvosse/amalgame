@@ -56,6 +56,7 @@ down(_,_, [], _, _).
 
 transitive_context(opmv:used).
 transitive_context(opmv:wasGeneratedBy).
+transitive_context(opmv:wasPerformedBy).
 
 blacklist(Orig, Overlap) :-
 	rdfs_individual_of(Overlap, amalgame:'OverlapAlignment'),
