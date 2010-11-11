@@ -18,22 +18,36 @@ cliopatria:context_graph(URI, RDF) :-
 	;   rdfs_individual_of(URI, skos:'ConceptScheme')
 	;   rdfs_individual_of(URI, amalgame:'Alignment')
 	),
-	findall(T, context_triple(URI, T), RDF0),
+	findall(T, opm_context_triple(URI, T), RDF0),
 	sort(RDF0, RDF1),
 	minimise_graph(RDF1, RDF2),		% remove inverse/symmetric/...
 	bagify_graph(RDF2, RDF3, Bags, []), 	% Create bags of similar resources
 	append(RDF3, Bags, RDF),
 	RDF \= [].
 
-context_triple(URI, Triple) :-
+cliopatria:context_graph(URI, RDF) :-
+	rdfs_individual_of(URI, align:'Cell'),
+	findall(Triple, cell_context_triple(URI, Triple), RDF0),
+	sort(RDF0, RDF1),
+	minimise_graph(RDF1, RDF2),		% remove inverse/symmetric/...
+	bagify_graph(RDF2, RDF3, Bags, []), 	% Create bags of similar resources
+	append(RDF3, Bags, RDF),
+	RDF \= [].
+
+cell_context_triple(URI, rdf(URI, P, E1)):- rdf_has(URI, align:entity1, E1, P).
+cell_context_triple(URI, rdf(URI, P, E1)):- rdf_has(URI, align:entity2, E1, P).
+cell_context_triple(URI, rdf(URI, P, E1)):- rdf_has(URI, align:relation, E1, P).
+cell_context_triple(URI, rdf(Al , P, URI)):- rdf_has(Al, align:map,    URI, P).
+
+opm_context_triple(URI, Triple) :-
 	up(URI, URI, Triples, [URI], 3),
 	member(Triple, Triples).
-context_triple(URI, Triple) :-
+opm_context_triple(URI, Triple) :-
 	down(URI, URI, Triples, [URI], 2),
 	member(Triple, Triples).
 
-context_triple(URI, rdf(URI, rdf:type, Class)) :-
-	rdf(URI, rdf:type, Class),
+opm_context_triple(URI, rdf(URI, P, Class)) :-
+	rdf_has(URI, rdf:type, Class, P),
 	rdf_global_id(amalgame:_, Class).
 
 up(Orig,URI, [rdf(URI, P, Parent)|T], Visited, MaxD) :-
