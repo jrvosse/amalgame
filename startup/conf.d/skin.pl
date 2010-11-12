@@ -44,7 +44,7 @@ cliopatria:display_link(Cell, _Options) -->
 	},
 	html(a([class(r_def), href(HREF)], ['Map: ', \turtle_label(Cell)])).
 
-cliopatria:display_label_hook(Cell, _Lang, Label) :-
+rdf_label:display_label_hook(Cell, _Lang, Label) :-
 	rdfs_individual_of(Cell, align:'Cell'),
 	atom_concat('Map: ', Cell, Label).
 
