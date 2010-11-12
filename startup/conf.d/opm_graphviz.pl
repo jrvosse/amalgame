@@ -38,6 +38,19 @@ cell_context_triple(URI, rdf(URI, P, E1)):- rdf_has(URI, align:entity1, E1, P).
 cell_context_triple(URI, rdf(URI, P, E1)):- rdf_has(URI, align:entity2, E1, P).
 cell_context_triple(URI, rdf(URI, P, E1)):- rdf_has(URI, align:relation, E1, P).
 cell_context_triple(URI, rdf(Al , P, URI)):- rdf_has(Al, align:map,    URI, P).
+cell_context_triple(URI, rdf(Other, P, E)):- other(URI, rdf(Other, P, E)).
+cell_context_triple(URI, rdf(Other, P, R)) :-
+	other(URI, rdf(Other, _, _)),
+	rdf_has(Other, align:relation, R, P).
+
+other(URI, rdf(Other, P, E1)):-
+	rdf_has(URI, align:entity1, E1),
+	rdf_has(Other, align:entity1, E1, P),
+	Other \= URI.
+other(URI, rdf(Other, P, E2)):-
+	rdf_has(URI, align:entity2, E2),
+	rdf_has(Other, align:entity2, E2, P),
+	Other \= URI.
 
 opm_context_triple(URI, Triple) :-
 	up(URI, URI, Triples, [URI], 3),
