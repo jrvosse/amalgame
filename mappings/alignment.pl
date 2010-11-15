@@ -203,6 +203,7 @@ count_alignment(Graph, Format, Count) :-
 
 find_source(Graph, edoal, Source) :-
 	rdf(_, align:onto1, Source, Graph),
+	rdf_is_resource(Source),
 	!.
 
 find_source(Graph, Format, Source) :-
@@ -213,8 +214,9 @@ find_source(Graph, Format, Source) :-
 	).
 find_source(_, _, null).
 
-find_target(Graph, edoal, Source) :-
-	rdf(_, align:onto2, Source, Graph),
+find_target(Graph, edoal, Target) :-
+	rdf(_, align:onto2, Target, Graph),
+	rdf_is_resource(Target).
 	!.
 
 find_target(Graph, Format, Target) :-
