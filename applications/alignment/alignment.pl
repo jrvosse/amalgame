@@ -59,7 +59,9 @@ http_align_vocs(Request) :-
 			 graph(Graph, [description('URI of named graph containing alignment')]),
 			 case_sensitive(CaseSensitive, [boolean, description('Matching type')]),
 			 sourcelabel(SourceLabel, [oneof([any, pref, alt])]),
-			 targetlabel(TargetLabel, [oneof([any, pref, alt])])
+			 targetlabel(TargetLabel, [oneof([any, pref, alt])]),
+			 label_lang(Language, [oneof([any, en])]) % VIC: language
+
 			]),
 	(   rdf_graph(Graph)
 	->  rdf_unload(Graph)
@@ -68,12 +70,14 @@ http_align_vocs(Request) :-
 	rdf_retractall(Graph,_,_,amalgame),
 	match_label_prop(SourceLabel, SourceLabelProp),
 	match_label_prop(TargetLabel, TargetLabelProp),
+        (   Language == any	->  Lang = []	;   Lang = [language(Language)]	), % VIC: language
 	align(Source, Target,
 	      [graph(Graph),
 	       request(Request),
 	       case_sensitive(CaseSensitive),
 	       sourcelabel(SourceLabelProp),
 	       targetlabel(TargetLabelProp)
+	      |Lang
 	      ]),
 	voc_clear_stats(amalgame_vocs),
 	align_ensure_stats(all(Graph)),
@@ -128,7 +132,15 @@ li_align(Source, Target) -->
 					      option([value(pref)], 'Preferred labels only'),
 					      option([value(alt)], 'Alternative labels only')
 					     ])
+				    ]),
+			       li([],[ ' matching label language: ',
+				      select([name(label_lang)],
+					     [
+					      option([value(any), selected(selected)], 'all labels'),
+					      option([value(en)], 'English only')
+					     ])
 				    ])
+
 			     ])
 		      ]
 		     )
