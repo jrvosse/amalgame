@@ -57,25 +57,17 @@ cliopatria:redirect_uri(html, URI, SeeOther) :-
 cliopatria:redirect_uri(html, URI, SeeOther) :-
 	rdf(URI, 'http://purl.org/collections/bibliopolis/landingPage', SeeOther),!.
 
-cliopatria:redirect_uri(html, URI, SeeOther) :-
-	rdf(URI,
-	    'http://www.w3.org/2006/03/wn/wn20/schema/senseLabel',
-	    literal(lang(_, SL))),
-        sub_atom(URI,_,1,0,IndexAtom),
-        atom_number(IndexAtom, IndexOffByOne),
-        Index is IndexOffByOne - 1,
-        Base='http://wordnetweb.princeton.edu/perl/webwn?s=~w&i=~w',
-        sformat(SeeOther, Base, [SL,Index]).
-
 % Redirect HTML requests for wordnet to Princeton
 cliopatria:redirect_uri(html, URI, SeeOther) :-
 	rdf(URI,
 	    'http://www.w3.org/2006/03/wn/wn20/schema/senseLabel',
 	    literal(lang(_, SL))),
         sub_atom(URI,_,1,0,IndexAtom),
-        atom_number(IndexAtom, IndexOffByOne),
-        Index is IndexOffByOne - 1,
-        Base='http://wordnetweb.princeton.edu/perl/webwn?s=~w&i=~w',
+        (   atom_number(IndexAtom, IndexOffByOne)
+	->  Index is IndexOffByOne - 1,
+	    Base='http://wordnetweb.princeton.edu/perl/webwn?s=~w&i=~w'
+	;   fail
+	),
         sformat(SeeOther, Base, [SL,Index]),
 	!.
 
