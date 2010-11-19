@@ -58,8 +58,8 @@ http_align_vocs(Request) :-
 			 target(Target,[description('URI of target ConceptScheme')]),
 			 graph(Graph, [description('URI of named graph containing alignment')]),
 			 case_sensitive(CaseSensitive, [boolean, description('Matching type')]),
-			 sourcelabel(SourceLabel, [oneof([any, pref, alt])]),
-			 targetlabel(TargetLabel, [oneof([any, pref, alt])])
+			 sourcelabel(SourceLabel, [oneof([any, pref, alt, def])]),
+			 targetlabel(TargetLabel, [oneof([any, pref, alt, def])])
 			]),
 	(   rdf_graph(Graph)
 	->  rdf_unload(Graph)
@@ -84,7 +84,8 @@ http_align_vocs(Request) :-
 
 match_label_prop(any,  P) :- rdf_equal(rdfs:label, P).
 match_label_prop(pref, P) :- rdf_equal(skos:prefLabel, P).
-match_label_prop(alt,  P) :- rdf_equal(skos:alyLabel, P).
+match_label_prop(alt,  P) :- rdf_equal(skos:altLabel, P).
+match_label_prop(def,  P) :- rdf_equal(skos:definition, P).
 
 li_align(Source, Target) -->
 	{
@@ -116,17 +117,20 @@ li_align(Source, Target) -->
 			      li([],[ ' matching source label type: ',
 				      select([name(sourcelabel)],
 					     [
-					      option([value(any), selected(selected)], 'all labels'),
+					      option([value(any), selected(selected)], 'Alt & pref labels'),
 					      option([value(pref)], 'Preferred labels only'),
-					      option([value(alt)], 'Alternative labels only')
+					      option([value(alt)], 'Alternative labels only'),
+					      option([value(def)], 'Definitions only')
 					     ])
 				    ]),
 			      li([],[ ' matching target label type: ',
 				      select([name(targetlabel)],
 					     [
-					      option([value(any), selected(selected)], 'all labels'),
+					      option([value(any), selected(selected)], 'Alt & pref labels'),
 					      option([value(pref)], 'Preferred labels only'),
-					      option([value(alt)], 'Alternative labels only')
+					      option([value(alt)], 'Alternative labels only'),
+					      option([value(def)], 'Definitions only')
+
 					     ])
 				    ])
 			     ])
