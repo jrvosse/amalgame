@@ -62,7 +62,8 @@ cliopatria:redirect_uri(html, URI, SeeOther) :-
 	rdf(URI,
 	    'http://www.w3.org/2006/03/wn/wn20/schema/senseLabel',
 	    literal(lang(_, SL))),
-	atomic_list_concat(TokenList, -, SL),
+
+	atomic_list_concat(TokenList, -, URI),
 	last(TokenList, IndexAtom),
 	term_to_atom(IndexTerm, IndexAtom),
         (   number(IndexTerm)
