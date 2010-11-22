@@ -16,7 +16,7 @@ pages and services.
 :- use_module(user(user_db)).
 :- use_module(components(messages)).
 
-:- use_module(amalgame(skos/vocabularies)).
+:- use_module(library(skos/vocabularies)).
 :- use_module(applications(alignment/alignment)).
 
 :- use_module(components).

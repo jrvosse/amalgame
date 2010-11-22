@@ -17,13 +17,13 @@ pages and services.
 :- use_module(user(user_db)).
 :- use_module(components(messages)).
 
-:- use_module(amalgame(skos/vocabularies)).
+:- use_module(library(skos/vocabularies)).
 :- use_module(applications(vocabularies/components)).
 :- use_module(applications(align_stats)).
 
-:- use_module(amalgame(matchers/skosmatcher)).
-:- use_module(amalgame(mappings/alignment)).
-:- use_module(amalgame(mappings/opm)).
+:- use_module(amalgame_matchers(skosmatcher)).
+:- use_module(library(amalgame/alignment)).
+:- use_module(library(amalgame/opm)).
 
 :- http_handler(amalgame(align_form),       http_align_form,     []).
 :- http_handler(amalgame(align_vocs),       http_align_vocs,     []).

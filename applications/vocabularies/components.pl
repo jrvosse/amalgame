@@ -17,7 +17,7 @@
 :- use_module(applications(browse)).
 
 :- use_module(applications(alignment/alignment)).
-:- use_module(amalgame(skos/vocabularies)).
+:- use_module(library(skos/vocabularies)).
 
 
 %%	show_schemes// is det.
