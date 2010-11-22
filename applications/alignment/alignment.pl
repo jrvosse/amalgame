@@ -62,6 +62,7 @@ http_align_vocs(Request) :-
 			 targetlabel(TargetLabel, [oneof([any, pref, alt, def])]),
 			 label_lang(Language, [oneof([any, en])]) % VIC: language
 			]),
+	authorized(write(default, create(Graph))),
 	(   rdf_graph(Graph)
 	->  rdf_unload(Graph)
 	;   true
