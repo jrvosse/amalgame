@@ -414,6 +414,9 @@ show_graph(Graph) -->
 	},
 	html(a([href(VLink)],\turtle_label(Graph))).
 
+:- public
+	show_voc//1.
+
 show_voc(Graph) -->
 	{
 	 http_link_to_id(http_list_skos_voc, [voc(Graph)], VLink)
