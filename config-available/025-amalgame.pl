@@ -15,6 +15,12 @@ ag_load_schemas :-
 
 :- cp_after_load(ag_load_schemas).
 
+:- multifile user:file_search_path/2.
+
+user:file_search_path(amalgame_rankers,  cpacks('amalgame/rankers')).
+user:file_search_path(amalgame_matchers, cpacks('amalgame/matchers')).
+
+
 :- use_module([ applications(align_stats),
 		applications(alignment/alignment),
 		applications(vocabularies/vocabularies),
