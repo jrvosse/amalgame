@@ -35,7 +35,7 @@ justify1(Graph):-
 	justify_candidates(Graph, [justifiers([hiermatch/broad]),relationtype([skosClose,skosExact]),outputGraph(justoutput2),secondaryGraph(Graph)]).
 
 
-%%	 justify_candidates(+Graph, +Options) is det (i hope).
+%%	 justify_candidates(+Graph, +Options) is det.
 %
 %	This takes as input the input graph for which justifications are
 %	to be identified. Options include
