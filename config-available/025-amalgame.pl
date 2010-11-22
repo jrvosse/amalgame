@@ -1,5 +1,4 @@
 :- module(conf_amalgame, []).
-:- module(amalgame, []).
 :- use_module(cliopatria(cliopatria)).	% cp_after_load/1.
 :- use_module(library(semweb/rdf_library)).
 
@@ -16,8 +15,7 @@ ag_load_schemas :-
 
 :- cp_after_load(ag_load_schemas).
 
-:- use_module([ amalgame(namespaces),
-		applications(align_stats),
+:- use_module([ applications(align_stats),
 		applications(alignment/alignment),
 		applications(vocabularies/vocabularies),
 		applications(concept_finder/concept_finder),

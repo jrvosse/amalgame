@@ -16,7 +16,7 @@
 :- use_module(components(graphviz)).
 :- use_module(applications(browse)).
 
-:- use_module(amalgame_apps(alignment/alignment)).
+:- use_module(applications(alignment/alignment)).
 :- use_module(amalgame(skos/vocabularies)).
 
 

@@ -18,8 +18,8 @@ pages and services.
 :- use_module(components(messages)).
 
 :- use_module(amalgame(skos/vocabularies)).
-:- use_module(amalgame_apps(vocabularies/components)).
-:- use_module(amalgame_apps(align_stats)).
+:- use_module(applications(vocabularies/components)).
+:- use_module(applications(align_stats)).
 
 :- use_module(amalgame(matchers/skosmatcher)).
 :- use_module(amalgame(mappings/alignment)).

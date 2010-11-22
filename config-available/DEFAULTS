@@ -1,5 +1,5 @@
-config('020-amalgame', link).
-config('030-ag_prefixes', link).
+config('020-ag_prefixes', link).
+config('025-amalgame', link).
 config(ag_data, link).
 config(ag_home, link).
 config(ag_lod, link).

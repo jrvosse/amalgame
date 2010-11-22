@@ -18,7 +18,7 @@
 :- use_module(components(graphviz)).
 :- use_module(applications(browse)).
 
-:- use_module(amalgame_apps(vocabularies/vocabularies)).
+:- use_module(applications(vocabularies/vocabularies)).
 :- use_module(amalgame(compare/overlap)).
 :- use_module(amalgame(mappings/alignment)).
 :- use_module(amalgame(mappings/edoal)).

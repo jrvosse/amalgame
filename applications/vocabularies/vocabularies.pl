@@ -17,7 +17,7 @@ pages and services.
 :- use_module(components(messages)).
 
 :- use_module(amalgame(skos/vocabularies)).
-:- use_module(amalgame_apps(alignment/alignment)).
+:- use_module(applications(alignment/alignment)).
 
 :- use_module(components).
 
