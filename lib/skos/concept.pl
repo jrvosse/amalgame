@@ -2,7 +2,7 @@
 			    assert_concept_stats/2
 			   ]).
 :- use_module(library(semweb/rdf_db)).
-:- use_module(amalgame(mappings/map)).
+:- use_module(library(amalgame/map)).
 :- use_module(vocabularies).
 
 assert_concept_stats(Voc, Graph) :-

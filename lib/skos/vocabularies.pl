@@ -17,8 +17,8 @@
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(semweb/rdf_portray)).
 
-:- use_module(amalgame(mappings/map)).
-:- use_module(amalgame(mappings/opm)).
+:- use_module(library(amalgame/map)).
+:- use_module(library(amalgame/opm)).
 
 /** <module> Compute and store vocabulary-oriented statistics as RDF.
 
