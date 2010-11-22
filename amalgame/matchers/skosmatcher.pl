@@ -6,7 +6,7 @@
 :- use_module(library(count)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_portray)).
-:- use_module(amalgame(mappings/edoal)).
+:- use_module(library(mappings/edoal)).
 :- use_module(levenshtein).
 
 %%	skos_find_candidates(+C, +S, +Options, -Result) is semidet.
