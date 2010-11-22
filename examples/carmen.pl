@@ -10,6 +10,12 @@
 	  clean/0
 	 ]).
 
+:- prolog_load_context(directory, Dir),
+   asserta(user:file_search_path(carmenpath, Dir)).
+
+
+user:file_search_path(amalgame,     carmenpath('..')).
+
 %user:file_search_path(cliopatria, '../ClioPatria').
 
 :- use_module(library(semweb/rdf_db)).
@@ -141,7 +147,28 @@ prepare2b:-
 	      )
 		       ).
 
+%remove all non-english labels
+%
+prepare3:-
+	rdf_transaction(
+		       (
+			prepare3a,
+			prepare3b)
+		       ).
 
+prepare3a:-
+	rdf(A,skos:prefLabel,Lab),
+	not(Lab = literal(lang(en),_)),
+	rdf_retractall(A,skos:prefLabel,Lab),
+	fail;
+	true.
+
+prepare3b:-
+	rdf(A,skos:altLabel,Lab),
+	not(Lab = literal(lang(en),_)),
+	rdf_retractall(A,skos:altLabel,Lab),
+	fail;
+	true.
 
 
 
@@ -161,7 +188,7 @@ runmatcher1:-
 		   alignment(Graph),
 		   ontology1(Gemet),
 		   ontology2(Asfa),
-		   candidate_matchers([labelmatchLang])
+		   candidate_matchers([labelmatch])
 			  ],
 	find_candidates1(Options).
 
@@ -180,6 +207,7 @@ find_candidates1(Options) :-
 	debug(align, 'Finding candidates mappings from scheme ~p~n', [gemet]),
 	forall(member(SourceConcept, SourceConcepts),
 	       rdf_transaction(skos_find_candidates(SourceConcept,
+						    Gemet,
 						    Asfa,
 						    Options))
 	      ).
@@ -202,7 +230,7 @@ runmatcher2:-
 		   alignment(Graph),
 		   ontology1(Agrovoc),
 		   ontology2(Asfa),
-		   candidate_matchers([labelmatchLang])
+		   candidate_matchers([labelmatch])
 			  ],
 	find_candidates2(Options).
 
@@ -221,6 +249,7 @@ find_candidates2(Options) :-
 	debug(align, 'Finding candidates mappings from scheme ~p~n', [gemet]),
 	forall(member(SourceConcept, SourceConcepts),
 	       rdf_transaction(skos_find_candidates(SourceConcept,
+						    Agrovoc,
 						    Asfa,
 						    Options))
 	      ).
@@ -264,7 +293,7 @@ runmatcher3Langs([CurLang|Tail]):-
 		   alignment(Graph),
 		   ontology1(Agrovoc),
 		   ontology2(Gemet),
-		   candidate_matchers([labelmatchLang])
+		   candidate_matchers([labelmatch])
 			  ],
 	find_candidates3(Options),
 	runmatcher3Langs(Tail).
@@ -285,7 +314,7 @@ runmatcher3EN:-
 		   alignment(Graph),
 		   ontology1(Agrovoc),
 		   ontology2(Gemet),
-		   candidate_matchers([labelmatchLang])
+		   candidate_matchers([labelmatch])
 			  ],
 	find_candidates3(Options).
 
@@ -306,7 +335,7 @@ runmatcher3ES:-
 		   alignment(Graph),
 		   ontology1(Agrovoc),
 		   ontology2(Gemet),
-		   candidate_matchers([labelmatchLang])
+		   candidate_matchers([labelmatch])
 			  ],
 	find_candidates3(Options).
 
@@ -325,6 +354,7 @@ find_candidates3(Options) :-
 	debug(align, 'Finding alignments from Agrovoc to Gemet', []),
 	forall(member(SourceConcept, SourceConcepts),
 	       rdf_transaction(skos_find_candidates(SourceConcept,
+						    Agrovoc,
 						    Gemet,
 						    Options))
 	      ).
@@ -387,3 +417,42 @@ mmcarmen('RT', '1665','climate','climate').
 mmcarmen('BT', '925','biology','biology').
 mmcarmen('BT', '2593','environment','ENVIRONMENT (natural environment, anthropic environment)').
 % mmcarmen('RT', '8309','water','water').
+
+
+
+% ------------------------------
+% Some more SKOS statistics
+% ------------------------------
+
+
+% max depth of a skos tree (no loop detection)
+maxdepth(VOC,MaxDepth):-
+	voc(VOC,V1),
+	findall(Depth,
+		(
+		    rdf(Concept,skos:inScheme,V1),
+		    not(rdf(Concept,skos:narrower,_)),
+		    depth(Concept,Depth)
+		),
+		Depths),
+	sort(Depths,Sort),
+	reverse(Sort,[MaxDepth|_]).
+
+% average depth of a skos tree (no loop detection)
+avgdepth(VOC,AvgDepth):-
+	voc(VOC,V1),
+	findall(Depth,
+		(   rdf(Concept,skos:inScheme,V1),
+		    depth(Concept,Depth)
+		),
+		Depths),
+	sumlist(Depths,Sum),
+	length(Depths,Len),
+	AvgDepth is Sum / Len.
+
+depth(C1,CD):-
+	rdf(C1,skos:broader,B1),
+	depth(B1,BD),
+	CD is BD +1.
+depth(C1,1):-
+	not(rdf(C1,skos:broader,_)),!.
