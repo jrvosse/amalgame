@@ -1,8 +1,9 @@
+config('020-amalgame', link).
+config('030-ag_prefixes', link).
 config(ag_data, link).
 config(ag_home, link).
 config(ag_lod, link).
 config(ag_menu, link).
 config(ag_preferences, link).
 config(ag_skin, link).
-config('020-amalgame', link).
 config(opm_graphviz, link).
