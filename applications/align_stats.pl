@@ -19,11 +19,11 @@
 :- use_module(applications(browse)).
 
 :- use_module(applications(vocabularies/vocabularies)).
-:- use_module(amalgame(compare/overlap)).
-:- use_module(amalgame(mappings/alignment)).
-:- use_module(amalgame(mappings/edoal)).
-:- use_module(amalgame(mappings/map)).
-:- use_module(amalgame(mappings/opm)).
+:- use_module(library(amalgame/overlap)).
+:- use_module(library(amalgame/alignment)).
+:- use_module(library(amalgame/edoal)).
+:- use_module(library(amalgame/map)).
+:- use_module(library(amalgame/opm)).
 
 :- http_handler(amalgame(clear_alignments),   http_delete_alignment_graphs, []).
 :- http_handler(amalgame(clear_alignstats),   http_clear_alignstats,    []).
