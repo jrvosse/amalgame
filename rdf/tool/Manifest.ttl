@@ -1,4 +1,3 @@
-@prefix  clbase:  <../ClioPatria/ontologies/base/> .
 @prefix	   align: <http://knowledgeweb.semanticweb.org/heterogeneity/alignment#> .
 @prefix amalgame: <http://purl.org/vocabularies/amalgame#> .
 @prefix      lib: <http://www.swi-prolog.org/rdf/library/> .
@@ -44,9 +43,6 @@
 	dcterms:title "Schema for the Amalgame RDF vocabulary"@en ;
 	lib:source amalgame: ;
 	owl:imports
-		clbase:skos ,
 		<opmvc> ,
 		<alignmentschema> ,
 		<amalgame.ttl> .
-
-

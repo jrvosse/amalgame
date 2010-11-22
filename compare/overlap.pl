@@ -25,7 +25,6 @@ matchers. It assumes matchers assert mappings in different name graphs.
 :- use_module(amalgame(mappings/alignment)).
 :- use_module(amalgame(mappings/edoal)).
 :- use_module(amalgame(mappings/opm)).
-:- use_module(amalgame(namespaces)).
 
 :- setting(overlaps_persistent, boolean, false, 'Set to true if you want overlaps to survive server restarts').
 

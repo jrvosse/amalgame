@@ -29,7 +29,7 @@
 show_schemes -->
 	{
 	 \+  rdf_has(_Voc, skos:inScheme, _Scheme),!,
-	 http_link_to_id(load_library_ontology_form, [], LoadLink)
+	 http_link_to_id(load_library_rdf_form, [], LoadLink)
 	},
 	html(p([class('error novocs')],
 		 ['Warning: No SKOS concept schemes have been ',

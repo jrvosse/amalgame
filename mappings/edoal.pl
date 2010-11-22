@@ -23,7 +23,6 @@ http://alignapi.gforge.inria.fr/edoal.html
 
 :- use_module(user(user_db)).
 
-:- use_module(amalgame(namespaces)).
 :- use_module(map).
 :- use_module(opm).
 
