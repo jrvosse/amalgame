@@ -1,4 +1,4 @@
-:- module(conf_lod, []).
+:- module(conf_ag_lod, []).
 
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(semweb/rdf_db)).

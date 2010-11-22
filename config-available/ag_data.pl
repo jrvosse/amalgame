@@ -1,4 +1,4 @@
-:- module(conf_econnect_data, []).
+:- module(conf_ag_data, []).
 
 /** <module> Locate the Econnect vocabularies and metadata
 */
