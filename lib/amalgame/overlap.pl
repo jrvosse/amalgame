@@ -21,10 +21,10 @@ matchers. It assumes matchers assert mappings in different name graphs.
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_persistency)).
 
-:- use_module(amalgame(mappings/map)).
-:- use_module(amalgame(mappings/alignment)).
-:- use_module(amalgame(mappings/edoal)).
-:- use_module(amalgame(mappings/opm)).
+:- use_module(library(amalgame/map)).
+:- use_module(library(amalgame/alignment)).
+:- use_module(library(amalgame/edoal)).
+:- use_module(library(amalgame/opm)).
 
 :- setting(overlaps_persistent, boolean, false, 'Set to true if you want overlaps to survive server restarts').
 

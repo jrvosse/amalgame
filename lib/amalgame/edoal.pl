@@ -19,7 +19,6 @@ http://alignapi.gforge.inria.fr/edoal.html
 :- use_module(library(http/http_host)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
-:- use_module(library(version)).
 
 :- use_module(user(user_db)).
 
