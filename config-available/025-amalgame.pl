@@ -11,7 +11,9 @@ http:location(amalgame, cliopatria(amalgame), []).
 
 ag_load_schemas :-
 	rdf_attach_library(amalgame(rdf)),
-	rdf_load_library('Amalgame').
+	rdf_attach_library(cliopatria(rdf)),
+	rdf_load_library('Amalgame'),
+	rdf_load_library('skos').
 
 :- cp_after_load(ag_load_schemas).
 
