@@ -5,7 +5,7 @@
 	 ).
 
 :- use_module(library(semweb/rdf_db)).
-:- use_module(lib(mappings/edoal).
+:- use_module(library(amalgame/edoal).
 
 % Assert the intersection of two edoal graphs as a new graph
 combine_alignment(Graph1, Graph2, union, _Options, ResultGraph):-
