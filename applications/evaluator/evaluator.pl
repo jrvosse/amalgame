@@ -22,16 +22,19 @@
 :- use_module(components(label)).
 :- use_module(user(user_db)).
 
-:- use_module(amalgame(skos/vocabularies)).
-:- use_module(amalgame(mappings/alignment)).
-:- use_module(amalgame(mappings/map)).
-:- use_module(amalgame(mappings/edoal)).
-:- use_module(amalgame(mappings/opm)).
+:- use_module(library(skos/vocabularies)).
+:- use_module(library(amalgame/alignment)).
+:- use_module(library(amalgame/map)).
+:- use_module(library(amalgame/edoal)).
+:- use_module(library(amalgame/opm)).
 
 :- use_module(library(json_graph)).
 
-:- setting(evaluator:maxMappings, nonneg, 1000, 'Max number of mappings per mapping file to put in the todo list of the mapping evaluator').
-:- setting(evaluator:authorization, oneof([required, optional]), required, 'Login required to evaluate or not').
+:- setting(evaluator:maxMappings, nonneg, 1000,
+	   'Max number of mappings per mapping file to put in the \
+	   todo list of the mapping evaluator').
+:- setting(evaluator:authorization, oneof([required, optional]), required,
+	   'Login required to evaluate or not').
 
 % add local web directories from which static files are served.
 
