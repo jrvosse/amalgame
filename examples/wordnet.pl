@@ -9,9 +9,9 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_persistency)).
-:- use_module(amalgame(matchers/skosmatcher)).
-:- use_module(amalgame(rankers/skosranker)).
-:- use_module(amalgame(mappings/edoal)).
+:- use_module(amalgame_matchers(skosmatcher)).
+:- use_module(amalgame_rankers(skosranker)).
+:- use_module(library(amalgame/edoal)).
 
 wn20schema('http://www.w3.org/2006/03/wn/wn20/schema/').
 wn20('http://www.w3.org/2006/03/wn/wn20/').
