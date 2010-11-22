@@ -216,7 +216,7 @@ find_source(_, _, null).
 
 find_target(Graph, edoal, Target) :-
 	rdf(_, align:onto2, Target, Graph),
-	rdf_is_resource(Target).
+	rdf_is_resource(Target),
 	!.
 
 find_target(Graph, Format, Target) :-
