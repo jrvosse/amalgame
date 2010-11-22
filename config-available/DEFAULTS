@@ -4,5 +4,5 @@ config(ag_lod, link).
 config(ag_menu, link).
 config(ag_preferences, link).
 config(ag_skin, link).
-config(amalgame, link).
+config('020-amalgame', link).
 config(opm_graphviz, link).
