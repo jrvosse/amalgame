@@ -17,7 +17,7 @@
 :- use_module(library(settings)).
 :- use_module(components(label)).
 
-:- use_module(amalgame(skos/vocabularies)).
+:- use_module(library(skos/vocabularies)).
 
 % add local web directories from which static files are served.
 
