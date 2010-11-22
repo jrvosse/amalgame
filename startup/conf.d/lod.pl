@@ -62,9 +62,11 @@ cliopatria:redirect_uri(html, URI, SeeOther) :-
 	rdf(URI,
 	    'http://www.w3.org/2006/03/wn/wn20/schema/senseLabel',
 	    literal(lang(_, SL))),
-        sub_atom(URI,_,1,0,IndexAtom),
-        (   atom_number(IndexAtom, IndexOffByOne)
-	->  Index is IndexOffByOne - 1,
+	atomic_list_concat(TokenList, -, SL),
+	last(TokenList, IndexAtom),
+	term_to_atom(IndexTerm, IndexAtom),
+        (   number(IndexTerm)
+	->  Index is IndexTerm - 1,
 	    Base='http://wordnetweb.princeton.edu/perl/webwn?s=~w&i=~w'
 	;   fail
 	),
