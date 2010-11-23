@@ -10,7 +10,7 @@
 
 :- use_module(library(semweb/rdf_zlib_plugin)).
 
-user:file_search_path(rdf, '../../demo/vocs').
-user:file_search_path(rdf, '../../demo/metadata').
+user:file_search_path(rdf, '../vocs').
+user:file_search_path(rdf, '../metadata').
 
 
