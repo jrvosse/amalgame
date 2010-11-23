@@ -1,5 +1,4 @@
 :- module(conf_amalgame, []).
-:- use_module(cliopatria(cliopatria)).	% cp_after_load/1.
 :- use_module(library(semweb/rdf_library)).
 :- use_module(config_available(skos)).
 
@@ -10,11 +9,8 @@
 
 http:location(amalgame, cliopatria(amalgame), []).
 
-ag_load_schemas :-
-	rdf_attach_library(amalgame(rdf)),
-	rdf_load_library('Amalgame').
-
-:- cp_after_load(ag_load_schemas).
+:- rdf_attach_library(amalgame(rdf)).
+:- rdf_load_library('Amalgame').
 
 :- use_module([ applications(align_stats),
 		applications(alignment/alignment),
