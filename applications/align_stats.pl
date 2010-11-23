@@ -359,7 +359,7 @@ show_alignment_overview(Graph) -->
 			       [ object_attributes([width('100%')]),
 				 wrap_url(cpa_browse:resource_link),
 				 graph_attributes([rankdir('RL'), fontsize('16.00'), fontname('Helvetica')]),
-				 shape_hook(cpa_browse:shape(Graph))
+				 shape_hook(cpa_browse:shape(Graph,[style(opm)]))
 			       ])
 		  ]),
 	      div([id(ag_graph_basic_actions)],
