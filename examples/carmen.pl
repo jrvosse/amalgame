@@ -22,7 +22,7 @@ user:file_search_path(amalgame,     carmenpath('..')).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_persistency)).
 :- use_module(library(amalgame/edoal)).
-:- use_module(amalgame_matchers(skosmatcher)).
+:- use_module(library(amalgame/matchers/skosmatcher)).
 
 :-
 
