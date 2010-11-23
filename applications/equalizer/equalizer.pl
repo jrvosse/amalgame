@@ -101,7 +101,7 @@ html_vocabularies(Vs) -->
 
 html_vocabulary_list([]) --> !.
 html_vocabulary_list([Voc-ConceptSchemes|Vs]) -->
-	{ concept_finder:display_label(Voc, Label)
+	{ rdf_display_label(Voc, Label)
 	},
 	html([h4(title(Voc), Label),
 	      ul(\html_concept_schemes(ConceptSchemes))
@@ -110,7 +110,7 @@ html_vocabulary_list([Voc-ConceptSchemes|Vs]) -->
 
 html_concept_schemes([]) --> !.
 html_concept_schemes([URI|Cs]) -->
-	{ concept_finder:display_label(URI, Label)
+	{ rdf_display_label(URI, Label)
 	},
 	html(li(title(URI), a(href('javascript:{}'), Label))),
 	html_concept_schemes(Cs).
