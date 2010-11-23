@@ -21,28 +21,15 @@ from the underlying formats.
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 
-:- dynamic
-	mapping_props/1,
-	mapping_relation/2.
+:- rdf_meta
+	mapping_props(t),
+	mapping_relation(+, r).
 
-init_mapping_props :-
-	P = [align:measure,
-	     align:relation,
-	     rdfs:comment,
-	     amalgame:method
-	    ],
-	rdf_global_term(P, Props),
-	retractall(mapping_props(_)),
-	assert(mapping_props(Props)).
+mapping_props([align:measure, align:relation, rdfs:comment, amalgame:method]).
 
-init_mapping_relation :-
-	retractall(mapping_relation(_,_)),
-	rdf_equal(skos:mappingRelation, SkosRelation), assert(mapping_relation(skos, SkosRelation)),
-	rdf_equal(dcterms:replaces, DcRelation),       assert(mapping_relation(dc, DcRelation)),
-	rdf_equal(owl:sameAs, OwlRelation),            assert(mapping_relation(owl, OwlRelation)).
-
-:- init_mapping_props.
-:- init_mapping_relation.
+mapping_relation(skos, skos:mappingRelation).
+mapping_relation(dc,   dcterms:replaces).
+mapping_relation(owl,  owl:sameAs).
 
 supported_map_relations(List) :-
 	findall(Relation,
@@ -103,10 +90,7 @@ has_map(Map, edoal, Graph) :-
 	has_edoal_map_(Map, _Cell, Graph).
 
 has_map([E1, E2], Format, Graph) :-
-	(   ground(Format), Format = edoal
-	->  fail
-	;   true
-	),
+	Format \== edoal,
 	mapping_relation(Format,MappingProp),
 	(   (ground(E1); ground(E2))
 	->  rdf_has(E1, MappingProp, E2, RealProp),
@@ -158,7 +142,7 @@ atom_to_skos_relation(literal('<'), R) :- rdf_equal(skos:narrowMatch, R),!.
 atom_to_skos_relation(literal(_), R) :- rdf_equal(skos:relatedMatch, R),!.
 atom_to_skos_relation(URL, URL) :- !.
 
-%%	message(+Term)// is det.
+%%	prolog:message(+Term)// is det.
 %
 %	Used to print various progress messages.
 %	Term = map(found, What, From, Number)).
