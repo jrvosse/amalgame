@@ -6,10 +6,10 @@ body {
 
 div.menu { position: fixed; }
 #search_form { position: fixed; right: 0.5em; }
-h1 { 
+h1 {
 	background-color: white; /* Override blue background of ClioPatria ... */
 	font-size: 1.2em;
-} 
+}
 
 div.component h1 { font-size: 1.1em }
 
@@ -30,10 +30,10 @@ div.ag_search {
 	padding: 5% 0% 5% 35%;
 }
 
-.zag_search #content { padding: 0% 0% 15% 24%; }
-.ag_search #content table  { margin: 0% 0% 5% 35%; }
-.ag_search #content p.error  { margin: 0% 0% 5% 35%; }
-.ag_search .logo { display: none }
+.zag_search .content { padding: 0% 0% 15% 24%; }
+.ag_search  .content table  { margin: 0% 0% 5% 35%; }
+.ag_search  .content p.error  { margin: 0% 0% 5% 35%; }
+.ag_search  .logo { display: none }
 
 .ag_search .ag_voc_actions { display: none }
 .ag_search table .example { display: none }
@@ -121,9 +121,9 @@ th, table.rdf_browse th {
 #ag_graph_info { clear: both; float: right; max-width: 35%; }
 #ag_graph_as_resource.component {
 	float: right;
-	clear: both; 
+	clear: both;
 	font-size: smaller;
-	max-width: 65%; 
+	max-width: 65%;
 }
 
 /* Created a fixed, small, abbreviated alignlist as a legend for overlap list: */
