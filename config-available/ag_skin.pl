@@ -17,9 +17,6 @@
 :- use_module(components(menu)).
 :- use_module(components(simple_search)).
 
-user:file_search_path(icons, amalgame('web/img')).
-user:file_search_path(css,   amalgame('web/css')).
-
 :- set_setting_default(graphviz:format, svg).
 
 :- html_resource(css('amalgame.css'),
@@ -48,19 +45,6 @@ rdf_label:display_label_hook(Cell, _Lang, Label) :-
 	rdfs_individual_of(Cell, align:'Cell'),
 	atom_concat('Map: ', Cell, Label).
 
-cliopatria:page_body(Body) -->
-	html_requires(css('amalgame.css')),
-	html(body(class('yui-skin-sam'),
-		  [ div(id(sidebar), \cp_menu),
-		    \simple_search_form,
-		    br(clear(all)),
-		    div(id(content), Body),
-		    br(clear(all)),
-		    div([id(address)],
-			 \(cliopatria:server_address)
-			)
-		  ])).
-
 cliopatria:server_address -->
 	html_requires(css('cliopatria.css')),
 	html([ 	\logo,
@@ -83,17 +67,17 @@ user:body(amalgame(search), Body) -->
 	{
 	 http_link_to_id(http_list_skos_vocs, [], BackOfficeLink)
 	},
-	html_requires(css('amalgame.css')),
-	html(body(class('yui-skin-sam ag_search'),
+	html_requires(cliopatria),
+	html(body(class(['yui-skin-sam', ag_search, cliopatria]),
 		  [
 		    div(class(ag_search),
 			[
 			 \simple_search_form,
-			 div(id(content), Body)
+			 div(class(content), Body)
 			]),
 			br(clear(all)),
-			div([id(address)],
-			 \(cliopatria:server_address)
+			div(class(footer),
+			    \(cliopatria:server_address)
 			),
 		        div([class(backoffice)],
 			    [a(href(BackOfficeLink), 'back office')
