@@ -17,9 +17,6 @@
 :- use_module(components(menu)).
 :- use_module(components(simple_search)).
 
-user:file_search_path(icons, amalgame('web/img')).
-user:file_search_path(css,   amalgame('web/css')).
-
 :- set_setting_default(graphviz:format, svg).
 
 :- html_resource(css('amalgame.css'),
