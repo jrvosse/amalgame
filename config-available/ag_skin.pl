@@ -45,13 +45,6 @@ rdf_label:display_label_hook(Cell, _Lang, Label) :-
 	rdfs_individual_of(Cell, align:'Cell'),
 	atom_concat('Map: ', Cell, Label).
 
-cliopatria:server_address -->
-	html_requires(css('cliopatria.css')),
-	html([ 	\logo,
-		\server_address(amalgame)
-	     ]).
-
-
 cliopatria:predicate_order(P, "zzz") :- rdf_equal(align:map, P).
 cliopatria:predicate_order(P, 400) :-
 	rdf_has(P, rdfs:isDefinedBy, 'http://purl.org/net/opmv/ns').
@@ -83,18 +76,3 @@ user:body(amalgame(search), Body) -->
 			    [a(href(BackOfficeLink), 'back office')
 			    ])
 		  ])).
-
-logo -->
-	{
-	 http_absolute_location(icons('econnect-banner.jpg'), LogoImg, [])
-	},
-	html(a([class(logo),
-		id(econnectlink),
-		target(new),
-		href('http://www.europeanaconnect.eu/')
-	       ],
-	       img([src(LogoImg),
-		    alt('EuropeanaConnect project logo')
-		   ],[])
-	      )
-	    ).
