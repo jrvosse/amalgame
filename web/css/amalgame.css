@@ -6,9 +6,12 @@ body {
 
 div.menu { position: fixed; }
 #search_form { position: fixed; right: 0.5em; }
-h1 {
-	background-color: white; /* Override blue background of ClioPatria ... */
+.content h1 {
 	font-size: 1.2em;
+}
+
+.content h1, .content h3, .content h4 {
+	background-color: white; /* Override blue background of ClioPatria ... */
 }
 
 div.component h1 { font-size: 1.1em }
