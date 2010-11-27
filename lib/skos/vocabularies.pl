@@ -143,7 +143,9 @@ count_concepts(Voc, Count) :-
 count_prefLabels(Voc, Count) :-
 	findall(Label,
 		(   rdf(Concept, skos:inScheme, Voc),
-		    rdf_has(Concept, skos:prefLabel, literal(Label))
+		    (	rdf_has(Concept, skos:prefLabel, literal(Label))
+		    ;	rdf_has(Concept, skosxl:prefLabel, Label)
+		    )
 		),
 		Labels),
 	length(Labels, Count),
@@ -152,7 +154,9 @@ count_prefLabels(Voc, Count) :-
 count_altLabels(Voc, Count) :-
 	findall(Label,
 		(   rdf(Concept, skos:inScheme, Voc),
-		    rdf_has(Concept, skos:altLabel, literal(Label))
+		    (	rdf_has(Concept, skos:altLabel, literal(Label))
+		    ;	rdf_has(Concept, skosxl:altLabel, Label)
+		    )
 		),
 		Labels),
 	length(Labels, Count),
