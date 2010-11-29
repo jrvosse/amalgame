@@ -23,26 +23,11 @@
 		# <align.rdfs> .
 		<align.owl> .
 
-<opmv>
-	a lib:Ontology ;
-	a lib:Virtual ;
-	dcterms:title "Schema for the open provenance model vocabulary "@en ;
-	lib:source <http://open-biomed.sourceforge.net/opmv/opmv.owl> ;
-	owl:imports <opmv.ttl> .
-
-<opmvc>
-	a lib:Ontology ;
-	a lib:Virtual ;
-	dcterms:title "Schema for the common extensions to the open provenance model vocabulary "@en ;
-	lib:source <http://opmv.googlecode.com/svn/trunk/schema/types/common.rdf> ;
-	owl:imports <opmv>, <opmvc.rdf> .
-
-<Amalgame>
+<amalgame>
 	a lib:Ontology ;
 	a lib:Virtual ;
 	dcterms:title "Schema for the Amalgame RDF vocabulary"@en ;
 	lib:source amalgame: ;
 	owl:imports
-		<opmvc> ,
 		<alignmentschema> ,
 		<amalgame.ttl> .
