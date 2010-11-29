@@ -12,6 +12,7 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(version)).
+:- use_module(library(opmv_schema)).
 :- use_module(user(user_db)).
 
 %%     opm_was_generated_by(+Process, +Artifact, +Graph, +Options) is
