@@ -10,7 +10,7 @@
 http:location(amalgame, cliopatria(amalgame), []).
 
 :- rdf_attach_library(amalgame(rdf)).
-:- rdf_load_library('Amalgame').
+:- rdf_load_library(amalgame).
 
 :- use_module([ applications(align_stats),
 		applications(alignment/alignment),
