@@ -8,9 +8,6 @@
 
 % Namespaces from third parties we use/reuse:
 :- rdf_register_ns(align, 'http://knowledgeweb.semanticweb.org/heterogeneity/alignment#').
-:- rdf_register_ns(opmv,  'http://purl.org/net/opmv/ns#').
-:- rdf_register_ns(opmvc, 'http://purl.org/net/opmv/types/common#').
-
 :- rdf_register_ns(time, 'http://www.w3.org/2006/time#').
 :- rdf_register_ns(void, 'http://rdfs.org/ns/void#').
 
