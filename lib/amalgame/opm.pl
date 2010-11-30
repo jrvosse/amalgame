@@ -1,5 +1,6 @@
 :-module(ag_opm, [
-		  opm_was_generated_by/4       % +Process (cause), +Artifact (effect), +RDFGraph, +Options
+		  opm_was_generated_by/4,       % +Process (cause), +Artifact (effect), +RDFGraph, +Options
+		  opm_include_dependency/1
 		 ]).
 
 /* <module> OPM -- simple support for the OPM Provenance Model (OPM)
@@ -15,6 +16,50 @@
 :- use_module(library(opmv_schema)).
 :- use_module(library(opmvc_schema)).
 :- use_module(user(user_db)).
+
+opm_include_dependency(Graph) :-
+	opm_include_dependency([Graph], [], DepList),
+	expand_deplist(DepList, [], Results),
+	rdf_assert_list(Results, Graph).
+
+rdf_assert_list([], _).
+rdf_assert_list([rdf(S,P,O)|T], Graph) :-
+	rdf_assert(S,P,O,Graph),
+	rdf_assert_list(T, Graph).
+
+opm_include_dependency([], Results, Results).
+
+opm_include_dependency([H|T], Accum, Results) :-
+	opm_include_dependency(T, Accum, TailResults),
+	findall(Dep, dependent(H, Dep),Deps),
+	opm_include_dependency(Deps, [H], HeadResults),
+	append(TailResults, HeadResults, Results).
+
+dependent(S, Dep) :- rdf(S, opmv:wasDerivedFrom, Dep).
+dependent(S, Dep) :- rdf(S, opmv:wasGeneratedBy, Dep).
+dependent(S, Dep) :-
+	rdfs_individual_of(S, opmv:'Process'),
+	rdf(S,_,Dep),
+	rdf_is_bnode(Dep).
+
+expand_deplist([], Results, Results).
+expand_deplist([H|T], Accum, Results) :-
+	findall(Triple, opm_triple(H,Triple), Triples),
+	append(Triples, Accum, NewAccum),
+	expand_deplist(T, NewAccum, Results).
+
+:- rdf_meta
+	opm_triple(r, t).
+
+opm_triple(S, rdf(S, opmv:wasDerivedFrom,O)) :- rdf(S, opmv:wasDerivedFrom, O).
+opm_triple(S, rdf(S, opmv:wasGeneratedBy,O)) :- rdf(S, opmv:wasGeneratedBy, O).
+opm_triple(S, rdf(S,P,O)) :-
+	rdfs_individual_of(S, opmv:'Process'),
+	rdf(S,P,O).
+opm_triple(S, rdf(S,P,O)) :-
+	rdf_is_bnode(S),
+	(   rdfs_individual_of(S, align:'Cell') -> gtrace; true),
+	rdf(S,P,O).
 
 %%     opm_was_generated_by(+Process, +Artifact, +Graph, +Options) is
 %%     det.
