@@ -36,6 +36,7 @@
 :- http_handler(amalgame(skos_export),        http_skos_export,         []).
 :- http_handler(amalgame(sample_alignment),   http_sample_alignment,	[]).
 :- http_handler(amalgame(select_from_graph),  http_select_from_graph,	[]).
+:- http_handler(amalgame(include_opm),	      http_include_opm_graph,   []).
 
 
 %%	http_list_alignments(+Request) is det.
@@ -100,6 +101,15 @@ http_compute_overlaps(_Request) :-
 					   'See ', a([href(Link)],['overlap overview']),
 					   ' to inspect results.']))
 			      ]).
+
+
+http_include_opm_graph(Request) :-
+	http_parameters(Request, [graph(Graph, []), target(Target, [])]),
+	opm_include_dependency(Graph, Target),
+	reply_html_page(cliopatria(default),
+			title('Amalgame: alignment manipulation'),
+			\show_alignment_overview(Target)
+		       ).
 
 
 http_compute_stats(Request) :-
@@ -363,9 +373,10 @@ show_alignment_overview(Graph) -->
 			       ])
 		  ]),
 	      div([id(ag_graph_basic_actions)],
-		   [
-		    'Basic actions: ',
-		    \graph_actions(Graph)
+		  [
+		   'Basic actions: ',
+		   ul([id(alignoperations)],[ \li_opm_inclusion(Graph)]),
+		   \graph_actions(Graph)
 		   ]),
 	      p('Create a new graph from this one: '),
 	      ul([id(alignoperations)],
@@ -781,3 +792,27 @@ li_select_unique_labels(Graph) -->
 		    )
 	       )
 	    ).
+
+
+li_opm_inclusion(Graph) -->
+	{
+	 http_link_to_id(http_include_opm_graph, [], OpmLink)
+	},
+	html(li(form([action(OpmLink)],
+		     [
+		      input([type(hidden), name(graph), value(Graph)],[]),
+		      input([type(submit), class(submit), value('Include')],[]),
+		      ' OPM dependecies into graph: ',
+		      input([type(text), class(target),
+			      name(target), value(Graph),
+			     size(10)],[])
+		     ]
+		    )
+	       )
+	    ).
+
+
+
+
+
+

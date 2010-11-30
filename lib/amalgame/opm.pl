@@ -1,6 +1,6 @@
 :-module(ag_opm, [
 		  opm_was_generated_by/4,       % +Process (cause), +Artifact (effect), +RDFGraph, +Options
-		  opm_include_dependency/1
+		  opm_include_dependency/2
 		 ]).
 
 /* <module> OPM -- simple support for the OPM Provenance Model (OPM)
@@ -17,10 +17,10 @@
 :- use_module(library(opmvc_schema)).
 :- use_module(user(user_db)).
 
-opm_include_dependency(Graph) :-
+opm_include_dependency(Graph, Target) :-
 	opm_include_dependency([Graph], [], DepList),
 	expand_deplist(DepList, [], Results),
-	rdf_assert_list(Results, Graph).
+	rdf_assert_list(Results, Target).
 
 rdf_assert_list([], _).
 rdf_assert_list([rdf(S,P,O)|T], Graph) :-
