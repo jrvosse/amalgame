@@ -40,7 +40,8 @@ show_schemes -->
 
 show_schemes -->
 	{
-	 findall(Voc, rdfs_individual_of(Voc, skos:'ConceptScheme'), SchemesDoubles),
+	 voc_ensure_stats(found),
+	 findall(Voc, is_vocabulary(Voc, _Format), SchemesDoubles),
 	 sort(SchemesDoubles, Schemes),
 	 http_link_to_id(http_clear_voc_stats, [], CacheLink),
 	 http_link_to_id(http_compute_voc_stats, [voc(all)], ComputeLink)
@@ -110,7 +111,7 @@ show_schemes([], _, [C, P, A, M , U]) -->
 		])).
 show_schemes([Voc|Tail], Nr, [C,P,A,M,U]) -->
 	{
-	 \+ rdf_has(_Concept, skos:inScheme, Voc),
+	 \+ has_concept(_Concept, _Format, Voc),
 	 rdf_retractall(Voc, _, _, amalgame),
 	 rdf_retractall(Voc, _, _, amalgame_vocs)
 	},

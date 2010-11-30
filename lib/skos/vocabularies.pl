@@ -1,5 +1,8 @@
 :- module(am_skosvocs,
           [
+	   is_vocabulary/2,
+	   has_concept/3,
+	   voc_ensure_stats/1,
 	   skos_label/2,
 	   skos_label/3,
 	   topconcepts/2,
@@ -38,6 +41,39 @@ See also http_clear_cache/1.
 @author Jacco van Ossenbruggen
 */
 
+is_vocabulary(Voc, Format):-
+        ground(Voc),!,
+        voc_format(Voc, Format).
+is_vocabulary(Voc, Format) :-
+	var(Voc),
+	rdf(Voc, amalgame:vocformat, literal(Format), amalgame_vocs).
+
+voc_format(Voc, Format) :-
+        rdf(Voc, amalgame:vocformat, literal(Format), amalgame_vocs), !.
+voc_format(Voc, Format) :-
+	rdfs_individual_of(Voc, skos:'ConceptScheme'),
+	rdf_has(Concept, skos:inScheme, Voc),
+	(   rdf_has(Concept, skosxl:prefLabel, _)
+	->  Format = skosxl
+	;   rdf_has(Concept, skos:prefLabel, _)
+	->  Format = skos
+	;   Format = null
+	),
+	!.
+% voc_format(Voc, owl) :- rdfs_individual_of(Voc, owl:'Ontology'), !.
+
+has_concept(Concept, Format, Voc) :-
+	(   Format = skos
+	;   Format = skosxl
+	),
+	voc_format(Voc, Format),
+	rdf_has(Concept, skos:inScheme, Voc).
+
+has_concept(Concept, owl, Voc) :-
+	voc_format(Voc, owl),
+	rdf(Voc, rdf:type, owl:'Ontology', Graph:_),
+	rdf(Concept, rdf:type, owl:'Class', Graph).
+
 %%	voc_get_computed_props(+Voc, -Props) is det.
 %
 %	Collect all amalgame properties Props of Voc that have been
@@ -73,11 +109,25 @@ voc_delete_derived :-
 %	Ensures that the statistical properties of Type are asserted in
 %	the amalgame graph.
 
-voc_ensure_stats(all) :-
-	findall(V, rdfs_individual_of(V, skos:'ConceptScheme'), Vocs),!,
-	length(Vocs, N),
-	print_message(informational, map(found, 'SKOS vocabularies (ConceptSchemes)', repository, N)),
+voc_ensure_stats(found) :-
+        findall(Voc,
+		(   rdfs_individual_of(Voc, skos:'ConceptScheme')
+		),
+		Vocs
+	       ),
+	forall(member(Voc, Vocs),
+	       (
+	       voc_format(Voc, Format),
+	       rdf_assert(Voc, amalgame:vocformat, literal(Format), amalgame_vocs)
+	       )
+	      ).
 
+voc_ensure_stats(all) :-
+	voc_ensure_stats(found),
+	findall(V, is_vocabulary(V, _Format), Vocs),!,
+	length(Vocs, N),
+	print_message(informational,
+		      map(found, 'SKOS vocabularies (ConceptSchemes)', repository, N)),
 	forall(member(V, Vocs),voc_ensure_stats(all(V))).
 
 voc_ensure_stats(all(V)) :-
@@ -133,12 +183,24 @@ assert_voc_props(Voc:Props) :-
 	       )).
 
 count_concepts(Voc, Count) :-
+	voc_format(Voc, Format),
+	(   Format == skos
+	;   Format == skosxl
+	),
 	findall(Concept,
 		rdf(Concept, skos:inScheme, Voc),
 		Concepts),
 	length(Concepts, Count),
 	print_message(informational, map(found, 'SKOS Concepts', Voc, Count)).
 
+count_concepts(Voc, Count) :-
+	voc_format(Voc, owl),
+	rdf(Voc, rdf:type, owl:'Ontology', Graph),
+	findall(Concept,
+		rdf(Concept, rdf:type, owl:'Class', Graph),
+		Concepts),
+	length(Concepts, Count),
+	print_message(informational, map(found, 'SKOS Concepts', Voc, Count)).
 
 count_prefLabels(Voc, Count) :-
 	findall(Label,
