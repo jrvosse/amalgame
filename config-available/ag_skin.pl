@@ -76,3 +76,12 @@ user:body(amalgame(search), Body) -->
 			    [a(href(BackOfficeLink), 'back office')
 			    ])
 		  ])).
+
+% Amalgame is an extension of ClioPatria and uses the ClioPatria
+% skin.
+
+:- multifile
+        user:body//2.
+
+user:body(user(Style), Body) -->
+        user:body(cliopatria(Style), Body).
