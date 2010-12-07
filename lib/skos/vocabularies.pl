@@ -52,12 +52,14 @@ voc_format(Voc, Format) :-
         rdf(Voc, amalgame:vocformat, literal(Format), amalgame_vocs), !.
 voc_format(Voc, Format) :-
 	rdfs_individual_of(Voc, skos:'ConceptScheme'),
-	rdf_has(Concept, skos:inScheme, Voc),
-	(   rdf_has(Concept, skosxl:prefLabel, _)
-	->  Format = skosxl
-	;   rdf_has(Concept, skos:prefLabel, _)
-	->  Format = skos
-	;   Format = null
+	(   rdf_has(Concept, skos:inScheme, Voc)
+	->  (   rdf_has(Concept, skosxl:prefLabel, _)
+	    ->  Format = skosxl
+	    ;   rdf_has(Concept, skos:prefLabel, _)
+	    ->  Format = skos
+	    ;   Format = null
+	    )
+	;   Format = null		% no concepts in the scheme
 	),
 	!.
 % voc_format(Voc, owl) :- rdfs_individual_of(Voc, owl:'Ontology'), !.
