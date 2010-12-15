@@ -54,32 +54,37 @@ skos_find_candidates(Source, SourceScheme, TargetScheme, Options):-
 find_candidate(Source, TargetScheme, Target, Options) :-
 	option(candidate_matchers(Matchers), Options, [labelmatch]),
 	memberchk(labelmatch, Matchers),
-	option(language(Lang1),Options, _),
+	option(language(Lang),Options, _),
 	option(case_sensitive(CaseSensitive), Options, false),
 	rdf_equal(rdfs:label, DefaultProp),
 	option(sourcelabel(MatchProp1), Options, DefaultProp),
 	option(targetlabel(MatchProp2), Options, DefaultProp),
 
 	rdf_has(Source, MatchProp1, literal(lang(Lang1, Label1))),
+	lang_matches(Lang1, Lang),
 	(   CaseSensitive == true
-	->  rdf_has(Target, MatchProp2, literal(Label1))
-	;   rdf_has(Target, MatchProp2, literal(exact(Label1),lang(_TargetLang, _Label2)))
+	->  rdf_has(Target, MatchProp2, literal(lang(Lang2, Label1)))
+	;   rdf_has(Target, MatchProp2, literal(exact(Label1),lang(Lang2, _Label2)))
 	),
-	rdf_has(Target, skos:inScheme, TargetScheme).
+	rdf_has(Target, skos:inScheme, TargetScheme),
+	lang_matches(Lang2, Lang).
 
 find_candidate(Source, TargetScheme, Target, Options) :-
 	option(candidate_matchers(Matchers), Options),
 	memberchk(stringdist, Matchers),
-	option(language(Lang1),Options, _),
+	option(language(Lang),Options, _),
 	rdf_equal(rdfs:label, DefaultProp),
 	option(sourcelabel(MatchProp1), Options, DefaultProp),
 	option(targetlabel(MatchProp2), Options, DefaultProp),
 	option(prefixdepth(PrefLen), Options, 2),
 
 	rdf_has(Source, MatchProp1, literal(lang(Lang1, Label1))),
+	lang_matches(Lang1, Lang),
 	sub_atom(Label1,0,PrefLen,_,Prefix),
-	rdf_has(Target, MatchProp2, literal(prefix(Prefix), lang(_TargetLang,_Label2))),
-	rdf_has(Target, skos:inScheme, TargetScheme).
+	rdf_has(Target, MatchProp2, literal(prefix(Prefix), lang(Lang2,_Label2))),
+	rdf_has(Target, skos:inScheme, TargetScheme),
+	lang_matches(Lang2, Lang).
+
 
 %%	find_label_match_methods(+Source, +Target, -Methods, +Options)
 %%	is det.
