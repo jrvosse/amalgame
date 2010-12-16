@@ -57,7 +57,9 @@ voc_format(Voc, Format) :-
 	    ->  Format = skosxl
 	    ;   rdf_has(Concept, skos:prefLabel, _)
 	    ->  Format = skos
-	    ;   Format = null
+	    ;	rdf_has(Concept, skos:altLabel, _)
+	    ->	Format = skos
+	    ;   Format = null           % no concepts with known labels
 	    )
 	;   Format = null		% no concepts in the scheme
 	),

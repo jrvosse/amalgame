@@ -42,37 +42,6 @@ skos_find_candidates(Source, SourceScheme, TargetScheme, Options):-
 	       )
 	      ).
 
-%%	find_candidate(+Source, +TargetScheme, -Target, +Options) is
-%%	nondet.
-%
-%	Find a candidate mapping Target from TargetScheme for Source
-%	given Options (see skos_find_candidates/3).
-%
-%	Warning: this is very efficient for indexed labelmatches, but
-%	very inefficient for non-indexed methods.
-%
-/* older version, with qualifier stuff*
-find_candidate(Source, TargetScheme, Target, Options) :-
-	option(include_qualifier(InclQualifier), Options, true ),
-	option(candidate_matchers(Matchers), Options, [labelmatch]),
-	memberchk(labelmatch, Matchers),
-	option(language(Lang1),Options, _),
-	option(case_sensitive(CaseSensitive), Options, false),
-	rdf_equal(rdfs:label, DefaultProp),
-	option(sourcelabel(MatchProp1), Options, DefaultProp),
-	option(targetlabel(MatchProp2), Options, DefaultProp),
-
-	(   InclQualifier == true
-	->  rdf_has(Source, MatchProp1, literal(lang(Lang1, Label1)))
-	;   rdf_has(Source, MatchProp1, literal(lang(Lang1, LabelQual))),
-	    remove_qualifier(LabelQual,Label1)),
-
-	(   CaseSensitive == true
-	->  rdf_has(Target, MatchProp2, literal(Label1))
-	;   rdf_has(Target, MatchProp2, literal(exact(Label1),lang(_TargetLang, _Label2)))
-	),
-	rdf_has(Target, skos:inScheme, TargetScheme).
-*/
 
 % VIC: this version does not consider bracket-denoted qualifiers
 find_candidate(Source, TargetScheme, Target, Options) :-
@@ -92,35 +61,31 @@ find_candidate(Source, TargetScheme, Target, Options) :-
 	    remove_qualifier(LabelQual,Label1)),
 
 	% If we can't match across languages, set target language to source language
-	(   MatchAcross == false
-	->  TargetLang = Lang1
-	;   true),
-
 	(   CaseSensitive == true
 	->  rdf_has(Target, MatchProp2, literal(lang(TargetLang,Label1)))
 	;   rdf_has(Target, MatchProp2, literal(exact(Label1),lang(TargetLang, _Label2)))
 	),
+	(   MatchAcross == false
+	->  lang_matches(TargetLang, Lang1)
+	;   true
+	),
 	rdf_has(Target, skos:inScheme, TargetScheme).
-
-
-
 
 find_candidate(Source, TargetScheme, Target, Options) :-
 	option(candidate_matchers(Matchers), Options),
 	memberchk(stringdist, Matchers),
-	option(language(Lang1),Options, _),
+	option(language(Lang),Options, _),
 	rdf_equal(rdfs:label, DefaultProp),
 	option(sourcelabel(MatchProp1), Options, DefaultProp),
 	option(targetlabel(MatchProp2), Options, DefaultProp),
 	option(prefixdepth(PrefLen), Options, 2),
 
 	rdf_has(Source, MatchProp1, literal(lang(Lang1, Label1))),
+	lang_matches(Lang1, Lang),
 	sub_atom(Label1,0,PrefLen,_,Prefix),
-	rdf_has(Target, MatchProp2, literal(prefix(Prefix), lang(_TargetLang,_Label2))),
-	rdf_has(Target, skos:inScheme, TargetScheme).
-
-
-
+	rdf_has(Target, MatchProp2, literal(prefix(Prefix), lang(Lang2,_Label2))),
+	rdf_has(Target, skos:inScheme, TargetScheme),
+	lang_matches(Lang2, Lang).
 
 
 %%	find_label_match_methods(+Source, +Target, -Methods, +Options)

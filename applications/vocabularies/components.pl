@@ -81,6 +81,9 @@ voctable_header -->
 		 ])
 	     ]).
 
+show_schemes(Graphs) -->
+	{ is_list(Graphs) },
+	show_schemes(Graphs, 0, [0,0,0,0,0]).
 show_schemes(Graph) -->
 	show_schemes([Graph], 0, [0,0,0,0,0]).
 
