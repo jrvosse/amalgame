@@ -21,6 +21,7 @@
 %	* case_sensitive(boolean): defaults to false
 %	* sourcelabel(URI): defaults to rdfs:label
 %       * targetlabel(URI): defaults to rdfs:label
+%	* include_qualifier(boolean): if false, exclude anything after (
 %
 
 skos_find_candidates(Source, SourceScheme, TargetScheme, Options):-
@@ -50,8 +51,9 @@ skos_find_candidates(Source, SourceScheme, TargetScheme, Options):-
 %	Warning: this is very efficient for indexed labelmatches, but
 %	very inefficient for non-indexed methods.
 %
-
+/* older version, with qualifier stuff*
 find_candidate(Source, TargetScheme, Target, Options) :-
+	option(include_qualifier(InclQualifier), Options, true ),
 	option(candidate_matchers(Matchers), Options, [labelmatch]),
 	memberchk(labelmatch, Matchers),
 	option(language(Lang1),Options, _),
@@ -60,12 +62,48 @@ find_candidate(Source, TargetScheme, Target, Options) :-
 	option(sourcelabel(MatchProp1), Options, DefaultProp),
 	option(targetlabel(MatchProp2), Options, DefaultProp),
 
-	rdf_has(Source, MatchProp1, literal(lang(Lang1, Label1))),
+	(   InclQualifier == true
+	->  rdf_has(Source, MatchProp1, literal(lang(Lang1, Label1)))
+	;   rdf_has(Source, MatchProp1, literal(lang(Lang1, LabelQual))),
+	    remove_qualifier(LabelQual,Label1)),
+
 	(   CaseSensitive == true
 	->  rdf_has(Target, MatchProp2, literal(Label1))
 	;   rdf_has(Target, MatchProp2, literal(exact(Label1),lang(_TargetLang, _Label2)))
 	),
 	rdf_has(Target, skos:inScheme, TargetScheme).
+*/
+
+% VIC: this version does not consider bracket-denoted qualifiers
+find_candidate(Source, TargetScheme, Target, Options) :-
+	option(include_qualifier(InclQualifier), Options, true ),
+	option(candidate_matchers(Matchers), Options, [labelmatch]),
+	memberchk(labelmatch, Matchers),
+	option(language(Lang1),Options, _),
+	option(matchacross_lang(MatchAcross), Options, _),
+	option(case_sensitive(CaseSensitive), Options, false),
+	rdf_equal(rdfs:label, DefaultProp),
+	option(sourcelabel(MatchProp1), Options, DefaultProp),
+	option(targetlabel(MatchProp2), Options, DefaultProp),
+
+	(   InclQualifier == true
+	->  rdf_has(Source, MatchProp1, literal(lang(Lang1, Label1)))
+	;   rdf_has(Source, MatchProp1, literal(lang(Lang1, LabelQual))),
+	    remove_qualifier(LabelQual,Label1)),
+
+	% If we can't match across languages, set target language to source language
+	(   MatchAcross == false
+	->  TargetLang = Lang1
+	;   true),
+
+	(   CaseSensitive == true
+	->  rdf_has(Target, MatchProp2, literal(lang(TargetLang,Label1)))
+	;   rdf_has(Target, MatchProp2, literal(exact(Label1),lang(TargetLang, _Label2)))
+	),
+	rdf_has(Target, skos:inScheme, TargetScheme).
+
+
+
 
 find_candidate(Source, TargetScheme, Target, Options) :-
 	option(candidate_matchers(Matchers), Options),
@@ -80,6 +118,10 @@ find_candidate(Source, TargetScheme, Target, Options) :-
 	sub_atom(Label1,0,PrefLen,_,Prefix),
 	rdf_has(Target, MatchProp2, literal(prefix(Prefix), lang(_TargetLang,_Label2))),
 	rdf_has(Target, skos:inScheme, TargetScheme).
+
+
+
+
 
 %%	find_label_match_methods(+Source, +Target, -Methods, +Options)
 %%	is det.
@@ -101,9 +143,18 @@ find_label_match_methods(Source, Target, Methods, Options) :-
 
 find_label_match_method(Source, Target, Method, Options):-
 	rdf_equal(rdfs:label, DefaultProp),
+	option(include_qualifier(true), Options),
 	option(sourcelabel(MatchProp1), Options, DefaultProp),
 	option(targetlabel(MatchProp2), Options, DefaultProp),
+	option(matchacross_lang(MatchAcross), Options, _),
+	option(language(SourceLang),Options, _),
 	rdf_has(Source, MatchProp1, literal(lang(SourceLang, Label1)), RealLabel1Predicate),
+
+        % If we can't match across languages, set target language to source language
+	(   MatchAcross == false
+	->  TargetLang = SourceLang
+	;   true),
+
 	rdf_has(Target, MatchProp2, literal(exact(Label1),lang(TargetLang, Label2)), RealLabel2Predicate),
 	option(scheme1(Voc1), Options),
 	option(scheme2(Voc2), Options),
@@ -113,6 +164,36 @@ find_label_match_method(Source, Target, Method, Options):-
 	       [Count1, Count2,
 		RealLabel1Predicate, Label1, SourceLang,
 		RealLabel2Predicate, Label2, TargetLang]).
+
+
+% This version is for the include_qualifier=false option
+%
+find_label_match_method(Source, Target, Method, Options):-
+	rdf_equal(rdfs:label, DefaultProp),
+	option(include_qualifier(false), Options),
+	option(sourcelabel(MatchProp1), Options, DefaultProp),
+	option(targetlabel(MatchProp2), Options, DefaultProp),
+	rdf_has(Source, MatchProp1, literal(lang(SourceLang, LabelQual)), RealLabel1Predicate),
+	remove_qualifier(LabelQual,Label1),
+	rdf_has(Target, MatchProp2, literal(exact(Label1),lang(TargetLang, Label2)), RealLabel2Predicate),
+	option(scheme1(Voc1), Options),
+	option(scheme2(Voc2), Options),
+	label_occurences(Voc1, MatchProp1, Label1, Count1),
+	label_occurences(Voc2, MatchProp2, Label2, Count2),
+	format(atom(Method), 'exact qual ~w/~w (~p:~w@~w,~p:~w@~w)',
+	       [Count1, Count2,
+		RealLabel1Predicate, Label1, SourceLang,
+		RealLabel2Predicate, Label2, TargetLang]).
+
+
+
+
+
+
+
+
+
+
 
 % This version of asserts a match when the
 % Levenshtein distance between two labels is less than a maximum
@@ -162,3 +243,9 @@ labnorm(L,LN):-
 	delete(LC2, '.',  LC3),
 	delete(LC3, '-',  Lchars),
 	atom_chars(LN,Lchars),!.
+
+% Removes the qualifier (space-bracket-rest suffix)
+remove_qualifier(LabelQual,Label1):-
+	atom_concat(Label1,B,LabelQual),
+	atom_concat(' (',_B1,B),!.
+remove_qualifier(L,L).

@@ -58,9 +58,11 @@ http_align_vocs(Request) :-
 			 target(Target,[description('URI of target ConceptScheme')]),
 			 graph(Graph, [description('URI of named graph containing alignment')]),
 			 case_sensitive(CaseSensitive, [boolean, description('Matching type')]),
-			 sourcelabel(SourceLabel, [oneof([any, pref, alt, def])]),
+			 include_qualifier(InclQualifier, [boolean, description('Include qualifier')]),
+                         sourcelabel(SourceLabel, [oneof([any, pref, alt, def])]),
 			 targetlabel(TargetLabel, [oneof([any, pref, alt, def])]),
-			 label_lang(Language, [oneof([any, en])]) % VIC: language
+			 label_lang(Language, []), % VIC: language
+			 matchacross_lang(MatchAcross, [boolean,description('Match across languages')])
 			]),
 	authorized(write(default, create(Graph))),
 	(   rdf_graph(Graph)
@@ -75,8 +77,10 @@ http_align_vocs(Request) :-
 	      [graph(Graph),
 	       request(Request),
 	       case_sensitive(CaseSensitive),
+	       include_qualifier(InclQualifier),
 	       sourcelabel(SourceLabelProp),
-	       targetlabel(TargetLabelProp)
+	       targetlabel(TargetLabelProp),
+	       matchacross_lang(MatchAcross)
 	      |Lang
 	      ]),
 	voc_clear_stats(amalgame_vocs),
@@ -91,8 +95,39 @@ match_label_prop(pref, P) :- rdf_equal(skos:prefLabel, P).
 match_label_prop(alt,  P) :- rdf_equal(skos:altLabel, P).
 match_label_prop(def,  P) :- rdf_equal(skos:definition, P).
 
+
+% VIC: Language selection. Note: this should probably go somewhere else.
+:- dynamic
+	language_cached/3.
+
+get_languages(Source, Output) :-
+	rdf_generation(Gen),
+	(   language_cached(Source, Gen, Output)
+	->  true
+	;   retractall(language_cached(Source, _, _)),
+	    get_languages_raw(Source, Output),
+	    assert(language_cached(Source, Gen, Output))
+	).
+
+get_languages_raw(Source,Output):-
+	findall(L,
+		(rdf(A,skos:inScheme,Source),
+		 rdf_has(A, rdfs:label, literal(lang(L,_)))),
+		 List),
+	sort(List,Sort),
+	maplist(lang_option, Sort, Output).
+
+lang_option(Code,  option([value(Code)], Language)):-
+	(   iso_639(Code, Language)
+	-> true
+	; Language = Code).
+
+
+
+
 li_align(Source, Target) -->
 	{
+	 get_languages(Source,LangList),
 	 http_link_to_id(http_align_vocs, [], AlignLink),
 	 Base=align,
 	 reset_gensym(Base),
@@ -118,6 +153,14 @@ li_align(Source, Target) -->
 					      option([value(true)],['true'])
 					     ])
 				     ]),
+			      li([], [
+				      'include qualifier (...) : ',
+				      select([name(include_qualifier)],
+					     [option([value(true), selected(selected)],['true']),
+					      option([value(false)],['false'])
+					     ])
+				     ]),
+
 			      li([],[ ' matching source label type: ',
 				      select([name(sourcelabel)],
 					     [
@@ -137,13 +180,21 @@ li_align(Source, Target) -->
 
 					     ])
 				    ]),
-			       li([],[ ' matching label language: ',
+			       li([],[ ' matching source label language: ',
 				      select([name(label_lang)],
 					     [
-					      option([value(any), selected(selected)], 'all labels'),
-					      option([value(en)], 'English only')
+					      option([value(any), selected(selected)], 'all labels')|
+					     LangList
+					     ])
+				    ]),
+			       li([],[ ' match across languages: ',
+				      select([name(matchacross_lang)],
+					     [
+					      option([value(true), selected(selected)], 'true'),
+					      option([value(false)], 'false')
 					     ])
 				    ])
+
 
 			     ])
 		      ]

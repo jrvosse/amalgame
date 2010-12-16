@@ -69,7 +69,10 @@ compute_overlaps :-
 	print_message(informational, map(found, overlaps, total, L2)),
 
 	% Count how many mappings are in each set:
-	count_overlaps(Overlaps, [], _Results).
+	count_overlaps(Overlaps, [], _Results),
+
+	% VIC: And create the minimal count overlap sets
+	produce_overlap_counts(Overlaps,2).
 
 %%	clear_overlaps is det.
 %
@@ -144,4 +147,25 @@ assert_overlap_members(URI, [G|T]) :-
 
 
 
+
+
+% VIC: calculates overlap-sets with minimum number of overlapping
+% mappings
+
+produce_overlap_counts(OverlapList,Min) :-
+	findall( GraphList:Map, (
+		       member(GraphList:Map,OverlapList),
+		       length(GraphList,NoGraphs),
+		       NoGraphs >= Min),
+		 MappingList),
+	(   MappingList \= []
+	->
+	length(MappingList,MLL),
+	   atomic_list_concat(['Occurs in min ', Min, 'mapping graphs: ', MLL], ToPrint),
+	print_message(informational, ToPrint),
+%	assert_overlap_count_graph(MappingList, Min),
+	Min1 is Min + 1,
+	produce_overlap_counts(OverlapList,Min1)
+	;
+	true).
 

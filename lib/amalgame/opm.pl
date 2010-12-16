@@ -16,6 +16,7 @@
 :- use_module(library(opmv_schema)).
 :- use_module(library(opmvc_schema)).
 :- use_module(user(user_db)).
+:- use_module(library(http/http_session)).
 
 opm_include_dependency(Graph, Target) :-
 	opm_include_dependency([Graph], [], DepList),
@@ -116,7 +117,10 @@ opm_program(Graph, Program):-
 	git_module_property('amalgame',   home_url(Program)),
 	git_module_property('amalgame',   version(AG_version)),
 	git_module_property('ClioPatria', version(CP_version)),
-	current_prolog_flag(version_git, PL_version),
+	(  current_prolog_flag(version_git, PL_version)
+	-> true;
+	   current_prolog_flag(version, PL_version)
+	),
 	format(atom(AG), 'Amalgame: ~w', [AG_version]),
 	format(atom(CP), 'ClioPatria: ~w', [CP_version]),
 	format(atom(PL), 'SWI-Prolog: ~w', [PL_version]),
@@ -127,14 +131,22 @@ opm_program(Graph, Program):-
 	rdf_assert(Program, opmvc:software, literal(PL), Graph).
 
 opm_agent(Graph, Agent) :-
-	logged_on(User, anonymous),
-        user_property(User, url(Agent)),
-	(   user_property(User, realname(UserName))
-	->  true
-	;   user_property(User, openid(UserName))
-	->  true
-	;   UserName = Agent
+	(
+	http_in_session(_)
+	->
+	   logged_on(User, anonymous),
+	   user_property(User, url(Agent)),
+	   (   user_property(User, realname(UserName))
+	   ->  true
+	   ;   user_property(User, openid(UserName))
+	   ->  true
+	   ;   UserName = Agent
+	   )
+	;
+	 rdf_bnode(Agent),
+	 UserName = 'software_api'
 	),
+
 	rdf_assert(Agent, rdfs:label, literal(UserName),  Graph),
 	rdf_assert(Agent, rdf:type,   opmv:'Agent',	  Graph).
 
