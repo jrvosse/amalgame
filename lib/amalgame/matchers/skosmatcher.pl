@@ -66,7 +66,8 @@ find_candidate(Source, TargetScheme, Target, Options) :-
 	;   rdf_has(Target, MatchProp2, literal(exact(Label1),lang(TargetLang, _Label2)))
 	),
 	(   MatchAcross == false
-	->  lang_matches(TargetLang, Lang1)
+	->  nonvar(TargetLang),
+	    lang_matches(TargetLang, Lang1)
 	;   true
 	),
 	rdf_has(Target, skos:inScheme, TargetScheme).
