@@ -153,6 +153,9 @@ prolog:message(map(cleared, What, From, Number)) -->
         [ 'Cleared ', Number, ' ', What, ' (', From, ').' ].
 prolog:message(map(created, What, From, _Number)) -->
         [ 'Created ', What, ' (', From, ').' ].
+prolog:message(map(occurs_min(Min, MappingList))) -->
+	{ length(MappingList,MLL) },
+	[ 'Occurs in min ~w mapping graphs: ~w'-[Min, MLL] ].
 
 
 

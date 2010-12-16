@@ -160,9 +160,7 @@ produce_overlap_counts(OverlapList,Min) :-
 		 MappingList),
 	(   MappingList \= []
 	->
-	length(MappingList,MLL),
-	   atomic_list_concat(['Occurs in min ', Min, 'mapping graphs: ', MLL], ToPrint),
-	print_message(informational, ToPrint),
+	print_message(informational, map(occurs_min(Min, MappingList))),
 %	assert_overlap_count_graph(MappingList, Min),
 	Min1 is Min + 1,
 	produce_overlap_counts(OverlapList,Min1)
