@@ -269,6 +269,13 @@ voc_partition(Request, Voc, PartitionType, Partition) :-
 
 
 classify_concepts(Req, [], Voc, _PartitionType, Partition, Partition) :-
+	memberchk(SubVoc, Partition),
+	(   rdf(SubVoc, opmv:wasDerivedFrom, Voc)
+	->  rdf(SubVoc, opmv:wasGeneratedBy, OldProcess),
+	    rdf(OldProcess, opmv:used, Voc),
+	    opm_clear_process(OldProcess)
+	;   true
+	),
 	rdf_bnode(Process),
 	opm_was_generated_by(Process, Partition, amalgame_vocs, [was_derived_from([Voc]), request(Req)]),
 	rdf_assert(Process, rdfs:label, literal('Amalgame vocabulary partitioning process'), amalgame_vocs).
