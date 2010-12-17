@@ -1,0 +1,19 @@
+
+Step 1. Start amalgame. 
+OPM information added: None.
+Other remarks: GIT versions of amalgame, ClioPatria and SWI-Prolog will be availble in future steps.
+
+Step 2. Load source and target vocabularies, resp Wordnet 3.0 and Wordnet 2.0
+OPM information added: None.
+Other remarks: GIT versions of vocs will be available in future steps.
+
+Step 3a. Partition WN 3.0 on the rdf:type of its skos:Concepts. 
+OPM information added: 
+The partitioning is recored as a time-stamped opmv:Process, 
+along with the necessary triples to assert the input/output opmv:Artifiacts involved.
+In addition, the login user and amalgame (with versioning info mentioned above) are asserted as opmv:Agents.
+Other remarks: The URI to invoke the web service is also recorded.  This info should be sufficient to reproduce the partitioning later.
+
+Step 3b: idem as 3a, but then for WN 2.0.
+
+
