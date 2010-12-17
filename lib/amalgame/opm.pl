@@ -53,6 +53,7 @@ expand_deplist([H|T], Accum, Results) :-
 :- rdf_meta
 	opm_triple(r, t).
 
+opm_triple(S, rdf(S, owl:versionInfo,O))     :- rdf(S, owl:versionInfo, O).
 opm_triple(S, rdf(S, opmv:wasDerivedFrom,O)) :- rdf(S, opmv:wasDerivedFrom, O).
 opm_triple(S, rdf(S, opmv:wasGeneratedBy,O)) :- rdf(S, opmv:wasGeneratedBy, O).
 opm_triple(S, rdf(S,P,O)) :-
