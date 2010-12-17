@@ -85,7 +85,7 @@ align_get_computed_props(Graph, Props) :-
 %	* totalcount(Graph): idem for total number of alignments in Graph
 %	* mapped(Graph): idem for total number of alignments in Graph
 %	* source(Graph): idem for the source of the  alignments in Graph
-%	* target(Graph): idem for the source of the  alignments in Graph
+%	* target(Graph): idem for the target of the  alignments in Graph
 %	* mapped(Graph): idem for the numbers of mapped source and target concepts in Graph
 %
 
