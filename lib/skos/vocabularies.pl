@@ -3,7 +3,6 @@
 	   is_vocabulary/2,
 	   has_concept/3,
 	   voc_ensure_stats/1,
-	   assert_voc_provenance/1,
 	   skos_label/2,
 	   skos_label/3,
 	   topconcepts/2,
@@ -97,11 +96,13 @@ voc_get_computed_props(Voc, Props) :-
 	       ),
 	maplist(=.., Props, GraphProps).
 
-voc_clear_stats(Graph) :-
-	(   rdf_graph(Graph)
-	->  rdf_unload(amalgame_vocs)
-	;   true),
+voc_clear_stats(all) :-
+	rdf_unload(amalgame_vocs),
 	print_message(informational, map(cleared, 'vocabulary statistics', amalgame_vocs, all)).
+
+voc_clear_stats(Graph) :-
+	rdf_retractall(Graph, _, _, amalgame_vocs),
+	print_message(informational, map(cleared, 'vocabulary statistics', Graph, all)).
 
 voc_delete_derived :-
 	findall(Voc, rdf(Voc, rdf:type, amalgame:'DerivedConceptScheme'), Derived),
@@ -139,18 +140,20 @@ voc_ensure_stats(all) :-
 	forall(member(V, Vocs),voc_ensure_stats(all(V))).
 
 voc_ensure_stats(all(V)) :-
-	voc_ensure_stats(opm(V)),
+	voc_ensure_stats(version(V)),
 	voc_ensure_stats(numberOfConcepts(V)),
 	voc_ensure_stats(numberOfPrefLabels(V)),
 	voc_ensure_stats(numberOfAltLabels(V)),
 	voc_ensure_stats(numberOfMappedConcepts(V)).
 
-voc_ensure_stats(opm(Voc)) :-
+voc_ensure_stats(version(Voc)) :-
 	(   rdf(Voc, owl:versionInfo, literal(_))
 	->  true
 	;   rdf(Voc, opmv:wasGeneratedBy, _)
 	->  true
-	;   assert_voc_provenance(Voc)
+	;   assert_voc_version(Voc)
+	->  true
+	;   debug(info, 'Failed to ensure opm stats for ~', [Voc])
 	),!.
 
 
@@ -182,7 +185,7 @@ voc_ensure_stats(numberOfMappedConcepts(Voc)) :-
 	    assert_voc_props(Voc:[numberOfMappedConcepts(literal(type('http://www.w3.org/2001/XMLSchema#int', Count)))])
 	),!.
 
-assert_voc_provenance(Voc) :-
+assert_voc_version(Voc) :-
 	rdf(_, skos:inScheme, Voc, SourceGraph:_),!,
 	rdf_graph_property(SourceGraph, source(SourceFileURL)),
 	uri_file_name(SourceFileURL, Filename),
@@ -277,8 +280,9 @@ classify_concepts(Req, [], Voc, _PartitionType, Partition, Partition) :-
 	;   true
 	),
 	rdf_bnode(Process),
-	opm_was_generated_by(Process, Partition, amalgame_vocs, [was_derived_from([Voc]), request(Req)]),
-	rdf_assert(Process, rdfs:label, literal('Amalgame vocabulary partitioning process'), amalgame_vocs).
+	OPMgraph = amalgame_vocs_opm,
+	opm_was_generated_by(Process, Partition, OPMgraph, [was_derived_from([Voc]), request(Req)]),
+	rdf_assert(Process, rdfs:label, literal('Amalgame vocabulary partitioning process'), OPMgraph).
 
 classify_concepts(Req, [H|T], Voc, PartitionType, Accum, Result) :-
 	classify_concept(H, Voc, PartitionType, SubVocURI, SubVocLabelURI),
