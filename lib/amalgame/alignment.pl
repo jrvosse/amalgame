@@ -100,7 +100,7 @@ align_ensure_stats(all(Graph)) :-
 	align_ensure_stats(mapped(Graph)).
 
 align_ensure_stats(format(Graph)) :-
-	rdf(Graph, amalgame:format, _, amalgame), !.
+	rdf(Graph, amalgame:format, _), !.
 align_ensure_stats(format(Graph)) :-
 	(   has_map(_,Format, Graph:_)
 	->  true
@@ -112,7 +112,7 @@ align_ensure_stats(format(_)) :- !.
 
 
 align_ensure_stats(count(Graph)) :-
-	(   rdf(Graph, amalgame:count, _, amalgame)
+	(   rdf(Graph, amalgame:count, _)
 	->  true
 	;   is_alignment_graph(Graph, Format),!,
 	    count_alignment(Graph, Format, Count),
@@ -120,7 +120,7 @@ align_ensure_stats(count(Graph)) :-
 	),!.
 
 align_ensure_stats(source(Graph)) :-
-	(   rdf(Graph, amalgame:source, _, amalgame)
+	(   rdf(Graph, amalgame:source, _)
 	->  true
 	;   is_alignment_graph(Graph, Format),!,
 	    find_source(Graph, Format, Source),
@@ -128,7 +128,7 @@ align_ensure_stats(source(Graph)) :-
 	),!.
 
 align_ensure_stats(target(Graph)) :-
-	(   rdf(Graph, amalgame:target, _, amalgame)
+	(   rdf(Graph, amalgame:target, _)
 	->  true
 	;   is_alignment_graph(Graph, Format),!,
 	    find_target(Graph, Format, Target),
@@ -137,7 +137,7 @@ align_ensure_stats(target(Graph)) :-
 
 
 align_ensure_stats(mapped(Graph)) :-
-	(   rdf(Graph, amalgame:mappedSourceConcepts, _, amalgame)
+	(   rdf(Graph, amalgame:mappedSourceConcepts, _)
 	->  true
 	;   is_alignment_graph(Graph, Format),!,
 	    findall(M1, has_map([M1, _], Format, Graph), M1s),
