@@ -148,6 +148,8 @@ voc_ensure_stats(all(V)) :-
 voc_ensure_stats(opm(Voc)) :-
 	(   rdf(Voc, owl:versionInfo, literal(_))
 	->  true
+	;   rdf(Voc, opmv:wasGeneratedBy, _)
+	->  true
 	;   assert_voc_provenance(Voc)
 	),!.
 
