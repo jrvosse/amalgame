@@ -95,7 +95,7 @@ http_compute_voc_stats(Request) :-
 http_clear_voc_stats(_Request):-
 	authorized(write(amalgame_cache, clear)),
 	http_link_to_id(http_list_skos_vocs, [], Link),
-	call_showing_messages(voc_clear_stats(amalgame_vocs),
+	call_showing_messages(voc_clear_stats(all),
 			      [head(title('Amalgame: clearing caches')),
 			       footer(div([class(readymeassage)],
 					  [h4('All caches cleared'),
