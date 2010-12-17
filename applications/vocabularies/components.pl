@@ -244,7 +244,7 @@ show_scheme(Voc) -->
 			       [ object_attributes([width('100%')]),
 				 wrap_url(cpa_browse:resource_link),
 				 graph_attributes([ rankdir('RL')]),
-				 shape_hook(cpa_browse:shape(Graph))
+				 shape_hook(cpa_browse:shape(Graph, []))
 			       ])
 		  ]),
 
