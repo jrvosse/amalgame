@@ -3,6 +3,7 @@
 	   is_vocabulary/2,
 	   has_concept/3,
 	   voc_ensure_stats/1,
+	   assert_voc_provenance/1,
 	   skos_label/2,
 	   skos_label/3,
 	   topconcepts/2,
@@ -12,6 +13,9 @@
 	   voc_partition/4,
 	   voc_delete_derived/0
           ]).
+
+:- use_module(library(uri)).
+:- use_module(library(version)).
 
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/html_write)).
@@ -135,10 +139,17 @@ voc_ensure_stats(all) :-
 	forall(member(V, Vocs),voc_ensure_stats(all(V))).
 
 voc_ensure_stats(all(V)) :-
+	voc_ensure_stats(opm(V)),
 	voc_ensure_stats(numberOfConcepts(V)),
 	voc_ensure_stats(numberOfPrefLabels(V)),
 	voc_ensure_stats(numberOfAltLabels(V)),
 	voc_ensure_stats(numberOfMappedConcepts(V)).
+
+voc_ensure_stats(opm(Voc)) :-
+	(   rdf(Voc, owl:versionInfo, literal(_))
+	->  true
+	;   assert_voc_provenance(Voc)
+	),!.
 
 
 voc_ensure_stats(numberOfConcepts(Voc)) :-
@@ -168,6 +179,16 @@ voc_ensure_stats(numberOfMappedConcepts(Voc)) :-
 	;   count_mapped_concepts(Voc, Count),
 	    assert_voc_props(Voc:[numberOfMappedConcepts(literal(type('http://www.w3.org/2001/XMLSchema#int', Count)))])
 	),!.
+
+assert_voc_provenance(Voc) :-
+	rdf(_, skos:inScheme, Voc, SourceGraph:_),!,
+	rdf_graph_property(SourceGraph, source(SourceFileURL)),
+	uri_file_name(SourceFileURL, Filename),
+	file_directory_name(Filename, Dirname),
+	register_git_module(Voc, [directory(Dirname), home_url(Voc)]),
+	git_module_property(Voc, version(Version)),
+	format(atom(VersionS),  'GIT version: ~w', [Version]),
+	rdf_assert(Voc, owl:versionInfo, literal(VersionS), amalgame_vocs).
 
 assert_voc_props([]).
 assert_voc_props([Head|Tail]) :-
@@ -294,9 +315,15 @@ classify_concept(C, Voc, type, SubVoc, Type) :-
 	assign_to_subvoc(C, Voc, Type, SubVoc).
 
 assign_to_subvoc(C, Voc, Type, SubVoc) :-
-	format(atom(Suffix), '_~p',  [Type]),
-	atom_concat(Voc, Suffix, SubVoc),
+	format(atom(Suffix), '~p',  [Type]),
+	sub_atom(Voc, _, 1, 0, Last),
+	nice_separator(Last, Separator),
+	atomic_list_concat([Voc, Separator, Suffix], SubVoc),
 	rdf_assert(C, skos:inScheme, SubVoc, SubVoc).
+
+nice_separator('/',  ''):- !.
+nice_separator(Last, '_'):- is_alpha(Last), !.
+nice_separator(_,  ''):- !.
 
 
 %%	skos_label(+Concept, -Label, -Options) is det.
