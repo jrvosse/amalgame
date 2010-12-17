@@ -247,11 +247,9 @@ voc_partition(Request, Voc, PartitionType, Partition) :-
 
 classify_concepts(Req, [], Voc, _PartitionType, Partition, Partition) :-
 	rdf_bnode(Process),
-	forall(member(SubVoc, Partition),
-	       (
-		   rdf_assert(Process, rdfs:label, literal('Amalgame vocabulary partitioning process'), SubVoc),
-		   opm_was_generated_by(Process, SubVoc, SubVoc, [was_derived_from([Voc]), request(Req)])
-	       )).
+	opm_was_generated_by(Process, Partition, amalgame_vocs, [was_derived_from([Voc]), request(Req)]),
+	rdf_assert(Process, rdfs:label, literal('Amalgame vocabulary partitioning process'), amalgame_vocs).
+
 classify_concepts(Req, [H|T], Voc, PartitionType, Accum, Result) :-
 	classify_concept(H, Voc, PartitionType, SubVocURI, SubVocLabelURI),
 	(   member(SubVocURI, Accum)
