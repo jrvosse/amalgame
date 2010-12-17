@@ -1,7 +1,7 @@
 :- module(ag_overlap,
 	  [
 	   precomputed_overlaps/1,
-	   compute_overlaps/0,
+	   compute_overlaps/1,
 	   clear_overlaps/0
 	  ]
 	 ).
@@ -57,7 +57,7 @@ precomputed_overlaps(Overlaps) :-
 %	will put in the overlap graph corresponding to the overlap of
 %	G1,G2,G3.
 %
-compute_overlaps :-
+compute_overlaps(Request) :-
 	% Find all maps in the store:
 	findall(Map, map_iterator(Map), AllMaps),
 	length(AllMaps, L1),
@@ -69,7 +69,7 @@ compute_overlaps :-
 	print_message(informational, map(found, overlaps, total, L2)),
 
 	% Count how many mappings are in each set:
-	count_overlaps(Overlaps, [], _Results),
+	count_overlaps(Request, Overlaps, [], _Results),
 
 	% VIC: And create the minimal count overlap sets
 	produce_overlap_counts(Overlaps,2).
@@ -102,9 +102,9 @@ find_overlaps([Map|Tail], Accum, Out) :-
 	sort(Graphs, Sorted),
 	find_overlaps(Tail, [Sorted:Map|Accum], Out).
 
-count_overlaps([], Accum, Results) :-
+count_overlaps(_, [], Accum, Results) :-
 	assert_overlaps(Accum, [], Results).
-count_overlaps([Graphs:Map|Tail], Accum, Results) :-
+count_overlaps(Request, [Graphs:Map|Tail], Accum, Results) :-
 	overlap_uri(Graphs, Overlap),
 	(   selectchk(Count:Graphs, Accum, NewAccum)
 	->  true
@@ -115,7 +115,7 @@ count_overlaps([Graphs:Map|Tail], Accum, Results) :-
 	    rdf_bnode(Process),
 	    rdf_assert(Process, rdfs:label, literal('amalgame overlap calculator'), Overlap),
 	    opm_was_generated_by(Process, Overlap, Overlap,
-				 [was_derived_from(Graphs)])
+				 [was_derived_from(Graphs), request(Request)])
 	),
 	Map = [E1, E2],
 	(   Graphs=[G], has_map([E1, E2], edoal, Options, G)
@@ -123,7 +123,7 @@ count_overlaps([Graphs:Map|Tail], Accum, Results) :-
 	;   assert_cell(E1, E2, [graph(Overlap), method(overlap)])
 	),
 	NewCount is Count + 1,
-	count_overlaps(Tail, [NewCount:Graphs|NewAccum], Results).
+	count_overlaps(Request, Tail, [NewCount:Graphs|NewAccum], Results).
 
 overlap_uri(GraphList, URI) :-
 	sort(GraphList, Sorted), assertion(GraphList=Sorted),

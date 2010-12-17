@@ -89,11 +89,11 @@ http_split_alignment(Request) :-
 				 \show_alignments(OutGraphs, 0)
 				])
 			]).
-http_compute_overlaps(_Request) :-
+http_compute_overlaps(Request) :-
 	authorized(write(repository, clear)),
 	http_link_to_id(http_list_overlap, [], Link),
 	Title = 'Amalgame: computing overlap statistics',
-	call_showing_messages(compute_overlaps,
+	call_showing_messages(compute_overlaps(Request),
 			      [head(title(Title)),
 			       header(h4(Title)),
 			       footer(div([class(readymeassage)],
