@@ -90,6 +90,7 @@ align_get_computed_props(Graph, Props) :-
 %
 
 align_ensure_stats(found) :-
+	align_gc_stats,
 	forall(rdf_graph(Graph), classify_graph_type(Graph)).
 
 align_ensure_stats(all(Graph)) :-
@@ -180,7 +181,7 @@ align_clear_stats(nicknames) :-
 
 align_clear_stats(graph(Graph)) :-
 	rdf_retractall(Graph, _,_,amalgame),
-	rdf_retractall(Graph, _,_,amalgame).
+	rdf_retractall(Graph, _,_,amalgame_nicknames).
 
 
 %%	align_recompute_stats(+Type) is det.
@@ -193,6 +194,20 @@ align_recompute_stats(Type) :-
 	align_clear_stats(Type),
 	align_ensure_stats(Type).
 
+align_gc_stats :-
+	findall(Graph, rdf(Graph,_,_,amalgame), Graphs),
+	align_gc_stats(Graphs),
+	!.
+
+align_gc_stats([]).
+align_gc_stats([Graph|Tail]):-
+	align_gc_stats(Graph),
+	align_gc_stats(Tail).
+align_gc_stats(Graph) :-
+	(   rdf_graph(Graph)
+	->  true
+	;   align_clear_stats(graph(Graph))
+	).
 
 count_alignment(Graph, Format, Count) :-
 	findall(Map, has_map(Map, Format, Graph), Graphs),
