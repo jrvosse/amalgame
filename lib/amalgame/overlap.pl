@@ -118,10 +118,14 @@ count_overlaps(Request, [Graphs:Map|Tail], Accum, Results) :-
 				 [was_derived_from(Graphs), request(Request)])
 	),
 	Map = [E1, E2],
-	(   Graphs=[G], has_map([E1, E2], edoal, Options, G)
-	->  assert_cell(E1, E2, [graph(Overlap)|Options])
-	;   assert_cell(E1, E2, [graph(Overlap), method(overlap)])
-	),
+	findall(Method,
+		(   member(G, Graphs),
+		    has_map(Map, edoal, Options, G),
+		    memberchk(method(Method), Options)
+		),
+		Methods),
+	assert_cell(E1, E2, [graph(Overlap), method(Methods)]),
+
 	NewCount is Count + 1,
 	count_overlaps(Request, Tail, [NewCount:Graphs|NewAccum], Results).
 
