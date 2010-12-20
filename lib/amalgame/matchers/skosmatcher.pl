@@ -73,7 +73,7 @@ find_candidate(Source, TargetScheme, Target, Options) :-
 
 	% If we can't match across languages, set target language to source language
 
-	(   (MatchAcross == false, nonvar(Lang))
+	(   (MatchAcross == false, nonvar(Lang),nonvar(Lang2))
 	->  lang_matches(Lang2, Lang)
 	;   true
 	),

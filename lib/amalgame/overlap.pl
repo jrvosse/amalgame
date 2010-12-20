@@ -3,7 +3,8 @@
 	   precomputed_overlaps/1,
 	   create_merge_graph/2,     %+InputGraphList, -OutputGraph(URI)
 	   compute_overlaps/1,
-	   clear_overlaps/0
+	   clear_overlaps/0,
+	   stratify_merge/1
 	  ]
 	 ).
 
@@ -13,7 +14,7 @@ This module compares mappings as they are found by different matchers.
 It does so by computing the (lack of) overlap between the different
 matchers. It assumes matchers assert mappings in different name graphs.
 
-@author Jacco van Ossenbruggen
+@author Jacco van Ossenbruggen and Victor de Boer
 @license GPL
 */
 
@@ -28,6 +29,53 @@ matchers. It assumes matchers assert mappings in different name graphs.
 :- use_module(library(amalgame/opm)).
 
 :- setting(overlaps_persistent, boolean, false, 'Set to true if you want overlaps to survive server restarts').
+
+
+
+
+%%	stratify_merge(+MergeGraph) is det.
+%
+%	extracts all alignment cells in a (merge) graph and generates
+%	individual stratum graphs based on the exact number of methods
+%	listed for the cells in the MergeGraph.
+%
+%	A stratum graph is asserted every time a new count is
+%	encountered. Stratum graph names are the name of the
+%	parent merge graph plus the count number
+%
+stratify_merge(MergeGraph):-
+	findall(Cell,rdf(Cell, rdf:type, align:'Cell',MergeGraph),Cells),
+	stratify_merge_cell(Cells,MergeGraph),
+	true.
+
+stratify_merge_cell([],_MergeGraph).
+stratify_merge_cell([Cell|Rest],MergeGraph):-
+	findall(Method,
+		rdf(Cell, amalgame:'method',Method,MergeGraph),
+		Methods),
+	length(Methods,Count),
+	strat_uri(Count,MergeGraph,StratURI),
+	rdf(Cell, align:entity1,E1),
+	rdf(Cell, align:entity2,E2),
+	assert_cell(E1, E2, [graph(StratURI), method(Methods)]),
+	stratify_merge_cell(Rest,MergeGraph).
+
+
+%  Name is mergegraph name plus count, check if it already exists, if
+%  not assert it
+strat_uri(Count, MergeGraph, StratumGraphURI):-
+	format(atom(StratumGraphURI), '~w_stratum_~w', [MergeGraph,Count]),
+	(   rdf(StratumGraphURI,_,_)
+	->  true;
+	rdf_assert(StratumGraphURI, rdf:type, amalgame:'StratumAlignment', StratumGraphURI),
+	print_message(informational, map(created, 'stratum graph', StratumGraphURI, 1)),
+	setting(overlaps_persistent, Persistency),
+        rdf_persistency(StratumGraphURI, Persistency),
+	rdf_bnode(Process),
+	rdf_assert(Process, rdfs:label, literal('amalgame stratum calculator'), StratumGraphURI),
+	opm_was_generated_by(Process, StratumGraphURI,StratumGraphURI,
+				 [was_derived_from(MergeGraph)])).
+
 
 %%	precomputed_overlaps(-Overlaps) is semidet.
 %
