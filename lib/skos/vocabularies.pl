@@ -147,7 +147,7 @@ voc_ensure_stats(all(V)) :-
 	voc_ensure_stats(numberOfMappedConcepts(V)).
 
 voc_ensure_stats(version(Voc)) :-
-	(   rdf(Voc, owl:versionInfo, literal(_))
+	(   rdf_has(Voc, owl:versionInfo, literal(_))
 	->  true
 	;   rdf(Voc, opmv:wasGeneratedBy, _)
 	->  true
@@ -186,6 +186,17 @@ voc_ensure_stats(numberOfMappedConcepts(Voc)) :-
 	),!.
 
 assert_voc_version(Voc) :-
+	(   rdf(Voc, amalgame:subSchemeOf, SuperVoc)
+	->  assert_subvoc_version(Voc, SuperVoc)
+	;   assert_supervoc_version(Voc)
+	).
+
+assert_subvoc_version(Voc, SuperVoc) :-
+	voc_ensure_stats(version(SuperVoc)),
+	rdf_has(SuperVoc, owl:versionInfo, Version),
+	rdf_assert(Voc,   owl:versionInfo, Version, amalgame_vocs).
+
+assert_supervoc_version(Voc) :-
 	rdf(_, skos:inScheme, Voc, SourceGraph:_),!,
 	rdf_graph_property(SourceGraph, source(SourceFileURL)),
 	uri_file_name(SourceFileURL, Filename),
