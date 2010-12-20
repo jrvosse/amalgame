@@ -133,8 +133,8 @@ opm_program(Graph, Program):-
 	git_module_property('amalgame',   version(AG_version)),
 	git_module_property('ClioPatria', version(CP_version)),
 	(  current_prolog_flag(version_git, PL_version)
-	-> true;
-	   current_prolog_flag(version, PL_version)
+	-> true
+	;   current_prolog_flag(version, PL_version)
 	),
 	AG_git = 'http://eculture.cs.vu.nl/git/public/?p=econnect/amalgame.git&a=commit&h=',
 	format(atom(Program), '~w~w', [AG_git, AG_version]),
