@@ -202,9 +202,17 @@ assert_supervoc_version(Voc) :-
 	uri_file_name(SourceFileURL, Filename),
 	file_directory_name(Filename, Dirname),
 	register_git_module(Voc, [directory(Dirname), home_url(Voc)]),
-	git_module_property(Voc, version(Version)),
-	format(atom(VersionS),  'GIT version: ~w', [Version]),
-	rdf_assert(Voc, owl:versionInfo, literal(VersionS), amalgame_vocs).
+	(   git_module_property(Voc, version(Version))
+	->  format(atom(VersionS),  'GIT version: ~w', [Version]),
+	    rdf_assert(Voc, owl:versionInfo, literal(VersionS), amalgame_vocs)
+	;   (rdf_graph_property(SourceGraph, hash(Hash)),
+	     rdf_graph_property(SourceGraph, source_last_modified(LastModified)),
+	     format_time(atom(Mod), 'Last-Modified: %Y-%m-%dT%H-%M-%S%Oz', LastModified),
+	     rdf_assert(Voc, owl:versionInfo, literal(Mod), amalgame_vocs),
+	     rdf_assert(Voc, owl:versionInfo, literal(Hash), amalgame_vocs)
+	    )
+	).
+
 
 assert_voc_props([]).
 assert_voc_props([Head|Tail]) :-
