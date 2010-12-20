@@ -2,7 +2,7 @@
 	  [
 	   precomputed_overlaps/1,
 	   create_merge_graph/2,     %+InputGraphList, -OutputGraph(URI)
-	   compute_overlaps/0,
+	   compute_overlaps/1,
 	   clear_overlaps/0
 	  ]
 	 ).
@@ -44,7 +44,7 @@ precomputed_overlaps(Overlaps) :-
 	findall(C:G, is_precomputed_overlap(G,C), Results),
 	sort(Results, Overlaps).
 
-%%	compute_overlaps is det.
+%%	compute_overlaps(+Request) is det.
 %
 %	Computes for each mapping between two concepts, which alignment
 %	graphs have mappings between these two concepts. Based on this,
@@ -58,7 +58,7 @@ precomputed_overlaps(Overlaps) :-
 %	will put in the overlap graph corresponding to the overlap of
 %	G1,G2,G3.
 %
-compute_overlaps :-
+compute_overlaps(Request) :-
 	% Find all maps in the store:
 	findall(Map, map_iterator(Map), AllMaps),
 	length(AllMaps, L1),
@@ -70,7 +70,7 @@ compute_overlaps :-
 	print_message(informational, map(found, overlaps, total, L2)),
 
 	% Count how many mappings are in each set:
-	count_overlaps(Overlaps, [], _Results),
+	count_overlaps(Request, Overlaps, [], _Results),
 
 	% VIC: And create the minimal count overlap sets
 	produce_overlap_counts(Overlaps,2).
@@ -103,9 +103,9 @@ find_overlaps([Map|Tail], Accum, Out) :-
 	sort(Graphs, Sorted),
 	find_overlaps(Tail, [Sorted:Map|Accum], Out).
 
-count_overlaps([], Accum, Results) :-
+count_overlaps(_, [], Accum, Results) :-
 	assert_overlaps(Accum, [], Results).
-count_overlaps([Graphs:Map|Tail], Accum, Results) :-
+count_overlaps(Request, [Graphs:Map|Tail], Accum, Results) :-
 	overlap_uri(Graphs, Overlap),
 	(   selectchk(Count:Graphs, Accum, NewAccum)
 	->  true
@@ -116,15 +116,19 @@ count_overlaps([Graphs:Map|Tail], Accum, Results) :-
 	    rdf_bnode(Process),
 	    rdf_assert(Process, rdfs:label, literal('amalgame overlap calculator'), Overlap),
 	    opm_was_generated_by(Process, Overlap, Overlap,
-				 [was_derived_from(Graphs)])
+				 [was_derived_from(Graphs), request(Request)])
 	),
 	Map = [E1, E2],
-	(   Graphs=[G], has_map([E1, E2], edoal, Options, G)
-	->  assert_cell(E1, E2, [graph(Overlap)|Options])
-	;   assert_cell(E1, E2, [graph(Overlap), method(overlap)])
-	),
+	findall(Method,
+		(   member(G, Graphs),
+		    has_map(Map, edoal, Options, G),
+		    memberchk(method(Method), Options)
+		),
+		Methods),
+	assert_cell(E1, E2, [graph(Overlap), method(Methods)]),
+
 	NewCount is Count + 1,
-	count_overlaps(Tail, [NewCount:Graphs|NewAccum], Results).
+	count_overlaps(Request, Tail, [NewCount:Graphs|NewAccum], Results).
 
 overlap_uri(GraphList, URI) :-
 	sort(GraphList, Sorted), assertion(GraphList=Sorted),
@@ -174,7 +178,8 @@ produce_overlap_counts(OverlapList,Min) :-
 %
 %
 
-%%	create_merge_graph(+Selected, -MergeGraph) is det.
+%%	create_merge_graph(+InputGrapList:list, -MergeGraphURI:atom) is
+%%	det.
 %
 %	asserts a graph which is the results of the merge (Union) of all
 %	graphs in inputGraphList.

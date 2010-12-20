@@ -48,7 +48,7 @@ find_candidate(Source, TargetScheme, Target, Options) :-
 	option(include_qualifier(InclQualifier), Options, true ),
 	option(candidate_matchers(Matchers), Options, [labelmatch]),
 	memberchk(labelmatch, Matchers),
-	option(language(Lang1),Options, _),
+	option(language(Lang),Options, _),
 	option(matchacross_lang(MatchAcross), Options, _),
 	option(case_sensitive(CaseSensitive), Options, false),
 	rdf_equal(rdfs:label, DefaultProp),
@@ -58,16 +58,23 @@ find_candidate(Source, TargetScheme, Target, Options) :-
 	(   InclQualifier == true
 	->  rdf_has(Source, MatchProp1, literal(lang(Lang1, Label1)))
 	;   rdf_has(Source, MatchProp1, literal(lang(Lang1, LabelQual))),
-	    remove_qualifier(LabelQual,Label1)),
+	    remove_qualifier(LabelQual,Label1)
+	),
+
+	(   nonvar(Lang)
+	->  lang_matches(Lang1, Lang)
+	;   true
+	),
+
+	(   CaseSensitive == true
+	->  rdf_has(Target, MatchProp2, literal(lang(Lang2,Label1)))
+	;   rdf_has(Target, MatchProp2, literal(exact(Label1),lang(Lang2, _Label2)))
+	),
 
 	% If we can't match across languages, set target language to source language
-	(   CaseSensitive == true
-	->  rdf_has(Target, MatchProp2, literal(lang(TargetLang,Label1)))
-	;   rdf_has(Target, MatchProp2, literal(exact(Label1),lang(TargetLang, _Label2)))
-	),
-	(   MatchAcross == false
-	->  nonvar(TargetLang),
-	    lang_matches(TargetLang, Lang1)
+
+	(   (MatchAcross == false, nonvar(Lang))
+	->  lang_matches(Lang2, Lang)
 	;   true
 	),
 	rdf_has(Target, skos:inScheme, TargetScheme).

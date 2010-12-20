@@ -85,11 +85,12 @@ align_get_computed_props(Graph, Props) :-
 %	* totalcount(Graph): idem for total number of alignments in Graph
 %	* mapped(Graph): idem for total number of alignments in Graph
 %	* source(Graph): idem for the source of the  alignments in Graph
-%	* target(Graph): idem for the source of the  alignments in Graph
+%	* target(Graph): idem for the target of the  alignments in Graph
 %	* mapped(Graph): idem for the numbers of mapped source and target concepts in Graph
 %
 
 align_ensure_stats(found) :-
+	align_gc_stats,
 	forall(rdf_graph(Graph), classify_graph_type(Graph)).
 
 align_ensure_stats(all(Graph)) :-
@@ -100,7 +101,7 @@ align_ensure_stats(all(Graph)) :-
 	align_ensure_stats(mapped(Graph)).
 
 align_ensure_stats(format(Graph)) :-
-	rdf(Graph, amalgame:format, _, amalgame), !.
+	rdf(Graph, amalgame:format, _), !.
 align_ensure_stats(format(Graph)) :-
 	(   has_map(_,Format, Graph:_)
 	->  true
@@ -112,7 +113,7 @@ align_ensure_stats(format(_)) :- !.
 
 
 align_ensure_stats(count(Graph)) :-
-	(   rdf(Graph, amalgame:count, _, amalgame)
+	(   rdf(Graph, amalgame:count, _)
 	->  true
 	;   is_alignment_graph(Graph, Format),!,
 	    count_alignment(Graph, Format, Count),
@@ -120,7 +121,7 @@ align_ensure_stats(count(Graph)) :-
 	),!.
 
 align_ensure_stats(source(Graph)) :-
-	(   rdf(Graph, amalgame:source, _, amalgame)
+	(   rdf(Graph, amalgame:source, _)
 	->  true
 	;   is_alignment_graph(Graph, Format),!,
 	    find_source(Graph, Format, Source),
@@ -128,7 +129,7 @@ align_ensure_stats(source(Graph)) :-
 	),!.
 
 align_ensure_stats(target(Graph)) :-
-	(   rdf(Graph, amalgame:target, _, amalgame)
+	(   rdf(Graph, amalgame:target, _)
 	->  true
 	;   is_alignment_graph(Graph, Format),!,
 	    find_target(Graph, Format, Target),
@@ -137,7 +138,7 @@ align_ensure_stats(target(Graph)) :-
 
 
 align_ensure_stats(mapped(Graph)) :-
-	(   rdf(Graph, amalgame:mappedSourceConcepts, _, amalgame)
+	(   rdf(Graph, amalgame:mappedSourceConcepts, _)
 	->  true
 	;   is_alignment_graph(Graph, Format),!,
 	    findall(M1, has_map([M1, _], Format, Graph), M1s),
@@ -180,7 +181,7 @@ align_clear_stats(nicknames) :-
 
 align_clear_stats(graph(Graph)) :-
 	rdf_retractall(Graph, _,_,amalgame),
-	rdf_retractall(Graph, _,_,amalgame).
+	rdf_retractall(Graph, _,_,amalgame_nicknames).
 
 
 %%	align_recompute_stats(+Type) is det.
@@ -193,6 +194,20 @@ align_recompute_stats(Type) :-
 	align_clear_stats(Type),
 	align_ensure_stats(Type).
 
+align_gc_stats :-
+	findall(Graph, rdf(Graph,_,_,amalgame), Graphs),
+	align_gc_stats(Graphs),
+	!.
+
+align_gc_stats([]).
+align_gc_stats([Graph|Tail]):-
+	align_gc_stats(Graph),
+	align_gc_stats(Tail).
+align_gc_stats(Graph) :-
+	(   rdf_graph(Graph)
+	->  true
+	;   align_clear_stats(graph(Graph))
+	).
 
 count_alignment(Graph, Format, Count) :-
 	findall(Map, has_map(Map, Format, Graph), Graphs),
