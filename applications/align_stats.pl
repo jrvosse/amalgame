@@ -39,8 +39,7 @@
 :- http_handler(amalgame(include_opm),	      http_include_opm_graph,   []).
 :- http_handler(amalgame(merge_alignments),   http_merge_alignments,    []).
 :- http_handler(amalgame(rename_graph),	      http_rename_graph,        []).
-
-
+:- http_handler(amalgame(stratify_alignment), http_stratify_alignment,	[]).
 
 
 
@@ -56,6 +55,24 @@ http_merge_alignments(Request) :-
 			title('Merge results'),
 			\show_alignment_overview(MergeGraph)
 		       ).
+
+
+%%	http_stratify_alignments(+Request) is det.
+%
+%	HTTP handler returning the result of a stratification of the
+%	current graph.
+
+http_stratify_alignment(Request) :-
+      	http_parameters(Request, [graph(MergeGraph,[])]),
+	stratify_merge(MergeGraph),
+	reply_html_page(cliopatria(default),
+			[title('Alignments')
+			],
+			[ h4('Amalgame: Alignments in the RDF store'),
+			  \show_alignments
+			]).
+
+
 
 
 %%	http_list_alignments(+Request) is det.
@@ -433,7 +450,9 @@ show_alignment_overview(Graph) -->
 	      p('Create multiple new graphs from this one: '),
 	      ul([id(alignoperations)],
 		 [
-		   \li_partition_graph(Graph)
+		   \li_partition_graph(Graph),
+		   \li_stratify_merges_graph(Graph)
+
 		 ]
 		),
 	      div([id(ag_graph_as_resource)],
@@ -739,6 +758,21 @@ li_sample_graph(Graph) -->
 			     ])
 		     ])
 	       )).
+
+
+
+li_stratify_merges_graph(Graph)-->
+	{
+	 http_link_to_id(http_stratify_alignment, [], SplitLink)
+
+	},
+	html(li(form([action(SplitLink)],
+			   [
+			    input([type(hidden), name(graph), value(Graph)],[]),
+			    input([type(submit), class(submit), value('Stratify')],[]),
+			    ' to multiple graphs.'
+			   ]))
+		  ).
 
 
 li_partition_graph(Graph) -->
