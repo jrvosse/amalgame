@@ -251,6 +251,8 @@ count_concepts(Voc, Count) :-
 	length(Concepts, Count),
 	print_message(informational, map(found, 'SKOS Concepts', Voc, Count)).
 
+count_concepts(Voc, 0) :- voc_format(Voc, null).
+
 count_prefLabels(Voc, Count) :-
 	findall(Label,
 		(   rdf(Concept, skos:inScheme, Voc),
