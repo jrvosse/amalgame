@@ -1,6 +1,7 @@
 :- module(ag_map,
 	  [
 	   map_iterator/1,	   % -Map
+	   map_iterator/2,	   % -Map, +GraphList
 	   has_map/4,              % ?Map, ?Format ?Options, ?Graph
 	   has_map/3,		   % ?Map, ?Format ?Graph
 	   has_map_chk/3,	   % ?Map, ?Format ?Graph
@@ -52,6 +53,17 @@ supported_map_relations(List) :-
 
 map_iterator([E1,E2]) :-
 	has_map([E1, E2], _, _).
+
+%%	map_iterator(-Map, +GraphList) is non_det.
+%
+%	iterates over all maps that are present in provided mapping
+%	graphs.
+
+map_iterator([E1,E2], GraphList) :-
+        member(G, GraphList),
+	has_map([E1, E2], _, G).
+
+
 
 %%	has_map(+Map, ?Format, ?Properties, -Graph) is non_det.
 %%%	has_map(+Map, ?Format, -Graph) is non_det.

@@ -1,6 +1,7 @@
 :- module(ag_overlap,
 	  [
 	   precomputed_overlaps/1,
+	   create_merge_graph/2,     %+InputGraphList, -OutputGraph(URI)
 	   compute_overlaps/0,
 	   clear_overlaps/0
 	  ]
@@ -167,3 +168,57 @@ produce_overlap_counts(OverlapList,Min) :-
 	;
 	true).
 
+
+
+% ---------- Merge stuff ----------------
+%
+%
+
+%%	create_merge_graph(+Selected, -MergeGraph) is det.
+%
+%	asserts a graph which is the results of the merge (Union) of all
+%	graphs in inputGraphList.
+
+create_merge_graph(InputGraphList, MergeGraphURI):-
+	merge_uri(InputGraphList,MergeGraphURI),
+
+	findall(Map, map_iterator(Map,InputGraphList), AllMaps),
+	%find_overlaps(AllMaps, [], Overlaps),
+	sort(AllMaps,SortMaps),
+
+	length(AllMaps,C),
+	rdf_assert(MergeGraphURI, rdf:type, amalgame:'MergeAlignment', MergeGraphURI),
+	rdf_assert(MergeGraphURI, amalgame:count, literal(type('xsd:int', C)), amalgame),
+
+	print_message(informational, map(created, 'merge graph', MergeGraphURI, 1)),
+	setting(overlaps_persistent, Persistency),
+        rdf_persistency(MergeGraphURI, Persistency),
+	rdf_bnode(Process),
+	rdf_assert(Process, rdfs:label, literal('amalgame merge calculator'), MergeGraphURI),
+	opm_was_generated_by(Process, MergeGraphURI,MergeGraphURI,
+				 [was_derived_from(InputGraphList)]),
+
+	assert_merges(SortMaps,InputGraphList,MergeGraphURI),
+	true.
+
+
+assert_merges([],_,_).
+assert_merges([[E1,E2]|RestOverlaps],Graphs,MergeGraphURI):-
+
+	findall(Method,(
+		        has_map([E1,E2],_Format,Graph),
+			member(Graph,Graphs),
+			rdf(Bnode,align:entity1,E1,Graph),
+			rdf(Bnode,align:entity2,E2,Graph),
+			rdf(Bnode,amalgame:method,Method)
+			),
+		Methods),
+	assert_cell(E1, E2, [graph(MergeGraphURI),method(Methods)]),
+	assert_merges(RestOverlaps,Graphs,MergeGraphURI).
+
+merge_uri(GraphList, URI):-
+	sort(GraphList, Sorted), assertion(GraphList=Sorted),
+	term_hash(Sorted, Hash),
+	rdf_equal(amalgame:'', NS),
+	format(atom(URI), '~wamalgame_merge_~w', [NS,Hash]),
+	debug(uri, 'URI: ~w', [URI]).
