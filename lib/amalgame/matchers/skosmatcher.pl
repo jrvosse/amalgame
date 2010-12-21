@@ -116,26 +116,31 @@ find_label_match_methods(Source, Target, Methods, Options) :-
 %	True if Source and Target share at least one pair that matches.
 %	Details about this match are encoded in Method
 
-find_label_match_method(Source, Target, Options, exactlabel, Match):-
+find_label_match_method(Source, Target, Options, Method, Match):-
 	rdf_equal(rdfs:label, DefaultProp),
 	option(include_qualifier(true), Options),
 	option(sourcelabel(MatchProp1), Options, DefaultProp),
 	option(targetlabel(MatchProp2), Options, DefaultProp),
 	option(matchacross_lang(MatchAcross), Options, _),
 	option(language(SourceLang),Options, _),
+	option(case_sensitive(CaseSensitive), Options, false),
+
 	rdf_has(Source, MatchProp1, literal(lang(SourceLang, Label1)), RealLabel1Predicate),
+	(   var(SourceLang) -> LangString = 'all'; LangString = SourceLang),
+	(   CaseSensitive==true -> CaseString=cs; CaseString=ci),
 
         % If we can't match across languages, set target language to source language
 	(   MatchAcross == false
 	->  TargetLang = SourceLang
-	;   true),
-
+	;   true
+	),
 	rdf_has(Target, MatchProp2, literal(exact(Label1),lang(TargetLang, Label2)), RealLabel2Predicate),
 	option(scheme1(Voc1), Options),
 	option(scheme2(Voc2), Options),
 	label_occurences(Voc1, MatchProp1, Label1, Count1),
 	label_occurences(Voc2, MatchProp2, Label2, Count2),
-	format(atom(Match), 'exact ~w/~w (~p:~w@~w,~p:~w@~w)',
+	format(atom(Method), 'exactlabel ~p/~p case:~w, lang:~w ', [MatchProp1, MatchProp2, CaseString, LangString]),
+	format(atom(Match),  'exactlabel ~w/~w (~p:~w@~w,~p:~w@~w)',
 	       [Count1, Count2,
 		RealLabel1Predicate, Label1, SourceLang,
 		RealLabel2Predicate, Label2, TargetLang]).
