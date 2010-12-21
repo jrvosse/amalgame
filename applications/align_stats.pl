@@ -571,7 +571,7 @@ show_alignments -->
 		       [
 			input([type('Submit'),value('Compute Merge set')]),
 			li([a([href(ComputeLink)], 'Compute'), ' all missing statistics.']),
-			li([a([href(CacheLink)], 'Clear'), ' vocabulary statistics and overlap cache']),
+			li([a([href(CacheLink)], 'Clear'), ' alignment statistics and alignment overlap graphs']),
 			li([a([href(ClearDerivedLink)], 'Delete derived'),  ' alignments from the repository']),
 			li([a([href(ClearAllAlignLink)], 'Delete all (!)'),  ' alignments from the repository'])
 		  %\li_del_derived
