@@ -37,10 +37,9 @@
 :- http_handler(amalgame(sample_alignment),   http_sample_alignment,	[]).
 :- http_handler(amalgame(select_from_graph),  http_select_from_graph,	[]).
 :- http_handler(amalgame(include_opm),	      http_include_opm_graph,   []).
-:- http_handler(amalgame(merge_alignments),   http_merge_alignments,   []).
-:- http_handler(amalgame(stratify_alignment), http_stratify_alignment,     []).
-
-
+:- http_handler(amalgame(merge_alignments),   http_merge_alignments,    []).
+:- http_handler(amalgame(rename_graph),	      http_rename_graph,        []).
+:- http_handler(amalgame(stratify_alignment), http_stratify_alignment,	[]).
 
 
 
@@ -162,8 +161,6 @@ http_compute_stats(Request) :-
 					   ' to inspect results.']))
 			      ]).
 
-
-
 http_compute_stats(Request) :-
 	http_parameters(Request,
 			[graph(Graph, []),
@@ -175,6 +172,29 @@ http_compute_stats(Request) :-
 	       )
 	      ),
 	http_redirect(moved, location_by_id(http_list_alignments), Request).
+
+http_rename_graph(Request) :-
+	http_parameters(Request, [graph(Graph, []), target(Target, [])]),
+	rdf_transaction(
+			forall(rdf(Graph, Predicate, Object),
+			       rdf_update(Graph, Predicate, Object, subject(Target))
+			      )
+		       ),
+	rdf_transaction(
+			forall(rdf(Subject, Predicate, Graph),
+			       rdf_update(Subject, Predicate, Graph, object(Target))
+			      )
+		       ),
+	rdf_transaction(
+			forall(rdf(Subject, Predicate, Object, Graph),
+			       rdf_update(Subject, Predicate, Object, Graph, graph(Target))
+			      )
+		       ),
+	reply_html_page(cliopatria(default),
+			title('Amalgame: graph renamed'),
+			\show_alignment_overview(Target)
+		       ).
+
 
 compute_stats :-
 	align_ensure_stats(found),
@@ -423,7 +443,8 @@ show_alignment_overview(Graph) -->
 		   \li_select_from_graph(Graph),
 		   \li_one_to_one(Graph),
 		   \li_select_unique_labels(Graph),
-		   \li_export_graph(Graph)
+		   \li_export_graph(Graph),
+		   \li_rename_graph(Graph)
 		  ]
 		),
 	      p('Create multiple new graphs from this one: '),
@@ -684,7 +705,7 @@ li_export_graph(Graph) -->
 		       ' to graph ',
 		       input([type(text), class(target),
 			      name(name), value(Target),
-			      size(10)],[]),
+			      size(25)],[]),
 		       input([type(hidden),
 			      name(graph),
 			      value(Graph)],[]),
@@ -707,7 +728,7 @@ li_eval_graph(Graph) -->
 		     [input([type(hidden),  name(graph), value(Graph)],[]),
 		      input([class(submit), type(submit), value('Evaluate')]),
 		      ' to graph ',
-		      input([type(text), class(target), name(target), size(10),
+		      input([type(text), class(target), name(target), size(25),
 			     value(Target)], [])
 		     ]
 		    ))).
@@ -726,7 +747,7 @@ li_sample_graph(Graph) -->
 		     [input([type(hidden), name(graph), value(Graph)],[]),
 		      input([class(submit), type(submit), value('Sample')],[]),
 		      ' to graph ',
-		      input([type(text), name(name), value(Target), size(10), class(target)], []),
+		      input([type(text), name(name), value(Target), size(25), class(target)], []),
 		      ' sample size N=',
 		      input([type(text), name(size), value(25), size(4)],[]),
 		      ' with method ',
@@ -798,7 +819,7 @@ li_select_from_graph(Graph) -->
 		      	       ' to graph ',
 		       input([type(text), class(target),
 			      name(target), value(Target),
-			      size(10)],[]),
+			      size(25)],[]),
 		       ' with confidence level between : ',
 		       input([type(text),
 			      name(min),
@@ -829,7 +850,7 @@ li_one_to_one(Graph) -->
 		      	       ' to graph ',
 		       input([type(text), class(target),
 			      name(target), value(Target),
-			      size(10)],[]),
+			      size(25)],[]),
 		      ' only the one-to-one-mappings '
 		     ]
 		    )
@@ -848,7 +869,7 @@ li_select_unique_labels(Graph) -->
 		      	       ' to graph ',
 		       input([type(text), class(target),
 			      name(target), value(Target),
-			      size(10)],[]),
+			      size(25)],[]),
 		      ' only the unique label mappings '
 		     ]
 		    )
@@ -867,14 +888,29 @@ li_opm_inclusion(Graph) -->
 		      ' OPM dependecies into graph: ',
 		      input([type(text), class(target),
 			      name(target), value(Graph),
-			     size(10)],[])
+			     size(25)],[])
 		     ]
 		    )
 	       )
 	    ).
 
 
-
+li_rename_graph(Graph) -->
+	{
+	 http_link_to_id(http_rename_graph, [], RenameLink)
+	},
+	html(li(form([action(RenameLink)],
+		     [
+		      input([type(hidden), name(graph), value(Graph)],[]),
+		      input([type(submit), class(submit), value('Rename')],[]),
+		      ' to graph ',
+		      input([type(text), class(target),
+			     name(target), value(Graph),
+			     size(25)],[])
+		     ]
+		    )
+	       )
+	    ).
 
 
 
