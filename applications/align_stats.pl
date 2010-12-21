@@ -37,6 +37,43 @@
 :- http_handler(amalgame(sample_alignment),   http_sample_alignment,	[]).
 :- http_handler(amalgame(select_from_graph),  http_select_from_graph,	[]).
 :- http_handler(amalgame(include_opm),	      http_include_opm_graph,   []).
+:- http_handler(amalgame(merge_alignments),   http_merge_alignments,   []).
+:- http_handler(amalgame(stratify_alignment), http_stratify_alignment,     []).
+
+
+
+
+
+%%	http_merge_alignments(+Request) is det.
+%
+%	HTTP handler returning the result of a merge of selected
+%	alignments in HTML.
+
+http_merge_alignments(Request) :-
+      	http_parameters(Request, [selected(Selected,[list(atom)])]),
+	create_merge_graph(Selected, MergeGraph),
+	reply_html_page(cliopatria(default),
+			title('Merge results'),
+			\show_alignment_overview(MergeGraph)
+		       ).
+
+
+%%	http_stratify_alignments(+Request) is det.
+%
+%	HTTP handler returning the result of a stratification of the
+%	current graph.
+
+http_stratify_alignment(Request) :-
+      	http_parameters(Request, [graph(MergeGraph,[])]),
+	stratify_merge(MergeGraph),
+	reply_html_page(cliopatria(default),
+			[title('Alignments')
+			],
+			[ h4('Amalgame: Alignments in the RDF store'),
+			  \show_alignments
+			]).
+
+
 
 
 %%	http_list_alignments(+Request) is det.
@@ -392,7 +429,9 @@ show_alignment_overview(Graph) -->
 	      p('Create multiple new graphs from this one: '),
 	      ul([id(alignoperations)],
 		 [
-		   \li_partition_graph(Graph)
+		   \li_partition_graph(Graph),
+		   \li_stratify_merges_graph(Graph)
+
 		 ]
 		),
 	      div([id(ag_graph_as_resource)],
@@ -488,29 +527,35 @@ show_alignments -->
 	 http_link_to_id(http_delete_alignment_graphs, [], ClearAllAlignLink),
 	 http_link_to_id(http_delete_alignment_graphs, [type(DerivedAlignments)], ClearDerivedLink),
 	 http_link_to_id(http_compute_stats, [graph(all)], ComputeLink)
+
 	},
 	html([
-	      table([class(aligntable)],
-		    [tr([
-			 th([class(nick)],'Abr'),
-			 th([class(src)],'Source'),
-			 th([class(src_mapped)],'# mapped'),
-			 th([class(target)],'Target'),
-			 th([class(target_mapped)],'# mapped'),
-			 th([class(format)],'Format'),
-			 th([class(count)],'# maps'),
-			 th([class(graph)],'Named Graph URI')
-			]),
-		     \show_alignments(Graphs,0)
-		    ]),
-	      ul([class(ag_align_actions)],
-		 [
-		  li([a([href(ComputeLink)], 'Compute'), ' all missing statistics.']),
-		  li([a([href(CacheLink)], 'Clear'), ' vocabulary statistics and overlap cache']),
-		  li([a([href(ClearDerivedLink)], 'Delete derived'),  ' alignments from the repository']),
-		  li([a([href(ClearAllAlignLink)], 'Delete all (!)'),  ' alignments from the repository'])
+	      form([name('mergeform'),action('merge_alignments'), method('get')],[
+
+		    table([class(aligntable)],
+			  [tr([
+			       th([class(sel)],'Sel'),
+			       th([class(nick)],'Abr'),
+			       th([class(src)],'Source'),
+			       th([class(src_mapped)],'# mapped'),
+			       th([class(target)],'Target'),
+			       th([class(target_mapped)],'# mapped'),
+			       th([class(format)],'Format'),
+			       th([class(count)],'# maps'),
+			       th([class(graph)],'Named Graph URI')
+			      ]),
+			   \show_alignments(Graphs,0)
+			  ]),
+		    ul([class(ag_align_actions)],
+		       [
+			input([type('Submit'),value('Compute Merge set')]),
+			li([a([href(ComputeLink)], 'Compute'), ' all missing statistics.']),
+			li([a([href(CacheLink)], 'Clear'), ' vocabulary statistics and overlap cache']),
+			li([a([href(ClearDerivedLink)], 'Delete derived'),  ' alignments from the repository']),
+			li([a([href(ClearAllAlignLink)], 'Delete all (!)'),  ' alignments from the repository'])
 		  %\li_del_derived
-		 ])
+		       ])
+		   ])
 	     ]).
 
 show_alignments([],Total) -->
@@ -518,7 +563,8 @@ show_alignments([],Total) -->
 	 http_link_to_id(http_list_alignments, [], Link)
 	},
 	html(tr([class(finalrow)],
-		[td([class(nick)],''),
+		[td([class(sel)],''),
+		 td([class(nick)],''),
 		 td([class(src)],''),
 		 td([class(src_mapped)],''),
 		 td([class(target)],''),
@@ -569,6 +615,7 @@ show_alignments([Graph|Tail], Number) -->
 	},
 	html(tr([class(AlignmentTypesAtom)],
 		[
+		 td([class(sel)],input([type('checkbox'),name('selected'),value(Graph)])),
 		 td([class(nick)],\show_alignment(Graph)),
 		 td([class(src)], Source),
 		 td([class(src_mapped),style('text-align: right')],SourcesMapped),
@@ -690,6 +737,21 @@ li_sample_graph(Graph) -->
 			     ])
 		     ])
 	       )).
+
+
+
+li_stratify_merges_graph(Graph)-->
+	{
+	 http_link_to_id(http_stratify_alignment, [], SplitLink)
+
+	},
+	html(li(form([action(SplitLink)],
+			   [
+			    input([type(hidden), name(graph), value(Graph)],[]),
+			    input([type(submit), class(submit), value('Stratify')],[]),
+			    ' to multiple graphs.'
+			   ]))
+		  ).
 
 
 li_partition_graph(Graph) -->

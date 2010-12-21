@@ -81,6 +81,7 @@ down(Orig, URI, [rdf(Child, P, URI)|T], Visited, MaxD) :-
 	down(Orig, Child, T, [Child|Visited], MaxD2).
 down(_,_, [], _, _).
 
+transitive_context(owl:versionInfo).
 transitive_context(opmv:used).
 transitive_context(opmv:wasGeneratedBy).
 transitive_context(opmv:wasPerformedBy).

@@ -83,7 +83,8 @@ http_align_vocs(Request) :-
 	       matchacross_lang(MatchAcross)
 	      |Lang
 	      ]),
-	voc_clear_stats(amalgame_vocs),
+	voc_clear_stats(Source),
+	voc_clear_stats(Target),
 	align_ensure_stats(all(Graph)),
 
 	reply_html_page(cliopatria(default),

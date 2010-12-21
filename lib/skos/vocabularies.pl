@@ -13,6 +13,9 @@
 	   voc_delete_derived/0
           ]).
 
+:- use_module(library(uri)).
+:- use_module(library(version)).
+
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/html_write)).
 :- use_module(library(semweb/rdfs)).
@@ -93,11 +96,13 @@ voc_get_computed_props(Voc, Props) :-
 	       ),
 	maplist(=.., Props, GraphProps).
 
-voc_clear_stats(Graph) :-
-	(   rdf_graph(Graph)
-	->  rdf_unload(amalgame_vocs)
-	;   true),
+voc_clear_stats(all) :-
+	rdf_unload(amalgame_vocs),
 	print_message(informational, map(cleared, 'vocabulary statistics', amalgame_vocs, all)).
+
+voc_clear_stats(Graph) :-
+	rdf_retractall(Graph, _, _, amalgame_vocs),
+	print_message(informational, map(cleared, 'vocabulary statistics', Graph, all)).
 
 voc_delete_derived :-
 	findall(Voc, rdf(Voc, rdf:type, amalgame:'DerivedConceptScheme'), Derived),
@@ -135,10 +140,21 @@ voc_ensure_stats(all) :-
 	forall(member(V, Vocs),voc_ensure_stats(all(V))).
 
 voc_ensure_stats(all(V)) :-
+	voc_ensure_stats(version(V)),
 	voc_ensure_stats(numberOfConcepts(V)),
 	voc_ensure_stats(numberOfPrefLabels(V)),
 	voc_ensure_stats(numberOfAltLabels(V)),
 	voc_ensure_stats(numberOfMappedConcepts(V)).
+
+voc_ensure_stats(version(Voc)) :-
+	(   rdf_has(Voc, owl:versionInfo, literal(_))
+	->  true
+	;   rdf(Voc, opmv:wasGeneratedBy, _)
+	->  true
+	;   assert_voc_version(Voc)
+	->  true
+	;   debug(info, 'Failed to ensure opm stats for ~', [Voc])
+	),!.
 
 
 voc_ensure_stats(numberOfConcepts(Voc)) :-
@@ -168,6 +184,35 @@ voc_ensure_stats(numberOfMappedConcepts(Voc)) :-
 	;   count_mapped_concepts(Voc, Count),
 	    assert_voc_props(Voc:[numberOfMappedConcepts(literal(type('http://www.w3.org/2001/XMLSchema#int', Count)))])
 	),!.
+
+assert_voc_version(Voc) :-
+	(   rdf(Voc, amalgame:subSchemeOf, SuperVoc)
+	->  assert_subvoc_version(Voc, SuperVoc)
+	;   assert_supervoc_version(Voc)
+	).
+
+assert_subvoc_version(Voc, SuperVoc) :-
+	voc_ensure_stats(version(SuperVoc)),
+	rdf_has(SuperVoc, owl:versionInfo, Version),
+	rdf_assert(Voc,   owl:versionInfo, Version, amalgame_vocs).
+
+assert_supervoc_version(Voc) :-
+	rdf(_, skos:inScheme, Voc, SourceGraph:_),!,
+	rdf_graph_property(SourceGraph, source(SourceFileURL)),
+	uri_file_name(SourceFileURL, Filename),
+	file_directory_name(Filename, Dirname),
+	register_git_module(Voc, [directory(Dirname), home_url(Voc)]),
+	(   git_module_property(Voc, version(Version))
+	->  format(atom(VersionS),  'GIT version: ~w', [Version]),
+	    rdf_assert(Voc, owl:versionInfo, literal(VersionS), amalgame_vocs)
+	;   (rdf_graph_property(SourceGraph, hash(Hash)),
+	     rdf_graph_property(SourceGraph, source_last_modified(LastModified)),
+	     format_time(atom(Mod), 'Last-Modified: %Y-%m-%dT%H-%M-%S%Oz', LastModified),
+	     rdf_assert(Voc, owl:versionInfo, literal(Mod), amalgame_vocs),
+	     rdf_assert(Voc, owl:versionInfo, literal(Hash), amalgame_vocs)
+	    )
+	).
+
 
 assert_voc_props([]).
 assert_voc_props([Head|Tail]) :-
@@ -205,6 +250,8 @@ count_concepts(Voc, Count) :-
 		Concepts),
 	length(Concepts, Count),
 	print_message(informational, map(found, 'SKOS Concepts', Voc, Count)).
+
+count_concepts(Voc, 0) :- voc_format(Voc, null).
 
 count_prefLabels(Voc, Count) :-
 	findall(Label,
@@ -246,9 +293,17 @@ voc_partition(Request, Voc, PartitionType, Partition) :-
 
 
 classify_concepts(Req, [], Voc, _PartitionType, Partition, Partition) :-
+	memberchk(SubVoc, Partition),
+	(   rdf(SubVoc, opmv:wasDerivedFrom, Voc)
+	->  rdf(SubVoc, opmv:wasGeneratedBy, OldProcess),
+	    rdf(OldProcess, opmv:used, Voc),
+	    opm_clear_process(OldProcess)
+	;   true
+	),
 	rdf_bnode(Process),
-	opm_was_generated_by(Process, Partition, amalgame_vocs, [was_derived_from([Voc]), request(Req)]),
-	rdf_assert(Process, rdfs:label, literal('Amalgame vocabulary partitioning process'), amalgame_vocs).
+	OPMgraph = amalgame_vocs_opm,
+	opm_was_generated_by(Process, Partition, OPMgraph, [was_derived_from([Voc]), request(Req)]),
+	rdf_assert(Process, rdfs:label, literal('Amalgame vocabulary partitioning process'), OPMgraph).
 
 classify_concepts(Req, [H|T], Voc, PartitionType, Accum, Result) :-
 	classify_concept(H, Voc, PartitionType, SubVocURI, SubVocLabelURI),
@@ -294,9 +349,15 @@ classify_concept(C, Voc, type, SubVoc, Type) :-
 	assign_to_subvoc(C, Voc, Type, SubVoc).
 
 assign_to_subvoc(C, Voc, Type, SubVoc) :-
-	format(atom(Suffix), '_~p',  [Type]),
-	atom_concat(Voc, Suffix, SubVoc),
+	format(atom(Suffix), '~p',  [Type]),
+	sub_atom(Voc, _, 1, 0, Last),
+	nice_separator(Last, Separator),
+	atomic_list_concat([Voc, Separator, Suffix], SubVoc),
 	rdf_assert(C, skos:inScheme, SubVoc, SubVoc).
+
+nice_separator('/',  ''):- !.
+nice_separator(Last, '_'):- is_alpha(Last), !.
+nice_separator(_,  ''):- !.
 
 
 %%	skos_label(+Concept, -Label, -Options) is det.

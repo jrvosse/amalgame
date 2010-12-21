@@ -1,6 +1,7 @@
 :-module(ag_opm, [
 		  opm_was_generated_by/4,       % +Process (cause), +Artifact (effect), +RDFGraph, +Options
-		  opm_include_dependency/2
+		  opm_include_dependency/2,     % +SourceGraph, +TargetGraph
+		  opm_clear_process/1           % +Process (bnode)
 		 ]).
 
 /* <module> OPM -- simple support for the OPM Provenance Model (OPM)
@@ -52,6 +53,7 @@ expand_deplist([H|T], Accum, Results) :-
 :- rdf_meta
 	opm_triple(r, t).
 
+opm_triple(S, rdf(S, owl:versionInfo,O))     :- rdf(S, owl:versionInfo, O).
 opm_triple(S, rdf(S, opmv:wasDerivedFrom,O)) :- rdf(S, opmv:wasDerivedFrom, O).
 opm_triple(S, rdf(S, opmv:wasGeneratedBy,O)) :- rdf(S, opmv:wasGeneratedBy, O).
 opm_triple(S, rdf(S,P,O)) :-
@@ -122,19 +124,26 @@ opm_was_generated_by(Process, Artifact, Graph, Options) :-
 	atom(Artifact),
 	opm_was_generated_by(Process, [Artifact], Graph, Options).
 
+opm_clear_process(Process) :-
+	rdf_retractall(Process, _, _, _),
+	rdf_retractall(_, _, Process, _).
+
 opm_program(Graph, Program):-
-	git_module_property('amalgame',   home_url(Program)),
+	git_module_property('amalgame',   home_url(PackUrl)),
 	git_module_property('amalgame',   version(AG_version)),
 	git_module_property('ClioPatria', version(CP_version)),
 	(  current_prolog_flag(version_git, PL_version)
-	-> true;
-	   current_prolog_flag(version, PL_version)
+	-> true
+	;   current_prolog_flag(version, PL_version)
 	),
+	AG_git = 'http://eculture.cs.vu.nl/git/public/?p=econnect/amalgame.git&a=commit&h=',
+	format(atom(Program), '~w~w', [AG_git, AG_version]),
 	format(atom(AG), 'Amalgame: ~w', [AG_version]),
 	format(atom(CP), 'ClioPatria: ~w', [CP_version]),
 	format(atom(PL), 'SWI-Prolog: ~w', [PL_version]),
 	rdf_assert(Program, rdf:type,	opmvc:'Program', Graph),
 	rdf_assert(Program, rdfs:label, literal('Amalgame'), Graph),
+	rdf_assert(Program, opmvc:software, PackUrl, Graph),
 	rdf_assert(Program, opmvc:software, literal(AG), Graph),
 	rdf_assert(Program, opmvc:software, literal(CP), Graph),
 	rdf_assert(Program, opmvc:software, literal(PL), Graph).
