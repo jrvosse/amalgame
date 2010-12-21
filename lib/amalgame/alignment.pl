@@ -210,8 +210,9 @@ align_gc_stats(Graph) :-
 	).
 
 count_alignment(Graph, Format, Count) :-
-	findall(Map, has_map(Map, Format, Graph), Graphs),
-	length(Graphs, Count),
+	findall(Map, has_map(Map, Format, Graph), Maps),
+	sort(Maps, UniqueMaps),
+	length(UniqueMaps, Count),
 	print_message(informational, map(found, maps, Graph, Count)),
 	!.
 
