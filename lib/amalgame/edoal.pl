@@ -114,6 +114,17 @@ assert_cell(C1, C2, Options) :-
 	    )
 	;   true
 	),
+	(   option(match(Matches), Options)
+	->  (   is_list(Matches)
+	    ->	forall(member(Match, Matches),
+		       (   term_to_atom(Match, MatchAtom),
+			   rdf_assert(Cell, amalgame:match, literal(MatchAtom), Graph)
+		       ))
+	    ;	term_to_atom(Matches, MatchAtom),
+		rdf_assert(Cell, amalgame:match, literal(MatchAtom), Graph)
+	    )
+	;   true
+	),
 	(   option(prov(Prov), Options)
 	->  true,
 	    get_time(T), format_time(atom(Time), '%Y-%m-%dT%H-%M-%S%Oz', T),
