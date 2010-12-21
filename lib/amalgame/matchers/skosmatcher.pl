@@ -34,14 +34,16 @@ skos_find_candidates(Source, SourceScheme, TargetScheme, Options):-
 		Targets),
 	sort(Targets, TargetsUnique),
 	forall(member(Target, TargetsUnique),
-	       (   find_label_match_methods(Source, Target, Methods, [scheme1(SourceScheme), scheme2(TargetScheme)|Options]),
-		   (   Methods \= []
-		   ->  assert_cell(Source, Target, [method(Methods)|Options])
+	       (   find_label_match_methods(Source, Target, MethodMatches, [scheme1(SourceScheme), scheme2(TargetScheme)|Options]),
+		   (   MethodMatches \= []
+		   ->  maplist(splitpair, MethodMatches, Methods, Matches),
+		       assert_cell(Source, Target, [method(Methods), match(Matches)|Options])
 		   ;   true
 		   )
 	       )
 	      ).
 
+splitpair(A:B, A, B).
 
 % VIC: this version does not consider bracket-denoted qualifiers
 find_candidate(Source, TargetScheme, Target, Options) :-
@@ -96,8 +98,8 @@ find_candidate(Source, TargetScheme, Target, Options) :-
 %	Source and Target.
 
 find_label_match_methods(Source, Target, Methods, Options) :-
-	findall(Method,
-		find_label_match_method(Source, Target, Method, Options),
+	findall(Method:Match,
+		find_label_match_method(Source, Target, Options, Method, Match),
 		Methods
 	       ).
 
@@ -107,7 +109,7 @@ find_label_match_methods(Source, Target, Methods, Options) :-
 %	True if Source and Target share at least one pair that matches.
 %	Details about this match are encoded in Method
 
-find_label_match_method(Source, Target, Method, Options):-
+find_label_match_method(Source, Target, Options, exactlabel, Match):-
 	rdf_equal(rdfs:label, DefaultProp),
 	option(include_qualifier(true), Options),
 	option(sourcelabel(MatchProp1), Options, DefaultProp),
@@ -126,7 +128,7 @@ find_label_match_method(Source, Target, Method, Options):-
 	option(scheme2(Voc2), Options),
 	label_occurences(Voc1, MatchProp1, Label1, Count1),
 	label_occurences(Voc2, MatchProp2, Label2, Count2),
-	format(atom(Method), 'exact ~w/~w (~p:~w@~w,~p:~w@~w)',
+	format(atom(Match), 'exact ~w/~w (~p:~w@~w,~p:~w@~w)',
 	       [Count1, Count2,
 		RealLabel1Predicate, Label1, SourceLang,
 		RealLabel2Predicate, Label2, TargetLang]).
@@ -134,7 +136,7 @@ find_label_match_method(Source, Target, Method, Options):-
 
 % This version is for the include_qualifier=false option
 %
-find_label_match_method(Source, Target, Method, Options):-
+find_label_match_method(Source, Target, Options, exactlabel_no_qual, Match):-
 	rdf_equal(rdfs:label, DefaultProp),
 	option(include_qualifier(false), Options),
 	option(sourcelabel(MatchProp1), Options, DefaultProp),
@@ -146,19 +148,10 @@ find_label_match_method(Source, Target, Method, Options):-
 	option(scheme2(Voc2), Options),
 	label_occurences(Voc1, MatchProp1, Label1, Count1),
 	label_occurences(Voc2, MatchProp2, Label2, Count2),
-	format(atom(Method), 'exact qual ~w/~w (~p:~w@~w,~p:~w@~w)',
+	format(atom(Match), 'exact qual ~w/~w (~p:~w@~w,~p:~w@~w)',
 	       [Count1, Count2,
 		RealLabel1Predicate, Label1, SourceLang,
 		RealLabel2Predicate, Label2, TargetLang]).
-
-
-
-
-
-
-
-
-
 
 
 % This version of asserts a match when the
@@ -167,7 +160,7 @@ find_label_match_method(Source, Target, Method, Options):-
 % only labels with a common prefix of a certain length (also a parameter
 % retrieved from stringdist_setting/2) are considered.
 
-find_label_match_method(Source, Target, Method, Options):-
+find_label_match_method(Source, Target, Options, stringdist, Match):-
 	option(candidate_matchers(Matchers), Options),
 	memberchk(stringdist, Matchers),
 	rdf_equal(rdfs:label, DefaultProp),
@@ -176,7 +169,7 @@ find_label_match_method(Source, Target, Method, Options):-
 	rdf_has(Source, MatchProp1, literal(lang(SourceLang, Label1)), RealLabel1Predicate),
 	rdf_has(Target, MatchProp2, literal(lang(TargetLang, Label2)), RealLabel2Predicate),
 	max_stringdist(Label1, Label2, 1),
-	format(atom(Method), 'dist<2 (~p:~w@~w,~p:~w@~w)', [RealLabel1Predicate, Label1, SourceLang,RealLabel2Predicate, Label2, TargetLang]).
+	format(atom(Match), 'dist<2 (~p:~w@~w,~p:~w@~w)', [RealLabel1Predicate, Label1, SourceLang,RealLabel2Predicate, Label2, TargetLang]).
 
 label_occurences(Voc, Prop, Label, Count) :-
         answer_count(Alt,
