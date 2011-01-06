@@ -74,7 +74,7 @@ strat_uri(Count, MergeGraph, StratumGraphURI):-
 	rdf_bnode(Process),
 	rdf_assert(Process, rdfs:label, literal('amalgame stratum calculator'), StratumGraphURI),
 	opm_was_generated_by(Process, StratumGraphURI,StratumGraphURI,
-				 [was_derived_from(MergeGraph)])).
+				 [was_derived_from([MergeGraph])])).
 
 
 %%	precomputed_overlaps(-Overlaps) is semidet.

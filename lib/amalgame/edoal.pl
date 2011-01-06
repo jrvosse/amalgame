@@ -2,7 +2,7 @@
 		 assert_alignment/2, 	% +URI, +OptionList
 		 assert_cell/3,	        % +E1, +E2, +OptionList
 		 edoal_to_triples/4,	% +Request, +EdoalGraph, +Options, +TargetGraph
-		 edoal_select/4	        % +Request, +EdoalGraph, +Options, +TargetGraph
+		 edoal_select/5	        % +Request, +EdoalGraph, +Options, +TargetGraph, +TargetRestGraph
 		]
 	).
 
@@ -183,8 +183,9 @@ assert_as_single_triple(C1-C2-MatchOptions, Options, TargetGraph) :-
 	rdf_assert(C1, R, C2, TargetGraph).
 
 
+% VIC: Added target rest graph
 
-edoal_select(Request, EdoalGraph, TargetGraph, Options) :-
+edoal_select(Request, EdoalGraph, TargetGraph, TargetRestGraph, Options) :-
 	option(min(Min), Options, 0.0),
 	option(max(Max), Options, 1.0),
 	rdf_transaction(
@@ -192,7 +193,10 @@ edoal_select(Request, EdoalGraph, TargetGraph, Options) :-
 				memberchk(measure(Measure), MatchOptions)
 			       ),
 			       (   (Measure < Min ; Measure > Max)
-			       ->  true
+			       ->  append(Options, MatchOptions, NewOptions),
+				   assert_cell(C1, C2, [graph(TargetRestGraph),
+							alignment(TargetRestGraph)
+						       |NewOptions])
 			       ;   append(Options, MatchOptions, NewOptions),
 				   assert_cell(C1, C2, [graph(TargetGraph),
 							alignment(TargetGraph)
@@ -204,7 +208,7 @@ edoal_select(Request, EdoalGraph, TargetGraph, Options) :-
 	rdf_bnode(Process),
 	rdf_assert(Process, amalgame:minimalConfidence, literal(type(xsd:float, Min)), TargetGraph),
 	rdf_assert(Process, amalgame:maximalConfidence, literal(type(xsd:float, Max)), TargetGraph),
-	opm_was_generated_by(Process, TargetGraph, TargetGraph,
+	opm_was_generated_by(Process, [TargetGraph, TargetRestGraph], TargetGraph,
 			     [was_derived_from([EdoalGraph]),
 			      request(Request)
 			     ]).

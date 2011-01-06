@@ -301,6 +301,7 @@ http_sample_alignment(Request) :-
 http_select_from_graph(Request) :-
 	http_parameters(Request, [graph(Graph, [description('URI of source graph to export from')]),
 				  target(TargetGraph, [default(default_export_graph)]),
+				  targetRest(TargetRestGraph, [default(default_export_rest_graph)]),
 				  condition(Condition, [description('Selection type'), oneof(confidence, one_to_one, unique_label)]),
 				  min(Min, [default(0.0), between(0.0, 1.0), description('Minimal confidence level')]),
 				  max(Max, [default(1.0), between(0.0, 1.0), description('Maximal confidence level')])
@@ -309,7 +310,7 @@ http_select_from_graph(Request) :-
 	(rdf_graph(TargetGraph) -> rdf_unload(TargetGraph); true),
 	(   Condition = confidence
 	->  edoal_select(Request, Graph, TargetGraph, [min(Min), max(Max)])
-	;   select_from_alignment(Request, Graph, Condition, TargetGraph)
+	;   select_from_alignment(Request, Graph, Condition, TargetGraph, TargetRestGraph)
 	),
 	reply_html_page(cliopatria(default),
 			title('Amalgame selection results'),
@@ -455,6 +456,7 @@ show_alignment_overview(Graph) -->
 
 		 ]
 		),
+
 	      div([id(ag_graph_as_resource)],
 		  \graph_as_resource(Graph, []))
 
@@ -810,7 +812,8 @@ li_select_from_graph(Graph) -->
 	 reset_gensym(Base),
 	 repeat,
 	 gensym(Base, Target),
-	 \+ rdf_graph(Target),!
+	 \+ rdf_graph(Target),
+	 atom_concat(Target,'-rest', TargetRest),!
 	},
 	html(li(form([action(SelectLink)],
 		     [input([type(hidden), name(graph), value(Graph)],[]),
@@ -831,7 +834,12 @@ li_select_from_graph(Graph) -->
 			      name(max),
 			      value('1.0'),
 			      size(3)
-			     ],[])
+			     ],[]),
+		     '  and store the rest in graph ',
+		   input([type(text), class(target),
+			      name(targetRest), value(TargetRest),
+			      size(25)],[])
+
 		     ]
 		    )
 	       )
@@ -840,7 +848,9 @@ li_select_from_graph(Graph) -->
 li_one_to_one(Graph) -->
 	{
 	 http_link_to_id(http_select_from_graph, [], SelectLink),
-	 atom_concat(Graph,'_1-1-only', Target)
+	 atom_concat(Graph,'_1-1-only', Target),
+	 atom_concat(Graph,'_1-1-rest', TargetRest)
+
 	},
 
 	html(li(form([action(SelectLink)],
@@ -851,7 +861,10 @@ li_one_to_one(Graph) -->
 		       input([type(text), class(target),
 			      name(target), value(Target),
 			      size(25)],[]),
-		      ' only the one-to-one-mappings '
+		      ' only the one-to-one-mappings and store the rest in graph ',
+		   input([type(text), class(target),
+			      name(targetRest), value(TargetRest),
+			      size(25)],[])
 		     ]
 		    )
 	       )
@@ -859,7 +872,8 @@ li_one_to_one(Graph) -->
 li_select_unique_labels(Graph) -->
 	{
 	 http_link_to_id(http_select_from_graph, [], SelectLink),
-	 atom_concat(Graph,'_uniq_labels', Target)
+	 atom_concat(Graph,'_uniq_labels', Target),
+	 atom_concat(Target,'-rest', TargetRest)
 	},
 
 	html(li(form([action(SelectLink)],
@@ -870,7 +884,10 @@ li_select_unique_labels(Graph) -->
 		       input([type(text), class(target),
 			      name(target), value(Target),
 			      size(25)],[]),
-		      ' only the unique label mappings '
+		      ' only the unique label mappings and store the rest in graph ',
+		   input([type(text), class(target),
+			      name(targetRest), value(TargetRest),
+			      size(25)],[])
 		     ]
 		    )
 	       )
@@ -911,6 +928,5 @@ li_rename_graph(Graph) -->
 		    )
 	       )
 	    ).
-
 
 

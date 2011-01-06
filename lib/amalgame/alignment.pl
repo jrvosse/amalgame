@@ -4,7 +4,7 @@
 	  find_graphs/2,
 	  nickname/2,
 	  split_alignment/4,
-	  select_from_alignment/4,
+	  select_from_alignment/5,
 
 	  align_get_computed_props/2,
 	  align_ensure_stats/1,
@@ -277,12 +277,14 @@ split_alignment(Request, SourceGraph, Condition, SplittedGraphs) :-
 	findall(Map:Options, has_map(Map, Format, Options, SourceGraph), Maps),
 	reassert(Request, Maps, SourceGraph, Condition, [], SplittedGraphs).
 
-select_from_alignment(Request, SourceGraph, Condition, TargetGraph) :-
+% VIC: added the restgraph as extra argument
+
+select_from_alignment(Request, SourceGraph, Condition, TargetGraph, TargetRestGraph) :-
 	findall([C1,C2,MapProps], has_map([C1,C2], _, MapProps, SourceGraph), Maps),
 	forall(member([C1,C2,MapProps], Maps),
 	       (   meets_condition(Condition, C1,C2, MapProps, SourceGraph)
 	       ->  assert_cell(C1, C2, [graph(TargetGraph)|MapProps])
-	       ;   true
+	       ;   assert_cell(C1, C2, [graph(TargetRestGraph)|MapProps])
 	       )
 	      ),
 	(   rdf_graph(TargetGraph)
@@ -290,7 +292,7 @@ select_from_alignment(Request, SourceGraph, Condition, TargetGraph) :-
 	    rdf_bnode(Process),
 	    rdf_assert(Process, rdfs:label, literal('Amalgame mapping filter'), TargetGraph),
 	    rdf_assert(Process, amalgame:condition, literal(Condition), TargetGraph),
-	    opm_was_generated_by(Process, TargetGraph, TargetGraph,
+	    opm_was_generated_by(Process, [TargetGraph, TargetRestGraph], TargetGraph,
 				 [was_derived_from([SourceGraph]),
 				  request(Request)
 				 ])
