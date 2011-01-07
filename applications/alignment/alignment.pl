@@ -24,6 +24,7 @@ pages and services.
 :- use_module(library(amalgame/matchers/skosmatcher)).
 :- use_module(library(amalgame/alignment)).
 :- use_module(library(amalgame/opm)).
+:- use_module(library(amalgame/edoal)).
 
 :- http_handler(amalgame(align_form),       http_align_form,     []).
 :- http_handler(amalgame(align_vocs),       http_align_vocs,     []).
@@ -36,6 +37,9 @@ http_align_form(Request) :-
 			[source(Source, [description('URI of source ConceptScheme')]),
 			 target(Target,[description('URI of target ConceptScheme')])
 			]),
+	voc_ensure_stats(all(Source)),
+	voc_ensure_stats(all(Target)),
+
 	reply_html_page(cliopatria(default),
 			[title('Align two SKOS vocabularies')
 			],
@@ -204,7 +208,7 @@ li_align(Source, Target) -->
 	       )
 	    ).
 
-align(Source, Target, Options) :-
+alignx(Source, Target, Options) :-
 	findall(SourceConcept, rdf(SourceConcept, skos:inScheme, Source), SourceConcepts),
 	forall(member(SourceConcept, SourceConcepts),
 	       rdf_transaction(skos_find_candidates(SourceConcept, Source,
@@ -219,3 +223,26 @@ align(Source, Target, Options) :-
 
 	rdf_assert(Process, rdfs:label, literal('amalgame skos:matcher:skos_find_candidates/3'), Graph),
 	opm_was_generated_by(Process, Graph, Graph, [was_derived_from([Source, Target])|Options]).
+
+align(SourceScheme, TargetScheme, Options) :-
+	findall([Source,Target],
+		candidate_generator(_Alignment, SourceScheme, TargetScheme, Source, Target, [labelmatch], Options),
+		CandidatesDoubles),
+	sort(CandidatesDoubles, Candidates),
+	findall(Source-Target-MatchUsed-MethodUsed,
+		(   member([Source, Target], Candidates),
+		    matcher(Source, Target, labelmatch, MatchUsed, MethodUsed, Options)
+		), Cells
+	       ),
+	forall(member(Source-Target-MatchUsed-MethodUsed, Cells),
+	       assert_cell(Source, Target, [method(MethodUsed), match(MatchUsed) | Options ])
+	      ),
+	option(graph(Graph), Options, align),
+	rdf_bnode(Process),
+	rdf_assert(Graph, rdf:type, amalgame:'AmalgameAlignment', Graph),
+	rdf_assert(Graph, amalgame:source, SourceScheme, Graph),
+	rdf_assert(Graph, amalgame:target, TargetScheme, Graph),
+
+	rdf_assert(Process, rdfs:label, literal('amalgame label matcher'), Graph),
+	opm_was_generated_by(Process, Graph, Graph, [was_derived_from([SourceScheme, TargetScheme])|Options]).
+

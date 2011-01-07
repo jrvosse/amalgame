@@ -1,5 +1,7 @@
 :- module(skosmatcher,
-	  [skos_find_candidates/4 % +SourceConcept, +SourceScheme, +TargetScheme, +Options, -Results
+	  [skos_find_candidates/4,     % +SourceConcept, +SourceScheme, +TargetScheme, +Options, -Results
+	   candidate_generator/7,
+	   matcher/6
 	  ]
 	 ).
 
@@ -7,7 +9,101 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_portray)).
 :- use_module(library(amalgame/edoal)).
+:- use_module(library(amalgame/map)).
 :- use_module(levenshtein).
+
+candidate_generator(Alignment, SourceScheme, TargetScheme, Source, Target, _Methods, _Options) :-
+	% Assume Alignment already contains our candidates:
+	nonvar(Alignment),
+	var(SourceScheme),
+	var(TargetScheme),
+	has_map([Source, Target], _Format, Alignment).
+
+candidate_generator(Alignment, SourceScheme, TargetScheme, Source, Target, Methods, Options) :-
+	% Assume we'd like to iterate over all Source concepts in SourceScheme
+	% and use Method to efficiently select candidates from TargetScheme
+	var(Alignment),
+	nonvar(SourceScheme),
+	nonvar(Methods),
+	rdf_has(Source, skos:inScheme, SourceScheme),
+	member(Method, Methods),
+	call(Method, candidates, Source, TargetScheme, Target, Options).
+
+candidate_generator(Alignment, SourceScheme, TargetScheme, Source, Target, Methods, _Options) :-
+	% Assume we have no such effient Method and we just need to iterate over all Source and Target
+	% combinations (e.g. compute the Carthesian product).
+	var(Alignment),
+	var(Methods),
+	nonvar(SourceScheme),
+	nonvar(TargetScheme),
+	rdf_has(Source, skos:inScheme, SourceScheme),
+	rdf_has(Target, skos:inScheme, TargetScheme).
+
+matcher(Source, Target,  Method, MatchUsed, MethodUsed, Options) :-
+	call(Method, matcher, Source, Target, MatchUsed, MethodUsed, Options).
+
+labelmatch(candidates, Source, TargetScheme, Target, Options) :-
+	nonvar(Source),
+	option(include_qualifier(InclQualifier), Options, true ),
+	option(candidate_matchers(Matchers), Options, [labelmatch]),
+	memberchk(labelmatch, Matchers),
+	option(language(Lang),Options, _),
+	option(matchacross_lang(MatchAcross), Options, _),
+	option(case_sensitive(CaseSensitive), Options, false),
+	rdf_equal(rdfs:label, DefaultProp),
+	option(sourcelabel(MatchProp1), Options, DefaultProp),
+	option(targetlabel(MatchProp2), Options, DefaultProp),
+
+	(   InclQualifier == true
+	->  rdf_has(Source, MatchProp1, literal(lang(Lang1, Label1)))
+	;   rdf_has(Source, MatchProp1, literal(lang(Lang1, LabelQual))),
+	    remove_qualifier(LabelQual,Label1)
+	),
+
+	(   nonvar(Lang)
+	->  lang_matches(Lang1, Lang)
+	;   true
+	),
+
+	(   CaseSensitive == true
+	->  rdf_has(Target, MatchProp2, literal(lang(Lang2,Label1)))
+	;   rdf_has(Target, MatchProp2, literal(exact(Label1),lang(Lang2, _Label2)))
+	),
+
+	% If we can't match across languages, set target language to source language
+
+	(   (MatchAcross == false, nonvar(Lang),nonvar(Lang2))
+	->  lang_matches(Lang2, Lang)
+	;   true
+	),
+	rdf_has(Target, skos:inScheme, TargetScheme).
+
+labelmatch(matcher, Source, Target, Match, Method, Options):-
+	rdf_equal(skos:altLabel, DefaultProp),
+	option(include_qualifier(true), Options, true),
+	option(sourcelabel(MatchProp1), Options, DefaultProp),
+	option(targetlabel(MatchProp2), Options, DefaultProp),
+	option(matchacross_lang(MatchAcross), Options, _),
+	option(language(SourceLang),Options, _),
+	option(case_sensitive(CaseSensitive), Options, false),
+
+	rdf_has(Source, MatchProp1, literal(lang(SourceLang, Label1)), RealLabel1Predicate),
+	(   var(SourceLang) -> LangString = 'all'; LangString = SourceLang),
+	(   CaseSensitive==true -> CaseString=cs; CaseString=ci),
+
+        % If we can't match across languages, set target language to source language
+	(   MatchAcross == false
+	->  TargetLang = SourceLang
+	;   true
+	),
+	rdf_has(Target, MatchProp2, literal(exact(Label1),lang(TargetLang, Label2)), RealLabel2Predicate),
+	format(atom(Method), 'exactlabel ~p/~p case:~w, lang:~w ', [MatchProp1, MatchProp2, CaseString, LangString]),
+	format(atom(Match),  'exactlabel (~p:~w@~w,~p:~w@~w)',
+	       [RealLabel1Predicate, Label1, SourceLang,
+		RealLabel2Predicate, Label2, TargetLang]),
+	debug(match, '~w~n~w', [Match,Method]).
+
+
 
 %%	skos_find_candidates(+C, +S, +Options, -Result) is semidet.
 %
