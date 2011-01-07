@@ -308,13 +308,31 @@ http_select_from_graph(Request) :-
 				 ]),
 
 	(rdf_graph(TargetGraph) -> rdf_unload(TargetGraph); true),
+	(rdf_graph(TargetRestGraph) -> rdf_unload(TargetRestGraph); true),
 	(   Condition = confidence
 	->  edoal_select(Request, Graph, TargetGraph, TargetRestGraph, [min(Min), max(Max)])
 	;   select_from_alignment(Request, Graph, Condition, TargetGraph, TargetRestGraph)
 	),
+	align_ensure_stats(all(TargetGraph)),
+	align_ensure_stats(all(TargetRestGraph)),
 	reply_html_page(cliopatria(default),
 			title('Amalgame selection results'),
-			\show_alignment_overview(TargetGraph)).
+			[ h4('Alignment splitted in two'),
+			  div('Original alignment:'),
+			  table([class(aligntable)],
+				[tr([
+				     th('Abr'),	th('Source'), th('# mapped'), th('Target'), th('# mapped'), th('Format'), th('# maps'), th('Named Graph URI')
+				    ]),
+				 \show_alignments([Graph], 0)
+				]),
+			  div('... has been splitted into'),
+			  table([class(aligntable)],
+				[tr([
+				     th('Abr'),	th('Source'), th('# mapped'), th('Target'), th('# mapped'), th('Format'), th('# maps'), th('Named Graph URI')
+				    ]),
+				 \show_alignments([TargetGraph, TargetRestGraph], 0)
+				])
+			]).
 
 sample(Request, Method, Graph, Name, Size) :-
 	(   rdf_graph(Name)
