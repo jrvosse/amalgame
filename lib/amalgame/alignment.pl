@@ -113,44 +113,53 @@ align_ensure_stats(format(_)) :- !.
 
 
 align_ensure_stats(count(Graph)) :-
-	(   rdf(Graph, amalgame:count, _)
-	->  true
-	;   is_alignment_graph(Graph, Format),!,
-	    count_alignment(Graph, Format, Count),
-	    assert_alignment_props(Graph:[count(literal(type('http://www.w3.org/2001/XMLSchema#int',Count)))], amalgame)
-	),!.
+	rdf(Graph, amalgame:count, _),!.
+align_ensure_stats(count(Graph)) :-
+	(   is_alignment_graph(Graph, Format)
+	->  count_alignment(Graph, Format, Count)
+	;   Count = 0
+	),
+	assert_alignment_props(Graph:[count(literal(type('http://www.w3.org/2001/XMLSchema#int',Count)))], amalgame),
+	!.
 
 align_ensure_stats(source(Graph)) :-
-	(   rdf(Graph, amalgame:source, _)
-	->  true
-	;   is_alignment_graph(Graph, Format),!,
-	    find_source(Graph, Format, Source),
-	    assert_alignment_props(Graph:[source(Source)], amalgame)
-	),!.
+	rdf(Graph, amalgame:source, _),!.
+align_ensure_stats(source(Graph)) :-
+	(   is_alignment_graph(Graph, Format)
+	->  find_source(Graph, Format, Source)
+	;   Source = nill
+	),
+	assert_alignment_props(Graph:[source(Source)], amalgame),
+	!.
 
 align_ensure_stats(target(Graph)) :-
-	(   rdf(Graph, amalgame:target, _)
-	->  true
-	;   is_alignment_graph(Graph, Format),!,
-	    find_target(Graph, Format, Target),
-	    assert_alignment_props(Graph:[target(Target)], amalgame)
-	),!.
+	rdf(Graph, amalgame:target, _),!.
+align_ensure_stats(target(Graph)) :-
+	(   is_alignment_graph(Graph, Format)
+	->  find_target(Graph, Format, Target)
+	;   Target = nill
+	),
+	assert_alignment_props(Graph:[target(Target)], amalgame),
+	!.
 
 
 align_ensure_stats(mapped(Graph)) :-
-	(   rdf(Graph, amalgame:mappedSourceConcepts, _)
-	->  true
-	;   is_alignment_graph(Graph, Format),!,
-	    findall(M1, has_map([M1, _], Format, Graph), M1s),
+	rdf(Graph, amalgame:mappedSourceConcepts, _),!.
+align_ensure_stats(mapped(Graph)) :-
+	(   is_alignment_graph(Graph, Format)
+	->  findall(M1, has_map([M1, _], Format, Graph), M1s),
 	    findall(M2, has_map([_, M2], Format, Graph), M2s),
 	    sort(M1s, MappedSourceConcepts),
 	    sort(M2s, MappedTargetConcepts),
 	    length(MappedSourceConcepts, NrMappedSourceConcepts),
-	    length(MappedTargetConcepts, NrMappedTargetConcepts),
-	    assert_alignment_props(Graph:[mappedSourceConcepts(literal(type('http://www.w3.org/2001/XMLSchema#int', NrMappedSourceConcepts))),
-					  mappedTargetConcepts(literal(type('http://www.w3.org/2001/XMLSchema#int', NrMappedTargetConcepts)))
-					 ], amalgame)
-	),!.
+	    length(MappedTargetConcepts, NrMappedTargetConcepts)
+	;   NrMappedSourceConcepts = 0,
+	    NrMappedTargetConcepts = 0
+	),
+	assert_alignment_props(Graph:[mappedSourceConcepts(literal(type('http://www.w3.org/2001/XMLSchema#int', NrMappedSourceConcepts))),
+				      mappedTargetConcepts(literal(type('http://www.w3.org/2001/XMLSchema#int', NrMappedTargetConcepts)))
+					 ], amalgame),
+	!.
 
 %%	align_clear_stats(+Type) is det.
 %%	align_clear_stats(-Type) is nondet.
