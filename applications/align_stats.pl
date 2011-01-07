@@ -554,15 +554,23 @@ show_overlap_graphs(Overlap) -->
 	},
 	html([a([href(Olink)], Nicks)]).
 
+stripnick(_Nick-Graph, Graph).
+
 show_alignments -->
 	{
 	 align_ensure_stats(found),
+	 % We cannot yet combine these two findall calls due to transactions issues...
 	 findall(Graph,
 		 (   is_alignment_graph(Graph,_),
 		     \+ rdfs_individual_of(Graph, amalgame:'OverlapAlignment')
 		 ),
 		 AllGraphs),
-	 sort(AllGraphs, Graphs),
+	 findall(Nick-Graph,
+		 (   member(Graph, AllGraphs),
+		     nickname(Graph,Nick)
+		 ),NickNamedGraphs),
+	 sort(NickNamedGraphs, SortedOnNick),
+	 maplist(stripnick, SortedOnNick, Graphs),
 	 rdf_equal(amalgame:'DerivedAlignment', DerivedAlignments),
 	 http_link_to_id(http_clear_alignstats, [what(all)], CacheLink),
 	 http_link_to_id(http_delete_alignment_graphs, [], ClearAllAlignLink),
