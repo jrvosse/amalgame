@@ -182,9 +182,6 @@ assert_as_single_triple(C1-C2-MatchOptions, Options, TargetGraph) :-
 	R \= no_override, !,
 	rdf_assert(C1, R, C2, TargetGraph).
 
-
-% VIC: Added target rest graph
-
 edoal_select(Request, EdoalGraph, TargetGraph, TargetRestGraph, Options) :-
 	option(min(Min), Options, 0.0),
 	option(max(Max), Options, 1.0),
@@ -205,6 +202,7 @@ edoal_select(Request, EdoalGraph, TargetGraph, TargetRestGraph, Options) :-
 			      )
 		       ),
 	rdf_assert(TargetGraph, rdf:type, amalgame:'SelectionAlignment', TargetGraph),
+	rdf_assert(TargetRestGraph, rdf:type, amalgame:'SelectionAlignment', TargetRestGraph),
 	rdf_bnode(Process),
 	rdf_assert(Process, amalgame:minimalConfidence, literal(type(xsd:float, Min)), TargetGraph),
 	rdf_assert(Process, amalgame:maximalConfidence, literal(type(xsd:float, Max)), TargetGraph),
