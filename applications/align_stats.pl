@@ -309,7 +309,7 @@ http_select_from_graph(Request) :-
 
 	(rdf_graph(TargetGraph) -> rdf_unload(TargetGraph); true),
 	(   Condition = confidence
-	->  edoal_select(Request, Graph, TargetGraph, [min(Min), max(Max)])
+	->  edoal_select(Request, Graph, TargetGraph, TargetRestGraph, [min(Min), max(Max)])
 	;   select_from_alignment(Request, Graph, Condition, TargetGraph, TargetRestGraph)
 	),
 	reply_html_page(cliopatria(default),
