@@ -1,6 +1,6 @@
 :- module(align_stats, [
 			show_alignment_overview//1
-		       ]). % No exports, HTTP entry points only
+		       ]).
 
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
