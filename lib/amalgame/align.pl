@@ -1,9 +1,35 @@
+:- module(align,
+	  [align/3
+	  ]).
+
+:- use_module(library(amalgame/candidates/source_candidates)).
+:- use_module(library(amalgame/candidates/target_candidates)).
+:- use_module(library(amalgame/matchers/exact_label_match)).
+
+
+test_align :-
+	WN30='http://purl.org/vocabularies/princeton/wn30/',
+	WN20='http://www.w3.org/2006/03/wn/wn20/',
+	Input = schemes(WN30, WN20),
+	Options = [candidate(source_candidates),
+		   match(exact_label_match),
+		   test(target_candidates)
+		  ],
+	align(Input, Output, Options),
+	materialize_alignment_graph(Output, foobar, []).
+
 align(Input, Output, Options) :-
 	option(candidate(CModule), Options),
 	option(match(MModule), Options),
+	option(test(TModule), Options, skip), % Optional
 	findall(Candidate-Evidence,
-		CModule:candidate_generator(Input, Candidate, Options),
-		MModule:match(Candidate, Evidence, Options),
+		(   CModule:candidate(Input, Candidate, Options),
+		    MModule:match(Candidate, Evidence, Options),
+		    (	TModule \= skip
+		    ->	TModule:candidate(Input, Candidate, Options)
+		    ;	true
+		    )
+		),
 		Output).
 
 
