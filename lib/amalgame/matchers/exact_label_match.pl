@@ -10,7 +10,7 @@ amalgame:component(matcher, exact_label_match(candidate(uri, uri), graph, [sourc
 									   targetlabel(uri, [default(rdfs:label)])
 									  ])).
 
-match(align(Source, Target, _ProvList), Output, Options) :-
+match(align(Source, Target, OldProvList), align(Source, Target, NewProvList), Options) :-
 	rdf_equal(rdfs:label, DefaultProp),
  	option(sourcelabel(MatchProp1), Options, DefaultProp),
 	option(targetlabel(MatchProp2), Options, DefaultProp),
@@ -34,6 +34,6 @@ match(align(Source, Target, _ProvList), Output, Options) :-
 	;   true
 	),
 	rdf_has(Target, MatchProp2, literal(exact(SourceLabel),lang(TargetLang, TargetLabel)), TargetProp),
-	Output = [rdf(Source, SourceProp, literal(lang(SourceLang, SourceLabel))),
-		  rdf(Target, TargetProp, literal(lang(TargetLang, TargetLabel)))].
-
+	Evidence = [rdf(Source, SourceProp, literal(lang(SourceLang, SourceLabel))),
+		    rdf(Target, TargetProp, literal(lang(TargetLang, TargetLabel)))],
+	append(OldProvList, [evidence(Evidence)], NewProvList).

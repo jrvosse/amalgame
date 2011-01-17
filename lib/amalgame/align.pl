@@ -5,32 +5,37 @@
 :- use_module(library(amalgame/candidates/source_candidates)).
 :- use_module(library(amalgame/candidates/target_candidates)).
 :- use_module(library(amalgame/matchers/exact_label_match)).
-
+:- use_module(library(amalgame/edoal)).
 
 test_align :-
 	WN30='http://purl.org/vocabularies/princeton/wn30/',
 	WN20='http://www.w3.org/2006/03/wn/wn20/',
+	rdf_equal(SkosDef, skos:definition),
 	Input = schemes(WN30, WN20),
 	Options = [candidate(source_candidates),
 		   match(exact_label_match),
-		   test(target_candidates)
+		   test(target_candidates),
+		   sourcelabel(SkosDef),
+		   targetlabel(SkosDef)
 		  ],
 	align(Input, Output, Options),
-	materialize_alignment_graph(Output, foobar, []).
+	materialize_alignment_graph(Output, foobar, Options).
 
 align(Input, Output, Options) :-
 	option(candidate(CModule), Options),
 	option(match(MModule), Options),
 	option(test(TModule), Options, skip), % Optional
-	findall(Candidate-Evidence,
+	findall(Alignment,
 		(   CModule:candidate(Input, Candidate, Options),
-		    MModule:match(Candidate, Evidence, Options),
+		    MModule:match(Candidate, Alignment, Options),
 		    (	TModule \= skip
-		    ->	TModule:candidate(Input, Candidate, Options)
+		    ->	TModule:candidate(Input, Alignment, Options)
 		    ;	true
 		    )
 		),
-		Output).
+		Output),
+	length(Output, N_output),
+	debug(align, 'align/3 found ~w alignments', [N_output]).
 
 
 save_component_provenance(Module, Input, Output, Options) :-
@@ -50,7 +55,8 @@ materialize_alignment_graph(Input, Graph, Options) :-
  	save_alignment_graph(Input, Options).
 
 save_alignment_graph([], _).
-save_alignment_graph([Candidate-Graph|Groups], Options) :-
-	Candidate = candidate(Source, Target),
-	assert_cell(Source, Target,  [ provenance(Graph) | Options ]),
+save_alignment_graph([Align-ProvList|Groups], Options) :-
+	Align = align(Source, Target, _OldProvList),
+	assert_cell(Source, Target,  [ provenance(ProvList) | Options ]),
 	save_alignment_graph(Groups, Options).
+
