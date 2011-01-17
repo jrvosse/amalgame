@@ -7,9 +7,13 @@
 
 amalgame:component(candidate, target_candidates(schemes(uri, uri), align(uri, uri, provendence_list), [])).
 
-%%	candidate_generator(+Input, -Output, +Options)
+%%	candidate_generator(+Input, ?Output, +Options)
 
-candidate(schemes(_, TargetScheme), align(_, Target, []), _Options) :-
-	rdf_has(Target, skos:inScheme, TargetScheme).
+candidate(schemes(_, TargetScheme), A, _Options) :-
+	(   ground(A)
+	->  A = align(_, Target, _)
+	;   A = align(_, Target, [])
+	),
+ 	rdf_has(Target, skos:inScheme, TargetScheme).
 
 

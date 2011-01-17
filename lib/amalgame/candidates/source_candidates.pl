@@ -12,8 +12,11 @@ amalgame:component(candidate, carthesian_product(schemes(uri, uri), align(uri, u
 
 %%	candidate_generator(+Input, -Output, +Options)
 
-candidate(schemes(SourceScheme, _), align(Source, _, []), _Options) :-
-	rdf_has(Source, skos:inScheme, SourceScheme).
-
+candidate(schemes(SourceScheme, _), align(Source, _, []), Options) :-
+ 	rdf_has(Source, skos:inScheme, SourceScheme),
+	(   option(exclude(Graph), Options)
+	->  \+ member(align(Source,_,_), Graph)
+	;   true
+	).
 
 
