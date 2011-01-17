@@ -8,15 +8,18 @@
 :- public candidate/3.
 :- multifile amalgame:component/2.
 
-amalgame:component(candidate, carthesian_product(schemes(uri, uri), align(uri, uri, provendence_list), [])).
+amalgame:component(candidate, source_candidates(schemes(uri, uri), align(uri, uri, provendence_list), [])).
 
 %%	candidate_generator(+Input, -Output, +Options)
 
-candidate(schemes(SourceScheme, _), align(Source, _, []), Options) :-
+candidate(schemes(SourceScheme, _), A, Options) :-
+	(   ground(A)
+	->  A = align(Source, _, _)
+	;   A = align(Source, _, [])
+	),
  	rdf_has(Source, skos:inScheme, SourceScheme),
 	(   option(exclude(Graph), Options)
 	->  \+ member(align(Source,_,_), Graph)
 	;   true
 	).
-
 

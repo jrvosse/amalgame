@@ -16,4 +16,3 @@ candidate(schemes(_, TargetScheme), A, _Options) :-
 	),
  	rdf_has(Target, skos:inScheme, TargetScheme).
 
-
