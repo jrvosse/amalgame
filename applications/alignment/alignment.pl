@@ -25,7 +25,6 @@ pages and services.
 :- use_module(library(amalgame/alignment)).
 :- use_module(library(amalgame/opm)).
 :- use_module(library(amalgame/edoal)).
-:- use_module(library(amalgame/align)). % Experimental
 
 
 :- http_handler(amalgame(align_form),       http_align_form,     []).
