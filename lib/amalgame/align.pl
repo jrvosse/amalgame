@@ -1,5 +1,5 @@
 :- module(align,
-	  [align/3
+	  [
 	  ]).
 
 :- use_module(library(amalgame/candidates/source_candidates)).
