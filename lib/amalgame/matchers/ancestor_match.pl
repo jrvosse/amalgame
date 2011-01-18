@@ -22,8 +22,10 @@ match(align(S, T, Prov0), align(S, T, [Prov|Prov0]), Options) :-
 
 ancestor(R, Parent, rdf_reachable(R, Prop, Parent)) :-
 	rdf_equal(skos:broader, Prop),
-	rdf_reachable(R, Prop, Parent).
+	rdf_reachable(R, Prop, Parent),
+	\+ R == Parent.
 ancestor(R, Parent, rdf_reachable(Parent, Prop, R)) :-
 	rdf_equal(skos:narrower, Prop),
 	rdf_reachable(Parent, Prop, R),
+	\+ R == Parent,
 	\+ rdf_reachable(R, skos:broader, Parent).

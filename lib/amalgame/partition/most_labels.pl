@@ -1,4 +1,4 @@
-:- module(best_label, []).
+:- module(most_labels, []).
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
@@ -6,7 +6,7 @@
 :- public partition/3.
 :- multifile amalgame:component/2.
 
-amalgame:component(partition, best_label(alignment_graph, [selected(alignment_graph),
+amalgame:component(partition, most_labels(alignment_graph, [selected(alignment_graph),
 							   discarded(alignment_graph),
 							   undecided(alignment_graph)
 							  ], [])).
@@ -28,7 +28,7 @@ partition(AlignmentGraph, ListOfGraphs, _Options) :-
 partition_([], [], [], []).
 partition_([align(S,T,P)|As], Sel, Dis, Und) :-
 	same_source(As, S, Same, Rest),
-	(   best_label([align(S,T,P)|Same], Selected, Discarded)
+	(   most_labels([align(S,T,P)|Same], Selected, Discarded)
 	->  Sel = [Selected|SelRest],
 	    append(Discarded, DisRest, Dis),
 	    Und = UndRest
@@ -43,46 +43,22 @@ same_source([align(S,T,P)|As], S, [align(S,T,P)|Same], Rest) :-
 	same_source(As, S, Same, Rest).
 same_source(As, _S, [], As).
 
-% preferred-preferred = 0.
-% preferred-other = 1.
-% other-other = 2.
 
-best_label(As, Selected, Rest) :-
-	group_label_prop_types(As, Types0),
-	sort(Types0, Types),
-	(   Types = [0-Selected,1-A|T]
-	->  Rest = [A|T]
-	;   Types = [1-Selected,2-A|T]
-	->  Rest = [A|T]
-	).
+most_labels(As, Selected, [A|T]) :-
+	group_label_count(As, Counts0),
+	sort(Counts0, Counts),
+ 	Counts = [N-Selected,N1-A|T],
+	\+ N == N1.
 
-group_label_prop_types([], []).
-group_label_prop_types([Align|As], [Type-Align|Ts]) :-
+group_label_count([], []).
+group_label_count([Align|As], [Count-Align|Ts]) :-
 	Align = align(_,_,Provenance),
-	label_provenance_types(Provenance, Types),
-	sort(Types, [Type|_]),
-	group_label_prop_types(As, Ts).
+	findall(M, (member(P,Provenance),label_match(M,P)), Methods),
+	length(Methods, Count0),
+	Count is 1/Count0,
+ 	group_label_count(As, Ts).
 
-label_provenance_types([], []).
-label_provenance_types([Prov|Ps], [Type|Ts]) :-
+label_match(SP-TP, Prov) :-
 	memberchk(graph([rdf(_,SP,literal(_)),
 			 rdf(_,TP,literal(_))
-			]), Prov),
-	label_pair_type(SP, TP, Type),
-	label_provenance_types(Ps, Ts).
-
-label_pair_type(SP, TP, Type) :-
-	label_type(SP, ST),
-	label_type(TP, TT),
-	(   (ST == p, TT == p)
-	->  Type = 0
-	;   (ST == p; TT == p)
-	->  Type = 1
-	;   Type = 2
-	).
-
-label_type(P, p) :-
-	rdfs_subproperty_of(P, skos:prefLabel),
-	!.
-label_type(_, o).
-
+			]), Prov).

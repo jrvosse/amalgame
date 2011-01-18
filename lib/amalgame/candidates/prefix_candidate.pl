@@ -3,30 +3,27 @@
 	  ]
 	 ).
 
+:- use_module(library(amalgame/alignment_graph)).
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(semweb/rdf_db)).
 
-:- public candidate/3.
+:- public candidate/4.
 :- multifile amalgame:component/2.
 
-amalgame:component(candidate, prefix_candidate(schemes(uri, uri), align(uri, uri, provendence_list), [])).
+amalgame:component(candidate, prefix_candidate(align_source, align_source, align(uri, uri, provendence_list), [])).
 
-%%	candidate_generator(+Input, -Output, +Options)
+%%	candidate(+Source, +Target, -Alignment, +Options)
 
-candidate(schemes(SourceScheme, TargetScheme), align(Source, Target, []), Options) :-
+candidate(Source, Target, align(S, T, []), Options) :-
 	rdf_equal(rdfs:label, DefaultProp),
  	option(sourcelabel(MatchProp1), Options, DefaultProp),
 	option(targetlabel(MatchProp2), Options, DefaultProp),
-	option(prefixLength(PrefixLength), Options, 2),
- 	rdf_has(Source, skos:inScheme, SourceScheme),
-	rdf_has(Source, MatchProp1, Lit),
+	option(prefixLength(PrefixLength), Options, 4),
+	graph_member(S, Source),
+ 	rdf_has(S, MatchProp1, Lit),
 	literal_text(Lit, Label),
 	sub_atom(Label, 0, PrefixLength, _, Prefix),
-	rdf_has(Target, MatchProp2, literal(prefix(Prefix), _)),
-	rdf_has(Target, skos:inScheme, TargetScheme),
- 	(   option(exclude(Graph), Options)
-	->  \+ member(align(Source,_,_), Graph)
-	;   true
-	).
+	rdf_has(T, MatchProp2, literal(prefix(Prefix), _)),
+	graph_member(T, Target).
 
 

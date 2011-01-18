@@ -3,19 +3,19 @@
 
 :- use_module(library(semweb/rdf_db)).
 
-:- public candidate/3.
+:- public candidate/4.
 :- multifile amalgame:component/2.
 
-amalgame:component(candidate, alignment_element(alignment_graph, align(uri, uri, provendence_list), [])).
+amalgame:component(candidate, alignment_element(align_source, align_source, align(uri, uri, provendence_list), [])).
 
-%%	candidate(+Input, -Output, +Options)
+%%	candidate(+Source, ?Target, +Alignment, +Options)
 %
 %
 
-candidate(Graph, A, _Options) :-
-	is_list(Graph),
+candidate(List, _, A, _Options) :-
+	is_list(List),
 	!,
-	member(A, Graph).
+	member(A, List).
 
 
 
