@@ -21,17 +21,32 @@
 myalign :-
 	WN30=scheme('http://purl.org/vocabularies/princeton/wn30/'),
 	WN20=scheme('http://www.w3.org/2006/03/wn/wn20/'),
+	rdf_equal(SkosDef, skos:definition),
+	rdf_equal(SkosAlt, skos:altLabel),
 
 	% align by exact label match on skos:definition,  split off ambiguous and count results
-	rdf_equal(SkosDef, skos:definition),
-	Options = [ sourcelabel(SkosDef), targetlabel(SkosDef) ],
-	align(WN30, WN20, source_candidate, exact_label_match, target_candidate, As1, Options),
+	Options1 = [ sourcelabel(SkosDef), targetlabel(SkosDef) ],
+	align(WN30, WN20, source_candidate, exact_label_match, target_candidate, As1, Options1),
 	target_ambiguity:partition(As1, [ambiguous(Ambiguous1),unambiguous(Unambiguous1)], []),
  	source_count(As1, A1N),
 	source_count(Ambiguous1, Amb1N),
 	source_count(Unambiguous1, UnAmb1N),
 	debug(align, 'exact_label_match ~w~nunambiguous ~w~n ambiguous ~w~n', [A1N, UnAmb1N, Amb1N]),
-	materialize_alignment_graph(Unambiguous1, [graph(wn3020_exact_label_unambiguous)]).
+	% materialize_alignment_graph(Unambiguous1, [graph(wn3020_exact_gloss_unambiguous)]),
+
+	% align ambiguous by exact label match on skos:altLabel, split off ambiguous and count results
+	% We assume ambiguous results here are concepts that are splitted or merged in the two versions and thus OK
+	Options2 = [ sourcelabel(SkosAlt), targetlabel(SkosAlt) ],
+	align(Ambiguous1, _, alignment_element, exact_label_match, _, As2, Options2),
+	target_ambiguity:partition(As2, [ambiguous(Ambiguous2),unambiguous(Unambiguous2)], []),
+  	source_count(As2, A2N),
+	source_count(Ambiguous2, Amb2N),
+	source_count(Unambiguous2, UnAmb2N),
+	debug(align, 'stem_label_match ~w ~nunambiguous ~w~n ambiguous~w~n', [A2N, UnAmb2N, Amb2N]),
+	% materialize_alignment_graph(Unambiguous2, [graph(wn3020_exact_gloss_unambiguous_labels)]),
+	% materialize_alignment_graph(Ambiguous2,   [graph(wn3020_exact_gloss_ambiguous_labels)]),
+
+	true.
 
 	/*
 	% match the remaining part
