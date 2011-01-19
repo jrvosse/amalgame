@@ -42,7 +42,7 @@ myalign :-
   	source_count(As2, A2N),
 	source_count(Ambiguous2, Amb2N),
 	source_count(Unambiguous2, UnAmb2N),
-	debug(align, 'stem_label_match ~w ~nunambiguous ~w~n ambiguous~w~n', [A2N, UnAmb2N, Amb2N]),
+	debug(align, 'stem_label_match ~w ~nunambiguous ~w~n ambiguous ~w~n', [A2N, UnAmb2N, Amb2N]),
 	% materialize_alignment_graph(Unambiguous2, [graph(wn3020_exact_gloss_unambiguous_labels)]),
 	% materialize_alignment_graph(Ambiguous2,   [graph(wn3020_exact_gloss_ambiguous_labels)]),
 
