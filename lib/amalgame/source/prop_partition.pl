@@ -6,18 +6,27 @@
 :- public source_select/3.
 :- multifile amalgame:component/2.
 
-amalgame:component(source_select, voc_objprop_split(alignment_graph, selected_URI_list, [])).
+amalgame:component(source_select, prop_partition(alignment_graph, selected_URI_list, [])).
 
-%%	partition(+Input, -Output, +Options)
+%%	partition(+Input, -Partition, +Options)
 %
-%	Output a list of graphs where the first element contains the
-%	vocabulary or alignment graph with concepts that have a
-%	matching object-property value pair. The second element contain
-%	the concepts for which this does not hold.
+%	This partitions the elements in Input based on their value of
+%	some RDF property. This property is given in Options as
+%	splitprop(P). Note that this gives a true partition only if P is
+%	functional. If P is non-functional, an element will be an
+%	element of each list associated with all values of P.
 %
-%	The property and its value are given in Options as splitprop(P)
-%	and splitval(Val)
-
+%	Input should be some term that is a valid second argument for
+%	graph_member/2.qqqqqqqq
+%	Partition is a list of Key-Value pairs.
+%	Each Value is a list of elements (note that Value is thus also a
+%	valid second argument for graph_member/2).
+%	Each Key is a value of the property P.
+%
+%	Example:
+%       source_select(scheme(wn30:''), Partition, [splitprop(rdf:type)])
+%	would split Wordnet 3.0 in 5 subsets, based on the part of
+%	speach of the synsets.
 
 
 source_select(VocGraph, Partition, Options) :-
