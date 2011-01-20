@@ -37,5 +37,5 @@ source_select(VocGraph, Partition, Options) :-
 		 rdf_has(Value, SplitProp, Key)
 		),
 		URIs),
-	group_pairs_by_key(URIs, Partition).
-
+	keysort(URIs, Sorted),
+	group_pairs_by_key(Sorted, Partition).
