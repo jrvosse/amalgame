@@ -17,7 +17,7 @@ amalgame:component(source_select, prop_partition(alignment_graph, selected_URI_l
 %	element of each list associated with all values of P.
 %
 %	Input should be some term that is a valid second argument for
-%	graph_member/2.qqqqqqqq
+%	graph_member/2.
 %	Partition is a list of Key-Value pairs.
 %	Each Value is a list of elements (note that Value is thus also a
 %	valid second argument for graph_member/2).
