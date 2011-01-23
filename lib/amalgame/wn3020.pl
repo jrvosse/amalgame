@@ -17,16 +17,28 @@
 :- use_module(library(amalgame/partition/most_labels)).
 :- use_module(library(amalgame/partition/most_methods)).
 :- use_module(library(amalgame/source/align_exclude)).
+:- use_module(library(amalgame/source/prop_partition)).
 
 myalign :-
 	WN30=scheme('http://purl.org/vocabularies/princeton/wn30/'),
 	WN20=scheme('http://www.w3.org/2006/03/wn/wn20/'),
+	rdf_equal(rdf:type, RDF_type),
+	Options = [splitprop(RDF_type)],
+	prop_partition:source_select(WN30, WN30_Partition, Options),
+	prop_partition:source_select(WN20, WN20_Partition, Options),
+	forall(member(PoS-WN30Concepts, WN30_Partition),
+	       (   member(PoS-WN20Concepts, WN20_Partition),
+		   myalign(WN30Concepts, WN20Concepts)
+	       )
+	      ).
+
+myalign(SourceVoc, TargetVoc) :-
 	rdf_equal(SkosDef, skos:definition),
 	rdf_equal(SkosAlt, skos:altLabel),
 
 	% align by exact label match on skos:definition,  split off ambiguous and count results
 	Options1 = [ sourcelabel(SkosDef), targetlabel(SkosDef) ],
-	align(WN30, WN20, source_candidate, exact_label_match, target_candidate, As1, Options1),
+	align(SourceVoc, TargetVoc, source_candidate, exact_label_match, target_candidate, As1, Options1),
 	target_ambiguity:partition(As1, [ambiguous(Ambiguous1),unambiguous(Unambiguous1)], []),
  	source_count(As1, A1N),
 	source_count(Ambiguous1, Amb1N),

@@ -23,21 +23,27 @@ align :-
 	AM_Thesaurus = scheme('http://purl.org/collections/nl/am/AM_ConceptScheme'),
       %  AATNed = scheme('http://purl.org/vocabularies/rkd/aatned/aatned'),
 
-	OP = 'http://purl.org/collections/nl/am/termType',
-	OV = 'http://purl.org/collections/nl/am/t-termtypeSUBJECT',
-	voc_objprop_split:partition(AM_Thesaurus,
-				    [selected(Sel), discarded(Disc)],
-				    [splitprop(OP),splitval(OV)]),
+%	OP = 'http://purl.org/collections/nl/am/termType',
+%	OV = 'http://purl.org/collections/nl/am/t-termtypeSUBJECT',
+%	voc_objprop_split:source_select(AM_Thesaurus,
+%				    [selected(Sel), discarded(Disc)],
+%				    [splitprop(OP),splitval(OV)]),
 
 
-	materialize_vocabulary_graph(Sel, [graph(am_subj)]),
-	materialize_vocabulary_graph(Disc, [graph(am_not_subj)]).
+	ANC = 'http://purl.org/collections/nl/am/t-4599',
+	subtree_select:source_select(AM_Thesaurus,
+				    Sel,
+				    [ancestor(ANC)]),
+
+	materialize_vocabulary_graph(Sel, [graph(am_subtree1)]).
+%	materialize_vocabulary_graph(Disc, [graph(am_not_subj)]).
 
 
 materialize_vocabulary_graph(Voc, Options):-
 	option(graph(Graph),Options),
 	rdf_transaction(
 			(
+			(   rdf_graph(Graph) -> rdf_unload(Graph); true),
 			rdf_assert(Graph, rdf:type, amalgame:'DerivedConceptScheme', Graph),
 			forall(graph_member(Mem, Voc), rdf_assert(Mem, skos:inScheme, Graph, Graph))
 			)
