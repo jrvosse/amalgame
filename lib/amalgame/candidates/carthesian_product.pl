@@ -1,19 +1,15 @@
 :- module(carthesian_product, []).
 
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(amalgame/alignment_graph)).
 
-:- public candidate_generator/3.
+:- public candidate/4.
 :- multifile amalgame:component/2.
 
-amalgame:component(candidate_generator, carthesian_product(schemes(uri, uri), align(uri, uri, provlist), [])).
-amalgame:component(candidate_generator, carthesian_product(graphs(uri, uri),  align(uri, uri, provlist), [])).
+amalgame:component(candidate_generator, carthesian_product(source, source, align(uri, uri, provlist), [])).
 
-%%	candidate_generator(+Input, -Output, +Options)
+%%	candidate(+Source, +Target, -Align, +Options)
 
-candidate_generator(schemes(SourceScheme, TargetScheme), align(Source, Target, []), _Options) :-
-	rdf_has(Source, skos:inScheme, SourceScheme),
-	rdf_has(Target, skos:inScheme, TargetScheme).
-
-candidate_generator(graphs(SourceGraph, TargetGraph), candidate(Source, Target, []), _Options) :-
-	rdf(Source, rdf:type, skos:'Concept', SourceGraph),
-	rdf(Target, rdf:type, skos:'Concept', TargetGraph).
+candidate(SourceScheme, TargetScheme, align(Source, Target, []), _Options) :-
+	graph_member(Source, SourceScheme),
+	graph_member(Target, TargetScheme).
