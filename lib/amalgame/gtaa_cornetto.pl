@@ -7,6 +7,7 @@
 :- use_module(library(amalgame/candidates/target_candidate)).
 :- use_module(library(amalgame/candidates/alignment_element)).
 :- use_module(library(amalgame/candidates/prefix_candidate)).
+:- use_module(library(amalgame/candidates/carthesian_product)).
 :- use_module(library(amalgame/matchers/exact_label_match)).
 :- use_module(library(amalgame/matchers/stem_label_match)).
 :- use_module(library(amalgame/matchers/jaccard_match)).
@@ -26,62 +27,53 @@ align :-
 	% align by exact label match
 	align(GTAA_Subjects, Cornetto, source_candidate, exact_label_match, target_candidate, As1, []),
 	target_ambiguity:partition(As1, [ambiguous(Ambiguous1),unambiguous(Unambiguous1)], []),
- 	source_count(As1, A1N),
-	source_count(Ambiguous1, Amb1N),
-	source_count(Unambiguous1, UnAmb1N),
-	debug(align, 'exact_label_match ~w~nunambiguous ~w~n ambiguous~w~n', [A1N, UnAmb1N, Amb1N]),
+	debug_align_amb(exact_label, As1, Unambiguous1, Ambiguous1),
 	materialize_alignment_graph(Unambiguous1, [graph(gtaa_cornetto_exact_label_unambiguous)]),
-/*
+
 	% match the remaining part
 	align_exclude:source_select(GTAA_Subjects, GTAA_Rest, [exclude(As1)]),
  	align(GTAA_Rest, Cornetto, source_candidate, stem_label_match, target_candidate, As2, []),
 	target_ambiguity:partition(As2, [ambiguous(Ambiguous2),unambiguous(Unambiguous2)], []),
-  	source_count(As2, A2N),
-	source_count(Ambiguous2, Amb2N),
-	source_count(Unambiguous2, UnAmb2N),
-	debug(align, 'stem_label_match ~w ~nunambiguous ~w~n ambiguous~w~n', [A2N, UnAmb2N, Amb2N]),
-	materialize_alignment_graph(Unambiguous2, [graph(gtaa_cornetto_stem_label_unambiguous)]),
+	debug_align_amb(stem_label, As2, Unambiguous2, Ambiguous2),
+ 	materialize_alignment_graph(Unambiguous2, [graph(gtaa_cornetto_stem_label_unambiguous)]),
 
 	merge_graphs([Ambiguous1,Ambiguous2], Ambiguous),
-	source_count(Ambiguous, AmbN),
+	debug_align(merge, Ambiguous),
 
 	% disambiguate based on provenance (pref label is better than alt label)
-	best_label:partition(Ambiguous, [selected(Selected1), discarded(_Discarded1), undecided(Undecided1)], []),
-	source_count(Selected1, Sel1N),
-	source_count(Undecided1, Und1N),
-	debug(align, 'best label on ~w~n unambiguous ~w~n ambiguous~w~n', [AmbN, Sel1N, Und1N]),
+	best_label:partition(Ambiguous, Partition1, []),
+	memberchk(selected(Selected1), Partition1),
+	memberchk(undecided(Undecided1), Partition1),
+ 	debug_partition(best_label, Partition1),
 	materialize_alignment_graph(Selected1, [graph(gtaa_cornetto_disambiguated_best_label)]),
 
-	most_labels:partition(Undecided1, [selected(Selected2), discarded(_Discarded2), undecided(Undecided2)], []),
-	source_count(Selected2, Sel2N),
-	source_count(Undecided2, Und2N),
-	debug(align, 'most labels on ~w~n unambiguous ~w~n ambiguous~w~n', [Und1N, Sel2N, Und2N]),
+	most_labels:partition(Undecided1, Partition2, []),
+	memberchk(selected(Selected2), Partition2),
+	memberchk(undecided(Undecided2), Partition2),
+ 	debug_partition(most_labels, Partition2),
+	materialize_alignment_graph(Selected2, [graph(gtaa_cornetto_disambiguated_most_labels)]),
+
+	rdf_equal(P, skos:scopeNote),
+	align(Undecided2, _,  alignment_element, jaccard_match, _, As3, [threshold(0.05),sourceprop(P),targetprop(P)]),
+	target_ambiguity:partition(As3, [ambiguous(Ambiguous3),unambiguous(Unambiguous3)], []),
+  	debug_align_amb(jaccard_gloss, As3, Unambiguous3, Ambiguous3),
 	materialize_alignment_graph(Selected2, [graph(gtaa_cornetto_disambiguated_most_labels)]),
 
 	% @TBD add iteration
 	align(Undecided2, _, alignment_element, ancestor_match, _, As4, []),
 	align(Undecided2, _, alignment_element, descendant_match, _, As5, []),
-	source_count(As4, As4N),
-	source_count(As5, As5N),
-	debug(align, 'hierarchy match on ~w~nancestor ~w~ndescendant~w~n ', [Und2N, As4N, As5N]),
+	debug_align(ancestor, As4),
+	debug_align(descendant, As5),
 	merge_graphs([As4, As5, Undecided2], As6),
-	most_methods:partition(As6, [selected(Selected3), discarded(_Discarded3), undecided(Undecided3)], []),
- 	source_count(As6, As6N),
-	source_count(Selected3, Sel3N),
-	source_count(Undecided3, Und3N),
-	debug(align, 'most methods ~w ~n unambiguous ~w~n ambiguous~w~n', [As6N, Sel3N, Und3N]),
-	materialize_alignment_graph(Selected3, [graph(gtaa_cornetto_disambiguated_most_methods)]),
-	materialize_alignment_graph(Undecided3, [graph(gtaa_cornetto_ambiguous_most_methods)]),
-*/
-	rdf_equal(P, skos:scopeNote),
-	align(Ambiguous1, _, alignment_element, jaccard_match, _, As6, [threshold(-1),sourceprop(P),targetprop(P)]),
-	target_ambiguity:partition(As6, [ambiguous(Ambiguous6),unambiguous(Unambiguous6)], []),
-  	source_count(As6, A6N),
-	source_count(Ambiguous6, Amb6N),
-	source_count(Unambiguous6, UnAmb6N),
-	debug(align, 'gloss_jaanker_match ~w ~nunambiguous ~w~n ambiguous~w~n', [A6N, UnAmb6N, Amb6N]).
+	most_methods:partition(As6, Partition3, []),
+	memberchk(selected(Selected3), Partition3),
+	memberchk(undecided(Undecided3), Partition3),
+ 	debug_partition(most_methods, Partition3),
+ 	materialize_alignment_graph(Selected3, [graph(gtaa_cornetto_disambiguated_most_methods)]),
+	materialize_alignment_graph(Undecided3, [graph(gtaa_cornetto_ambiguous_most_methods)]).
 
-	% match the remainging part from the remaining part :)
+
+	% match the remaining part from the remaining part :)
 	/*
 	align_exclude:source_select(GTAA_Rest, GTAA_Rest2, [exclude(As2)]),
  	align(GTAA_Rest2, Cornetto, prefix_candidate, edit_distance_match, _, As3, [threshold(10)]),
@@ -92,6 +84,33 @@ align :-
 	debug(align, 'edit_distance_match ~w~nunambiguous ~w~n ambiguous~w~n', [A3N, UnAmb3N, Amb3N]),
 	materialize_alignment_graph(Unambiguous3, [graph(gtaa_cornetto_edit_distance_unambiguous)]),
 	*/
+
+debug_align(Method, As) :-
+       	length(As, AsN),
+	source_count(As, SN),
+	debug(align, '~w ~w ~w~n', [Method, AsN, SN]).
+
+debug_align_amb(Method, As, Unamb, Amb) :-
+	length(As, AsN),
+	length(Amb, AmbN),
+	length(Unamb, UnambN), % just checking
+ 	source_count(As, SN),
+	source_count(Amb, AmbSN),
+	source_count(Unamb, UnambSN),
+	debug(align, '~w ~w ~w~n  unambiguous ~w ~w~n  ambiguous ~w ~w~n', [Method, AsN, SN, UnambN, UnambSN, AmbN, AmbSN]).
+
+debug_partition(Method, Partitions) :-
+	debug(align, '~w', [Method]),
+	debug_partitions(Partitions).
+
+debug_partitions([]) :-
+	debug(align, '~n', []).
+debug_partitions([P|Ps]) :-
+	P =.. [Name,As],
+	length(As, AsN),
+	source_count(As, SN),
+	debug(align, '~w ~w ~w', [Name, AsN, SN]),
+	debug_partitions(Ps).
 
 
 source_count(As, N) :-
