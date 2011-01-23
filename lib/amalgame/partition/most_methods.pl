@@ -45,9 +45,9 @@ same_source(As, _S, [], As).
 
 
 most_methods(As, Selected, [A|T]) :-
-	group_method_count(As, Counts0),
-	sort(Counts0, Counts),
- 	Counts = [N-Selected,N1-A|T],
+	group_method_count(As, Counts),
+	sort(Counts, [N-Selected,N1-A|T0]),
+	pairs_values(T0, T),
 	\+ N == N1.
 
 group_method_count([], []).

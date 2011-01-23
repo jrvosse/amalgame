@@ -45,10 +45,10 @@ same_source(As, _S, [], As).
 
 
 most_labels(As, Selected, [A|T]) :-
-	group_label_count(As, Counts0),
-	sort(Counts0, Counts),
- 	Counts = [N-Selected,N1-A|T],
-	\+ N == N1.
+	group_label_count(As, Counts),
+	sort(Counts, [N-Selected,N1-A|T0]),
+	\+ N == N1,
+	pairs_values(T0, T).
 
 group_label_count([], []).
 group_label_count([Align|As], [Count-Align|Ts]) :-

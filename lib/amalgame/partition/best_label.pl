@@ -50,10 +50,12 @@ same_source(As, _S, [], As).
 best_label(As, Selected, Rest) :-
 	group_label_prop_types(As, Types0),
 	sort(Types0, Types),
-	(   Types = [0-Selected,1-A|T]
-	->  Rest = [A|T]
-	;   Types = [1-Selected,2-A|T]
-	->  Rest = [A|T]
+	(   Types = [0-Selected,1-A|T0]
+	->  pairs_values(T0,T),
+	    Rest = [A|T]
+	;   Types = [1-Selected,2-A|T0]
+	->  pairs_values(T0,T),
+	    Rest = [A|T]
 	).
 
 group_label_prop_types([], []).
