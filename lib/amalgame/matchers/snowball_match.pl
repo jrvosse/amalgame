@@ -15,8 +15,7 @@ amalgame:component(match, snowball(align(uri, uri, provenance), align(uri,uri,pr
 
 match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options) :-
  	rdf_equal(rdfs:label, DefaultProp),
-	option(prefixLength(PrefixLength), Options, 3),
-	option(language(Language), Options, dutch),
+ 	option(language(Language), Options, dutch),
  	option(sourcelabel(MatchProp1), Options, DefaultProp),
 	option(targetlabel(MatchProp2), Options, DefaultProp),
 	option(matchacross_lang(MatchAcross), Options, _),
@@ -33,15 +32,13 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 	->  TargetLang = SourceLang
 	;   true
 	),
-	snowball(Language, SourceLabel, Stem),
-	sub_atom(Stem, 0, PrefixLength, _, Prefix),
-	rdf_find_literals(prefix(Prefix), Ls),
-	member(TargetLabel, Ls),
-	snowball(Language, TargetLabel, Stem),
+	\+ Source == Target,
+	snowball(Language, SourceLabel, SourceStem0),
+	downcase_atom(SourceStem0, SourceStem),
 	rdf_has(Target, MatchProp2, literal(lang(TargetLang, TargetLabel)), TargetProp),
- 	Source \== Target,
-	Prov = [method(snowball),
-		match(Language),
-		graph([rdf(Source, SourceProp, literal(lang(SourceLang, SourceLabel))),
+	snowball(Language, TargetLabel, TargetStem),
+	downcase_atom(TargetStem, SourceStem),
+ 	Prov = [method(snowball),
+ 		graph([rdf(Source, SourceProp, literal(lang(SourceLang, SourceLabel))),
 		       rdf(Target, TargetProp, literal(lang(TargetLang, TargetLabel)))])
 	       ].
