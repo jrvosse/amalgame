@@ -19,12 +19,14 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 	option(threshold(Threshold), Options, 0.0),
  	option(sourceprop(MatchProp1), Options, DefaultProp),
 	option(targetprop(MatchProp2), Options, DefaultProp),
-	rdf_has(Source, MatchProp1, SourceLit, SourceProp),
-	rdf_has(Target, MatchProp2, TargetLit, TargetProp),
-	Source \== Target,
-	literal_text(SourceLit, SourceTxt),
-	literal_text(TargetLit, TargetTxt),
-	jaccard_similarity(SourceTxt, TargetTxt, Similarity),
+	(   rdf_has(Source, MatchProp1, SourceLit, SourceProp),
+	    rdf_has(Target, MatchProp2, TargetLit, TargetProp),
+	    Source \== Target
+	->  literal_text(SourceLit, SourceTxt),
+	    literal_text(TargetLit, TargetTxt),
+	    jaccard_similarity(SourceTxt, TargetTxt, Similarity)
+	;   Similarity = 0
+	),
 	Similarity > Threshold,
  	Prov = [method(jaccard),
 		match(Similarity),
