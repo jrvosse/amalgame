@@ -20,6 +20,9 @@ graph_member(E, List) :-
 graph_member(E, scheme(Scheme)) :-
 	!,
 	rdf_has(E, skos:inScheme, Scheme).
+graph_member(E, type(Class)) :-
+	!,
+	rdf_has(E, rdf:type, Class).
 graph_member(E, graph(Graph)) :-
 	!,
 	rdf_has(E, rdf:type, _, Graph).
@@ -88,6 +91,10 @@ group_provenance(As, S, T, P, [align(S, T, P)|Gs]) :-
 
 materialize_alignment_graph(Input, Options) :-
 	option(graph(Graph), Options, test),
+	(   rdf_graph(Graph)
+	->  rdf_unload(Graph)
+	;   true
+	),
         rdf_assert(Graph, rdf:type, amalgame:'AmalgameAlignment', Graph),
         save_alignment_graph(Input, Options).
 
