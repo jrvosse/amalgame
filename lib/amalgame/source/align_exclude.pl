@@ -11,14 +11,24 @@
 
 amalgame:component(source_select, align_exlude(align_source, uris, [exclude(align_graph)])).
 
-%%	source_select(+Source, +Target, -Alignment, +Options)
+%%	source_select(+Source, +URIs, +Options)
 %
-%	Enumerate over members of Source.
+%	URIs is a list of sorted Resources, representing all Concepts in
+%	Source, excluding the sources in the ExcludeAlignment graph.
+%	The latter is passed as an Option:
+%	* exclude(ExcludeAlignment)
+%
 
 source_select(Source, URIs, Options) :-
 	option(exclude(Alignments), Options),
 	maplist(align_source, Alignments, Es),
 	findall(S, graph_member(S, Source), Ss),
-	subtract(Ss, Es, URIs).
+	length(Es, NEs),
+	length(Ss, NSs),
+	NLeft is NSs - NEs,
+	debug(align, 'Excluding ~w alignments from ~w, leaving ~w',[NEs, NSs, NLeft]),
+	sort(Ss, SsSorted),
+	sort(Es, EsSorted),
+	ord_subtract(SsSorted, EsSorted, URIs).
 
 align_source(align(S,_,_), S).
