@@ -95,8 +95,11 @@ materialize_alignment_graph(Input, Options) :-
 	->  rdf_unload(Graph)
 	;   true
 	),
-        rdf_assert(Graph, rdf:type, amalgame:'AmalgameAlignment', Graph),
-        save_alignment_graph(Input, Options).
+	(   Input = []
+	->  true
+	;   rdf_assert(Graph, rdf:type, amalgame:'AmalgameAlignment', Graph),
+	    save_alignment_graph(Input, Options)
+	).
 
 save_alignment_graph([], _).
 save_alignment_graph([align(S,T,_Provenance)|As], Options) :-
