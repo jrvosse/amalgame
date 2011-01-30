@@ -4,6 +4,7 @@
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
+:- use_module(applications(align_stats)).
 :- use_module(library(amalgame/alignment_graph)).
 :- use_module(library(amalgame/candidates/source_candidate)).
 :- use_module(library(amalgame/candidates/target_candidate)).
@@ -14,6 +15,7 @@
 :- use_module(library(amalgame/matchers/edit_distance_match)).
 :- use_module(library(amalgame/matchers/jaccard_match)).
 :- use_module(library(amalgame/matchers/ancestor_match)).
+:- use_module(library(amalgame/matchers/related_match)).
 :- use_module(library(amalgame/matchers/descendant_match)).
 :- use_module(library(amalgame/partition/target_ambiguity)).
 :- use_module(library(amalgame/partition/best_label)).
@@ -24,6 +26,7 @@
 :- use_module(library(amalgame/source/prop_partition)).
 
 myalign1 :-
+	delete_alignment_graphs(_),
 	WN30=scheme('http://purl.org/vocabularies/princeton/wn30/'),
 	WN20=scheme('http://www.w3.org/2006/03/wn/wn20/'),
 	rdf_equal(rdf:type, RDF_type),
@@ -75,7 +78,8 @@ myalign(Type, SourceVoc, TargetVoc) :-
 	rdf_equal(SkosDef, skos:definition),
 	rdf_equal(SkosAlt, skos:altLabel),
 
-	% align by exact label match on skos:definition,  split off ambiguous and count results
+	% Step 1a: align by exact label match on skos:definition,  split off ambiguous and count results
+	% Ambiguous results will be further processed in step 1b, non matching concepts in step 2.
 	OptionsDef = [threshold(-1.0),
 		      sourcelabel(SkosDef), targetlabel(SkosDef),
 		      source_type(Type), target_type(Type) ],
@@ -83,8 +87,7 @@ myalign(Type, SourceVoc, TargetVoc) :-
 	target_ambiguity:partition(GlossMatch, [ambiguous(AmbiguousGloss),unambiguous(UnambiguousGloss)], []),
 	debug_partition('Gloss match',  [ambiguous(AmbiguousGloss),unambiguous(UnambiguousGloss)]),
 
-
-	% align ambiguous by exact label match on skos:altLabel, split off ambiguous and count results
+	% Step 1b: align ambiguous gloss matches by exact label match on skos:altLabel, split off ambiguous and count results
 	% We assume ambiguous results here are concepts that are splitted or merged in the two versions
 	% and thus OK
 	OptionsLabel = [ sourcelabel(SkosAlt), targetlabel(SkosAlt), target_type(Type) ],
@@ -92,23 +95,52 @@ myalign(Type, SourceVoc, TargetVoc) :-
 	target_ambiguity:partition(GlossLabelMatch, [ambiguous(AmbiguousGlossLabel),unambiguous(UnambiguousGlossLabel)], []),
 	debug_partition('Ambiguous gloss + label', [ambiguous(AmbiguousGlossLabel),unambiguous(UnambiguousGlossLabel)]),
 	merge_graphs([UnambiguousGloss, UnambiguousGlossLabel, AmbiguousGlossLabel], GoodGlossLabelMatches),
-	graph_name(unambiguous_gloss, Type, UnambiguousGlossName),
-	graph_name(ambiguous_gloss,   Type, AmbiguousGlossName),
-	graph_name(glosslabel,        Type, GlossLabelName),
-	materialize_alignment_graph(UnambiguousGloss,      [graph(UnambiguousGlossName)]),
-	materialize_alignment_graph(AmbiguousGlossLabel,   [graph(AmbiguousGlossName)]),
-	materialize_alignment_graph(UnambiguousGlossLabel, [graph(GlossLabelName)]),
 
-
-	% exact label match on concepts with non-matching glosses
+	% Step2a: exact label match on concepts with non-matching glosses
 	align_exclude:source_select(SourceVoc, Source_rest, [exclude(GoodGlossLabelMatches)]),
 	align(Source_rest, TargetVoc, source_candidate, exact_label_match, target_candidate, LabelMatch, OptionsLabel),
 	target_ambiguity:partition(LabelMatch, [ambiguous(AmbiguousLabel),unambiguous(UnambiguousLabel)], []),
 	debug_partition('Exact label on no gloss match',  [ambiguous(AmbiguousLabel),unambiguous(UnambiguousLabel)]),
 
-	align(AmbiguousLabel, TargetVoc, alignment_element, jaccard_match, target_candidate, JaccardMatch, OptionsDef),
+	% Step 2b: First try disambiguation by counting number of matching sense labels (cheap, counting existing matches)
+	most_labels:partition(AmbiguousLabel, [selected(MostLabels), discarded(Discarded2), undecided(AmbiguousLabel2)], []),
+	debug_partition('Exact label, most label', [selected(MostLabels), discarded(Discarded2), undecided(AmbiguousLabel2)]),
+
+	% Step 2c: Then try disambiguation by jaccard similarity on the glosses (more expensive, need to compute jaccard)
+	align(AmbiguousLabel2, TargetVoc, alignment_element, jaccard_match, target_candidate, JaccardMatch, OptionsDef),
 	best_numeric:partition(JaccardMatch, JaccardPartition, []),
 	debug_partition(jaccard_gloss, JaccardPartition),
+	member(selected(BestGlossAndLabel), JaccardPartition),
+	member(undecided(AmbiLabel), JaccardPartition),
+
+	% Step 3: Materialize the good stuff found so far, so we can use this to do structural matching later
+	debug(align, '~p: Materializing alignments found so far.', [Type]),
+	graph_name(unambiguous_gloss,   Type, UnambiguousGlossName),
+	graph_name(ambiguous_gloss,     Type, AmbiguousGlossName),
+	graph_name(gloss_unique_label,	Type, GlossLabelName),
+	graph_name(nogloss_uniquelabel,	Type, NoGlossLabelName),
+	graph_name(nogloss_mostlabel,	Type, NoGlossMostLabelName),
+	graph_name(best_gloss_label,    Type, BestGlossLabelName),
+	materialize_alignment_graph(UnambiguousGloss,      [graph(UnambiguousGlossName)]),
+	materialize_alignment_graph(AmbiguousGlossLabel,   [graph(AmbiguousGlossName)]),
+	materialize_alignment_graph(UnambiguousGlossLabel, [graph(GlossLabelName)]),
+	materialize_alignment_graph(UnambiguousLabel,      [graph(NoGlossLabelName)]),
+	materialize_alignment_graph(MostLabels,	           [graph(NoGlossMostLabelName)]),
+	materialize_alignment_graph(BestGlossAndLabel,	   [graph(BestGlossLabelName)]),
+
+	merge_graphs([AmbiLabel], ToBeAmbiguated),
+	source_count(ToBeAmbiguated, AmbN),
+	debug(slign, 'To be ambiguated: ~w', [AmbN]),
+	align(ToBeAmbiguated, _, alignment_element, ancestor_match,  _, AncMatch, OptionsDef),
+	align(ToBeAmbiguated, _, alignment_element, descendant_match, _, DecMatch, OptionsDef),
+	align(ToBeAmbiguated, _, alignment_element, related_match,   _, RelMatch, OptionsDef),
+	merge_graphs([ToBeAmbiguated, AncMatch, DecMatch, RelMatch], DisambResults),
+	most_methods:partition(DisambResults, MostMethods, []),
+	debug_partition('Most methods: ', MostMethods),
+	member(selected(MostMethodsLabelMatch), MostMethods),
+	graph_name(disamb_label, Type, MostMethodLabelName),
+	materialize_alignment_graph(MostMethodsLabelMatch, [graph(MostMethodLabelName)]),
+
 	true.
 /*
 
@@ -180,8 +212,8 @@ align_source(align(S,_,_), S).
 
 align(Source, Target, Candidate, Match, Test, Output, Options) :-
 	debug(align, 'Running matcher ~w', [Match]),
-	(   option(target_type(TType), Options) -> true; rdf_equal(rdf:'Resource', TType)),
-	(   option(source_type(SType), Options) -> true; rdf_equal(rdf:'Resource', SType)),
+	(   option(target_type(TType), Options) -> true; rdf_equal(rdfs:'Resource', TType)),
+	(   option(source_type(SType), Options) -> true; rdf_equal(rdfs:'Resource', SType)),
         (   nonvar(Candidate)
 	->  G0 = ( Candidate:candidate(Source, Target, A0, Options),
 	           A0 = align(S,_,_),
