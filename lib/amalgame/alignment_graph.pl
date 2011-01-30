@@ -6,6 +6,7 @@
 	  ]).
 
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_persistency)).
 :- use_module(library(amalgame/edoal)).
 
 %%	graph_member(?Element, ?Graph)
@@ -34,6 +35,7 @@ graph_member(E, graph(Graph)) :-
 
 merge_graphs([], []).
 merge_graphs([L], L) :- !.
+merge_graphs([[]|Tail], Merged) :- merge_graphs(Tail, Merged).
 merge_graphs([L|Ls], [Merged|Ms]) :-
 	smallest_heads(Ls, [L], Heads, Rest),
 	merge_provenance(Heads, [Merged]),
@@ -97,7 +99,8 @@ materialize_alignment_graph(Input, Options) :-
 	),
 	(   Input = []
 	->  true
-	;   rdf_assert(Graph, rdf:type, amalgame:'AmalgameAlignment', Graph),
+	;   rdf_persistency(Graph, false),
+	    rdf_assert(Graph, rdf:type, amalgame:'AmalgameAlignment', Graph),
 	    save_alignment_graph(Input, Options)
 	).
 
