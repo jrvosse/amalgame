@@ -11,21 +11,23 @@ amalgame:component(matcher, descendant_match(align(uri,uri,provenance), align(ur
 
 match(align(S, T, Prov0), align(S, T, [Prov|Prov0]), Options) :-
 	option(graph(Graph), Options, _),
-	descendant(S, DescS, R1),
-	descendant(T, DescT, R2),
+	option(max_dist(Max), Options, 100),
+	descendant(S, DescS, Max, R1),
+	descendant(T, DescT, Max, R2),
 	has_map([DescS, DescT], _, Graph),
 	Prov = [method(descendant_match),
+		max_dist(Max),
 		graph([R1,
 		       R2
 		      ])
 	       ].
 
-descendant(R, Child, rdf_reachable(Child, Prop, R)) :-
+descendant(R, Child, Max, rdf_reachable(Child, Prop, R)) :-
 	rdf_equal(skos:broader, Prop),
-	rdf_reachable(Child, Prop, R),
+	rdf_reachable(Child, Prop, R, Max, _RealMax),
 	\+ Child == R.
-descendant(R, Child, rdf_reachable(R, Prop, Child)) :-
+descendant(R, Child, Max,rdf_reachable(R, Prop, Child)) :-
 	rdf_equal(skos:narrower, Prop),
-	rdf_reachable(R, Prop, Child),
+	rdf_reachable(R, Prop, Child, Max, _RealMax),
 	\+ Child == R,
 	\+ rdf_reachable(Child, skos:broader, R).
