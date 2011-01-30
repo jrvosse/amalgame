@@ -32,26 +32,21 @@ myalign1 :-
 	rdf_equal(rdf:type, RDF_type),
 	Options = [splitprop(RDF_type)],
 	prop_partition:source_select(WN30, WN30_Partition, Options),
+
 	forall(member(PoS-_, WN30_Partition),
 	       (   member(PoS-WN30Concepts, WN30_Partition),
 		   debug(align, '~n~nAligning ~p', [PoS]),
 		   myalign(PoS,WN30Concepts, WN20)
 	       )
 	      ).
-	/*
+/*
 	prop_partition:source_select(WN20, WN20_Partition, Options),
 	Adverb='http://www.w3.org/2006/03/wn/wn20/schema/AdverbSynset',
 	member(Adverb-WN30Adverbs, WN30_Partition),
 	member(Adverb-WN20Adverbs, WN20_Partition),
-	myalign(WN30Adverbs, WN20Adverbs).
-	forall(member(PoS-_, WN30_Partition),
-	       (   member(PoS-WN20Concepts, WN20_Partition),
-		   member(PoS-WN30Concepts, WN30_Partition),
-		   debug(align, 'Aligning ~p', [PoS]),
-		   myalign(WN30Concepts, WN20Concepts)
-	       )
-	      ).
-         */
+	myalign(Adverb, WN30Adverbs, WN20Adverbs).
+
+*/
 
 myalign2 :-
 	Source = 'http://purl.org/vocabularies/princeton/wn30/wn20s:\'AdverbSynset\'',
@@ -80,7 +75,7 @@ myalign(Type, SourceVoc, TargetVoc) :-
 
 	% Step 1a: align by exact label match on skos:definition,  split off ambiguous and count results
 	% Ambiguous results will be further processed in step 1b, non matching concepts in step 2.
-	OptionsDef = [threshold(-1.0),
+	OptionsDef = [threshold(-1.0), max_dist(3),
 		      sourcelabel(SkosDef), targetlabel(SkosDef),
 		      source_type(Type), target_type(Type) ],
 	align(SourceVoc, TargetVoc, source_candidate, exact_label_match, target_candidate, GlossMatch, OptionsDef),
@@ -128,9 +123,10 @@ myalign(Type, SourceVoc, TargetVoc) :-
 	materialize_alignment_graph(MostLabels,	           [graph(NoGlossMostLabelName)]),
 	materialize_alignment_graph(BestGlossAndLabel,	   [graph(BestGlossLabelName)]),
 
+	% Disambiguate remaining with structural properties
 	merge_graphs([AmbiLabel], ToBeAmbiguated),
 	source_count(ToBeAmbiguated, AmbN),
-	debug(slign, 'To be ambiguated: ~w', [AmbN]),
+	debug(align, 'To be ambiguated: ~w', [AmbN]),
 	align(ToBeAmbiguated, _, alignment_element, ancestor_match,  _, AncMatch, OptionsDef),
 	align(ToBeAmbiguated, _, alignment_element, descendant_match, _, DecMatch, OptionsDef),
 	align(ToBeAmbiguated, _, alignment_element, related_match,   _, RelMatch, OptionsDef),
@@ -138,8 +134,11 @@ myalign(Type, SourceVoc, TargetVoc) :-
 	most_methods:partition(DisambResults, MostMethods, []),
 	debug_partition('Most methods: ', MostMethods),
 	member(selected(MostMethodsLabelMatch), MostMethods),
+	member(undecided(LeftOvers), MostMethods),
 	graph_name(disamb_label, Type, MostMethodLabelName),
+	graph_name(ambiguous_undecided, Type, LeftOversName),
 	materialize_alignment_graph(MostMethodsLabelMatch, [graph(MostMethodLabelName)]),
+	materialize_alignment_graph(LeftOvers, [graph(LeftOversName)]),
 
 	true.
 /*
