@@ -1,5 +1,6 @@
 :- module(align_stats, [
-			show_alignment_overview//1
+			show_alignment_overview//1,
+			delete_alignment_graphs/1
 		       ]).
 
 :- use_module(library(http/http_dispatch)).
@@ -417,6 +418,7 @@ clear_alignstats(overlaps) :-
 	clear_overlaps.
 
 delete_alignment_graphs(Type) :-
+	(   var(Type) -> rdf_equal(Type, amalgame:'Alignment'); true),
 	align_ensure_stats(found),
 	findall(Graph, is_alignment_graph(Graph, _Format), Graphs),
 	forall((member(Graph, Graphs),
