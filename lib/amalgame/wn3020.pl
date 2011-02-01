@@ -32,9 +32,11 @@ myalign1 :-
 	rdf_equal(rdf:type, RDF_type),
 	Options = [splitprop(RDF_type)],
 	prop_partition:source_select(WN30, WN30_Partition, Options),
+	Noun='http://www.w3.org/2006/03/wn/wn20/schema/NounSynset',
 
 	forall(member(PoS-_, WN30_Partition),
 	       (   member(PoS-WN30Concepts, WN30_Partition),
+		   PoS \== Noun,
 		   debug(align, '~n~nAligning ~p', [PoS]),
 		   myalign(PoS,WN30Concepts, WN20)
 	       )
