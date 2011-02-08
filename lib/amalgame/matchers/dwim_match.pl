@@ -8,14 +8,14 @@
 :- multifile amalgame:component/2.
 
 amalgame:component(matcher, dwim_match(align(uri, uri, provenance), align(uri,uri,provenance),
-					      [sourceprop(uri, [default(skos:definition)]),
-					       targetprop(uri, [default(skos:definition)])
+					      [sourcelabel(uri, [default(skos:definition)]),
+					       targetlabel(uri, [default(skos:definition)])
 					      ])).
 
 match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options) :-
  	rdf_equal(skos:definition, DefaultProp),
- 	option(sourceprop(MatchProp1), Options, DefaultProp),
-	option(targetprop(MatchProp2), Options, DefaultProp),
+ 	option(sourcelabel(MatchProp1), Options, DefaultProp),
+	option(targetlabel(MatchProp2), Options, DefaultProp),
 	rdf_has(Source, MatchProp1, SourceLit, SourceProp),
 	rdf_has(Target, MatchProp2, TargetLit, TargetProp),
 	Source \== Target,
