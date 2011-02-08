@@ -25,8 +25,20 @@
 :- use_module(library(amalgame/source/align_exclude)).
 :- use_module(library(amalgame/source/prop_partition)).
 
+:- debug(align).
+
+delete_created_alignments :-
+	rdf_transaction(
+			forall(rdfs_individual_of(A, amalgame:'AmalgameAlignment'),
+			       rdf_unload(A)
+			      )
+		       ).
+
+:- delete_created_alignments.
+
+
 myalign1 :-
-	delete_alignment_graphs(_),
+	align_stats:delete_alignment_graphs(_),
 	WN30=scheme('http://purl.org/vocabularies/princeton/wn30/'),
 	WN20=scheme('http://www.w3.org/2006/03/wn/wn20/'),
 	rdf_equal(rdf:type, RDF_type),
@@ -34,9 +46,8 @@ myalign1 :-
 	prop_partition:source_select(WN30, WN30_Partition, Options),
 	Noun='http://www.w3.org/2006/03/wn/wn20/schema/NounSynset',
 
-	forall(member(PoS-_, WN30_Partition),
+	forall((member(PoS-_, WN30_Partition), PoS \== Noun),
 	       (   member(PoS-WN30Concepts, WN30_Partition),
-		   PoS \== Noun,
 		   debug(align, '~n~nAligning ~p', [PoS]),
 		   myalign(PoS,WN30Concepts, WN20)
 	       )
@@ -54,6 +65,11 @@ myalign2 :-
 	Source = 'http://purl.org/vocabularies/princeton/wn30/wn20s:\'AdverbSynset\'',
 	Target ='http://www.w3.org/2006/03/wn/wn20/wn20s:\'AdverbSynset\'',
 	myalign(_,scheme(Source),scheme(Target)).
+
+myalign3 :-
+	WN30=scheme('http://purl.org/vocabularies/princeton/wn30/'),
+	WN20=scheme('http://www.w3.org/2006/03/wn/wn20/'),
+	myalign(_, WN30, WN20).
 
 debug_partition(Label, Partition) :-
 	forall(member(SetPred, Partition),
@@ -80,7 +96,8 @@ myalign(Type, SourceVoc, TargetVoc) :-
 	OptionsDef = [threshold(-1.0), max_dist(3),
 		      sourcelabel(SkosDef), targetlabel(SkosDef),
 		      source_type(Type), target_type(Type) ],
-	align(SourceVoc, TargetVoc, source_candidate, exact_label_match, target_candidate, GlossMatch, OptionsDef),
+	align(SourceVoc, TargetVoc, source_candidate, exact_label_match, target_candidate, GlossMatch0, OptionsDef),
+	sort(GlossMatch0, GlossMatch),
 	target_ambiguity:partition(GlossMatch, [ambiguous(AmbiguousGloss),unambiguous(UnambiguousGloss)], []),
 	debug_partition('Gloss match',  [ambiguous(AmbiguousGloss),unambiguous(UnambiguousGloss)]),
 
@@ -118,12 +135,14 @@ myalign(Type, SourceVoc, TargetVoc) :-
 	graph_name(nogloss_uniquelabel,	Type, NoGlossLabelName),
 	graph_name(nogloss_mostlabel,	Type, NoGlossMostLabelName),
 	graph_name(best_gloss_label,    Type, BestGlossLabelName),
+	graph_name(ambiguous_label,     Type, AmbiLabelName),
 	materialize_alignment_graph(UnambiguousGloss,      [graph(UnambiguousGlossName)]),
 	materialize_alignment_graph(AmbiguousGlossLabel,   [graph(AmbiguousGlossName)]),
 	materialize_alignment_graph(UnambiguousGlossLabel, [graph(GlossLabelName)]),
 	materialize_alignment_graph(UnambiguousLabel,      [graph(NoGlossLabelName)]),
 	materialize_alignment_graph(MostLabels,	           [graph(NoGlossMostLabelName)]),
 	materialize_alignment_graph(BestGlossAndLabel,	   [graph(BestGlossLabelName)]),
+	materialize_alignment_graph(AmbiLabel,             [graph(AmbiLabelName)]),
 
 	% Disambiguate remaining with structural properties
 	merge_graphs([AmbiLabel], ToBeAmbiguated),
@@ -213,15 +232,17 @@ align_source(align(S,_,_), S).
 
 align(Source, Target, Candidate, Match, Test, Output, Options) :-
 	debug(align, 'Running matcher ~w', [Match]),
-	(   option(target_type(TType), Options) -> true; rdf_equal(rdfs:'Resource', TType)),
-	(   option(source_type(SType), Options) -> true; rdf_equal(rdfs:'Resource', SType)),
-        (   nonvar(Candidate)
-	->  G0 = ( Candidate:candidate(Source, Target, A0, Options),
-	           A0 = align(S,_,_),
-		   rdfs_individual_of(S,SType),
-	           Match:match(A0, A, Options),
-		   A = align(_,T,_),
-		   rdfs_individual_of(T,TType)
+	% (   option(target_type(TType), Options) -> true; rdf_equal(rdfs:'Resource', TType)),
+	% (   option(source_type(SType), Options) -> true; rdf_equal(rdfs:'Resource', SType)),
+	(   nonvar(Candidate)
+	->  G0 = (
+		 Candidate:candidate(Source, Target, A0, Options),
+		  Match:match(A0, A, Options),
+		  A0 = align(S,_,_),
+		  A = align(_,T,_),
+		  rdf(S, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', SType),
+		  rdf(T, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', TType),
+		  type_match(SType, TType)
 		 )
 	;   G0 = Match:match(align(_,_,[]), A, Options)
 	),
@@ -235,5 +256,10 @@ align(Source, Target, Candidate, Match, Test, Output, Options) :-
  	sort(As0, As),
 	merge_provenance(As, Output).
 
-
-spyme.
+type_match(T,T).
+type_match(A,S) :-
+	A='http://www.w3.org/2006/03/wn/wn20/schema/AdjectiveSynset',
+	S='http://www.w3.org/2006/03/wn/wn20/schema/AdjectiveSatelliteSynset'.
+type_match(S,A) :-
+	A='http://www.w3.org/2006/03/wn/wn20/schema/AdjectiveSynset',
+	S='http://www.w3.org/2006/03/wn/wn20/schema/AdjectiveSatelliteSynset'.
