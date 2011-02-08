@@ -18,10 +18,10 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 	option(targetprop(MatchProp2), Options, DefaultProp),
 	rdf_has(Source, MatchProp1, SourceLit, SourceProp),
 	rdf_has(Target, MatchProp2, TargetLit, TargetProp),
-	Source \== Target
+	Source \== Target,
 	literal_text(SourceLit, SourceTxt),
 	literal_text(TargetLit, TargetTxt),
-	dwim_match(SourceTxt, TargetTxt, Difference)
+	dwim_match(SourceTxt, TargetTxt, Difference),
  	Prov = [method(dwim_string_match),
 		match(Difference),
 		graph([rdf(Source, SourceProp, SourceLit),
