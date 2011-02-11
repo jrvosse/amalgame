@@ -14,12 +14,18 @@ amalgame:Select1_1
 	rdfs:subClassOf amalgame:Select .
 
 amalgame:selected
+	rdfs:domain amalgame:Alignment ;
+	rdfs:range  amalgame:Alignment ;
 	rdfs:subPropertyOf opmv:used.
 
 amalgame:discarded
+	rdfs:domain amalgame:Alignment ;
+	rdfs:range  amalgame:Alignment ;
 	rdfs:subPropertyOf opmv:used.
 
 amalgame:undecided
+	rdfs:domain amalgame:Alignment ;
+	rdfs:range  amalgame:Alignment ;
 	rdfs:subPropertyOf opmv:used.
 
 amalgame:NoAlignmentGraph a rdfs:Class ;
