@@ -270,7 +270,7 @@ assert_merges([[E1,E2]|RestOverlaps],Graphs,MergeGraphURI):-
 	assert_merges(RestOverlaps,Graphs,MergeGraphURI).
 
 merge_uri(GraphList, URI):-
-	sort(GraphList, Sorted), assertion(GraphList=Sorted),
+	sort(GraphList, Sorted), % assertion(GraphList=Sorted),
 	term_hash(Sorted, Hash),
 	rdf_equal(amalgame:'', NS),
 	format(atom(URI), '~wamalgame_merge_~w', [NS,Hash]),
