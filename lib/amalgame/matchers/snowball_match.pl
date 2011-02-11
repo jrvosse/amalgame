@@ -5,14 +5,25 @@
 :- use_module(library(semweb/rdf_litindex)).
 :- use_module(library(snowball)).
 :- use_module(library(lit_distance)).
+:- use_module(library(amalgame/alignment_graph)).
+:- use_module(library(amalgame/candidate)).
 
-:- public match/3.
-:- multifile amalgame:component/2.
 
-amalgame:component(match, snowball(align(uri, uri, provenance), align(uri,uri,provenance),
-					      [sourcelabel(uri, [default(rdfs:label)]),
-					       targetlabel(uri, [default(rdfs:label)])
-					      ])).
+:- public matcher/4.
+
+matcher(Source, Target, Mappings, Options) :-
+	findall(A, align(Source, Target, A, Options), Mappings).
+
+align(Source, Target, Match, Options) :-
+	option(prefix(0), Options),
+	!,
+	graph_member(S, Source),
+	match(align(S,T,[]), Match, Options),
+	graph_member(T, Target).
+
+align(Source, Target, Match, Options) :-
+ 	prefix_candidate(Source, Target, Match0, Options),
+	match(Match0, Match, Options).
 
 match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options) :-
  	rdf_equal(rdfs:label, DefaultProp),
@@ -48,4 +59,5 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
  	Prov = [method(snowball),
  		graph([rdf(Source, SourceProp, literal(lang(SourceLang, SourceLabel))),
 		       rdf(Target, TargetProp, literal(lang(TargetLang, TargetLabel)))])
-	       ].
+	       ],
+	debug(align, 'snowball match: ~p ~p', [Source,Target]).

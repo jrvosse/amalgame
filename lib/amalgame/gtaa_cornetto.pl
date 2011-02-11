@@ -31,6 +31,15 @@
 :- use_module(library(semweb/rdfs)).
 
 
+
+
+
+
+
+
+
+
+
 align :-
 	debug(align),
 	GTAA_Subjects = scheme('http://data.beeldengeluid.nl/gtaa/Onderwerpen'),

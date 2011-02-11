@@ -1,19 +1,98 @@
 :- module(alignment_graph,
-	  [ graph_member/2,
+	  [ e/2,
+	    flush_map_cache/0,
+	    flush_map_cache/1,
+	    graph_member/2,
 	    merge_graphs/2,
 	    merge_provenance/2,
 	    materialize_alignment_graph/2
 	  ]).
 
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_persistency)).
 :- use_module(library(amalgame/edoal)).
+:- use_module(library(amalgame/map)).
+
+% components
+:- use_module(library(amalgame/matchers/snowball_match)).
+:- use_module(library(amalgame/select/select1_1)).
+
+:- dynamic
+	map_cache/2.
+
+flush_map_cache :-
+	flush_map_cache(_).
+flush_map_cache(Id) :-
+	retractall(map_cache(Id,_)).
+
+
+e(Id, Mapping) :-
+	rdf_has(Id, opmv:wasGeneratedBy, Process),
+	rdf(Process, rdf:type, Type),
+	do_process(Process, Type, Id, Mapping).
+
+do_process(Process, Type, Id, Mapping) :-
+	rdfs_subclass_of(Type, amalgame:'Match'),
+	!,
+ 	rdf(Process, amalgame:source, Source),
+	rdf(Process, amalgame:target, Target),
+	process_options(Process, Options),
+ 	resource_to_term(Type, Module),
+	debug(align, 'running ~w matcher', [Module]),
+ 	call(Module:matcher, Source, Target, Mapping, Options),
+	assert(map_cache(Id, Mapping)).
+
+do_process(Process, Type, Id, Mapping) :-
+	rdfs_subclass_of(Type, amalgame:'Select'),
+	!,
+ 	rdf(Process, amalgame:source, Source),
+	process_options(Process, Options),
+ 	resource_to_term(Type, Module),
+	findall(A, graph_member(A, Source), Graph0),
+	sort(Graph0, Graph),
+	debug(align, 'running ~w select', [Module]),
+ 	call(Module:selecter, Graph, Selected, Discarded, Undecided, Options),
+	rdf_has(Id, opmv:used, _, P0),
+	resource_to_term(P0, P),
+	select_mapping(P, Selected, Discarded, Undecided, Mapping).
+
+select_mapping(selected, Selected, _, _, Selected).
+select_mapping(discarded, _, Discarded, _, Discarded).
+select_mapping(undecided, _, _, Undecided, Undecided).
+
+
+%%	process_options(+Process, -Options)
+%
+%
+
+process_options(Process, Options) :-
+	rdf(Process, amalgame:parameters, ParamString),
+	!,
+	param_string_to_options(ParamString, Options).
+process_options(_, []).
+
+param_string_to_options(S,S).
+
+
+
+%%	resource_to_term(+RDFResource, -PrologTerm)
+%
+%	Convert Amalgame RDF classes to Prolog predicates.
+
+resource_to_term(Resource, Term) :-
+	rdf_global_id(_:Local, Resource),
+	downcase_atom(Local, Term).
+
 
 %%	graph_member(?Element, ?Graph)
 %
 %	Enumarate elements of Graph. Where Graph is a list, a skos
 %	scheme URI or a named graph URI.
 
+graph_member(_, Var) :-
+	var(Var),
+	!.
 graph_member(E, List) :-
 	is_list(List),
 	!,
@@ -27,6 +106,28 @@ graph_member(E, type(Class)) :-
 graph_member(E, graph(Graph)) :-
 	!,
 	rdf_has(E, rdf:type, _, Graph).
+graph_member(E, Scheme) :-
+	rdfs_individual_of(Scheme, skos:'ConceptScheme'),
+	!,
+	rdf(E, skos:inScheme, Scheme).
+graph_member(E, Class) :-
+	rdfs_individual_of(Class, rdfs:'Class'),
+	!,
+	rdfs_individual_of(E, Class).
+graph_member(align(S,T,P), MappingId) :-
+	rdfs_individual_of(MappingId, amalgame:'Mapping'),
+	(   has_map(_,_,MappingId)
+	->  has_map([S-T], P, MappingId)
+	;   map_cache(MappingId, Mapping),
+	    debug(align, 'using cache for ~w', [MappingId]),
+	    member(align(S,T,P), Mapping)
+	;   e(MappingId, Mapping),
+	    member(align(S,T,P), Mapping)
+	).
+
+
+
+
 
 
 %%	merge_graphs(+ListOfGraphs, -Merged)
