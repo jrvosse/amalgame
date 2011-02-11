@@ -7,10 +7,10 @@
 @prefix xsd:      <http://www.w3.org/2001/XMLSchema#> .
 
 amalgame:Snowball_Match
-	rdfs:subClassOf amalgame:Match ;
+	rdfs:subClassOf amalgame:Match .
 
 amalgame:Selection1_1
-	rdfs:subClassOf amalgame:Selection ;
+	rdfs:subClassOf amalgame:Selection .
 
 amalgame:NoAlignmentGraph a rdfs:Class ;
 	rdfs:label "No Alignment Graph"@en ;
