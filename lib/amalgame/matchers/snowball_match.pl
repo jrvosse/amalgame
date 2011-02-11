@@ -4,6 +4,7 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_litindex)).
 :- use_module(library(snowball)).
+:- use_module(library(lit_distance)).
 
 :- public match/3.
 :- multifile amalgame:component/2.
@@ -20,6 +21,7 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 	option(targetlabel(MatchProp2), Options, DefaultProp),
 	option(matchacross_lang(MatchAcross), Options, _),
 	option(language(SourceLang),Options, _),
+	option(edit_distance(Edit_distance), Options, 0),
 
 	rdf_has(Source, MatchProp1, literal(lang(SourceLang, SourceLabel)), SourceProp),
 	(   var(SourceLang)
@@ -36,8 +38,13 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 	snowball(Language, SourceLabel, SourceStem0),
 	downcase_atom(SourceStem0, SourceStem),
 	rdf_has(Target, MatchProp2, literal(lang(TargetLang, TargetLabel)), TargetProp),
-	snowball(Language, TargetLabel, TargetStem),
-	downcase_atom(TargetStem, SourceStem),
+	snowball(Language, TargetLabel, TargetStem0),
+	downcase_atom(TargetStem0, TargetStem),
+	(   Edit_distance == 0
+	->  TargetStem == SourceStem
+	;   literal_distance(SourceStem, TargetStem, Distance),
+	    Distance =< Edit_distance
+	),
  	Prov = [method(snowball),
  		graph([rdf(Source, SourceProp, literal(lang(SourceLang, SourceLabel))),
 		       rdf(Target, TargetProp, literal(lang(TargetLang, TargetLabel)))])
