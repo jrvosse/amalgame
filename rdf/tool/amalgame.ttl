@@ -9,8 +9,8 @@
 amalgame:Snowball_Match
 	rdfs:subClassOf amalgame:Match .
 
-amalgame:Selection1_1
-	rdfs:subClassOf amalgame:Selection .
+amalgame:Select1_1
+	rdfs:subClassOf amalgame:Select .
 
 amalgame:NoAlignmentGraph a rdfs:Class ;
 	rdfs:label "No Alignment Graph"@en ;
