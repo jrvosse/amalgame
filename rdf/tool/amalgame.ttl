@@ -1,5 +1,6 @@
 @prefix amalgame: <http://purl.org/vocabularies/amalgame#> .
 @prefix align:    <http://knowledgeweb.semanticweb.org/heterogeneity/alignment#> .
+@prefix opmv:     <http://purl.org/net/opmv/ns#> .
 @prefix owl:	  <http://www.w3.org/2002/07/owl#> .
 @prefix rdfs:     <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
@@ -11,6 +12,15 @@ amalgame:Snowball_Match
 
 amalgame:Select1_1
 	rdfs:subClassOf amalgame:Select .
+
+amalgame:selected
+	rdfs:subPropertyOf opmv:used.
+
+amalgame:discarded
+	rdfs:subPropertyOf opmv:used.
+
+amalgame:undecided
+	rdfs:subPropertyOf opmv:used.
 
 amalgame:NoAlignmentGraph a rdfs:Class ;
 	rdfs:label "No Alignment Graph"@en ;
