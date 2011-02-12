@@ -12,29 +12,31 @@
 @prefix sparql:    <http://purl.org/net/opmv/types/sparql#> .
 @prefix :    <http://purl.org/vocabularies/amalgame#> .
 
-_:gloss_mapping 
+_:gloss_mapping
     a :Mapping ;
     rdfs:label "Gloss mapping" ;
     opmv:wasGeneratedBy [
-        a :Exact_Match ;
+        a :Exact_Label_Match ;
         rdfs:label "Exact label match process" ;
         :source <http://purl.org/vocabularies/princeton/wn30/> ;
         :target <http://www.w3.org/2006/03/wn/wn20/> ;
+	:parameters "sourcelabel=http://www.w3.org/2004/02/skos/core%23definition&targetlabel=http://www.w3.org/2004/02/skos/core%23definition" ;
         opmv:wasPerformedBy :Amalgame ;
+
     ] .
-    
-_:select11process 
+
+_:select11process
     a :Select1_1 ;
     rdfs:label "1-1 selection process" ;
     :source _:gloss_mapping ;
     opmv:wasPerformedBy :Amalgame .
-     
+
 _:gloss11
     a :Mapping ;
     rdfs:label "Gloss mapping 1-1" ;
     :selected _:gloss_mapping ;
     opmv:wasGeneratedBy _:select11process .
-    
+
 _:select1N
     a :Mapping ;
     rdfs:label "Gloss mapping 1-N" ;

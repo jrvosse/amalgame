@@ -2,19 +2,32 @@
 	  []).
 
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(amalgame/alignment_graph)).
 
-:- public match/3.
-:- multifile amalgame:component/2.
+:- public matcher/4.
+:- public params/1.
 
-amalgame:component(matcher, exact_label_match(align(uri, uri, provenance), align(uri,uri,provenance),
-					      [sourcelabel(uri, [default(rdfs:label)]),
-					       targetlabel(uri, [default(rdfs:label)])
-					      ])).
+matcher(Source, Target, Mappings, Options) :-
+	findall(A, align(Source, Target, A, Options), Mappings).
+
+params([sourcelabel(_, [default(DefaultProp)]),
+	targetlabel(_, [default(DefaultProp)])
+       ]) :-
+	rdf_equal(rdfs:label, DefaultProp).
+
+align(Source, Target, Match, Options) :-
+	graph_member(S, Source),
+	match(align(S,T,[]), Match, Options),
+	graph_member(T, Target).
 
 match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options) :-
  	rdf_equal(rdfs:label, DefaultProp),
- 	option(sourcelabel(MatchProp1), Options, DefaultProp),
-	option(targetlabel(MatchProp2), Options, DefaultProp),
+ 	(   member(sourcelabel(MatchProp1, _), Options)
+	;   option(sourcelabel(MatchProp1), Options, DefaultProp)
+	),
+	(   member(targetlabel(MatchProp2, _), Options)
+	;   option(targetlabel(MatchProp2), Options, DefaultProp)
+	),
 	option(matchacross_lang(MatchAcross), Options, _),
 	option(language(SourceLang),Options, _),
 	option(case_sensitive(CaseSensitive), Options, false),
@@ -29,7 +42,7 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 	    CaseString=ci
 	),
 
-        % If we can't match across languages, set target language to source language
+        % If we cannot match across languages, set target language to source language
 	(   MatchAcross == false
 	->  TargetLang = SourceLang
 	;   true
@@ -40,7 +53,3 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 		graph([rdf(Source, SourceProp, literal(lang(SourceLang, SourceLabel))),
 		       rdf(Target, TargetProp, literal(lang(TargetLang, TargetLabel)))])
 	       ].
-
-% method(exact_label)
-% graph([rdf(Source,SourceProp,_),rdf(Target,TargetProp,_)]
-% rdfs_subproperty_of(SourceProp, skos:prefLabel)

@@ -13,6 +13,7 @@
 :- use_module(library(semweb/rdf_persistency)).
 :- use_module(library(amalgame/edoal)).
 :- use_module(library(amalgame/map)).
+:- use_module(library(http/http_parameters)).
 
 % components
 :- use_module(library(amalgame/matchers/snowball_match)).
@@ -37,8 +38,8 @@ do_process(Process, Type, Id, Mapping) :-
 	!,
  	rdf(Process, amalgame:source, Source),
 	rdf(Process, amalgame:target, Target),
-	process_options(Process, Options),
  	resource_to_term(Type, Module),
+	process_options(Process, Module, Options),
 	debug(align, 'running ~w matcher', [Module]),
  	call(Module:matcher, Source, Target, Mapping, Options),
 	assert(map_cache(Id, Mapping)).
@@ -47,8 +48,8 @@ do_process(Process, Type, Id, Mapping) :-
 	rdfs_subclass_of(Type, amalgame:'Select'),
 	!,
  	rdf(Process, amalgame:source, Source),
-	process_options(Process, Options),
  	resource_to_term(Type, Module),
+	process_options(Process, Module, Options),
 	findall(A, graph_member(A, Source), Graph0),
 	sort(Graph0, Graph),
 	debug(align, 'running ~w select', [Module]),
@@ -66,15 +67,17 @@ select_mapping(undecided, _, _, Undecided, Undecided).
 %
 %
 
-process_options(Process, Options) :-
-	rdf(Process, amalgame:parameters, ParamString),
+process_options(Process, Module, Options) :-
+	rdf(Process, amalgame:parameters, literal(ParamString)),
 	!,
-	param_string_to_options(ParamString, Options).
-process_options(_, []).
+	param_string_to_options(ParamString, Module, Options).
+process_options(_, _, []).
 
-param_string_to_options(S,S).
-
-
+param_string_to_options(String,Module, Params) :-
+	Module:params(Params),
+	parse_url_search(String, Search),
+	FakeRequest = [search(Search)] ,
+	http_parameters(FakeRequest, Params).
 
 %%	resource_to_term(+RDFResource, -PrologTerm)
 %
