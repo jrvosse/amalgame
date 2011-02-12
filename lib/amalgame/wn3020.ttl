@@ -1,0 +1,42 @@
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix dct:     <http://purl.org/dc/terms/> .
+@prefix foaf:    <http://xmlns.com/foaf/0.1/> .
+@prefix void:    <http://rdfs.org/ns/void#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix doap:    <http://usefulinc.com/ns/doap#> .
+@prefix opmv:    <http://purl.org/net/opmv/ns#> .
+@prefix common:    <http://purl.org/net/opmv/types/common#> .
+@prefix sparql:    <http://purl.org/net/opmv/types/sparql#> .
+@prefix :    <http://purl.org/vocabularies/amalgame#> .
+
+_:gloss_mapping 
+    a :Mapping ;
+    rdfs:label "Gloss mapping" ;
+    opmv:wasGeneratedBy [
+        a :Exact_Match ;
+        rdfs:label "Exact label match process" ;
+        :source <http://purl.org/vocabularies/princeton/wn30/> ;
+        :target <http://www.w3.org/2006/03/wn/wn20/> ;
+        opmv:wasPerformedBy :Amalgame ;
+    ] .
+    
+_:select11process 
+    a :Select1_1 ;
+    rdfs:label "1-1 selection process" ;
+    :source _:gloss_mapping ;
+    opmv:wasPerformedBy :Amalgame .
+     
+_:gloss11
+    a :Mapping ;
+    rdfs:label "Gloss mapping 1-1" ;
+    :selected _:gloss_mapping ;
+    opmv:wasGeneratedBy _:select11process .
+    
+_:select1N
+    a :Mapping ;
+    rdfs:label "Gloss mapping 1-N" ;
+    :discarded _:gloss_mapping ;
+    opmv:wasGeneratedBy _:select11process .
