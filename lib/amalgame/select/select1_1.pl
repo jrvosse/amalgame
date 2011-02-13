@@ -14,10 +14,10 @@ select_([], [], []).
 select_([align(S,T,P)|As], A1, A2) :-
 	same_source(As, S, Same, Rest),
 	(   Same = []
-	->  A2 = [align(S,T,P)|A2Rest],
-	    A1 = A1Rest
-	;   append([align(S,T,P)|Same], A1Rest, A1),
+	->  A1 = [align(S,T,P)|A1Rest],
 	    A2 = A2Rest
+	;   append([align(S,T,P)|Same], A2Rest, A2),
+	    A1 = A1Rest
 	),
 	select_(Rest, A1Rest, A2Rest).
 
