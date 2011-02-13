@@ -22,17 +22,18 @@ align(Source, Target, Match, Options) :-
 
 match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options) :-
  	rdf_equal(rdfs:label, DefaultProp),
- 	(   member(sourcelabel(MatchProp1, _), Options)
+ 	(   memberchk(sourcelabel(MatchProp1, _), Options)
+	->  true
 	;   option(sourcelabel(MatchProp1), Options, DefaultProp)
 	),
-	(   member(targetlabel(MatchProp2, _), Options)
+	(   memberchk(targetlabel(MatchProp2, _), Options)
+	->  true
 	;   option(targetlabel(MatchProp2), Options, DefaultProp)
 	),
 	option(matchacross_lang(MatchAcross), Options, _),
 	option(language(SourceLang),Options, _),
 	option(case_sensitive(CaseSensitive), Options, false),
 
-	rdf_has(Source, MatchProp1, literal(lang(SourceLang, SourceLabel)), SourceProp),
 	(   var(SourceLang)
 	->  LangString = 'all'
 	;   LangString = SourceLang
@@ -47,6 +48,8 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 	->  TargetLang = SourceLang
 	;   true
 	),
+
+	rdf_has(Source, MatchProp1, literal(lang(SourceLang, SourceLabel)), SourceProp),
 	rdf_has(Target, MatchProp2, literal(exact(SourceLabel),lang(TargetLang, TargetLabel)), TargetProp),
  	Source \== Target,
 	Prov = [method(exact_label),
