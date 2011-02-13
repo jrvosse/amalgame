@@ -32,7 +32,7 @@ flush_map_cache(Id) :-
 
 e(Id, Mapping) :-
 	rdf_display_label(Id, Label),
-	debug(align, 'Exanding ~w', [Label]),
+	debug(align, 'Expanding ~w', [Label]),
 	rdf_has(Id, opmv:wasGeneratedBy, Process),
 	rdf(Process, rdf:type, Type),
 	do_process(Process, Type, Id, Mapping).
@@ -54,13 +54,16 @@ do_process(Process, Type, Id, Mapping) :-
 	->  call(Module:matcher, Source, Target, Mapping, Options)
 	),
 	length(Mapping, N),
-	debug(align, 'Caching ~w correspondences', [N]),
-	assert(map_cache(Id, Mapping)).
+	(   N == 0
+	->  gtrace
+	;   debug(align, 'Caching ~w correspondences', [N]),
+	    assert(map_cache(Id, Mapping))
+	).
 
 do_process(Process, Type, Id, Mapping) :-
 	rdfs_subclass_of(Type, amalgame:'Select'),
 	!,
- 	rdf(Process, amalgame:source, Source),
+ 	rdf(Process, amalgame:input, Source),
  	resource_to_term(Type, Module),
 	process_options(Process, Module, Options),
 	findall(A, graph_member(A, Source), Graph0),

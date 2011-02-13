@@ -22,7 +22,7 @@ parameter(language,
 parameter(matchacross_lang,
 	  [boolean, default(true)],
 	  'Allow labels from different language to be matched').
-parameter(case_senstitive,
+parameter(case_sensitive,
 	  [boolean, default(false)],
 	  'When true the case of labels must be equal').
 
@@ -35,7 +35,7 @@ filter(Alignments, Mappings, Options) :-
 	findall(M, align(Alignments, M, Options), Mappings).
 
 align(Alignments, M, Options) :-
-	member(A, Alignments),
+	graph_member(A, Alignments),
 	match(A, M, Options).
 
 

@@ -33,7 +33,7 @@ _:glosslabel11 a :Mapping ;
 _:glosslabelmatcher a :Exact_Label_Match ;
     rdfs:label "Exact label match process to disamb. 1N gloss matches" ;
     :input _:gloss1N ;
-    :parameters "sourcelabel=http://www.w3.org/2004/02/skos/core%23altlabel&targetlabel=http://www.w3.org/2004/02/skos/core%23altlabel" ;
+    :parameters "sourcelabel=http://www.w3.org/2004/02/skos/core%23altLabel&targetlabel=http://www.w3.org/2004/02/skos/core%23altLabel" ;
     opmv:wasPerformedBy :Amalgame .
 
 _:glossmatcher a :Exact_Label_Match ;
