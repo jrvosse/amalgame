@@ -36,7 +36,7 @@ amalgame:Alignment a rdfs:Class ;
 	rdfs:comment "The class of all Named Graphs in the repository containing mappings and/or alignments."@en.
 
 amalgame:Mapping a rdfs:Class ;
-	rdfs:subClassOf amalgame:Alignment ;
+	rdfs:subClassOf amalgame:Alignment .
 
 amalgame:LoadedAlignment a rdfs:Class ;
 	rdfs:subClassOf amalgame:Alignment ;
