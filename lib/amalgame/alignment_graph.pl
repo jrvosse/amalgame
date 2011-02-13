@@ -68,11 +68,14 @@ do_process(Process, Type, Id, Mapping) :-
 	process_options(Process, Module, Options),
 	findall(A, graph_member(A, Source), Graph0),
 	sort(Graph0, Graph),
-	debug(align, 'running ~w select', [Module]),
+	length(Graph, N0),
+	debug(align, 'running ~w select on ~w corr.', [Module, N0]),
  	call(Module:selecter, Graph, Selected, Discarded, Undecided, Options),
 	rdf_has(Id, opmv:used, _, P0),
 	resource_to_term(P0, P),
-	select_mapping(P, Selected, Discarded, Undecided, Mapping).
+	select_mapping(P, Selected, Discarded, Undecided, Mapping),
+	length(Mapping, N1),
+	debug(align, 'Selected ~w (~w)', [N1,P]).
 
 select_mapping(selected, Selected, _, _, Selected).
 select_mapping(discarded, _, Discarded, _, Discarded).
