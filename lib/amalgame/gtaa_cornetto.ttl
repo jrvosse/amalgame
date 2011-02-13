@@ -20,13 +20,14 @@ _:noun_mapping
         rdfs:label "Noun mapping process" ;
         :source <http://data.beeldengeluid.nl/gtaa/Onderwerpen> ;
         :target <http://purl.org/vocabularies/cornetto/NounSynset> ;
+        :parameters "snowball_language=dutch" ;
         opmv:wasPerformedBy :Amalgame ;
     ] .
     
 _:noun_selection 
     a :Select1_1 ;
     rdfs:label "Noun 1-1 selection process" ;
-    :source _:noun_mapping ;
+    :input _:noun_mapping ;
     opmv:wasPerformedBy :Amalgame .
      
 _:select11

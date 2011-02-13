@@ -32,7 +32,7 @@ _:glosslabel11 a :Mapping ;
 
 _:glosslabelmatcher a :Exact_Label_Match ;
     rdfs:label "Exact label match process to disamb. 1N gloss matches" ;
-    :source _:gloss1N ;
+    :input _:gloss1N ;
     :parameters "sourcelabel=http://www.w3.org/2004/02/skos/core%23altlabel&targetlabel=http://www.w3.org/2004/02/skos/core%23altlabel" ;
     opmv:wasPerformedBy :Amalgame .
 
@@ -45,12 +45,12 @@ _:glossmatcher a :Exact_Label_Match ;
 
 _:glossselect11process a :Select1_1 ;
     rdfs:label "1-1 selection process" ;
-    :source _:gloss_mapping ;
+    :input _:gloss_mapping ;
     opmv:wasPerformedBy :Amalgame .
 
 _:glosslabelselect11process a :Select1_1 ;
     rdfs:label "1-1 selection process" ;
-    :source _:gloss_label_mapping ;
+    :input _:gloss_label_mapping ;
     opmv:wasPerformedBy :Amalgame .
 
 _:gloss_mapping a :Mapping ;

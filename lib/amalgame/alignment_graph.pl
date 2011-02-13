@@ -37,19 +37,22 @@ e(Id, Mapping) :-
 	rdf(Process, rdf:type, Type),
 	do_process(Process, Type, Id, Mapping).
 
+%%	do_process(+Process, +Type, +Id, -Mapping)
+%
+%	Execute process to generate Mapping with Id.
+
 do_process(Process, Type, Id, Mapping) :-
 	rdfs_subclass_of(Type, amalgame:'Match'),
 	!,
- 	rdf(Process, amalgame:source, Source),
-	% optional target:
-	(   rdf(Process, amalgame:target, Target)
-	->  true
-	;   true
-	),
- 	resource_to_term(Type, Module),
+	resource_to_term(Type, Module),
 	process_options(Process, Module, Options),
 	debug(align, 'running ~w matcher', [Module]),
- 	call(Module:matcher, Source, Target, Mapping, Options),
+	(   rdf(Process, amalgame:input, MappingIn)  % input is an alignment graphs
+	->  call(Module:filter, MappingIn, Mapping, Options)
+	;   rdf(Process, amalgame:source, Source),
+	    rdf(Process, amalgame:target, Target)
+	->  call(Module:matcher, Source, Target, Mapping, Options)
+	),
 	length(Mapping, N),
 	debug(align, 'Caching ~w correspondences', [N]),
 	assert(map_cache(Id, Mapping)).
@@ -73,21 +76,59 @@ select_mapping(discarded, _, Discarded, _, Discarded).
 select_mapping(undecided, _, _, Undecided, Undecided).
 
 
-%%	process_options(+Process, -Options)
+%%	process_options(+Process, +Module, -Options)
 %
-%
+%	Options are the instantiated parameters for Module based on the
+%	parameters string in Process.
 
 process_options(Process, Module, Options) :-
 	rdf(Process, amalgame:parameters, literal(ParamString)),
 	!,
-	param_string_to_options(ParamString, Module, Options).
+	module_options(Module, Options, Parameters),
+	parse_url_search(ParamString, Search),
+	Request = [search(Search)] ,
+	http_parameters(Request, Parameters).
 process_options(_, _, []).
 
-param_string_to_options(String,Module, Params) :-
-	Module:params(Params),
-	parse_url_search(String, Search),
-	FakeRequest = [search(Search)] ,
-	http_parameters(FakeRequest, Params).
+%%	module_options(+Module, -Options, -Parameters)
+%
+%	Options  are  all  option  clauses    defined   for  Module.
+%	Parameters is a specification list for http_parameters/3.
+%	Module:parameter is called as:
+%
+%	    parameter(Name, Properties, Description)
+%
+%	Name is the name of the	the option, The Properties are as
+%	supported by http_parameters/3.	Description is used by the help
+%	system.
+
+module_options(Module, Options, Parameters) :-
+	findall(O-P,
+		( call(Module:parameter, Name, Properties, _Description),
+		  O =.. [Name, Value],
+		  P =.. [Name, Value, Properties]
+		),
+		Pairs),
+	pairs_keys_values(Pairs, Options, Parameters).
+
+%%	http:convert_parameter(+Type, +In, -URI) is semidet.
+%
+%	HTTP parameter conversion for the following types:
+%
+%	    * uri
+%	    This  conversion  accepts NS:Local and absolute URIs.
+
+http:convert_parameter(uri, In, URI) :-
+	(   sub_atom(In, B, _, A, :),
+	    sub_atom(In, _, A, 0, Local),
+	    xml_name(Local)
+	->  sub_atom(In, 0, B, _, NS),
+	    rdf_global_id(NS:Local, URI)
+	;   is_absolute_url(In)
+	->  URI = In
+	).
+
+
 
 %%	resource_to_term(+RDFResource, -PrologTerm)
 %
