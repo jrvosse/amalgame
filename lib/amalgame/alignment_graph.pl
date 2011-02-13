@@ -10,6 +10,7 @@
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
+:- use_module(library(semweb/rdf_label)).
 :- use_module(library(semweb/rdf_persistency)).
 :- use_module(library(amalgame/edoal)).
 :- use_module(library(amalgame/map)).
@@ -17,6 +18,7 @@
 
 % components
 :- use_module(library(amalgame/matchers/snowball_match)).
+:- use_module(library(amalgame/matchers/exact_label_match)).
 :- use_module(library(amalgame/select/select1_1)).
 
 :- dynamic
@@ -29,6 +31,8 @@ flush_map_cache(Id) :-
 
 
 e(Id, Mapping) :-
+	rdf_display_label(Id, Label),
+	debug(align, 'Exanding ~w', [Label]),
 	rdf_has(Id, opmv:wasGeneratedBy, Process),
 	rdf(Process, rdf:type, Type),
 	do_process(Process, Type, Id, Mapping).
@@ -37,11 +41,17 @@ do_process(Process, Type, Id, Mapping) :-
 	rdfs_subclass_of(Type, amalgame:'Match'),
 	!,
  	rdf(Process, amalgame:source, Source),
-	rdf(Process, amalgame:target, Target),
+	% optional target:
+	(   rdf(Process, amalgame:target, Target)
+	->  true
+	;   true
+	),
  	resource_to_term(Type, Module),
 	process_options(Process, Module, Options),
 	debug(align, 'running ~w matcher', [Module]),
  	call(Module:matcher, Source, Target, Mapping, Options),
+	length(Mapping, N),
+	debug(align, 'Caching ~w correspondences', [N]),
 	assert(map_cache(Id, Mapping)).
 
 do_process(Process, Type, Id, Mapping) :-
@@ -121,14 +131,17 @@ graph_member(align(S,T,P), MappingId) :-
 	rdfs_individual_of(MappingId, amalgame:'Mapping'),
 	(   has_map(_,_,MappingId)
 	->  has_map([S-T], P, MappingId)
-	;   map_cache(MappingId, Mapping),
-	    debug(align, 'using cache for ~w', [MappingId]),
+	;   map_cache(MappingId, Mapping)
+	->  debug(align, 'using cache for ~w', [MappingId]),
 	    member(align(S,T,P), Mapping)
-	;   e(MappingId, Mapping),
-	    member(align(S,T,P), Mapping)
+	;   e(MappingId, Mapping)
+	->  member(align(S,T,P), Mapping)
 	).
 
-
+graph_member(_, Id) :-
+	rdf_display_label(Id, Label),
+	debug(align, 'WARNING: graph_member/2 failed for ~w (~w)', [Label,Id]),
+	fail.
 
 
 
