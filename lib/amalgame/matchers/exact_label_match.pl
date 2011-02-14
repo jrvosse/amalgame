@@ -55,12 +55,14 @@ align(Source, Target, Match, Options) :-
 
 
 match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options) :-
- 	option(sourcelabel(MatchProp1), Options),
- 	option(targetlabel(MatchProp2), Options),
-	option(matchacross_lang(MatchAcross), Options),
+	rdf_equal(rdfs:label, RdfsLabel),
+ 	option(sourcelabel(MatchProp1), Options, RdfsLabel),
+ 	option(targetlabel(MatchProp2), Options, RdfsLabel),
+	option(matchacross_lang(MatchAcross), Options, true),
 	option(language(SourceLang), Options, _),
-	option(case_sensitive(CaseSensitive), Options),
+	option(case_sensitive(CaseSensitive), Options, false),
 
+	% FIX ME, no case option not yet used in matching!
 	(   CaseSensitive
 	->  CaseString=cs
 	;   CaseString=ci
@@ -72,13 +74,14 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 	;   true
 	),
 
+	Prov = [method(exact_label),
+		graph([rdf(Source, SourceProp, literal(lang(SourceLang, SourceLabel))),
+		       rdf(Target, TargetProp, literal(lang(TargetLang, TargetLabel)))])
+	       ],
+
 	rdf_has(Source, MatchProp1,
 		literal(lang(SourceLang, SourceLabel)), SourceProp),
 	rdf_has(Target, MatchProp2,
 		literal(exact(SourceLabel),lang(TargetLang, TargetLabel)), TargetProp),
- 	Source \== Target,
+ 	Source \== Target.
 
-	Prov = [method(exact_label),
-		graph([rdf(Source, SourceProp, literal(lang(SourceLang, SourceLabel))),
-		       rdf(Target, TargetProp, literal(lang(TargetLang, TargetLabel)))])
-	       ].
