@@ -42,7 +42,7 @@ parameter(edit_distance,
 %	Filter mappings based on exact matching of labels.
 
 filter(Alignments, Mappings, Options) :-
-	findall(M, ( member(A, Alignments),
+	findall(M, ( graph_member(A, Alignments),
 		     match(A, M, Options)
 		   ),
 		Mappings).
