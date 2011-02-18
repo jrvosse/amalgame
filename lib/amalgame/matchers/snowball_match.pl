@@ -67,12 +67,13 @@ align(Source, Target, Match, Options) :-
 	match(Match0, Match, Options).
 
 match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options) :-
-  	option(snowball_language(Snowball_Language), Options),
- 	option(sourcelabel(MatchProp1), Options),
-	option(targetlabel(MatchProp2), Options),
-	option(matchacross_lang(MatchAcross), Options),
+	rdf_equal(rdfs:label,DefaultP),
+  	option(snowball_language(Snowball_Language), Options, dutch),
+ 	option(sourcelabel(MatchProp1), Options, DefaultP),
+	option(targetlabel(MatchProp2), Options, DefaultP),
+	option(matchacross_lang(MatchAcross), Options, true),
 	option(language(SourceLang),Options, _),
-	option(edit_distance(Edit_Distance), Options),
+	option(edit_distance(Edit_Distance), Options, 0),
 
 	rdf_has(Source, MatchProp1, literal(lang(SourceLang, SourceLabel)), SourceProp),
 
@@ -96,4 +97,4 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
  		graph([rdf(Source, SourceProp, literal(lang(SourceLang, SourceLabel))),
 		       rdf(Target, TargetProp, literal(lang(TargetLang, TargetLabel)))])
 	       ],
-	debug(align, 'snowball match: ~p ~p', [Source,Target]).
+	debug(align_result, 'snowball match: ~p ~p', [Source,Target]).
