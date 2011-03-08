@@ -95,7 +95,7 @@ assert_cell(C1, C2, Options) :-
 	rdf_assert(Cell, align:relation, R, Graph),
 
 	(   option(alignment(A), Options)
-	->  rdf_assert(A, align:map, Cell, Graph), gtrace
+	->  rdf_assert(A, align:map, Cell, Graph)
 	;   rdf_assert(Graph, align:map, Cell, Graph)
 	),
 	(   option(source(Source), Options)
