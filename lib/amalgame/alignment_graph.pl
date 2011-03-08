@@ -5,7 +5,9 @@
 	    graph_member/2,
 	    merge_graphs/2,
 	    merge_provenance/2,
-	    materialize_alignment_graph/2
+	    materialize_alignment_graph/2,
+	    debug_partition/2,
+	    compare_align/4
 	  ]).
 
 :- use_module(library(semweb/rdf_db)).
@@ -29,6 +31,24 @@ flush_map_cache :-
 flush_map_cache(Id) :-
 	retractall(map_cache(Id,_)).
 
+debug_partition(Label, Partition) :-
+	forall(member(SetPred, Partition),
+	       (SetPred =.. [Type, Set],
+		source_count(Set, Count),
+		length(Set, Length),
+		debug(align, '~w ~w: ~w sources in ~w maps', [Label, Type, Count, Length])
+	       )
+	      ).
+source_count(As, N) :-
+	maplist(align_source, As, Ss0),!,
+	sort(Ss0, Ss),
+	length(Ss, N).
+
+source_count(As, -1) :-
+	length(As, N),
+	debug(align, 'cluster count: ~w', [N]).
+
+align_source(align(S,_,_), S).
 
 e(Id, Mapping) :-
 	rdf_display_label(Id, Label),
@@ -269,6 +289,36 @@ materialize_alignment_graph(Input, Options) :-
 	).
 
 save_alignment_graph([], _).
-save_alignment_graph([align(S,T,_Provenance)|As], Options) :-
-        assert_cell(S, T, Options),
+save_alignment_graph([align(S,T,_P)|As], Options) :-
+	% assert_cell(S, T, [prov(P)|Options]),
+	option(graph(Graph), Options, test),
+	rdf_assert(S, skos:exactMatch, T, Graph),
         save_alignment_graph(As, Options).
+
+%%	compare_align(Type, Order, A1, A2) is det.
+%
+%	compare alignment A1 and A2 on the standard order of the url of
+%	their source or target concept, depending on Type.
+
+xcompare_align(Type, Order, A1, A2) :-
+	debug(align, 'compare_align ~w ~w ~w ~w' , [Type, Order, A1, A2]),
+	fail.
+
+compare_align(source, Order, align(S1,_,_), align(S2,_,_)) :- compare(Order, S1, S2).
+
+compare_align(target, Order, align(_,T1,_), align(_,T2,_)) :- compare(Order, T1, T2).
+
+compare_align(sourceplus, Order, align(S1,T1,P1), align(S2,T2,P2)) :-
+	(   compare(FirstOrder, S1, S2), FirstOrder \== '='
+	->  FirstOrder = Order
+	;   compare(SecondOrder, T1, T2), SecondOrder \== '='
+	->  SecondOrder = Order
+	;   compare(Order, P1, P2)
+	).
+compare_align(targetplus, Order, align(S1,T1,P1), align(S2,T2,P2)) :-
+	(   compare(FirstOrder, T1, T2), FirstOrder \== '='
+	->  FirstOrder = Order
+	;   compare(SecondOrder, S1, S2), SecondOrder \== '='
+	->  SecondOrder = Order
+	;   compare(Order, P1, P2)
+	).
