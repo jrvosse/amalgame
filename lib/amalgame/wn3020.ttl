@@ -12,6 +12,8 @@
 @prefix sparql:    <http://purl.org/net/opmv/types/sparql#> .
 @prefix :    <http://purl.org/vocabularies/amalgame#> .
 
+# Final results as discussed in the paper:
+
 # Set 1a: 1-1 gloss matches
 _:gloss11 a :Mapping ;
     rdfs:label "Gloss mapping 1-1" ;
@@ -30,6 +32,13 @@ _:glosslabel11 a :Mapping ;
     :discarded _:gloss_label_mapping ;
     opmv:wasGeneratedBy _:glosslabelselect11process .
 
+# Set 1c: 1-n gloss + label matches
+_:glosslabel11 a :Mapping ;
+    rdfs:label "Gloss label mapping 1-1" ;
+    :discarded _:gloss_label_mapping ;
+    opmv:wasGeneratedBy _:glosslabelselect11process .
+
+# Matching processes used to generate the (intermediate) results:
 _:glosslabelmatcher a :Exact_Label_Match ;
     rdfs:label "Exact label match process to disamb. 1N gloss matches" ;
     :input _:gloss1N ;
@@ -43,6 +52,9 @@ _:glossmatcher a :Exact_Label_Match ;
     :parameters "sourcelabel=http://www.w3.org/2004/02/skos/core%23definition&targetlabel=http://www.w3.org/2004/02/skos/core%23definition" ;
     opmv:wasPerformedBy :Amalgame .
 
+
+
+# Selector processes used to generate the (intermediate) results:
 _:glossselect11process a :Select1_1 ;
     rdfs:label "1-1 selection process" ;
     :input _:gloss_mapping ;
@@ -53,6 +65,8 @@ _:glosslabelselect11process a :Select1_1 ;
     :input _:gloss_label_mapping ;
     opmv:wasPerformedBy :Amalgame .
 
+
+# Intermediate mapping
 _:gloss_mapping a :Mapping ;
     rdfs:label "Gloss mapping" ;
     opmv:wasGeneratedBy _:glossmatcher.
