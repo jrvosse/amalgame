@@ -1,4 +1,4 @@
-:- module(align_exclude,
+:- module(voc_exclude,
 	  [
 	  ]
 	 ).
