@@ -1,4 +1,4 @@
-:- module(select1_1,[]).
+:- module(arity_select,[]).
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(amalgame/alignment_graph)).
