@@ -95,7 +95,7 @@ assert_cell(C1, C2, Options) :-
 	rdf_assert(Cell, align:relation, R, Graph),
 
 	(   option(alignment(A), Options)
-	->  rdf_assert(A, align:map, Cell, Graph)
+	->  rdf_assert(A, align:map, Cell, Graph), gtrace
 	;   rdf_assert(Graph, align:map, Cell, Graph)
 	),
 	(   option(source(Source), Options)
@@ -126,24 +126,56 @@ assert_cell(C1, C2, Options) :-
 	;   true
 	),
 	(   option(prov(Prov), Options)
-	->  true,
-	    get_time(T), format_time(atom(Time), '%Y-%m-%dT%H-%M-%S%Oz', T),
-	    option(evaluator(Evaluator), Prov, 'anonymous'),
-	    rdf_bnode(Provenance),
-	    rdf_assert(Cell, amalgame:provenance, Provenance, Graph),
-	    rdf_assert(Provenance, rdf:type, amalgame:'Provenance', Graph),
-	    rdf_assert(Provenance, dcterms:creator, literal(Evaluator), Graph),
-	    rdf_assert(Provenance, dcterms:date, literal(Time), Graph),
-	    (	option(comment(Comment), Prov), Comment \= ''
-	    ->	rdf_assert(Provenance, rdfs:comment, literal(Comment), Graph)
-	    ;	true
-	    ),
-	    (	option(relation(OriginalRelation), Prov)
-	    ->	rdf_assert(Provenance, amalgame:relation, OriginalRelation, Graph)
-	    ;	true
+	->  assign_prov(Cell, Prov, Options)
+	;   true
+	)
+	.
+assign_prov(_, [],_).
+assign_prov(Cell, [Prov|Tail], Options):-
+	option(graph(Graph), Options, align),
+	rdf_bnode(Provenance),
+	rdf_assert(Cell, amalgame:provenance, Provenance, Graph),
+	% get_time(T), format_time(atom(Time), '%Y-%m-%dT%H-%M-%S%Oz', T),
+	% option(evaluator(Evaluator), Prov, 'anonymous'),
+	% rdf_assert(Provenance, rdf:type, amalgame:'Provenance', Graph),
+	% rdf_assert(Provenance, dcterms:creator, literal(Evaluator), Graph),
+	% rdf_assert(Provenance, dcterms:date, literal(Time), Graph),
+	(   option(method(Methods), Prov)
+	->  (   is_list(Methods)
+	    ->	forall(member(Method, Methods),
+		       (   term_to_atom(Method, MethodAtom),
+			   rdf_assert(Provenance, amalgame:method, literal(MethodAtom), Graph)
+		       ))
+	    ;	term_to_atom(Methods, MethodAtom),
+		rdf_assert(Provenance, amalgame:method, literal(MethodAtom), Graph)
 	    )
 	;   true
-	).
+	),
+	(   option(match(Matches), Prov)
+	->  (   is_list(Matches)
+	    ->	forall(member(Match, Matches),
+		       (   term_to_atom(Match, MatchAtom),
+			   rdf_assert(Provenance, amalgame:match, literal(MatchAtom), Graph)
+		       ))
+	    ;	term_to_atom(Matches, MatchAtom),
+		rdf_assert(Provenance, amalgame:match, literal(MatchAtom), Graph)
+	    )
+	;   true
+	),
+	(   option(graph(PGraph), Prov)
+	->  forall(member(rdf(_S,P,O), PGraph),
+		   rdf_assert(Provenance, P, O, Graph))
+	;   true
+	),
+	(	option(comment(Comment), Prov), Comment \= ''
+	->	rdf_assert(Provenance, rdfs:comment, literal(Comment), Graph)
+	;	true
+	),
+	(	option(relation(OriginalRelation), Prov)
+	->	rdf_assert(Provenance, amalgame:relation, OriginalRelation, Graph)
+	;	true
+	),
+	assign_prov(Cell, Tail, Options).
 
 %%	edoal_to_triples(+Request, +EdoalGraph, +SkosGraph, +Options) is
 %%	det.
@@ -210,7 +242,3 @@ edoal_select(Request, EdoalGraph, TargetGraph, TargetRestGraph, Options) :-
 			     [was_derived_from([EdoalGraph]),
 			      request(Request)
 			     ]).
-
-
-
-
