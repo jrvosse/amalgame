@@ -6,6 +6,8 @@
 :- use_module(library(semweb/rdfs)).
 :- use_module(applications(align_stats)).
 :- use_module(library(amalgame/alignment_graph)).
+:- use_module(library(amalgame/select/select1_1)).
+:- use_module(library(amalgame/select/arity_select)).
 :- use_module(library(amalgame/candidates/unmapped_candidate)).
 :- use_module(library(amalgame/candidates/source_candidate)).
 :- use_module(library(amalgame/candidates/target_candidate)).
@@ -22,9 +24,10 @@
 :- use_module(library(amalgame/partition/target_ambiguity)).
 :- use_module(library(amalgame/partition/best_label)).
 :- use_module(library(amalgame/partition/best_numeric)).
-:- use_module(library(amalgame/partition/most_labels)).
+:- use_module(library(amalgame/partition/most_labels_jacco)).
 :- use_module(library(amalgame/partition/most_methods)).
 :- use_module(library(amalgame/source/align_exclude)).
+:- use_module(library(amalgame/source/voc_exclude)).
 :- use_module(library(amalgame/source/prop_partition)).
 :- use_module(library(amalgame/map)).
 
@@ -67,6 +70,17 @@ disgard([Graph-S-T|Tail]) :-
 	rdf_retractall(S,_,T,Graph),
 	disgard(Tail).
 
+d1:-
+	T = [
+	     align(a1, b1, []),
+	     align(a2, b2,[]),
+	     align(a1, b2,[]),
+	     align(a2, b1,[]),
+	     align(a2, b3, [])
+	     ],
+	select1_1:partition(T, P, []),
+	debug_partition(debug, P).
+
 myalign1 :-
 	align_stats:delete_alignment_graphs(_),
 	WN30=scheme('http://purl.org/vocabularies/princeton/wn30/'),
@@ -93,7 +107,8 @@ myalign1 :-
 
 myalign2 :-
 	Source = 'http://purl.org/vocabularies/princeton/wn30/wn20s:\'AdverbSynset\'',
-	Target ='http://www.w3.org/2006/03/wn/wn20/wn20s:\'AdverbSynset\'',
+	Target = 'http://www.w3.org/2006/03/wn/wn20/',
+	 % Target ='http://www.w3.org/2006/03/wn/wn20/wn20s:\'AdverbSynset\'',
 	myalign(_,scheme(Source),scheme(Target)).
 
 myalign3 :-
@@ -101,53 +116,51 @@ myalign3 :-
 	WN20=scheme('http://www.w3.org/2006/03/wn/wn20/'),
 	myalign(_, WN30, WN20).
 
-debug_partition(Label, Partition) :-
-	forall(member(SetPred, Partition),
-	       (SetPred =.. [Type, Set],
-		source_count(Set, Count),
-		debug(align, '~w ~w: ~w', [Label, Type, Count])
-	       )
-	      ).
+
 
 graph_name(Prefix, Type, Name) :-
 	(   var(Type)
 	->  Name = Prefix
 	;   rdf_global_id(_NS:Local, Type),
 	    format(atom(Suffix), '~p', [Local]),
-	    atomic_list_concat([Prefix,'_',Suffix],Name)
+	    atomic_list_concat([Prefix,'-x-',Suffix],Name)
 	).
 
 myalign(Type, SourceVoc, TargetVoc) :-
 	rdf_equal(SkosDef, skos:definition),
 	rdf_equal(SkosAlt, skos:altLabel),
-
-	% Step 1a: align by exact label match on skos:definition,  split off ambiguous and count results
-	% Ambiguous results will be further processed in step 1b, non matching concepts in step 2.
+	OptionsLabel = [ sourcelabel(SkosAlt), targetlabel(SkosAlt), target_type(Type) ],
 	OptionsDef = [threshold(-1.0), max_dist(3),
 		      sourcelabel(SkosDef), targetlabel(SkosDef),
 		      source_type(Type), target_type(Type) ],
-	align(SourceVoc, TargetVoc, source_candidate, exact_label_match, target_candidate, GlossMatch0, OptionsDef),
-	sort(GlossMatch0, GlossMatch),
-	target_ambiguity:partition(GlossMatch, [ambiguous(AmbiguousGloss),unambiguous(UnambiguousGloss)], []),
+
+
+	% Step 1a: align by exact label match on skos:definition,  split off ambiguous and count results
+	% Ambiguous results will be further processed in step 1b, non matching concepts in step 2.
+	align(SourceVoc, TargetVoc, source_candidate, exact_label_match, target_candidate, GlossMatch, OptionsDef),
+	arity_select:selecter(GlossMatch, UnambiguousGloss, AmbiguousGloss, _, []),
 	debug_partition('Gloss match',  [ambiguous(AmbiguousGloss),unambiguous(UnambiguousGloss)]),
 
-	% Step 1b: align ambiguous gloss matches by exact label match on skos:altLabel, split off ambiguous and count results
+	% Step 1b: align ambiguous gloss matches by exact label match on skos:altLabel,
+	% split off ambiguous and count results.
 	% We assume ambiguous results here are concepts that are splitted or merged in the two versions
 	% and thus OK
-	OptionsLabel = [ sourcelabel(SkosAlt), targetlabel(SkosAlt), target_type(Type) ],
 	align(AmbiguousGloss, _, alignment_element, exact_label_match, _, GlossLabelMatch, OptionsLabel),
-	target_ambiguity:partition(GlossLabelMatch, [ambiguous(AmbiguousGlossLabel),unambiguous(UnambiguousGlossLabel)], []),
+	arity_select:selecter(GlossLabelMatch, UnambiguousGlossLabel, AmbiguousGlossLabel, _, []),
 	debug_partition('Ambiguous gloss + label', [ambiguous(AmbiguousGlossLabel),unambiguous(UnambiguousGlossLabel)]),
 	merge_graphs([UnambiguousGloss, UnambiguousGlossLabel, AmbiguousGlossLabel], GoodGlossLabelMatches),
 
 	% Step2a: exact label match on concepts with non-matching glosses
-	align_exclude:source_select(SourceVoc, Source_rest, [exclude(GoodGlossLabelMatches)]),
-	align(Source_rest, TargetVoc, source_candidate, exact_label_match, target_candidate, LabelMatch, OptionsLabel),
-	target_ambiguity:partition(LabelMatch, [ambiguous(AmbiguousLabel),unambiguous(UnambiguousLabel)], []),
-	debug_partition('Exact label on no gloss match',  [ambiguous(AmbiguousLabel),unambiguous(UnambiguousLabel)]),
+	% align_exclude:source_select(SourceVoc, Source_rest, [exclude(GoodGlossLabelMatches)]),
+	voc_exclude:concept_selecter(SourceVoc, TargetVoc, Source_rest, _Target_rest, [exclude(GoodGlossLabelMatches)]),
+	align(Source_rest, TargetVoc, source_candidate, exact_label_match, target_candidate, LabelMatch0, OptionsLabel),
+	voc_exclude:concept_selecter(LabelMatch0, LabelMatch, [exclude_targets(GoodGlossLabelMatches)]),
+	% arity_select:selecter(LabelMatch, UnambiguousLabel, AmbiguousLabel, _, []),
+
 
 	% Step 2b: First try disambiguation by counting number of matching sense labels (cheap, counting existing matches)
-	most_labels:partition(AmbiguousLabel, [selected(MostLabels), discarded(Discarded2), undecided(AmbiguousLabel2)], []),
+	most_labels_jacco:partition(LabelMatch,
+			 [one_to_one(UnambiguousLabel), selected(MostLabels), discarded(Discarded2), undecided(AmbiguousLabel2)], []),
 	debug_partition('Exact label, most label', [selected(MostLabels), discarded(Discarded2), undecided(AmbiguousLabel2)]),
 
 	% Step 2c: Then try disambiguation by jaccard similarity on the glosses (more expensive, need to compute jaccard)
@@ -159,13 +172,13 @@ myalign(Type, SourceVoc, TargetVoc) :-
 
 	% Step 3: Materialize the good stuff found so far, so we can use this to do structural matching later
 	debug(align, '~p: Materializing alignments found so far.', [Type]),
-	graph_name(a_unambiguous_gloss,   Type, UnambiguousGlossName),
-	graph_name(b_ambiguous_gloss,     Type, AmbiguousGlossName),
-	graph_name(c_gloss_unique_label,	Type, GlossLabelName),
-	graph_name(d_nogloss_uniquelabel,	Type, NoGlossLabelName),
-	graph_name(e_nogloss_mostlabel,	Type, NoGlossMostLabelName),
-	graph_name(f_best_gloss_label,    Type, BestGlossLabelName),
-	graph_name(z_ambiguous_label,     Type, _AmbiLabelName),
+	graph_name('1a_unambiguous_gloss',   Type, UnambiguousGlossName),
+	graph_name('1b_gloss_unique_label',  Type, GlossLabelName),
+	graph_name('1c_ambiguous_gloss',     Type, AmbiguousGlossName),
+	graph_name('2a_nogloss_uniquelabel', Type, NoGlossLabelName),
+	graph_name('2b_nogloss_mostlabel',   Type, NoGlossMostLabelName),
+	graph_name('2c_best_gloss_label',    Type, BestGlossLabelName),
+	graph_name('xz_ambiguous_label',     Type, _AmbiLabelName),
 	materialize_alignment_graph(UnambiguousGloss,      [graph(UnambiguousGlossName)]),
 	materialize_alignment_graph(AmbiguousGlossLabel,   [graph(AmbiguousGlossName)]),
 	materialize_alignment_graph(UnambiguousGlossLabel, [graph(GlossLabelName)]),
@@ -176,8 +189,6 @@ myalign(Type, SourceVoc, TargetVoc) :-
 
 	% Disambiguate remaining with structural properties
 	merge_graphs([AmbiLabel], ToBeAmbiguated),
-	source_count(ToBeAmbiguated, AmbN),
-	debug(align, 'To be ambiguated: ~w', [AmbN]),
 	align(ToBeAmbiguated, _, alignment_element, ancestor_match,  _, AncMatch, OptionsDef),
 	align(ToBeAmbiguated, _, alignment_element, descendant_match, _, DecMatch, OptionsDef),
 	align(ToBeAmbiguated, _, alignment_element, related_match,   _, RelMatch, OptionsDef),
@@ -185,7 +196,7 @@ myalign(Type, SourceVoc, TargetVoc) :-
 	most_methods:partition(DisambResults, MostMethods, []),
 	debug_partition('Most methods: ', MostMethods),
 	member(selected(MostMethodsLabelMatch), MostMethods),
-	graph_name(g_disamb_label, Type, MostMethodLabelName),
+	graph_name('2d_disamb_label', Type, MostMethodLabelName),
 	materialize_alignment_graph(MostMethodsLabelMatch, [graph(MostMethodLabelName)]),
 
 	% graph_name(ambiguous_undecided, Type, LeftOversName),
@@ -199,13 +210,6 @@ near(_, SourceVoc, TargetVoc) :-
 	OptionsLabel = [ sourcelabel(SkosAlt), targetlabel(SkosAlt)],
 	align(SourceVoc, TargetVoc, unmapped_candidate, dwim_match, target_candidate, _DwimMatch, OptionsLabel),
 	true.
-
-
-source_count(As, N) :-
-	maplist(align_source, As, Ss0),
-	sort(Ss0, Ss),
-	length(Ss, N).
-align_source(align(S,_,_), S).
 
 
 %%	align(+SourceGraph, +TargetGraph, ?CandidateMethod,
