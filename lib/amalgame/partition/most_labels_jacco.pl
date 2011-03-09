@@ -1,4 +1,4 @@
-:- module(most_labels, []).
+:- module(most_labels_jacco, []).
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
@@ -25,15 +25,15 @@ partition(AlignmentGraph, ListOfGraphs, Options) :-
 			discarded(D),
 			undecided(U)
 		      ],
-	select1_1:partition(AlignmentGraph, [p11(P11), pxn(P1N), pnx(PN1), pnm(PNM)], Options),
+	arity_select:partition(AlignmentGraph, [p11(P11), pxn(P1N), pnx(PN1), pnm(PNM)], Options),
 	debug_partition('most label partition', [p11(P11), p1x(P1N), pnx(PN1), pnm(PNM)]),
 	partition_(source, P1N, Ss, Ds, Us),
 	partition_(target, PN1, St0, Dt0, Ut0),
 	sort(St0, St), sort(Dt0, Dt), sort(Ut0, Ut),
 
 	ord_union([Ss, St], S),
-	ord_union([Ds, Dt], D),
-	ord_union([Us, Ut], U).
+	ord_union([Ds, Dt], D0), ord_subtract(D0,S,D), ord_union(S, D, SD),
+	ord_union([Us, Ut], U0), ord_subtract(U0,SD,U).
 
 partition_nm([], [], [], []).
 partition_nm([Cluster|Tail], S, D, U):-
