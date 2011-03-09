@@ -167,8 +167,8 @@ myalign(Type, SourceVoc, TargetVoc) :-
 	align(AmbiguousLabel2, TargetVoc, alignment_element, jaccard_match, target_candidate, JaccardMatch, OptionsDef),
 	best_numeric:partition(JaccardMatch, JaccardPartition, []),
 	debug_partition(jaccard_gloss, JaccardPartition),
-	member(selected(BestGlossAndLabel), JaccardPartition),
-	member(undecided(AmbiLabel), JaccardPartition),
+	memberchk(selected(BestGlossAndLabel), JaccardPartition),
+	memberchk(undecided(AmbiLabel), JaccardPartition),
 
 	% Step 3: Materialize the good stuff found so far, so we can use this to do structural matching later
 	debug(align, '~p: Materializing alignments found so far.', [Type]),
@@ -195,7 +195,7 @@ myalign(Type, SourceVoc, TargetVoc) :-
 	merge_graphs([ToBeAmbiguated, AncMatch, DecMatch, RelMatch], DisambResults),
 	most_methods:partition(DisambResults, MostMethods, []),
 	debug_partition('Most methods: ', MostMethods),
-	member(selected(MostMethodsLabelMatch), MostMethods),
+	memberchk(selected(MostMethodsLabelMatch), MostMethods),
 	graph_name('2d_disamb_label', Type, MostMethodLabelName),
 	materialize_alignment_graph(MostMethodsLabelMatch, [graph(MostMethodLabelName)]),
 

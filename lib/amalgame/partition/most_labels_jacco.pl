@@ -69,7 +69,7 @@ select_best_1_1([_C1-H1|Tail], Sel, Disc, Unsure) :-
 	select_best_1_1(Tail, Sr, Dr, Unsure).
 
 
-partition_(_, [], [], [], []).
+partition_(_, [], [], [], []) :- !.
 partition_(Type, [align(S,T,P)|As], Sel, Dis, Und) :-
 	(   Type = source
 	->  same_source(As, S, Same, Rest)
