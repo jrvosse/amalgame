@@ -26,7 +26,14 @@ from the underlying formats.
 	mapping_props(t),
 	mapping_relation(+, r).
 
-mapping_props([align:measure, align:relation, rdfs:comment, amalgame:method, amalgame:match]).
+mapping_props([
+	       align:measure,
+	       align:relation,
+	       rdfs:comment,
+	       % amalgame:method,
+	       % amalgame:match,
+	       amalgame:provenance
+	      ]).
 
 mapping_relation(skos, skos:mappingRelation).
 mapping_relation(dc,   dcterms:replaces).
