@@ -69,6 +69,7 @@ group_match([], []).
 group_match([Align|As], [Match-Align|Ts]) :-
 	Align = align(_,_,Provenance),
 	member(P, Provenance),
-	memberchk(method(jaccard), P),
+	% memberchk(method(M), P),
+	% memberchk(M, [jaccard, isub]),
 	memberchk(match(Match), P),
   	group_match(As, Ts).
