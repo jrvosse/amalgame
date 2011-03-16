@@ -13,11 +13,12 @@ match(align(S, T, Prov0), align(S, T, [Prov|Prov0]), Options) :-
 	option(graph(Graph), Options, _),
 	ancestor(S, AncS, R1),
 	ancestor(T, AncT, R2),
-	has_map([AncS, AncT], _, Graph),
+	has_map([AncS, AncT],_, O, Graph),
+	memberchk(relation(R), O),
+	memberchk(provenance(P), O),
+	rdf_equal(PM, amalgame:ancestor_match),
 	Prov = [method(ancestor_match),
-		graph([R1,
-		       R2
-		      ])
+		graph([R1,R2,rdf(P,PM,R)])
 	       ].
 
 ancestor(R, Parent, rdf_reachable(R, Prop, Parent)) :-
