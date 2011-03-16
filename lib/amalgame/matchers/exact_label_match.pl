@@ -62,10 +62,10 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 	option(language(SourceLang), Options, _),
 	option(case_sensitive(CaseSensitive), Options, false),
 
-	% FIX ME, no case option not yet used in matching!
+	% FIX ME, case option not yet used in matching!
 	(   CaseSensitive
-	->  CaseString=cs
-	;   CaseString=ci
+	->  CaseString=cs, SearchTarget=literal(lang(TargetLang, TargetLabel))
+	;   CaseString=ci, SearchTarget=literal(exact(SourceLabel), lang(TargetLang, TargetLabel))
 	),
 
         % If we cannot match across languages, set target language to source language
@@ -74,14 +74,12 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 	;   true
 	),
 
-	Prov = [method(exact_label),
+	Prov = [method(exact_label/CaseString),
 		graph([rdf(Source, SourceProp, literal(lang(SourceLang, SourceLabel))),
 		       rdf(Target, TargetProp, literal(lang(TargetLang, TargetLabel)))])
 	       ],
 
-	rdf_has(Source, MatchProp1,
-		literal(lang(SourceLang, SourceLabel)), SourceProp),
-	rdf_has(Target, MatchProp2,
-		literal(exact(SourceLabel),lang(TargetLang, TargetLabel)), TargetProp),
+	rdf_has(Source, MatchProp1, literal(lang(SourceLang, SourceLabel)), SourceProp),
+	rdf_has(Target, MatchProp2, SearchTarget, TargetProp),
  	Source \== Target.
 
