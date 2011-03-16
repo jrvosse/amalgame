@@ -130,7 +130,7 @@ assert_cell(C1, C2, Options) :-
 	;   true
 	)
 	.
-assign_prov(_, [],_).
+assign_prov(_, [],_) :- !.
 assign_prov(Cell, [Prov|Tail], Options):-
 	option(graph(Graph), Options, align),
 	rdf_bnode(Provenance),
@@ -162,9 +162,9 @@ assign_prov(Cell, [Prov|Tail], Options):-
 	    )
 	;   true
 	),
-	(   option(graph(PGraph), Prov)
-	->  forall(member(rdf(_S,P,O), PGraph),
-		   rdf_assert(Provenance, P, O, Graph))
+	(   option(graph(PGraph), Prov) % FIXME need to deal with reification issues, sources are lost in code below!
+	->  forall(member(rdf(_,P,O), PGraph), rdf_assert(Provenance, P, O, Graph)),
+	    forall(member(rdf_reachable(_,P,O), PGraph), rdf_assert(Provenance, P, O, Graph))
 	;   true
 	),
 	(	option(comment(Comment), Prov), Comment \= ''
