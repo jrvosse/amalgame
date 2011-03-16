@@ -267,7 +267,8 @@ group_provenance([align(S,T,P)|As], S, T, P0, Gs) :-
 	!,
 	append(P, P0, P1),
 	group_provenance(As, S, T, P1, Gs).
-group_provenance(As, S, T, P, [align(S, T, P)|Gs]) :-
+group_provenance(As, S, T, P, [align(S, T, Psorted)|Gs]) :-
+	sort(P, Psorted),
 	merge_provenance(As, Gs).
 
 
@@ -289,10 +290,10 @@ materialize_alignment_graph(Input, Options) :-
 	).
 
 save_alignment_graph([], _).
-save_alignment_graph([align(S,T,_P)|As], Options) :-
-	% assert_cell(S, T, [prov(P)|Options]),
-	option(graph(Graph), Options, test),
-	rdf_assert(S, skos:exactMatch, T, Graph),
+save_alignment_graph([align(S,T, P)|As], Options) :-
+	assert_cell(S, T, [prov(P)|Options]),
+	% option(graph(Graph), Options, test),
+	% rdf_assert(S, skos:exactMatch, T, Graph),
         save_alignment_graph(As, Options).
 
 %%	compare_align(Type, Order, A1, A2) is det.
