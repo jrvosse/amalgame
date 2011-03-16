@@ -30,6 +30,7 @@
 :- use_module(library(amalgame/source/voc_exclude)).
 :- use_module(library(amalgame/source/prop_partition)).
 :- use_module(library(amalgame/map)).
+:- use_module(library(amalgame/edoal)).
 
 :- debug(align).
 
@@ -43,32 +44,57 @@ delete_created_alignments :-
 % :- delete_created_alignments.
 
 disamb :-
-	findall(T, (rdf(S1,skos:exactMatch, T, _Graph1),
-		    rdf(S2,skos:exactMatch,T, _Graph2),
-		    S1 \== S2
+	findall(S, (has_map([S,T1],edoal,_),
+		    has_map([S,T2],edoal,_),
+		    T1 \== T2
 		   ),
-		AmbTargets0
-	       ),
-	sort(AmbTargets0, AmbTargets),
-	fixambtargets(AmbTargets).
+		One_to_many	       ),
+	sort(One_to_many, One_to_many_sorted),
+	disamb_one_to_many(One_to_many_sorted).
+
+disamb_one_to_many([]) :-!.
+disamb_one_to_many([S|Ss]) :-
+	findall(Graph-[S,T,O],
+		(has_map([S,T],edoal,O,Graph)
+		),
+		Targets),
+	group_pairs_by_key(Targets, Grouped),
+	keysort(Grouped, [_Key-First|_]),
+	(   First = [S,T,O]
+	->  debug(align, 'disamb: keep: ~p/~p', [S,T]),
+	    selectchk(First, Targets, Discarded),
+	    moveto(Discarded, discarded_1ton_mappings)
+	;   moveto(Targets, undecided_1ton_mappings)
+	),
+	disamb_one_to_many(Ss).
 
 fixambtargets([]).
 fixambtargets([T|Ts]) :-
-	findall(Graph-S-T,
-		(rdf(S, skos:exactMatch,T,Graph)
+	findall(Graph-[S,T,O],
+		(has_map([S,T],edoal,O,Graph)
 		),
 		Targets),
-	sort(Targets, [Keep|Discard]),
-	debug(align, 'disamb: keep: ~p', [Keep]),
-	disgard(Discard),
-
+	group_pairs_by_key(Targets, Grouped),
+	keysort(Grouped, [_Key-First|_]),
+	(   First = [S,T,O]
+	->  debug(align, 'disamb: keep: ~p/~p', [S,T]),
+	    selectchk(First, Targets, Discarded),
+	    moveto(Discarded, discarded_nto1_mappings)
+	;   moveto(Targets, undecided_nto1_mappings)
+	),
 	fixambtargets(Ts).
 
-disgard([]).
-disgard([Graph-S-T|Tail]) :-
-	debug(align, 'disamb: del: ~p -> ~p from ~p', [S,T,Graph]),
-	rdf_retractall(S,_,T,Graph),
-	disgard(Tail).
+moveto([],_) :- !.
+moveto([Graph-[S,T,O]|Tail], Target) :-
+	debug(align, 'move: ~p -> ~p from ~p to ~p', [S,T,Graph,Target]),
+	delete_map([S,T],O,Graph),
+	assert_cell(S,T,[graph(Target)|O]),
+	moveto(Tail, Target).
+
+delete_map([S,T], _O, Graph) :-
+	rdf(Bnode, align:entity1, S, Graph),
+	rdf(Bnode, align:entity2, T, Graph),!,
+	rdf_retractall(Bnode, _, _, Graph).
 
 d1:-
 	T = [
@@ -106,7 +132,7 @@ myalign1 :-
 */
 
 myalign2 :-
-	Source = 'http://purl.org/vocabularies/princeton/wn30/wn20s:\'AdverbSynset\'',
+	Source = 'http://purl.org/vocabularies/princeton/wn30/wn20schema:\'AdverbSynset\'',
 	Target = 'http://www.w3.org/2006/03/wn/wn20/',
 	 % Target ='http://www.w3.org/2006/03/wn/wn20/wn20s:\'AdverbSynset\'',
 	myalign(_,scheme(Source),scheme(Target)).
@@ -155,20 +181,23 @@ myalign(Type, SourceVoc, TargetVoc) :-
 	voc_exclude:concept_selecter(SourceVoc, TargetVoc, Source_rest, _Target_rest, [exclude(GoodGlossLabelMatches)]),
 	align(Source_rest, TargetVoc, source_candidate, exact_label_match, target_candidate, LabelMatch0, OptionsLabel),
 	voc_exclude:concept_selecter(LabelMatch0, LabelMatch, [exclude_targets(GoodGlossLabelMatches)]),
-	% arity_select:selecter(LabelMatch, UnambiguousLabel, AmbiguousLabel, _, []),
+	arity_select:selecter(LabelMatch, UnambiguousLabel, AmbiguousLabel, _, []),
 
 
 	% Step 2b: First try disambiguation by counting number of matching sense labels (cheap, counting existing matches)
-	most_labels_jacco:partition(LabelMatch,
-			 [one_to_one(UnambiguousLabel), selected(MostLabels), discarded(Discarded2), undecided(AmbiguousLabel2)], []),
-	debug_partition('Exact label, most label', [selected(MostLabels), discarded(Discarded2), undecided(AmbiguousLabel2)]),
+	% most_labels_jacco:partition(LabelMatch,
+	%		 [one_to_one(UnambiguousLabel), selected(MostLabels), discarded(Discarded2), undecided(AmbiguousLabel2)], []),
+	% debug_partition('Exact label, most label', [selected(MostLabels), discarded(Discarded2), undecided(AmbiguousLabel2)]),
 
 	% Step 2c: Then try disambiguation by jaccard similarity on the glosses (more expensive, need to compute jaccard)
-	align(AmbiguousLabel2, TargetVoc, alignment_element, jaccard_match, target_candidate, JaccardMatch, OptionsDef),
-	best_numeric:partition(JaccardMatch, JaccardPartition, []),
-	debug_partition(jaccard_gloss, JaccardPartition),
-	memberchk(selected(BestGlossAndLabel), JaccardPartition),
-	memberchk(undecided(AmbiLabel), JaccardPartition),
+	align(AmbiguousLabel, TargetVoc, alignment_element, jaccard_match, target_candidate, JaccardMatch, OptionsDef),
+	best_numeric:partition(JaccardMatch, JaccardSPartition, [disamb(source)]),
+	debug_partition(jaccard_gloss_source, JaccardSPartition),
+	memberchk(selected(BestGlossAndLabelS), JaccardSPartition),
+	memberchk(undecided(AmbiLabelS), JaccardSPartition),
+	best_numeric:partition(BestGlossAndLabelS, JaccardTPartition, [disamb(target)]),
+	memberchk(selected(BestGlossAndLabel), JaccardTPartition),
+	memberchk(undecided(AmbiLabelT), JaccardSPartition),
 
 	% Step 3: Materialize the good stuff found so far, so we can use this to do structural matching later
 	debug(align, '~p: Materializing alignments found so far.', [Type]),
@@ -176,19 +205,19 @@ myalign(Type, SourceVoc, TargetVoc) :-
 	graph_name('1b_gloss_unique_label',  Type, GlossLabelName),
 	graph_name('1c_ambiguous_gloss',     Type, AmbiguousGlossName),
 	graph_name('2a_nogloss_uniquelabel', Type, NoGlossLabelName),
-	graph_name('2b_nogloss_mostlabel',   Type, NoGlossMostLabelName),
+	% graph_name('2b_nogloss_mostlabel',   Type, NoGlossMostLabelName),
 	graph_name('2c_best_gloss_label',    Type, BestGlossLabelName),
-	graph_name('xz_ambiguous_label',     Type, _AmbiLabelName),
+	% graph_name('xz_ambiguous_label',     Type, AmbiLabelName),
 	materialize_alignment_graph(UnambiguousGloss,      [graph(UnambiguousGlossName)]),
 	materialize_alignment_graph(AmbiguousGlossLabel,   [graph(AmbiguousGlossName)]),
 	materialize_alignment_graph(UnambiguousGlossLabel, [graph(GlossLabelName)]),
 	materialize_alignment_graph(UnambiguousLabel,      [graph(NoGlossLabelName)]),
-	materialize_alignment_graph(MostLabels,	           [graph(NoGlossMostLabelName)]),
+	% materialize_alignment_graph(MostLabels,	           [graph(NoGlossMostLabelName)]),
 	materialize_alignment_graph(BestGlossAndLabel,	   [graph(BestGlossLabelName)]),
 	% materialize_alignment_graph(AmbiLabel,             [graph(AmbiLabelName)]),
 
 	% Disambiguate remaining with structural properties
-	merge_graphs([AmbiLabel], ToBeAmbiguated),
+	merge_graphs([AmbiLabelS, AmbiLabelT], ToBeAmbiguated),
 	align(ToBeAmbiguated, _, alignment_element, ancestor_match,  _, AncMatch, OptionsDef),
 	align(ToBeAmbiguated, _, alignment_element, descendant_match, _, DecMatch, OptionsDef),
 	align(ToBeAmbiguated, _, alignment_element, related_match,   _, RelMatch, OptionsDef),
@@ -243,10 +272,12 @@ align(Source, Target, Candidate, Match, Test, Output, Options) :-
  	sort(As0, As),
 	merge_provenance(As, Output).
 
-type_match(T,T).
+type_match(T,T) :-!.
 type_match(A,S) :-
 	A='http://www.w3.org/2006/03/wn/wn20/schema/AdjectiveSynset',
-	S='http://www.w3.org/2006/03/wn/wn20/schema/AdjectiveSatelliteSynset'.
+	S='http://www.w3.org/2006/03/wn/wn20/schema/AdjectiveSatelliteSynset',
+	!.
 type_match(S,A) :-
 	A='http://www.w3.org/2006/03/wn/wn20/schema/AdjectiveSynset',
-	S='http://www.w3.org/2006/03/wn/wn20/schema/AdjectiveSatelliteSynset'.
+	S='http://www.w3.org/2006/03/wn/wn20/schema/AdjectiveSatelliteSynset',
+	!.
