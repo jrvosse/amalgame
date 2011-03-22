@@ -215,17 +215,17 @@ YUI.add('resourcelist', function(Y) {
 			
 				// now disable the inactive buttons
 				if(length<limit) { 
-					Y.get(".page-next").addClass("disabled");
-					Y.get(".page-prev").removeClass("disabled");
+					Y.one(".page-next").addClass("disabled");
+					Y.one(".page-prev").removeClass("disabled");
 				} else if (start===0) { 
-					Y.get(".page-prev").addClass("disabled", true); 
-					Y.get(".page-next").removeClass("disabled");
+					Y.one(".page-prev").addClass("disabled", true); 
+					Y.one(".page-next").removeClass("disabled");
 				} else {
-					Y.get(".page-next").removeClass("disabled");
-					Y.get(".page-prev").removeClass("disabled");
+					Y.one(".page-next").removeClass("disabled");
+					Y.one(".page-prev").removeClass("disabled");
 				}
 				// and add the right labels
-				Y.get(".page-label").set("innerHTML", start+' -- '+end); 
+				Y.one(".page-label").set("innerHTML", start+' -- '+end); 
 			} 
 			else if(this._pagination) {
 				this._pagination.addClass("hidden");
