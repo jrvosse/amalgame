@@ -24,6 +24,17 @@ _:noun_mapping
         opmv:wasPerformedBy :Amalgame ;
     ] .
     
+_:noun_exact_mapping 
+    a :Mapping ;
+    rdfs:label "Noun exact label mapping" ;
+    opmv:wasGeneratedBy [
+        a :Exact_Label_Match ;
+        rdfs:label "Noun mapping process" ;
+        :source <http://data.beeldengeluid.nl/gtaa/Onderwerpen> ;
+        :target <http://purl.org/vocabularies/cornetto/NounSynset> ;
+        opmv:wasPerformedBy :Amalgame ;
+    ] .    
+    
 _:noun_selection 
     a :Select1_1 ;
     rdfs:label "Noun 1-1 selection process" ;
