@@ -171,8 +171,9 @@ h3 {
 .yui3-columnbrowser .resourcelist-item.selected {
 	background-color: #DDD;
 }
-.yui3-columnbrowser .column.active .resourcelist-item.selected {
+.yui3-columnbrowser .yui3-resourcelist.selected .resourcelist-item.selected {
 	color: #FFF;
+	background-color: #66A1D2;
 }
 .yui3-columnbrowser .pagination {
 	border-color:#CCCCCC;

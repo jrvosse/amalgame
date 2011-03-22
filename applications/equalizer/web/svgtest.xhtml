@@ -1,0 +1,64 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+<head>
+<script type="text/javascript" src="/www/yui/3.3.0/build/yui/yui-min.js"></script>
+</head>
+
+<body>
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="524pt" height="60pt"
+ viewBox="0.00 0.00 524.00 60.00" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph1" class="graph" transform="scale(1 1) rotate(0) translate(4 40)">
+<title>G</title>
+<polygon fill="white" stroke="white" points="-4,5 -4,-40 357,-40 357,5 -4,5"/>
+<!-- n145 -->
+<g id="node1" class="node"><title>n145</title>
+<a xlink:href="javascript:nodeClick(&quot;test&quot;)" xlink:title="test" target="_top">
+<polygon fill="#aaaaaa" stroke="black" points="317,-36 282.929,-18 317,-3.55271e-15 351.071,-18 317,-36"/>
+<polyline fill="none" stroke="black" points="293.539,-23.6055 293.539,-12.3945 "/>
+<polyline fill="none" stroke="black" points="306.39,-5.6055 327.61,-5.6055 "/>
+<polyline fill="none" stroke="black" points="340.461,-12.3945 340.461,-23.6055 "/>
+<polyline fill="none" stroke="black" points="327.61,-30.3945 306.39,-30.3945 "/>
+<text text-anchor="middle" x="317" y="-13.8" font-family="Times,serif" font-size="14.00">test</text>
+</a>
+</g>
+<!-- n146 -->
+<g id="node3" class="node"><title>n146</title>
+<a xlink:href="javascript:nodeClick(&quot;http://purl.org/vocabularies/amalgame#LoadedAlignment&quot;)" xlink:title="Loaded Alignment Graph" target="_top">
+<ellipse fill="none" stroke="black" cx="111" cy="-18" rx="109.761" ry="18"/>
+<text text-anchor="middle" x="111" y="-13.8" font-family="Times,serif" font-size="14.00">Loaded Alignment Graph</text>
+</a>
+</g>
+<!-- n145&#45;&gt;n146 -->
+<g id="edge2" class="edge"><title>n145&#45;&gt;n146</title>
+<a xlink:href="javascript:nodeClick(&quot;http://www.w3.org/1999/02/22-rdf-syntax-ns#type&quot;)" xlink:title="type" target="_top">
+<path fill="none" stroke="black" d="M282.055,-18C267.72,-18 250.203,-18 231.908,-18"/>
+<polygon fill="black" stroke="black" points="231.679,-14.5001 221.679,-18 231.679,-21.5001 231.679,-14.5001"/>
+</a>
+<a xlink:href="javascript:nodeClick(&quot;http://www.w3.org/1999/02/22-rdf-syntax-ns#type&quot;)" xlink:title="type" target="_top">
+<text text-anchor="middle" x="252" y="-22.2" font-family="Times,serif" font-size="14.00">type</text>
+</a>
+</g>
+</g>
+</svg>
+
+
+<script type="text/javascript">
+function nodeClick(url) {
+    console.log(url);
+}
+
+YUI().use('node', 'event', 'io', 'querystring-stringify-simple','json', function(Y) {
+    Y.delegate("click", function(e) {
+        var uri = e.currentTarget,
+            server = "http://localhost:3020/amalgame/data/mapping";
+        console.log(uri);    
+        Y.io(server,
+	  { data: {url:uri},
+	    on: { success: function(e,o) {var mapping = Y.JSON.parse(o.responseText); console.log(mapping)}}
+	  });
+
+    
+    }, 'svg', 'a');
+});
+</script>
+</body>
+</html>
