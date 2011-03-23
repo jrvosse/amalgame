@@ -1,5 +1,5 @@
 #main {
-	width: 500px;
+	width: 600px;
 	margin: 200px auto 0;
 }
 #content {
@@ -131,6 +131,7 @@
 #mapping th,
 #mapping td {
 	padding: 2px 8px;
+	vertical-align: top;
 }
 #mapping td.count {
 	text-align: right;
