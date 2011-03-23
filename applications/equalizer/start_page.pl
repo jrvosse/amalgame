@@ -47,7 +47,7 @@ html_start_page :-
 			]).
 
 html_new_project -->
-	html_acc_item(new, 'Start new alignment project',
+	html_acc_item(new, 'start new alignment project',
 		      [ div(id(navigator), []),
 			form(action(location_by_id(http_eq_new)),
 			     [ \html_vocab_select(source),
@@ -59,7 +59,7 @@ html_new_project -->
 html_load_mapping -->
 	{ findall(G, is_alignment_graph(G,_), Graphs)
 	},
-	html_acc_item(mapping, 'Load existing mappings',
+	html_acc_item(mapping, 'load mappings',
 		      [ form(action(location_by_id(http_mapping_view)),
 			     [ \html_alignment_table(Graphs),
  			       \html_submit('Start')
@@ -67,7 +67,7 @@ html_load_mapping -->
 		      ]).
 
 html_load_workflow -->
-	html_acc_item(workflow, 'Load an existing alignment workflow',
+	html_acc_item(workflow, 'load alignment workflow',
 		      [tbd]).
 
 
