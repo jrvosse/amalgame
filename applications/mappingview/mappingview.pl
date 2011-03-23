@@ -22,7 +22,6 @@
 :- use_module(library(settings)).
 :- use_module(user(user_db)).
 :- use_module(components(label)).
-:- use_module(components(paginator)).
 
 :- use_module(library(skos/vocabularies)).
 :- use_module(library(amalgame/alignment_graph)).
@@ -90,7 +89,7 @@ html_body(URL) -->
 %	Emit HTML container for mapping view
 
 html_mapping_view(Id) -->
-	%html_requires(css(mappingview)),
+	html_requires(css('mappingview.css')),
 	html([div(id(sourcetree), []),
 	      div(id(Id), []),
 	      div(id(targettree), []),
@@ -117,7 +116,7 @@ js_mapping_view(URL, Id, El) -->
 	js_yui3_on(P, changeRequest,
 		   \js_function([state],
 				\[ 'this.setPage(state.page, true);\n',
-				   Id,'.datasource.load({request:"?url=',URL,'&offset="+state.recordOffset});\n'
+				   Id,'.datasource.load({request:"?url=',URL,'&offset=state.recordOffset"});\n'
 				 ])),
  	html([Id,'.datasource.load({request:"?url=',URL,'"});\n']).
 	%js_tree(source),
