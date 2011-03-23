@@ -50,6 +50,9 @@ YUI.add('columnbrowser', function(Y) {
 		},
 		title: {
 			value: ""
+		},
+		selected: {
+			value: null
 		}
 	};
 
@@ -170,6 +173,7 @@ YUI.add('columnbrowser', function(Y) {
 			var columns = this.get("columns"),
 				next = index+1;
 			
+			this.set("selected", oItem);
 			this._selectedItem = oItem;
 			this._selectedIndex = index;
 			

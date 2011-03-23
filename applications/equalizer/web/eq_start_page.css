@@ -1,0 +1,136 @@
+#main {
+	width: 500px;
+	margin: 200px auto 0;
+}
+#content {
+	border-width: 1px;
+	border-style: solid;
+	border-color: #AAA;
+	-moz-border-radius: 5px;
+	border-radius: 5px;
+	background-color: #FFF;
+}
+
+.hidden {
+	display: none;
+}
+
+.controls {
+	text-align: right;
+}
+
+/* vocabulary select */
+#new .select {
+	width: 100px;
+}
+#new .label {
+	width: 275px;
+	padding-left: 10px;
+	border: none;
+}
+
+/* column browser */
+
+.yui3-columnbrowser-hidden {
+	display: none;
+}
+
+.yui3-columnbrowser .loading {
+	padding-top: 20px;
+	background: url(loading.gif) no-repeat center center
+}
+.yui3-columnbrowser-content {
+	border-width: 1px 0;
+	border-style: solid;
+	border-color: #CCC;
+	border-color: #C5C5C5 #B9B9B9 #B2B2B2;
+}
+.yui3-columnbrowser .hd {
+	display: none;
+}
+.yui3-columnbrowser .columns-box {
+	height: 200px;
+	overflow-x: auto;
+	overflow-y: hidden;
+	padding-bottom: 5px;
+	background-color: #FFF;
+}
+.yui3-columnbrowser .columns-box.noscroll {
+	overflow-x: hidden;
+}
+.yui3-columnbrowser .columns {
+	height: 100%;
+}
+
+.yui3-columnbrowser .ft {
+	display: none;
+}
+.yui3-columnbrowser .columns .yui3-resourcelist {
+	float: left;
+	height: 100%;
+	overflow-x: auto;
+	overflow-y: scroll;
+	min-width: 15px;
+	padding-right: 5px;
+}
+.yui3-columnbrowser .yui3-resourcelist-content ul {
+	padding: 2px 0;
+	margin: 0;
+}
+.yui3-columnbrowser .resourcelist-item {
+	padding: 3px 5px 2px;
+	cursor: pointer;
+	overflow: hidden;
+}
+.yui3-columnbrowser .resourcelist-item .more {
+	float: right;
+}
+.yui3-columnbrowser .resourcelist-item.selected {
+	background-color: #DDD;
+}
+.yui3-columnbrowser .yui3-resourcelist.selected .resourcelist-item.selected {
+	color: #FFF;
+	background-color: #66A1D2;
+}
+.yui3-columnbrowser .pagination {
+	border-color:#CCCCCC;
+	border-style:solid;
+	border-width:1px 0 0;
+	text-align:center;
+}
+.yui3-columnbrowser .pagination .page-label {
+	padding: 0 10px;
+}
+.yui3-columnbrowser .pagination a.disabled {
+	color: #CCC;
+}
+
+.yui3-columnbrowser .search,
+.yui3-columnbrowser select {
+	border-color:#E5E5E5;
+	border-style:solid;
+	border-width:0 0 1px;
+}
+.yui3-columnbrowser .search {
+	padding: 0 2px
+}
+.yui3-columnbrowser select {
+	width: 100%;
+}
+.yui3-columnbrowser .search input {
+	width: 100%;
+	border: none;
+	background: url("search_bg_enabled.png") no-repeat right 60% #FFFFFF;
+}
+
+/* alignment table */
+#mapping th {
+	font-weight: bold;
+}
+#mapping th,
+#mapping td {
+	padding: 2px 8px;
+}
+#mapping td.count {
+	text-align: right;
+}
