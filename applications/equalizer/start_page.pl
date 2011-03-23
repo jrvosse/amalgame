@@ -68,7 +68,7 @@ html_load_mapping -->
 	{ findall(G, is_alignment_graph(G,_), Graphs)
 	},
 	html_acc_item(mapping, 'Load an existing mapping',
-		      [ form(action(location_by_id(http_eq_mapping)),
+		      [ form(action(location_by_id(http_mapping_view)),
 			     [ \html_alignment_table(Graphs),
  			       div(class(controls),
 				   [ input([type(submit), value('Start')])
@@ -117,21 +117,24 @@ html_alignment_rows([Graph|Gs]) -->
 	  rdf(Graph, amalgame:target, Target),
  	  rdf(Graph, amalgame:count, MappingCount)
 	},
-	html([td(input([type(radio), name(uri), value(Graph)])),
-	      td(\html_graph_name(Graph)),
-	      td([\turtle_label(Source)]),
-	      td([\turtle_label(Target)]),
-	      td(class(count), MappingCount)
-	     ]),
+	html(tr([td(input([type(radio), name(url), value(Graph)])),
+		 td(\html_graph_name(Graph)),
+		 td([\turtle_label(Source)]),
+		 td([\turtle_label(Target)]),
+		 td(class(count), MappingCount)
+		])),
 	html_alignment_rows(Gs).
 
 html_graph_name(Graph) -->
 	{ graph_label(Graph, Label)
 	},
 	html(Label).
+
 graph_label(Graph, Label) :-
 	rdf_label(Graph, Lit),
 	literal_text(Lit, Label).
+graph_label(Graph, Graph).
+
 
 %%	yui_script
 %
