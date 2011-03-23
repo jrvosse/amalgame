@@ -34,7 +34,8 @@ html_start_page :-
  			  div(class('yui3-skin-sam'),
 			      [ div(id(header), []),
 				div(id(main),
-				    [ div([id(content), class('yui3-accordion')],
+				    [ h1('AMALGAME'),
+				      div([id(content), class('yui3-accordion')],
 					  [ \html_new_project,
 					    \html_load_mapping,
 					    \html_load_workflow

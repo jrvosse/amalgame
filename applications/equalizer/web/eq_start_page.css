@@ -1,6 +1,10 @@
 #main {
 	width: 600px;
-	margin: 200px auto 0;
+	margin: 100px auto 0;
+}
+#main h1 {
+	font-size: 200%;
+	text-align: center;
 }
 #content {
 	background-color: #FFF;
