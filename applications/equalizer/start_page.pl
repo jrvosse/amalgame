@@ -50,36 +50,40 @@ html_new_project -->
 	html_acc_item(new, 'Start new alignment project',
 		      [ div(id(navigator), []),
 			form(action(location_by_id(http_eq_new)),
-			     [ div([input([id(sourcebtn), class(select), type(button), value('set as source')]),
-				    input([type(text), autocomplete(false), class(label), disabled(true), id(sourcelabel)]),
-				    input([type(hidden), name(source), id(source)])
-				   ]),
-			       div([input([id(targetbtn), class(select), type(button), value('set as target')]),
-				    input([type(text), autocomplete(false), class(label), disabled(true), id(targetlabel)]),
-				    input([type(hidden), name(target), id(target)])
-				   ]),
-			       div(class(controls),
-				   [ input([type(submit), value('Start')])
-				   ])
+			     [ \html_vocab_select(source),
+			       \html_vocab_select(target),
+			       \html_submit('Start')
 			     ])
 		      ]).
 
 html_load_mapping -->
 	{ findall(G, is_alignment_graph(G,_), Graphs)
 	},
-	html_acc_item(mapping, 'Load an existing mapping',
+	html_acc_item(mapping, 'Load existing mappings',
 		      [ form(action(location_by_id(http_mapping_view)),
 			     [ \html_alignment_table(Graphs),
- 			       div(class(controls),
-				   [ input([type(submit), value('Start')])
-				   ])
+ 			       \html_submit('Start')
 			     ])
 		      ]).
-
 
 html_load_workflow -->
 	html_acc_item(workflow, 'Load an existing alignment workflow',
 		      [tbd]).
+
+
+html_vocab_select(Id) -->
+	html(div(class(vocselect),
+		 [input([id(Id+btn), class(select), type(button), value('set as '+Id)]),
+		  input([type(text), autocomplete(off), class(label), disabled(true), id(Id+label), value('')]),
+		  input([type(hidden), value(''), autocomplete(off), name(Id), id(Id)])
+		 ])).
+
+html_submit(Label) -->
+	html(div(class(controls),
+		 [ input([type(submit), autocomplete(off), class(start),
+			  disabled(true), value(Label)])
+		 ])).
+
 
 %%	html_acc_item(+Id, +Label, +HTMLBody)
 %
@@ -117,7 +121,7 @@ html_alignment_rows([Graph|Gs]) -->
 	  rdf(Graph, amalgame:target, Target),
  	  rdf(Graph, amalgame:count, MappingCount)
 	},
-	html(tr([td(input([type(radio), name(url), value(Graph)])),
+	html(tr([td(input([type(checkbox), autocomplete(off), class(option), name(url), value(Graph)])),
 		 td(\html_graph_name(Graph)),
 		 td([\turtle_label(Source)]),
 		 td([\turtle_label(Target)]),
@@ -154,6 +158,7 @@ yui_script -->
    		 resourcelist,columnbrowser
  		],
 		[ \js_navigator('#navigator', navigator),
+		  \js_mappings,
  		  'Y.one("#content").plug(Y.Plugin.NodeAccordion,
 					  {multiple:false,
 					   fade:true,
@@ -253,12 +258,39 @@ js_navigator_format -->
 js_navigator_select(Id) -->
 	js_function_decl(valueSet, [e, which],
 		    \[
-'   Y.log(which+": "+',Id,'.get("selected").id);
-    var selected =  ',Id,'.get("selected");\n',
+'   var selected =  ',Id,'.get("selected");\n',
 '   if(selected) {
+	Y.log(which+": "+selected.id);
 	var uri = selected.id,
-	    label = selected.label;
-	Y.one("#"+which+"label").set("value", label);
-	Y.one("#"+which).set("value", uri);
+	    label = selected.label,
+	    labelNode = Y.one("#"+which+"label"),
+	    uriNode = Y.one("#"+which);\n',
+'	    labelNode.set("value", label);
+	    labelNode.addClass("filled");
+	uriNode.set("value", uri);\n',
+'       var nodes = Y.Node.all("#new .label.filled");
+	if(nodes.size()==2) {
+	    Y.one("#new .start").set("disabled", false);
+	} else {
+	    Y.one("#new .start").set("disabled", true);
+        }
      }'
 		   ]).
+
+
+%%	js_mappings
+%
+%	Emit JavaScript to handle interaction of mapping list
+
+js_mappings -->
+	html(\[
+'    Y.all("#mapping .option").on("click", function(e) {
+	  e.target.toggleClass("selected");
+	  var nodes = Y.Node.all("#mapping .selected");\n',
+'	  if(nodes.size()>0) {
+	     Y.one("#mapping .start").set("disabled", false);
+          } else {
+	     Y.one("#mapping .start").set("disabled", true);
+	  }
+     });\n'
+	      ]).

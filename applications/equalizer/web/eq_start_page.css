@@ -20,7 +20,15 @@
 	text-align: right;
 }
 
+/* accordion */
+.yui3-accordion-item-hd {
+	font-size: 150%;
+}
+
 /* vocabulary select */
+#new .vocselect {
+	padding: 6px 0 0 4px;
+}
 #new .select {
 	width: 100px;
 }
@@ -28,6 +36,9 @@
 	width: 275px;
 	padding-left: 10px;
 	border: none;
+}
+#new .label.filled {
+	color: #222;
 }
 
 /* column browser */
