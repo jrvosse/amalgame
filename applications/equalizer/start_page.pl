@@ -79,7 +79,7 @@ html_load_mapping -->
 
 html_load_workflow -->
 	html_acc_item(workflow, 'Load an existing alignment workflow',
-		      []).
+		      [tbd]).
 
 %%	html_acc_item(+Id, +Label, +HTMLBody)
 %
