@@ -53,15 +53,31 @@ align_source(align(S,_,_), S).
 e(Id, Mapping) :-
 	rdf_display_label(Id, Label),
 	debug(align, 'Expanding ~w', [Label]),
-	rdf_has(Id, opmv:wasGeneratedBy, Process),
-	rdf(Process, rdf:type, Type),
-	do_process(Process, Type, Id, Mapping).
 
-%%	do_process(+Process, +Type, +Id, -Mapping)
+	(   (	rdf(Id, rdf:type, amalgame:'LoadedAlignment')
+	    ;	rdf(Id, rdf:type, amalgame:'AmalgameAlignment')
+	    )
+	->  graph_mapping(Id, Mapping)
+	;   rdf_has(Id, opmv:wasGeneratedBy, Process)
+	->  rdf(Process, rdf:type, Type),
+	    mapping_process(Process, Type, Id, Mapping)
+	;   Mapping = []
+	).
+
+%%	graph_mapping(+Graph, -Mapping)
+%
+%	Mapping is a list of mappings in Graph.
+
+graph_mapping(Graph, Mapping) :-
+	findall(align(S,T,[]),
+		has_map([S,T], _, Graph),
+		Mapping).
+
+%%      mapping_process(+Process, +Type, +Id, -Mapping)
 %
 %	Execute process to generate Mapping with Id.
 
-do_process(Process, Type, Id, Mapping) :-
+mapping_process(Process, Type, Id, Mapping) :-
 	rdfs_subclass_of(Type, amalgame:'Match'),
 	!,
 	resource_to_term(Type, Module),
@@ -80,7 +96,7 @@ do_process(Process, Type, Id, Mapping) :-
 	    assert(map_cache(Id, Mapping))
 	).
 
-do_process(Process, Type, Id, Mapping) :-
+mapping_process(Process, Type, Id, Mapping) :-
 	rdfs_subclass_of(Type, amalgame:'Select'),
 	!,
  	rdf(Process, amalgame:input, Source),

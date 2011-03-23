@@ -1,4 +1,7 @@
-:- module(mapping_view, []).
+:- module(mapping_view,
+	  [ html_mapping_view//1,    % +Id
+ 	    js_mapping_view//3       % +Mapping_URL, +Id, +HTML_Element
+	  ]).
 
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
@@ -19,10 +22,15 @@
 :- use_module(library(settings)).
 :- use_module(user(user_db)).
 :- use_module(components(label)).
+:- use_module(components(paginator)).
+
 :- use_module(library(skos/vocabularies)).
 :- use_module(library(amalgame/alignment_graph)).
 :- use_module(library(amalgame/edoal)).
 :- use_module(library(ag_util)).
+
+:- setting(rows_per_page, integer, 10,
+	   'Maximum number of mappings shown.').
 
 % add local web directories from which static files are served.
 
@@ -55,32 +63,65 @@ http_mapping_view(Request) :-
 		 *******************************/
 
 html_page(URL) :-
-   	reply_html_page(cliopatria(default),
+   	reply_html_page(test,%cliopatria(default),
 			[ title(['mapping -- ', URL])
  			],
-			[
- 			   div(id(header),
-			       []),
- 			   div(id(main),
-			       [ \html_mapping_view(URL)
-			       ])
+			[ div(class('yui3-skin-sam'),
+			      [ div(id(header), []),
+				div(id(main), \html_body(URL))
+			      ])
 			]).
 
-html_mapping_view(URL) -->
-	html_requires(css('mappingview')),
-	html(div(id(mappingview), [])),
-	js_yui_script(URL, '#mappingview', mappingview).
+html_body(URL) -->
+	html_requires(css('gallery-paginator.css')),
+	html_mapping_view(mappingview),
+	html(script(type('text/javascript'),
+		    \js_yui3([{modules:{gallery: 'gallery-2010.05.21-18-16'}}
+			     ],
+			     [node,event,widget,datasource,datatable,'datatable-sort',
+			      'gallery-paginator'
+			     ],
+			     [\js_mapping_view(URL, mappingview, '#mappingview')
+			     ])
+		   )).
 
-js_yui_script(URL, El, Id) -->
-	js_yui3([{modules:{gallery: 'gallery-2010.05.21-18-16'
-  			  }}
-		],
-		[node,event,widget,datasource,datatable
-  		],
-		[ \js_mapping_view_datasource(Datasource),
-		  \js_mapping_view(Id, Datasource, URL),
-		  \js_yui3_render(Id, El)
-  		]).
+%%	html_mapping_view
+%
+%	Emit HTML container for mapping view
+
+html_mapping_view(Id) -->
+	%html_requires(css(mappingview)),
+	html([div(id(sourcetree), []),
+	      div(id(Id), []),
+	      div(id(targettree), []),
+	      div(id(paginator), [])
+	     ]).
+
+%%	js_mapping_view
+%
+%	Emit JavaScript to initialize a mapping view
+
+js_mapping_view(URL, Id, El) -->
+	{ atom_concat(Id, 'DS', DS),
+	  atom_concat(Id, 'Paginator', P)
+	},
+	js_format_resource,
+	js_mapping_view_datasource(DS),
+	js_datatable(Id, El, DS),
+	js_paginator(P),
+	js_yui3_on(DS, response,
+		   \js_function([e],
+				\[ P,'.setTotalRecords(e.response.meta.totalNumberOfResults, true);\n',
+				   P,'.render();'
+				 ])),
+	js_yui3_on(P, changeRequest,
+		   \js_function([state],
+				\[ 'this.setPage(state.page, true);\n',
+				   Id,'.datasource.load({request:"?url=',URL,'&offset="+state.recordOffset});\n'
+				 ])),
+ 	html([Id,'.datasource.load({request:"?url=',URL,'"});\n']).
+	%js_tree(source),
+	%js_tree(target).
 
 js_mapping_view_datasource(Id) -->
 	{ http_location_by_id(http_data_mapping, Server)
@@ -96,13 +137,41 @@ js_mapping_view_datasource(Id) -->
 		  }
 		}).
 
-js_mapping_view(El, Id, Datasource, URL) -->
+js_datatable(Id, El, Datasource) -->
 	js_new(Id,
-	       'Y.mazzle.ColumnBrowser'(
-		  { datasource: symbol(Datasource),
-		    url:URL
-		  })
-	      ).
+	       'Y.DataTable.Base'({columnset:[{key:source,
+					       formatter:symbol(formatResource),
+					        sortable:symbol(true)
+					      },
+					      {key:target,
+					       formatter:symbol(formatResource),
+					       sortable:symbol(true)
+					      }],
+				   plugins: [ symbol('Y.Plugin.DataTableSort') ]
+				  })),
+	js_yui3_plug(Id,
+		     'Y.Plugin.DataTableDataSource',
+		     { datasource: symbol(Datasource) }),
+	html([Id,'.render("',El,'");\n']).
+
+js_format_resource -->
+	js_function_decl(formatResource, [o],
+			 \[
+'   return o.value.label;\n'
+			  ]).
+
+js_paginator(Id) -->
+	{ setting(rows_per_page, Rows)
+	},
+	js_new(Id, 'Y.Paginator'({rowsPerPage:Rows,
+				  template: '{FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink}',
+				  firstPageLinkLabel:'|&lt;',
+				  previousPageLinkLabel: '&lt;',
+				  nextPageLinkLabel: '&gt;',
+				  lastPageLinkLabel: '&gt;|'
+				 })),
+	js_yui3_render(Id, '#paginator').
+
 
 		 /*******************************
 		 *		API		*
@@ -113,6 +182,7 @@ js_mapping_view(El, Id, Datasource, URL) -->
 %	Emit JSON object with mappings for a URL.
 
 http_data_mapping(Request) :-
+	setting(rows_per_page, RowsPerPage),
 	http_parameters(Request,
 			[ url(URL,
 			      [description('URL of mapping graph')]),
@@ -121,7 +191,7 @@ http_data_mapping(Request) :-
 				oneof([source,target]),
 				description('Sort by')]),
 			  limit(Limit,
-				[default(50), number,
+				[default(RowsPerPage), number,
 				 description('limit number of mappings returned')]),
 			  offset(Offset,
 				 [default(0), number,
