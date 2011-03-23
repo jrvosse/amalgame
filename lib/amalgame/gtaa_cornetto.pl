@@ -70,8 +70,8 @@ align :-
  	debug_partition(target_sibling, Partition2),
  	materialize_alignment_graph(Selected2, [graph(gtaa_cornetto_sibling)]),
 
-	hierarchy_loop(Undecided2, 0, Undecided3),
-
+	hierarchy_loop(Undecided2, 0, Undecided3).
+	/*
 	rdf_equal(P, skos:scopeNote),
 	align(Undecided3, _,  alignment_element, jaccard_match, _, Gloss, [threshold(-1),sourceprop(P),targetprop(P)]),
 	debug_align(gloss, Gloss, 3932),
@@ -95,7 +95,7 @@ align :-
 	target_ambiguity:partition(As2, [ambiguous(Ambiguous2),unambiguous(Unambiguous2)], []),
 	debug_align_amb(verb_exact_label, As2, Unambiguous2, Ambiguous2, 3932),
 	materialize_alignment_graph(Unambiguous2, [graph(gtaa_cornetto_verb_label_match)]),
-	materialize_alignment_graph(Ambiguous2, [graph(gtaa_cornetto_verb_label_match_ambiguous)]),
+	materialize_alignment_graph(Ambiguous2, [graph(gtaa_cornetto_verb_label_match_ambiguous)]).
 
 	% Match the remaining part
 	merge_graphs([As1,As2], As12),
@@ -108,6 +108,7 @@ align :-
 	debug_align_amb(rest_edit_distance_match, As3, Unambiguous3, Ambiguous3, 3932),
 	materialize_alignment_graph(Unambiguous3, [graph(gtaa_cornetto_edit_distance)]).
         %forall(member(R,GTAA_Rest), (rdf_label(R,L),format('~w ~w~n',[R,L]))).
+*/
 
 
 noun_label_comparison :-
