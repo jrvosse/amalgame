@@ -3,11 +3,6 @@
 	margin: 200px auto 0;
 }
 #content {
-	border-width: 1px;
-	border-style: solid;
-	border-color: #AAA;
-	-moz-border-radius: 5px;
-	border-radius: 5px;
 	background-color: #FFF;
 }
 
