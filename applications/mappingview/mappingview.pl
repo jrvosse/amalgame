@@ -28,7 +28,7 @@
 :- use_module(library(amalgame/edoal)).
 :- use_module(library(ag_util)).
 
-:- setting(rows_per_page, integer, 10,
+:- setting(rows_per_page, integer, 20,
 	   'Maximum number of mappings shown.').
 
 % add local web directories from which static files are served.
@@ -176,24 +176,8 @@ js_paginator(Id) -->
 js_format_resource -->
 	js_function_decl(formatResource, [o],
 			 \[
-'    var v = o.value,
-	 label = v.label,
-	 uri = v.uri,
-	 def = v.definition||"",
-	 scope = v.scope||"",
-	 alt = v.alt||[];\n',
-'    var html = "<span class=label title="+uri+">"+label+"</span>";\n',
-'    if(alt.length>0) {
-	html += "<span class=alt> ("
-        for(var i=0;i<alt.length;i++) {
-             html += "<span>"+alt[i]+"</span>";
-	     html += (i<alt.length-1) ? ", ":"";
-         }
-         html += ")</span>"}\n',
-'     html += "<div class=context><div class=def>"+def+"</div>";
-      html += "<div class=scope>"+scope+"</div></div>"
-     return html;'
-			  ]).
+'    return o.value.label;'
+ 			  ]).
 
 js_row_select(Id) -->
 	{ http_location_by_id(http_resource_context, Server)
@@ -277,38 +261,11 @@ mapping_label(align(S, T, Prov), align(S,SL,T,TL,Prov)) :-
 mapping_data([], []).
 mapping_data([Align|As], [Obj|Os]) :-
 	Align = align(Source, SLabel, Target, TLabel, _Prov),
-	Obj = json([source=SourceObj, target=TargetObj]),
-	resource_data(Source, SLabel, SourceObj),
-	resource_data(Target, TLabel, TargetObj),
-	mapping_data(As, Os).
+	Obj = json([source=json([uri=Source, label=SLabel]),
+		    target=json([uri=Target, label=TLabel])
+		   ]),
+ 	mapping_data(As, Os).
 
-resource_data(R, Label, json([uri=R,
-			      label=Label,
-			      definition=Def,
-			      scope=Scope,
-			      alt=Alt])) :-
-	resource_definition(R, Def),
-	resource_scope(R, Scope),
-	resource_alternative_labels(R, Label, Alt).
-
-resource_definition(R, Def) :-
-	(   rdf_has(R, skos:definition, Lit)
-	->  literal_text(Lit, Def)
-	;   Def = ''
-	).
-resource_scope(R, Scope) :-
-	(   rdf_has(R, skos:scopeNote, Lit)
-	->  literal_text(Lit, Scope)
-	;   Scope = ''
-	).
-resource_alternative_labels(R, Label, Alt) :-
-	findall(L, resource_label_text(R, L), Ls),
-	delete(Ls, Label, Alt1),
- 	sort(Alt1, Alt).
-
-resource_label_text(R, L) :-
-	rdf_label(R, Lit),
-	literal_text(Lit, L).
 
 %%	http_data_mapping_evaluate(+Request)
 %
@@ -352,12 +309,35 @@ http_resource_context(Request) :-
 			[ uri(URI,
 				 [description('URI from which we request the context')])
  			]),
+	resource_label_text(URI, Label),
+	resource_alternative_labels(URI, Label, Alt),
+	resource_definition(URI, Def),
+	resource_scope(URI, Scope),
 	resource_tree(URI, Tree),
 	related_resources(URI, Related),
 	html_current_option(content_type(Type)),
-	phrase(html_resource_context(URI, Tree, Related), HTML),
+	phrase(html_resource_context(URI, Label, Alt, Def, Scope, Tree, Related), HTML),
 	format('Content-type: ~w~n~n', [Type]),
 	print_html(HTML).
+
+resource_definition(R, Def) :-
+	(   rdf_has(R, skos:definition, Lit)
+	->  literal_text(Lit, Def)
+	;   Def = []
+	).
+resource_scope(R, Scope) :-
+	(   rdf_has(R, skos:scopeNote, Lit)
+	->  literal_text(Lit, Scope)
+	;   Scope = []
+	).
+resource_alternative_labels(R, Label, Alt) :-
+	findall(L, resource_label_text(R, L), Ls),
+	delete(Ls, Label, Alt1),
+ 	sort(Alt1, Alt).
+
+resource_label_text(R, L) :-
+	rdf_label(R, Lit),
+	literal_text(Lit, L).
 
 %%	related_resources(+Resource, -Related)
 %
@@ -407,22 +387,43 @@ has_child(R, Rel, true) :-
 has_child(_, _, false).
 
 
-html_resource_context(R, Tree, Related) -->
-	{ rdf_label(R, Label)
-	},
+%%	html_resource_context(+Resource, +Label, +AlternativeLabels,
+%%	+Definition, +Scope, +Tree, +Related).
+%
+%	Emit html with info about a resource.
+
+html_resource_context(R, Label, Alt, Def, Scope, Tree, Related) -->
 	html([div(class(label), Label),
+	      div(class(alt), \html_alt_labels(Alt)),
 	      div(class(uri),
 		  \rdf_link(R, [resource_format(plain)])),
-	      div(class(tree),
-		  [ div(class(hd), hierarchy),
-		    div(class(bd),
-			ul(\html_tree(Tree)))
-		  ]),
-	      div(class(related),
-		  [ div(class(hd), related),
-		    div(class(bd),
-			\html_resource_list(Related, 5))
-		  ])
+	      \html_desc(Def, definition),
+	      \html_desc(Scope, scope),
+	      \html_resource_tree(Tree),
+	      \html_related_list(Related)
+	     ]).
+
+html_alt_labels([]) --> !.
+html_alt_labels(Alt) -->
+        html_label_list(Alt).
+
+html_label_list([L]) -->
+	html(L).
+html_label_list([L|Ls]) -->
+	html([L, ', ']),
+	html_label_list(Ls).
+
+html_desc([], _) --> !.
+html_desc(Txt, Name) -->
+	html([div(class(hd), Name),
+	      div(class('bd '+Name), Txt)
+	     ]).
+
+html_related_list([]) --> !.
+html_related_list(Rs) -->
+	html([div(class(hd), related),
+	      div(class(bd),
+		  ul(\html_resource_list(Rs, 3)))
 	     ]).
 
 
@@ -460,9 +461,16 @@ html_resource(node(R,_,_)) --> !,
 html_resource(R) -->
 	rdf_link(R, [resource_format(label)]).
 
-%%	html_tree(+Tree:node(uri,attr,children))
+%%	html_resource_tree(+Tree:node(uri,attr,children))
 %
 %       Tree to HTML.
+
+html_resource_tree(node(_,_,[])) --> !.
+html_resource_tree(Tree) -->
+	html([div(class(hd), hierarchy),
+	      div(class(bd),
+		  ul(\html_tree(Tree)))
+	     ]).
 
 html_tree(node(R,[hit],Children)) -->
 	html([li(class(hit), \html_resource(R)),
