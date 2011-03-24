@@ -99,9 +99,7 @@ html_mapping_view(Id) -->
 	     ]).
 
 html_resource_info(Which) -->
-	html(div(class('resource-info'),
-		 div([id(Which+info),
-		      class('resource-info-content')], []))).
+	html(div([id(Which+info), class('resource-info')], [])).
 
 
 %%	js_mapping_view
@@ -184,28 +182,39 @@ js_row_select(Id) -->
 	},
 	js_function([e],
 			 \[
-'    var row = e.currentTarget.get("parentNode"),
+'    var add = (e.ctrlKey||e.metaKey) ? true : false;
+     var row = e.currentTarget.get("parentNode"),
          records = ',Id,'.get("recordset"),
          current = records.getRecord( row.get("id")),
 	 source = current.getValue("source").uri,
 	 target = current.getValue("target").uri;\n',
-'    Y.all(".yui3-datatable tr").removeClass("yui3-datatable-selected");
+'    if(!add) {
+	  Y.all(".yui3-datatable tr").removeClass("yui3-datatable-selected");
+	  Y.selected = {};
+     };
      row.addClass("yui3-datatable-selected");\n',
-'    Y.io("',Server,'", {data:{uri:source},
-			 on:{success:setInfo},
-			 arguments:"#sourceinfo"
-			});',
-'    Y.io("',Server,'", {data:{uri:target},
-			 on:{success:setInfo},
-			 arguments:"#targetinfo"
-			});'
+'    if(!Y.selected[source]) {
+	  Y.io("',Server,'", {data:{uri:source},
+			      on:{success:setInfo},
+			      arguments:{node:"#sourceinfo",add:add}
+			     });
+     }',
+'    if(!Y.selected[target]) {
+	  Y.io("',Server,'", {data:{uri:target},
+			      on:{success:setInfo},
+			      arguments:{node:"#targetinfo",add:add}
+			     });
+     }\n',
+'    Y.selected[source] = true;
+     Y.selected[target] = true;'
  			  ]).
 
 js_set_info -->
-	js_function_decl(setInfo, [e,o,arg],
+	js_function_decl(setInfo, [e,o,args],
 			 \[
-'     var node = Y.one(arg);
-      node.setContent(o.responseText);\n',
+'     var node = Y.one(args.node);
+      if(args.add) { node.append(o.responseText) }
+      else { node.setContent(o.responseText) };\n',
 '     node.all(".moretoggle").on("click", function(e) {
 	   p = e.currentTarget.get("parentNode");
 	   p.all(".moretoggle").toggleClass("hidden");
@@ -393,15 +402,16 @@ has_child(_, _, false).
 %	Emit html with info about a resource.
 
 html_resource_context(R, Label, Alt, Def, Scope, Tree, Related) -->
-	html([div(class(label), Label),
-	      div(class(alt), \html_alt_labels(Alt)),
-	      div(class(uri),
-		  \rdf_link(R, [resource_format(plain)])),
-	      \html_desc(Def, definition),
-	      \html_desc(Scope, scope),
-	      \html_resource_tree(Tree),
-	      \html_related_list(Related)
-	     ]).
+	html(div(class('resource-info-content'),
+		 [div(class(label), Label),
+		  div(class(alt), \html_alt_labels(Alt)),
+		  div(class(uri),
+		      \rdf_link(R, [resource_format(plain)])),
+		  \html_desc(Def, definition),
+		  \html_desc(Scope, scope),
+		  \html_resource_tree(Tree),
+		  \html_related_list(Related)
+		 ])).
 
 html_alt_labels([]) --> !.
 html_alt_labels(Alt) -->

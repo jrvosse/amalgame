@@ -4,11 +4,12 @@ body {
 }
 .content {
 	float: left;
-	width: 50%;
+	width: 40%;
+	margin: 0 auto;
 }
 .resource-info {
 	float: left;
-	width: 25%;
+	width: 30%;
 }
 #sourcetree,
 #targettree {
@@ -58,6 +59,7 @@ body {
 	border-style: solid;
 	border-color: #7F7F7F;
 	padding: 4px;
+	margin-bottom: 6px;
 }
 .resource-info .label {
 	font-size: 130%;
