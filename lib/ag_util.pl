@@ -1,10 +1,35 @@
 :- module(ag_util,
-	  [ list_offset/3,
+	  [ find_unique/4,              % +Var, +Goal, +Max, -Results
+	    list_offset/3,
 	    list_limit/4,
 	    sort_by_arg/3,
 	    sort_by_arg/4,
 	    group_by_arg/3
 	  ]).
+
+:- meta_predicate
+        find_unique(-, 0, +, -).
+
+%%      find_unique(Var, :Goal, +MaxResults, -SortedSet)
+%
+%       Find at most MaxResults distinct solutions for Var in Goal.
+
+find_unique(T, G, inf, Ts) :- !,
+        findall(T, G, Raw),
+        sort(Raw, Ts).
+find_unique(T, G, Max, Ts) :-
+        empty_nb_set(Set),
+        State = count(0),
+        (       G,
+                add_nb_set(T, Set, true),
+                arg(1, State, C0),
+                C is C0 + 1,
+                nb_setarg(1, State, C),
+                C == Max
+        ->      true
+        ;       true
+        ),
+        nb_set_to_list(Set, Ts).
 
 
 %%	list_offset(+List, +N, -SmallerList)

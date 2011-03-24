@@ -43,7 +43,7 @@
 :- http_handler(amalgame(mappingview), http_mapping_view, []).
 :- http_handler(amalgame(data/mapping), http_data_mapping, []).
 :- http_handler(amalgame(data/mappingevaluate), http_data_mapping_evaluate, []).
-:- http_handler(amalgame(data/resourcetree), http_data_resource_tree, []).
+:- http_handler(amalgame(private/resourcecontext), http_resource_context, []).
 
 %%	http_mapping_view(+Request)
 %
@@ -73,13 +73,13 @@ html_page(URL) :-
 
 html_body(URL) -->
 	html_requires(css('gallery-paginator.css')),
-	html_mapping_view(mappingview),
+  	html_mapping_view(mappingview),
 	html(script(type('text/javascript'),
-		    \js_yui3([{modules:{gallery: 'gallery-2010.05.21-18-16'}}
-			     ],
+		    \js_yui3([{modules:{gallery: 'gallery-2011.01.03-18-30'}
+ 			      }],
 			     [node,event,widget,datasource,datatable,'datatable-sort',
-			      'gallery-paginator'
-			     ],
+			      'gallery-paginator','querystring-stringify-simple'
+ 			     ],
 			     [\js_mapping_view(URL, mappingview, '#mappingview')
 			     ])
 		   )).
@@ -90,11 +90,19 @@ html_body(URL) -->
 
 html_mapping_view(Id) -->
 	html_requires(css('mappingview.css')),
-	html([div(id(sourcetree), []),
-	      div(id(Id), []),
-	      div(id(targettree), []),
-	      div(id(paginator), [])
+	html([ \html_resource_info(source),
+	       div(class(content),
+		   [ div(id(Id), []),
+		     div(id(paginator), [])
+		   ]),
+	       \html_resource_info(target)
 	     ]).
+
+html_resource_info(Which) -->
+	html(div(class('resource-info'),
+		 div([id(Which+info),
+		      class('resource-info-content')], []))).
+
 
 %%	js_mapping_view
 %
@@ -104,8 +112,9 @@ js_mapping_view(URL, Id, El) -->
 	{ atom_concat(Id, 'DS', DS),
 	  atom_concat(Id, 'Paginator', P)
 	},
-	js_format_resource,
-	js_mapping_view_datasource(DS),
+	js_set_info,
+ 	js_format_resource,
+ 	js_mapping_view_datasource(DS),
 	js_datatable(Id, El, DS),
 	js_paginator(P),
 	js_yui3_on(DS, response,
@@ -118,9 +127,8 @@ js_mapping_view(URL, Id, El) -->
 				\[ 'this.setPage(state.page, true);\n',
 				   Id,'.datasource.load({request:"?url=',URL,'&offset="+state.recordOffset});\n'
 				 ])),
- 	html([Id,'.datasource.load({request:"?url=',URL,'"});\n']).
-	%js_tree(source),
-	%js_tree(target).
+	js_yui3_on(Id, tbodyCellClick, \js_row_select(Id)),
+   	html([Id,'.datasource.load({request:"?url=',URL,'"});\n']).
 
 js_mapping_view_datasource(Id) -->
 	{ http_location_by_id(http_data_mapping, Server)
@@ -153,12 +161,6 @@ js_datatable(Id, El, Datasource) -->
 		     { datasource: symbol(Datasource) }),
 	html([Id,'.render("',El,'");\n']).
 
-js_format_resource -->
-	js_function_decl(formatResource, [o],
-			 \[
-'   return o.value.label;\n'
-			  ]).
-
 js_paginator(Id) -->
 	{ setting(rows_per_page, Rows)
 	},
@@ -171,8 +173,63 @@ js_paginator(Id) -->
 				 })),
 	js_yui3_render(Id, '#paginator').
 
+js_format_resource -->
+	js_function_decl(formatResource, [o],
+			 \[
+'    var v = o.value,
+	 label = v.label,
+	 uri = v.uri,
+	 def = v.definition||"",
+	 scope = v.scope||"",
+	 alt = v.alt||[];\n',
+'    var html = "<span class=label title="+uri+">"+label+"</span>";\n',
+'    if(alt.length>0) {
+	html += "<span class=alt> ("
+        for(var i=0;i<alt.length;i++) {
+             html += "<span>"+alt[i]+"</span>";
+	     html += (i<alt.length-1) ? ", ":"";
+         }
+         html += ")</span>"}\n',
+'     html += "<div class=context><div class=def>"+def+"</div>";
+      html += "<div class=scope>"+scope+"</div></div>"
+     return html;'
+			  ]).
 
-		 /*******************************
+js_row_select(Id) -->
+	{ http_location_by_id(http_resource_context, Server)
+	},
+	js_function([e],
+			 \[
+'    var row = e.currentTarget.get("parentNode"),
+         records = ',Id,'.get("recordset"),
+         current = records.getRecord( row.get("id")),
+	 source = current.getValue("source").uri,
+	 target = current.getValue("target").uri;\n',
+'    Y.all(".yui3-datatable tr").removeClass("yui3-datatable-selected");
+     row.addClass("yui3-datatable-selected");\n',
+'    Y.io("',Server,'", {data:{uri:source},
+			 on:{success:setInfo},
+			 arguments:"#sourceinfo"
+			});',
+'    Y.io("',Server,'", {data:{uri:target},
+			 on:{success:setInfo},
+			 arguments:"#targetinfo"
+			});'
+ 			  ]).
+
+js_set_info -->
+	js_function_decl(setInfo, [e,o,arg],
+			 \[
+'     var node = Y.one(arg);
+      node.setContent(o.responseText);\n',
+'     node.all(".moretoggle").on("click", function(e) {
+	   p = e.currentTarget.get("parentNode");
+	   p.all(".moretoggle").toggleClass("hidden");
+	   p.one(".morelist").toggleClass("hidden");
+     });\n'
+			  ]).
+
+ 		 /*******************************
 		 *		API		*
 		 *******************************/
 
@@ -250,10 +307,8 @@ resource_alternative_labels(R, Label, Alt) :-
  	sort(Alt1, Alt).
 
 resource_label_text(R, L) :-
-	(   rdf_label(R, Lit)
-	->  literal_text(Lit, L)
-	;   L = R
-	).
+	rdf_label(R, Lit),
+	literal_text(Lit, L).
 
 %%	http_data_mapping_evaluate(+Request)
 %
@@ -288,25 +343,44 @@ http_data_mapping_evaluate(Request) :-
  			 relation=Relation])).
 
 
-%%	http_data_resource_tree(+Request)
+%%	http_resource_context(+Request)
 %
-%	Tree context in which a resource occurs
+%	Returns	HTML with the Context in which the resource occurs
 
-http_data_resource_tree(Request) :-
+http_resource_context(Request) :-
 	http_parameters(Request,
 			[ uri(URI,
-			      [description('Concept from which we request the tree')])
-			]),
-	Node = node(URI, [hit], Children),
+				 [description('URI from which we request the context')])
+ 			]),
+	resource_tree(URI, Tree),
+	related_resources(URI, Related),
+	html_current_option(content_type(Type)),
+	phrase(html_resource_context(URI, Tree, Related), HTML),
+	format('Content-type: ~w~n~n', [Type]),
+	print_html(HTML).
+
+%%	related_resources(+Resource, -Related)
+%
+%	Related resources are linked by skos:related to Resource.
+
+related_resources(S, Rs) :-
+	findall(R, skos_related(S, R), Rs0),
+	sort(Rs0, Rs).
+
+skos_related(R1, R2) :-
+	rdf_has(R1, skos:related, R2).
+skos_related(R2, R1) :-
+	rdf_has(R2, skos:related, R1).
+
+%%	resource_tree(+Resource, -Tree)
+%
+%	Tree contains the ancesestors and children from Resource.
+
+resource_tree(R, Tree) :-
+	Node = node(R, [hit], Children),
 	rdf_equal(skos:broader, Rel),
 	ancestor_tree(Node, Rel, Tree, []),
-        children(URI, Rel, Children, []),
-	tree_to_json(Tree, [], JSONTree),
-        JSON = json([ uri=URI,
-                      tree=JSONTree
-                    ]),
-        reply_json(JSON).
-
+        children(R, Rel, Children, []).
 
 ancestor_tree(Node, Rel, Tree, Options) :-
         Node = node(URI,_,_),
@@ -332,43 +406,74 @@ has_child(R, Rel, true) :-
         !.
 has_child(_, _, false).
 
-%%  tree_to_json(+Tree:node(uri,nodeList), +DisplayProperties, -JSON)
+
+html_resource_context(R, Tree, Related) -->
+	{ rdf_label(R, Label)
+	},
+	html([div(class(label), Label),
+	      div(class(uri),
+		  \rdf_link(R, [resource_format(plain)])),
+	      div(class(tree),
+		  [ div(class(hd), hierarchy),
+		    div(class(bd),
+			ul(\html_tree(Tree)))
+		  ]),
+	      div(class(related),
+		  [ div(class(hd), related),
+		    div(class(bd),
+			\html_resource_list(Related, 5))
+		  ])
+	     ]).
+
+
+%%	html_resource_list(+Resources, +Max)
 %
-%   Tree to JSON term.
+%	Emit HTML with a list of resources.
 
-tree_to_json(node(R,Attr,Children), Ps, json(Data)) :-
-        attr_params(Attr, Params),
-        append(Params, Ps, Data0),
-        (   is_list(Children)
-        ->  Data1 = [children=Nodes|Data0],
-            nodes_to_json(Children, Ps, Nodes)
-        ;   bool_to_json(Children,HasChildren)
-        ->  Data1 = [hasChildren=HasChildren|Data0]
-        ;   Data1 = Data0
-        ),
-	rdf_label(R,Lit),
-	literal_text(Lit, L),
-        Data = [uri=R, label=L|Data1].
+html_resource_list(Rs, Max) -->
+	{ length(Rs, N),
+	  (   N > Max+2
+	  ->  list_limit(Rs, Max, Visible, Rest)
+	  ;   Visible = Rs,
+	      Rest = []
+	  )
+	},
+	html([ul(\html_resource_list(Visible)),
+	      \html_more_list(Rest)
+	     ]).
 
-nodes_to_json([], _, []) :- !.
-nodes_to_json([Node|Nodes], Ps, [JNode|JSON]) :- !,
-        tree_to_json(Node, Ps, JNode),
-        nodes_to_json(Nodes, Ps, JSON).
-nodes_to_json(Bool, _, JSON) :-
-        bool_to_json(Bool, JSON).
+html_resource_list([]) --> !.
+html_resource_list([R|Rs]) -->
+	html(li(\html_resource(R))),
+	html_resource_list(Rs).
 
-bool_to_json(false, @false).
-bool_to_json(true, @true).
+html_more_list([]) --> !.
+html_more_list(Rs) -->
+	html(div([div(class(moretoggle), more),
+		  div(class('morelist hidden'),
+		      ul(\html_resource_list(Rs))),
+		  div(class('moretoggle hidden'), less)
+		 ])).
 
-attr_params([], []).
-attr_params([H|T], [P|Ps]) :-
-        attr_param(H, P), !,
-        attr_params(T, Ps).
-attr_params([_|T], Ps) :-
-        attr_params(T, Ps).
+html_resource(node(R,_,_)) --> !,
+	rdf_link(R, [resource_format(label)]).
+html_resource(R) -->
+	rdf_link(R, [resource_format(label)]).
 
-attr_param(Term, Key=Value) :-
-        Term =.. [Key,Value],
-        !.
-attr_param(hit, hit=Bool) :-
-        bool_to_json(true, Bool).
+%%	html_tree(+Tree:node(uri,attr,children))
+%
+%       Tree to HTML.
+
+html_tree(node(R,[hit],Children)) -->
+	html([li(class(hit), \html_resource(R)),
+	      ul(\html_resource_list(Children, 3))
+	     ]).
+ html_tree(node(R,_,Children)) -->
+	html([li(\html_resource(R)),
+	      ul(\html_tree_children(Children))
+	     ]).
+
+html_tree_children([]) --> !.
+html_tree_children([C|Cs]) -->
+	html_tree(C),
+	html_tree_children(Cs).

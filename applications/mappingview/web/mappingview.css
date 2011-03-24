@@ -1,7 +1,105 @@
+body {
+	font-family: arial;
+	font-size: 85%;
+}
+.content {
+	float: left;
+	width: 50%;
+}
+.resource-info {
+	float: left;
+	width: 25%;
+}
+#sourcetree,
+#targettree {
+}
+#paginator {
+	clear: both;
+}
 .yui3-paginator {
 	text-align: center;
 }
 
+/* datatable */
+.yui3-datatable { 
+	margin: 0 12px;
+}
 .yui3-datatable table {
 	width: 100%;
+}
+.yui3-datatable caption {
+	display: none;
+}
+.yui3-datatable td {
+	width: 50%;
+	cursor: pointer;
+	vertical-align: top;
+}
+#mappingview .yui3-datatable-selected td {
+	background-color: transparent;
+	color: #222;
+}
+.yui3-datatable .context,
+.yui3-datatable .alt {
+	display: none;
+	color: #777;
+	font-size: 90%;
+}
+.yui3-datatable .context {
+	font-style: italic;
+}
+.yui3-datatable-selected .alt {
+	display: inline;
+}
+.yui3-datatable-selected .context {
+	display: block;
+} 
+
+/* resource info */
+.resource-info-content {
+	border-width: 1px;
+	border-style: solid;
+	border-color: #7F7F7F;
+	padding: 4px;
+}
+.resource-info .label {
+	font-size: 130%;
+}
+.resource-info .uri a {
+	font-size: 90%;
+	color: #666;
+}
+
+.resource-info .hd {
+	padding-top: 12px;
+	border-bottom: 1px solid #CCC;
+}
+.resource-info .bd {
+}
+.resource-info ul {
+	margin: 0;
+	padding: 0 0 0 12px;
+}
+.resource-info .tree li,
+.resource-info .related li {
+	list-style: none;
+	padding: 2px 0;
+}
+.resource-info a {
+	color: #222;
+	text-decoration: none;
+}
+.resource-info a:hover {
+	text-decoration: underline;
+}
+.resource-info li.hit {
+	font-weight: bold;
+}
+.resource-info .moretoggle {
+	color: #666;
+	font-size: 90%;
+	cursor: pointer;
+}
+.resource-info .hidden {
+	display: none;
 }
