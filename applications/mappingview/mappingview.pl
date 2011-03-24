@@ -26,6 +26,7 @@
 :- use_module(library(skos/vocabularies)).
 :- use_module(library(amalgame/alignment_graph)).
 :- use_module(library(amalgame/edoal)).
+:- use_module(library(amalgame/map)).
 :- use_module(library(ag_util)).
 
 :- setting(rows_per_page, integer, 20,
@@ -44,6 +45,14 @@
 :- http_handler(amalgame(data/mapping), http_data_mapping, []).
 :- http_handler(amalgame(data/mappingevaluate), http_data_mapping_evaluate, []).
 :- http_handler(amalgame(private/resourcecontext), http_resource_context, []).
+
+mapping_relations({'http://www.w3.org/2004/02/skos/core#exactMatch':exact,
+		   'http://www.w3.org/2004/02/skos/core#closeMatch':close,
+		   'http://www.w3.org/2004/02/skos/core#narrowMatch':narrower,
+		   'http://www.w3.org/2004/02/skos/core#broadMatch':broader,
+		   'http://www.w3.org/2004/02/skos/core#related':related
+		  }).
+
 
 %%	http_mapping_view(+Request)
 %
@@ -108,11 +117,11 @@ html_resource_info(Which) -->
 
 js_mapping_view(URL, Id, El) -->
 	{ atom_concat(Id, 'DS', DS),
-	  atom_concat(Id, 'Paginator', P)
+	  atom_concat(Id, 'Paginator', P),
+	  mapping_relations(Relations)
 	},
-	js_set_info,
- 	js_format_resource,
- 	js_mapping_view_datasource(DS),
+	html(['Y.relations=',\js_args([Relations]),';']),
+  	js_mapping_view_datasource(DS),
 	js_datatable(Id, El, DS),
 	js_paginator(P),
 	js_yui3_on(DS, response,
@@ -125,7 +134,6 @@ js_mapping_view(URL, Id, El) -->
 				\[ 'this.setPage(state.page, true);\n',
 				   Id,'.datasource.load({request:"?url=',URL,'&offset="+state.recordOffset});\n'
 				 ])),
-	js_yui3_on(Id, tbodyCellClick, \js_row_select(Id)),
    	html([Id,'.datasource.load({request:"?url=',URL,'"});\n']).
 
 js_mapping_view_datasource(Id) -->
@@ -137,16 +145,22 @@ js_mapping_view_datasource(Id) -->
 		'Y.Plugin.DataSourceJSONSchema',
 		{ schema:
 		  { resultListLocator: mapping,
-		    resultFields: [source, target],
+		    resultFields: [source, target, relation],
 		    metaFields: {totalNumberOfResults:totalNumberOfResults}
 		  }
 		}).
 
 js_datatable(Id, El, Datasource) -->
+ 	js_set_info,
+	js_cell_format,
 	js_new(Id,
 	       'Y.DataTable.Base'({columnset:[{key:source,
 					       formatter:symbol(formatResource),
-					        sortable:symbol(true)
+					       sortable:symbol(true)
+					      },
+					      {key:relation,
+					       formatter:symbol(formatRelation),
+					       sortable:symbol(true)
 					      },
 					      {key:target,
 					       formatter:symbol(formatResource),
@@ -157,6 +171,7 @@ js_datatable(Id, El, Datasource) -->
 	js_yui3_plug(Id,
 		     'Y.Plugin.DataTableDataSource',
 		     { datasource: symbol(Datasource) }),
+	js_yui3_on(Id, tbodyCellClick, \js_row_select(Id)),
 	html([Id,'.render("',El,'");\n']).
 
 js_paginator(Id) -->
@@ -171,23 +186,55 @@ js_paginator(Id) -->
 				 })),
 	js_yui3_render(Id, '#paginator').
 
-js_format_resource -->
-	js_function_decl(formatResource, [o],
+js_cell_format -->
+ 	js_function_decl(formatResource, [o],
 			 \[
 '    return o.value.label;'
- 			  ]).
+ 			  ]),
+	js_function_decl(formatRelation, [o],
+			 \[
+'    var relations = Y.relations,
+	 active = o.value ? relations[o.value] : "",
+	 name = o.rowindex;
+     var html = "<div class=activerelations><div><span>"+active+"</span></div></div>";
+     html += "<div class=otherrelations>";\n',
+'    for(var uri in relations) {
+	 var label = relations[uri],
+	 checked = active ? "CHECKED" : "";
+	 html += "<div><input name=name class=rcheck autocomplete=off value="+uri+" type=radio "+checked+"><span>"+label+"</span></div>";
+     }
+     html += "</div>";\n',
+'    return html;'
+			  ]).
 
 js_row_select(Id) -->
-	{ http_location_by_id(http_resource_context, Server)
+	{ http_location_by_id(http_resource_context, Server),
+	  http_location_by_id(http_data_mapping_evaluate, EvaluateServer)
 	},
 	js_function([e],
 			 \[
-'    var add = (e.ctrlKey||e.metaKey) ? true : false;
-     var row = e.currentTarget.get("parentNode"),
+'    var row = e.currentTarget.get("parentNode"),
          records = ',Id,'.get("recordset"),
          current = records.getRecord( row.get("id")),
 	 source = current.getValue("source").uri,
 	 target = current.getValue("target").uri;\n',
+'    if(e.target.hasClass("rcheck")) {
+	 var t = e.target,
+	     relation = t.get("value"),
+	     rlabel = Y.relations[relation],
+	     active = {uri:relation, label:rlabel},
+ 	     data = current.get("data");\n',
+'	 Y.io("',EvaluateServer,'", {data:{source:source,
+					   target:target,
+					   relation:relation,
+					   graph:"test"
+					  }});\n',
+'	 data.relation = active;
+	 current.set("data",data);
+	 e.currentTarget.one(".activerelations").setContent("<div><span>"+rlabel+"</span></div>");
+     }\n',
+'    else {
+     var add = (e.ctrlKey||e.metaKey) ? true : false;\n',
 '    if(!add) {
 	  Y.all(".yui3-datatable tr").removeClass("yui3-datatable-selected");
 	  Y.selected = {};
@@ -206,7 +253,8 @@ js_row_select(Id) -->
 			     });
      }\n',
 '    Y.selected[source] = true;
-     Y.selected[target] = true;'
+     Y.selected[target] = true;
+     }'
  			  ]).
 
 js_set_info -->
@@ -271,8 +319,14 @@ mapping_data([], []).
 mapping_data([Align|As], [Obj|Os]) :-
 	Align = align(Source, SLabel, Target, TLabel, _Prov),
 	Obj = json([source=json([uri=Source, label=SLabel]),
-		    target=json([uri=Target, label=TLabel])
+		    target=json([uri=Target, label=TLabel]),
+		    relation=Relation
 		   ]),
+	(   has_map([Source, Target], _, Properties, test), %@TBD check in right graph
+	    memberchk(relation(Relation), Properties)
+	->  true
+	;   Relation = ''
+	),
  	mapping_data(As, Os).
 
 

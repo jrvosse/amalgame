@@ -43,6 +43,16 @@ body {
 }
 #mappingview .yui3-datatable-selected td {
 }
+.yui3-datatable td .activerelations {
+	text-align: center;
+}
+.yui3-datatable td .otherrelations,
+.yui3-datatable-selected td .activerelations {
+	display: none;
+}
+.yui3-datatable-selected td .otherrelations {
+	display: block;
+}
 
 /* resource info */
 .resource-info-content {
