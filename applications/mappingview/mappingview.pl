@@ -116,7 +116,7 @@ js_mapping_view(URL, Id, El) -->
 	js_yui3_on(P, changeRequest,
 		   \js_function([state],
 				\[ 'this.setPage(state.page, true);\n',
-				   Id,'.datasource.load({request:"?url=',URL,'&offset=state.recordOffset"});\n'
+				   Id,'.datasource.load({request:"?url=',URL,'&offset="+state.recordOffset});\n'
 				 ])),
  	html([Id,'.datasource.load({request:"?url=',URL,'"});\n']).
 	%js_tree(source),
