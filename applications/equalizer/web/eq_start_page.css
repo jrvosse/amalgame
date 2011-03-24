@@ -26,14 +26,15 @@
 
 /* vocabulary select */
 #new .vocselect {
-	padding: 6px 0 0 4px;
+	margin: 4px;
+	background-color: #EEE;
 }
 #new .select {
 	width: 100px;
 }
 #new .label {
 	width: 275px;
-	padding-left: 10px;
+	padding: 2px 0 0 10px;
 	border: none;
 }
 #new .label.filled {
