@@ -1,3 +1,6 @@
+html {
+	background-color: #FFF;
+}
 body {
 	font-family: arial;
 	font-size: 85%;
@@ -10,6 +13,9 @@ body {
 .resource-info {
 	float: left;
 	width: 30%;
+	border-width: 1px 0 0 0;
+	border-style: solid;
+	border-color: #7F7F7F;
 }
 #sourcetree,
 #targettree {
@@ -23,7 +29,7 @@ body {
 
 /* datatable */
 .yui3-datatable { 
-	margin: 0 12px;
+	margin: 0;
 }
 .yui3-datatable table {
 	width: 100%;
@@ -32,49 +38,37 @@ body {
 	display: none;
 }
 .yui3-datatable td {
-	width: 50%;
 	cursor: pointer;
 	vertical-align: top;
 }
 #mappingview .yui3-datatable-selected td {
 }
-.yui3-datatable .context,
-.yui3-datatable .alt {
-	display: none;
-	font-size: 90%;
-}
-.yui3-datatable .context {
-	font-style: italic;
-}
-.yui3-datatable-selected .alt {
-	display: inline;
-}
-.yui3-datatable-selected .context {
-	display: block;
-} 
 
 /* resource info */
 .resource-info-content {
-	border-width: 1px;
-	border-style: solid;
-	border-color: #7F7F7F;
-	padding: 4px;
+	padding: 6px 12px;
 	margin-bottom: 6px;
 }
 .resource-info .label {
 	font-size: 130%;
 }
 .resource-info .uri a {
-	font-size: 90%;
+	font-size: 85%;
 	color: #666;
 }
-
 .resource-info .hd {
-	padding-top: 12px;
-	border-bottom: 1px solid #CCC;
+	padding-top: 8px;
+	border-bottom: 1px solid #E2E2E2;
 }
 .resource-info .bd {
+	padding: 2px 4px;
 }
+.resource-info .definition,
+.resource-info .scope {
+	color: #666;
+	font-size: 90%;
+}
+
 .resource-info ul {
 	margin: 0;
 	padding: 0 0 0 12px;
