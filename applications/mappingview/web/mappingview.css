@@ -7,12 +7,12 @@ body {
 }
 .content {
 	float: left;
-	width: 40%;
+	width: 500px;
 	margin: 0 auto;
 }
 .resource-info {
 	float: left;
-	width: 30%;
+	width: 240px;
 	border-width: 1px 0 0 0;
 	border-style: solid;
 	border-color: #7F7F7F;
@@ -41,17 +41,38 @@ body {
 	cursor: pointer;
 	vertical-align: top;
 }
+.yui3-datatable td:first-child,
+.yui3-datatable td:last-child {
+	width: 40%;
+}
 #mappingview .yui3-datatable-selected td {
 }
 .yui3-datatable td .activerelations {
 	text-align: center;
 }
-.yui3-datatable td .otherrelations,
-.yui3-datatable-selected td .activerelations {
+.yui3-datatable td .otherrelations {
 	display: none;
 }
+.yui3-datatable-selected td .activerelations {
+	padding-bottom: 60px;
+}
 .yui3-datatable-selected td .otherrelations {
-	display: block;
+ 	background-color: #EDF5FF;
+    border: 1px solid #666666;
+    color: #222222;
+    display: block;
+    height: 44px;
+    margin-left: -192px;
+    margin-top: -54px;
+    padding: 2px 4px 4px;
+    position: absolute;
+    width: 455px;
+}
+.yui3-datatable-selected td .commentbox {
+	padding-top: 6px;
+}
+.yui3-datatable-selected td .comment {
+	width: 70%;
 }
 
 /* resource info */

@@ -203,9 +203,9 @@ js_cell_format -->
 '    for(var uri in relations) {
 	 var label = relations[uri],
 	 checked = active ? "CHECKED" : "";
-	 html += "<div><input name=name class=rcheck autocomplete=off value="+uri+" type=radio "+checked+"><span>"+label+"</span></div>";
+	 html += "<input name=name class=rcheck autocomplete=off value="+uri+" type=radio "+checked+"><span>"+label+"</span>";
      }
-     html += "comment: <input name=comment class=comment autocomplete=off>";
+     html += "<div class=commentbox>because: <input name=comment class=comment autocomplete=off></div>";
      html += "</div>";\n',
 '    return html;'
 			  ]).
