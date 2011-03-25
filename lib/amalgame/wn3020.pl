@@ -180,7 +180,7 @@ myalign(Type, SourceVoc, TargetVoc) :-
 	% Step2a: exact label match on concepts with non-matching glosses
 	% align_exclude:source_select(SourceVoc, Source_rest, [exclude(GoodGlossLabelMatches)]),
 	voc_exclude:concept_selecter(SourceVoc, TargetVoc, Source_rest, _Target_rest, [exclude(GoodGlossLabelMatches)]),
-	align(Source_rest, TargetVoc, source_candidate, exact_label_match, target_candidate, LabelMatch0, OptionsLabel, A2a),
+	align(Source_rest, TargetVoc, source_candidate, exact_label_match, target_candidate, LabelMatch0, OptionsLabel, _A2a),
 	voc_exclude:concept_selecter(LabelMatch0, LabelMatch, [exclude_targets(GoodGlossLabelMatches)]),
 	arity_select:selecter(LabelMatch, UnambiguousLabel, AmbiguousLabel, _, []),
 
@@ -192,7 +192,7 @@ myalign(Type, SourceVoc, TargetVoc) :-
 
 	% Step 2c: Then try disambiguation by jaccard similarity on the glosses (more expensive, need to compute jaccard)
 	% align(AmbiguousLabel, TargetVoc, alignment_element, jaccard_match, target_candidate, JaccardMatch, OptionsDef, A2c),
-	align(AmbiguousLabel, TargetVoc, alignment_element, isub_match, target_candidate, JaccardMatch, OptionsDef),
+	align(AmbiguousLabel, TargetVoc, alignment_element, isub_match, target_candidate, JaccardMatch, OptionsDef, _A2c),
 	best_numeric:partition(JaccardMatch, JaccardSPartition, [disamb(source)]),
 	debug_partition(jaccard_gloss_source, JaccardSPartition),
 	memberchk(selected(BestGlossAndLabelS), JaccardSPartition),
@@ -211,8 +211,8 @@ myalign(Type, SourceVoc, TargetVoc) :-
 	graph_name('2c_best_gloss_label',    Type, BestGlossLabelName),
 	% graph_name('xz_ambiguous_label',     Type, AmbiLabelName),
 	materialize_alignment_graph(UnambiguousGloss,      [graph(UnambiguousGlossName), process(A1a)]),
-	materialize_alignment_graph(AmbiguousGlossLabel,   [graph(AmbiguousGlossName)]),
-	materialize_alignment_graph(UnambiguousGlossLabel, [graph(GlossLabelName)]),
+	materialize_alignment_graph(AmbiguousGlossLabel,   [graph(AmbiguousGlossName), process(A1b)]),
+	materialize_alignment_graph(UnambiguousGlossLabel, [graph(GlossLabelName), process(A1a)]),
 	materialize_alignment_graph(UnambiguousLabel,      [graph(NoGlossLabelName)]),
 	% materialize_alignment_graph(MostLabels,	           [graph(NoGlossMostLabelName)]),
 	materialize_alignment_graph(BestGlossAndLabel,	   [graph(BestGlossLabelName)]),
@@ -220,9 +220,9 @@ myalign(Type, SourceVoc, TargetVoc) :-
 
 	% Disambiguate remaining with structural properties
 	merge_graphs([AmbiLabelS, AmbiLabelT], ToBeAmbiguated),
-	align(ToBeAmbiguated, _, alignment_element, ancestor_match,  _, AncMatch, OptionsDef, A3a),
-	align(ToBeAmbiguated, _, alignment_element, descendant_match, _, DecMatch, OptionsDef, A3b),
-	align(ToBeAmbiguated, _, alignment_element, related_match,   _, RelMatch, OptionsDef, A3c),
+	align(ToBeAmbiguated, _, alignment_element, ancestor_match,  _, AncMatch, OptionsDef, _A3a),
+	align(ToBeAmbiguated, _, alignment_element, descendant_match, _, DecMatch, OptionsDef, _A3b),
+	align(ToBeAmbiguated, _, alignment_element, related_match,   _, RelMatch, OptionsDef, _A3c),
 	merge_graphs([ToBeAmbiguated, AncMatch, DecMatch, RelMatch], DisambResults),
 	most_methods:partition(DisambResults, MostMethods, []),
 	debug_partition('Most methods: ', MostMethods),
@@ -239,7 +239,7 @@ myalign(Type, SourceVoc, TargetVoc) :-
 near(_, SourceVoc, TargetVoc) :-
 	rdf_equal(SkosAlt, skos:altLabel),
 	OptionsLabel = [ sourcelabel(SkosAlt), targetlabel(SkosAlt)],
-	align(SourceVoc, TargetVoc, unmapped_candidate, dwim_match, target_candidate, _DwimMatch, OptionsLabel),
+	align(SourceVoc, TargetVoc, unmapped_candidate, dwim_match, target_candidate, _DwimMatch, OptionsLabel,_),
 	true.
 
 
@@ -250,11 +250,10 @@ near(_, SourceVoc, TargetVoc) :-
 
 align(Source, Target, Candidate, Match, Test, Output, Options, Process) :-
 	rdf_global_id(amalgame:Match, MatchURL),
-	(   Source = scheme(SourceURL) -> true; SourceURL = unknown_source),
-	(   Target = scheme(TargetURL) -> true; TargetURL = unknown_target),
+	(   (nonvar(Source), Source = scheme(SourceURL)) -> true; SourceURL = unknown_source),
+	(   (nonvar(Target), Target = scheme(TargetURL)) -> true; TargetURL = unknown_target),
 	Process=[
 		 matcher(MatchURL),
-		 full_goal(Goal),
 		 match_options(Options),
 		 was_derived_from([SourceURL, TargetURL])],
 	debug(align, 'Running matcher ~w', [Match]),
