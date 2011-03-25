@@ -16,20 +16,27 @@ amalgame:Exact_Label_Match rdfs:subClassOf amalgame:Match .
 amalgame:Select1_1    rdfs:subClassOf amalgame:Select .
 amalgame:Arity_select rdfs:subClassOf amalgame:Select .
 
-amalgame:selected
-	rdfs:domain amalgame:Alignment ;
+amalgame:input 
+	rdfs:domain opmv:Process ;
 	rdfs:range  amalgame:Alignment ;
 	rdfs:subPropertyOf opmv:used.
+
+amalgame:produced owl:inverseOf opmv:wasProducedBy.
+
+amalgame:selected
+	rdfs:domain opmv:Process ;
+	rdfs:range  amalgame:Alignment ;
+	rdfs:subPropertyOf amalgame:produced.
 
 amalgame:discarded
-	rdfs:domain amalgame:Alignment ;
+	rdfs:domain amalgame:Process ;
 	rdfs:range  amalgame:Alignment ;
-	rdfs:subPropertyOf opmv:used.
+	rdfs:subPropertyOf amalgame:produced.
 
 amalgame:undecided
-	rdfs:domain amalgame:Alignment ;
+	rdfs:domain amalgame:Process ;
 	rdfs:range  amalgame:Alignment ;
-	rdfs:subPropertyOf opmv:used.
+	rdfs:subPropertyOf amalgame:produced.
 
 amalgame:NoAlignmentGraph a rdfs:Class ;
 	rdfs:label "No Alignment Graph"@en ;
