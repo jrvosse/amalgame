@@ -47,6 +47,12 @@ YUI.add('columnbrowser', function(Y) {
 		queryDelay: {
 			value: 0.3,
 			validator: Lang.isNumber
+		},
+		title: {
+			value: ""
+		},
+		selected: {
+			value: null
 		}
 	};
 
@@ -144,7 +150,6 @@ YUI.add('columnbrowser', function(Y) {
 			var column = this.get("columns")[active],
 				label = column.label || "item",
 				length = column.totalNumberOfResults;
-				
 			var HTML = "";
 			if(length>0) {
 				label += (length>1) ? "s" : "";
@@ -168,6 +173,7 @@ YUI.add('columnbrowser', function(Y) {
 			var columns = this.get("columns"),
 				next = index+1;
 			
+			this.set("selected", oItem);
 			this._selectedItem = oItem;
 			this._selectedIndex = index;
 			
@@ -193,9 +199,10 @@ YUI.add('columnbrowser', function(Y) {
 		* @private
 		**/
 		_renderHeader : function() {
+			var title = this.get("title")||"";
 			this.titleNode = this.get("contentBox")
 				.appendChild(Node.create('<div class="hd"></div>'))
-				.appendChild(Node.create('<div class="title"></div>'));
+				.appendChild(Node.create('<div class="title">'+title+'</div>'));
 		},
 		
 		/**

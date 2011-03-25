@@ -18,6 +18,7 @@
 :- use_module(library(amalgame/matchers/edit_distance_match)).
 :- use_module(library(amalgame/matchers/dwim_match)).
 :- use_module(library(amalgame/matchers/jaccard_match)).
+:- use_module(library(amalgame/matchers/isub_match)).
 :- use_module(library(amalgame/matchers/ancestor_match)).
 :- use_module(library(amalgame/matchers/related_match)).
 :- use_module(library(amalgame/matchers/descendant_match)).
@@ -190,7 +191,8 @@ myalign(Type, SourceVoc, TargetVoc) :-
 	% debug_partition('Exact label, most label', [selected(MostLabels), discarded(Discarded2), undecided(AmbiguousLabel2)]),
 
 	% Step 2c: Then try disambiguation by jaccard similarity on the glosses (more expensive, need to compute jaccard)
-	align(AmbiguousLabel, TargetVoc, alignment_element, jaccard_match, target_candidate, JaccardMatch, OptionsDef, A2c),
+	% align(AmbiguousLabel, TargetVoc, alignment_element, jaccard_match, target_candidate, JaccardMatch, OptionsDef, A2c),
+	align(AmbiguousLabel, TargetVoc, alignment_element, isub_match, target_candidate, JaccardMatch, OptionsDef),
 	best_numeric:partition(JaccardMatch, JaccardSPartition, [disamb(source)]),
 	debug_partition(jaccard_gloss_source, JaccardSPartition),
 	memberchk(selected(BestGlossAndLabelS), JaccardSPartition),

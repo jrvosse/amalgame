@@ -1,0 +1,108 @@
+html {
+	background-color: #FFF;
+}
+body {
+	font-family: arial;
+	font-size: 85%;
+}
+.content {
+	float: left;
+	width: 40%;
+	margin: 0 auto;
+}
+.resource-info {
+	float: left;
+	width: 30%;
+	border-width: 1px 0 0 0;
+	border-style: solid;
+	border-color: #7F7F7F;
+}
+#sourcetree,
+#targettree {
+}
+#paginator {
+	clear: both;
+}
+.yui3-paginator {
+	text-align: center;
+}
+
+/* datatable */
+.yui3-datatable { 
+	margin: 0;
+}
+.yui3-datatable table {
+	width: 100%;
+}
+.yui3-datatable caption {
+	display: none;
+}
+.yui3-datatable td {
+	cursor: pointer;
+	vertical-align: top;
+}
+#mappingview .yui3-datatable-selected td {
+}
+.yui3-datatable td .activerelations {
+	text-align: center;
+}
+.yui3-datatable td .otherrelations,
+.yui3-datatable-selected td .activerelations {
+	display: none;
+}
+.yui3-datatable-selected td .otherrelations {
+	display: block;
+}
+
+/* resource info */
+.resource-info-content {
+	padding: 6px 12px;
+	margin-bottom: 6px;
+}
+.resource-info .label {
+	font-size: 130%;
+}
+.resource-info .uri a {
+	font-size: 85%;
+	color: #666;
+}
+.resource-info .hd {
+	padding-top: 8px;
+	border-bottom: 1px solid #E2E2E2;
+}
+.resource-info .bd {
+	padding: 2px 4px;
+}
+.resource-info .definition,
+.resource-info .scope {
+	color: #666;
+	font-size: 90%;
+}
+
+.resource-info ul {
+	margin: 0;
+	padding: 0 0 0 12px;
+}
+.resource-info li,
+.resource-info li {
+	list-style: none;
+	padding: 2px 0;
+}
+.resource-info a {
+	color: #222;
+	text-decoration: none;
+}
+.resource-info a:hover {
+	text-decoration: underline;
+}
+.resource-info li.hit {
+	font-weight: bold;
+}
+.resource-info .moretoggle {
+	color: #666;
+	font-size: 90%;
+	cursor: pointer;
+}
+.resource-info .hidden {
+	display: none;
+}

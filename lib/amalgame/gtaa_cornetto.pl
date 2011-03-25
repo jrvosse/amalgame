@@ -70,8 +70,8 @@ align :-
  	debug_partition(target_sibling, Partition2),
  	materialize_alignment_graph(Selected2, [graph(gtaa_cornetto_sibling)]),
 
-	hierarchy_loop(Undecided2, 0, Undecided3),
-
+	hierarchy_loop(Undecided2, 0, Undecided3).
+	/*
 	rdf_equal(P, skos:scopeNote),
 	align(Undecided3, _,  alignment_element, jaccard_match, _, Gloss, [threshold(-1),sourceprop(P),targetprop(P)]),
 	debug_align(gloss, Gloss, 3932),
@@ -95,7 +95,7 @@ align :-
 	target_ambiguity:partition(As2, [ambiguous(Ambiguous2),unambiguous(Unambiguous2)], []),
 	debug_align_amb(verb_exact_label, As2, Unambiguous2, Ambiguous2, 3932),
 	materialize_alignment_graph(Unambiguous2, [graph(gtaa_cornetto_verb_label_match)]),
-	materialize_alignment_graph(Ambiguous2, [graph(gtaa_cornetto_verb_label_match_ambiguous)]),
+	materialize_alignment_graph(Ambiguous2, [graph(gtaa_cornetto_verb_label_match_ambiguous)]).
 
 	% Match the remaining part
 	merge_graphs([As1,As2], As12),
@@ -108,6 +108,7 @@ align :-
 	debug_align_amb(rest_edit_distance_match, As3, Unambiguous3, Ambiguous3, 3932),
 	materialize_alignment_graph(Unambiguous3, [graph(gtaa_cornetto_edit_distance)]).
         %forall(member(R,GTAA_Rest), (rdf_label(R,L),format('~w ~w~n',[R,L]))).
+*/
 
 
 noun_label_comparison :-
@@ -120,28 +121,41 @@ noun_label_comparison :-
 	align(GTAA_Subjects, CornettoNoun, prefix_candidate, snowball_match, _, As1, [sourcelabel(PrefL)]),
 	target_ambiguity:partition(As1, [ambiguous(Ambiguous1),unambiguous(Unambiguous1)], []),
 	debug_align_amb(pref_stem, As1, Unambiguous1, Ambiguous1, 3932),
+	materialize_alignment_graph(As1, [graph(stemming_pref)]),
+	materialize_alignment_graph(Unambiguous1, [graph(stemming_pref_1n)]),
+	materialize_alignment_graph(Ambiguous1, [graph(stemming_pref_11)]),
+
 
 	% pref+alt label and stemming
 	align(GTAA_Subjects, CornettoNoun, prefix_candidate, snowball_match, _, As2, []),
 	target_ambiguity:partition(As2, [ambiguous(Ambiguous2),unambiguous(Unambiguous2)], []),
 	debug_align_amb(pref_alt_stem, As2, Unambiguous2, Ambiguous2, 3932),
-	materialize_alignment_graph(As2, [graph(gtaa_cornetto_verb_stem)]),
+	materialize_alignment_graph(As2, [graph(stemming_pref_alt)]),
+       	materialize_alignment_graph(Unambiguous2, [graph(stemming_pref_alt_1n)]),
+	materialize_alignment_graph(Ambiguous2, [graph(stemming_pref_alt_11)]),
 
 	% preferred label and exact label
-	align(GTAA_Subjects, CornettoNoun, source_candidate, exact_label_match, target_candidate, As3, [sourcelabel(PrefL)]),
+	exact_label_match:matcher(GTAA_Subjects, CornettoNoun, As3, [sourcelabel(PrefL)]),
 	target_ambiguity:partition(As3, [ambiguous(Ambiguous3),unambiguous(Unambiguous3)], []),
 	debug_align_amb(pref_exaxt, As3, Unambiguous3, Ambiguous3, 3932),
+	materialize_alignment_graph(As3, [graph(exact_pref)]),
+	materialize_alignment_graph(Unambiguous3, [graph(exact_pref_1n)]),
+	materialize_alignment_graph(Ambiguous3, [graph(exact_pref_11)]),
 
 	% pref+alt label and exact label
-	align(GTAA_Subjects, CornettoNoun, source_candidate, exact_label_match, target_candidate, As4, []),
+	exact_label_match:matcher(GTAA_Subjects, CornettoNoun, As4, []),
 	target_ambiguity:partition(As4, [ambiguous(Ambiguous4),unambiguous(Unambiguous4)], []),
 	debug_align_amb(pref_alt_exact, As4, Unambiguous4, Ambiguous4, 3932),
+	materialize_alignment_graph(As4, [graph(exact_pref_alt)]),
+	materialize_alignment_graph(Unambiguous4, [graph(exact_pref_alt_1n)]),
+	materialize_alignment_graph(Ambiguous4, [graph(exact_pref_alt_11)]),
 
-	maplist(align_source, Ambiguous1, Ss0),
+	true.
+	/*maplist(align_source, Ambiguous1, Ss0),
 	sort(Ss0, Ss1),
 	sort(Ambiguous2, Ambiguous20),
 	graph_source_subtract(Ambiguous20, Ss1, AmbAltOnly),
-	materialize_alignment_graph(AmbAltOnly, [graph(ambiguous_alt_only)]).
+	materialize_alignment_graph(AmbAltOnly, [graph(ambiguous_alt_only)]).*/
 
 verb_label_comparison :-
 	GTAA_Subjects0 = scheme('http://data.beeldengeluid.nl/gtaa/Onderwerpen'),
@@ -211,7 +225,8 @@ hierarchy_loop(Ambiguous, Count, Undecided) :-
 	length(Undecided1, Current),
 	(   Current == Count
 	->  Undecided = Undecided1
-	;   materialize_alignment_graph(Selected, [graph(gtaa_cornetto_disambiguated_hierarchy)]),
+	;   atom_concat(gtaa_cornetto_disambiguated_hierarchy, Count, NGraph),
+	    materialize_alignment_graph(Selected, [graph(NGraph)]),
 	    hierarchy_loop(Undecided1, Current, Undecided)
 	).
 
