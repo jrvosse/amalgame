@@ -22,6 +22,7 @@
 :- use_module(applications(vocabularies/vocabularies)).
 :- use_module(library(amalgame/overlap)).
 :- use_module(library(amalgame/alignment)).
+:- use_module(library(amalgame/alignment_graph)).
 :- use_module(library(amalgame/edoal)).
 :- use_module(library(amalgame/map)).
 :- use_module(library(amalgame/opm)).
@@ -41,6 +42,7 @@
 :- http_handler(amalgame(merge_alignments),   http_merge_alignments,    []).
 :- http_handler(amalgame(rename_graph),	      http_rename_graph,        []).
 :- http_handler(amalgame(stratify_alignment), http_stratify_alignment,	[]).
+:- http_handler(amalgame(materialize_graph),  http_materialize_graph,	[]).
 
 
 
@@ -139,6 +141,16 @@ http_compute_overlaps(Request) :-
 					   ' to inspect results.']))
 			      ]).
 
+http_materialize_graph(Request) :-
+	http_parameters(Request, [graph(Graph, []), target(Target, [])]),
+	e(Graph, Mappings),
+	materialize_alignment_graph(Mappings, [graph(Target)]),
+	align_clear_stats(graph(Target)),
+	align_ensure_stats(all(Target)),
+	reply_html_page(cliopatria(default),
+			title('Amalgame: alignment materialized'),
+			\show_alignment_overview(Graph)
+		       ).
 
 http_include_opm_graph(Request) :-
 	http_parameters(Request, [graph(Graph, []), target(Target, [])]),
@@ -432,11 +444,15 @@ delete_alignment_graphs(Type) :-
 
 show_alignment_overview(Graph) -->
 	{
-	 align_ensure_stats(source(Graph)),
-	 align_ensure_stats(target(Graph)),
-	 align_ensure_stats(count(Graph)),
-	 align_ensure_stats(mapped(Graph)),
-	 align_ensure_stats(format(Graph)),
+	 (   (\+ rdfs_individual_of(Graph, amalgame:'Mapping'),
+	      is_alignment_graph(Graph, _))
+	 ->  align_ensure_stats(source(Graph)),
+	     align_ensure_stats(target(Graph)),
+	     align_ensure_stats(count(Graph)),
+	     align_ensure_stats(mapped(Graph)),
+	     align_ensure_stats(format(Graph))
+	 ;   true
+	 ),
 	 rdf_display_label(Graph, GraphLabel)
 	},
 	html([
@@ -453,7 +469,11 @@ show_alignment_overview(Graph) -->
 	      div([id(ag_graph_basic_actions)],
 		  [
 		   'Basic actions: ',
-		   ul([id(alignoperations)],[ \li_opm_inclusion(Graph)]),
+		   ul([id(alignoperations)],
+		      [ \li_opm_inclusion(Graph),
+			\li_materialize_virtual(Graph)
+		      ]),
+
 		   \graph_actions(Graph)
 		   ]),
 	      p('Create a new graph from this one: '),
@@ -477,8 +497,7 @@ show_alignment_overview(Graph) -->
 		 ]
 		),
 
-	      div([id(ag_graph_as_resource)],
-		  \graph_as_resource(Graph, []))
+	      div([id(ag_graph_as_resource)], \graph_as_resource(Graph, []))
 
 	     ]).
 
@@ -921,6 +940,23 @@ li_select_unique_labels(Graph) -->
 	       )
 	    ).
 
+li_materialize_virtual(Graph) -->
+	{
+	 http_link_to_id(http_materialize_graph, [], MatLink)
+	}
+	,
+	html(li(form([action(MatLink)],
+		     [
+		      input([type(hidden), name(graph), value(Graph)],[]),
+		      input([type(submit), class(submit), value('Materialize')],[]),
+		      ' to graph ',
+		      input([type(text), class(target),
+			      name(target), value(Graph),
+			     size(25)],[])
+		     ]
+		    )
+	       )
+	    ).
 
 li_opm_inclusion(Graph) -->
 	{
@@ -929,8 +965,8 @@ li_opm_inclusion(Graph) -->
 	html(li(form([action(OpmLink)],
 		     [
 		      input([type(hidden), name(graph), value(Graph)],[]),
-		      input([type(submit), class(submit), value('Include')],[]),
-		      ' OPM dependecies into graph: ',
+		      input([type(submit), class(submit), value('Include OPM')],[]),
+		      ' to graph ',
 		      input([type(text), class(target),
 			      name(target), value(Graph),
 			     size(25)],[])
