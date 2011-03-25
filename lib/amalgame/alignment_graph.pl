@@ -215,7 +215,7 @@ graph_member(E, Class) :-
 graph_member(align(S,T,P), MappingId) :-
 	rdfs_individual_of(MappingId, amalgame:'Mapping'),
 	(   has_map(_,_,MappingId)
-	->  has_map([S-T], P, MappingId)
+	->  has_map([S,T], P, MappingId)
 	;   map_cache(MappingId, Mapping)
 	->  debug(align, 'using cache for ~w', [MappingId]),
 	    member(align(S,T,P), Mapping)
