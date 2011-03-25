@@ -44,11 +44,9 @@ _:noun_selection
 _:select11
     a :Mapping ;
     rdfs:label "Noun mapping 1-1" ;
-    :selected _:noun_mapping ;
-    opmv:wasGeneratedBy _:noun_selection .
+    :selected _:noun_selection .
     
 _:select1N
     a :Mapping ;
     rdfs:label "Noun mapping 1-N" ;
-    :discarded _:noun_mapping ;
-    opmv:wasGeneratedBy _:noun_selection .
+    :discarded _:noun_selection .
