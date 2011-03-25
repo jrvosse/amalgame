@@ -10,7 +10,8 @@
 amalgame:Snowball_Match    rdfs:subClassOf amalgame:Match .  
 amalgame:Exact_Label_Match rdfs:subClassOf amalgame:Match .  
 
-amalgame:Select1_1 rdfs:subClassOf amalgame:Select .
+amalgame:Select1_1    rdfs:subClassOf amalgame:Select .
+amalgame:Arity_select rdfs:subClassOf amalgame:Select .
 
 amalgame:selected
 	rdfs:domain amalgame:Alignment ;
