@@ -55,12 +55,12 @@ _:glossmatcher a :Exact_Label_Match ;
 
 
 # Selector processes used to generate the (intermediate) results:
-_:glossselect11process a :Select1_1 ;
+_:glossselect11process a :Arity_select ;
     rdfs:label "1-1 selection process" ;
     :input _:gloss_mapping ;
     opmv:wasPerformedBy :Amalgame .
 
-_:glosslabelselect11process a :Select1_1 ;
+_:glosslabelselect11process a :Arity_select ;
     rdfs:label "1-1 selection process" ;
     :input _:gloss_label_mapping ;
     opmv:wasPerformedBy :Amalgame .
