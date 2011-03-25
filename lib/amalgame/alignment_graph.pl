@@ -103,6 +103,8 @@ mapping_process(Process, Type, Id, Mapping) :-
 	rdfs_subclass_of(Type, amalgame:'Select'),
 	!,
  	rdf(Process, amalgame:input, Source),
+	rdf_has(Id, opmv:wasGeneratedBy, Process, P0),
+	resource_to_term(P0, P),
  	resource_to_term(Type, Module),
 	process_options(Process, Module, Options),
 	findall(A, graph_member(A, Source), Graph0),
@@ -110,16 +112,13 @@ mapping_process(Process, Type, Id, Mapping) :-
 	length(Graph, N0),
 	debug(align, 'running ~w select on ~w corr.', [Module, N0]),
  	call(Module:selecter, Graph, Selected, Discarded, Undecided, Options),
-	rdf_has(Id, opmv:used, _, P0),
-	resource_to_term(P0, P),
 	select_mapping(P, Selected, Discarded, Undecided, Mapping),
 	length(Mapping, N1),
 	debug(align, 'Selected ~w (~w)', [N1,P]).
 
-select_mapping(selected, Selected, _, _, Selected).
-select_mapping(discarded, _, Discarded, _, Discarded).
-select_mapping(undecided, _, _, Undecided, Undecided).
-
+select_mapping(selectedby,   Selected, _, _, Selected).
+select_mapping(discardedby, _, Discarded, _, Discarded).
+select_mapping(untouchedby, _, _, Undecided, Undecided).
 
 %%	process_options(+Process, +Module, -Options)
 %
@@ -224,7 +223,7 @@ graph_member(align(S,T,P), MappingId) :-
 	->  member(align(S,T,P), Mapping)
 	).
 
-graph_member(_, Id) :-
+xgraph_member(_, Id) :-
 	rdf_display_label(Id, Label),
 	debug(align, 'WARNING: graph_member/2 failed for ~w (~w)', [Label,Id]),
 	fail.
