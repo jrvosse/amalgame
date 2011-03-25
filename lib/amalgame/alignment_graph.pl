@@ -14,8 +14,11 @@
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(semweb/rdf_persistency)).
+:- use_module(library(semweb/rdf_turtle_write)).
 :- use_module(library(amalgame/edoal)).
 :- use_module(library(amalgame/map)).
+:- use_module(library(amalgame/opm)).
+
 :- use_module(library(http/http_parameters)).
 
 % components
@@ -217,7 +220,7 @@ graph_member(_, Id) :-
 %
 %	Merge alignment terms. ListOfGraphs is ordered.
 
-merge_graphs([], []).
+merge_graphs([], []) :- !.
 merge_graphs([L], L) :- !.
 merge_graphs([[]|Tail], Merged) :- merge_graphs(Tail, Merged).
 merge_graphs([L|Ls], [Merged|Ms]) :-
@@ -277,7 +280,15 @@ group_provenance(As, S, T, P, [align(S, T, Psorted)|Gs]) :-
 %	Assert Alignments as triples in the store.
 
 materialize_alignment_graph(Input, Options) :-
+	rdf_bnode(ProcessBnode),
 	option(graph(Graph), Options, test),
+	option(opmv_graph(OpmGraph), Options, opm),
+	(   option(process(Process), Options)
+	->  option(matcher(Matcher), Process),
+	    option(was_derived_from(DerivedFrom), Process),
+	    rdf_assert(ProcessBnode, amalgame:matcher, Matcher, OpmGraph)
+	;   DerivedFrom = []
+	),
 	(   rdf_graph(Graph)
 	->  rdf_unload(Graph)
 	;   true
@@ -286,15 +297,20 @@ materialize_alignment_graph(Input, Options) :-
 	->  true
 	;   rdf_persistency(Graph, false),
 	    rdf_assert(Graph, rdf:type, amalgame:'AmalgameAlignment', Graph),
-	    save_alignment_graph(Input, Options)
+	    opm_was_generated_by(ProcessBnode, Graph, OpmGraph, [was_derived_from(DerivedFrom)|Options]),
+	    mat_alignment_graph(Input, Options)
 	).
 
-save_alignment_graph([], _).
-save_alignment_graph([align(S,T, P)|As], Options) :-
+mat_alignment_graph([], _).
+mat_alignment_graph([align(S,T, P)|As], Options) :-
 	assert_cell(S, T, [prov(P)|Options]),
 	% option(graph(Graph), Options, test),
 	% rdf_assert(S, skos:exactMatch, T, Graph),
-        save_alignment_graph(As, Options).
+        mat_alignment_graph(As, Options).
+
+save_alignment_graph(Graph, Options) :-
+	opm_include_dependency(Graph, Graph),
+	rdf_save_canonical_turtle(Graph, Options).
 
 %%	compare_align(Type, Order, A1, A2) is det.
 %
