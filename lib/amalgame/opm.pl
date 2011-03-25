@@ -131,7 +131,7 @@ opm_clear_process(Process) :-
 opm_program(Graph, Program):-
 	git_module_property('amalgame',   home_url(PackUrl)),
 	git_module_property('amalgame',   version(AG_version)),
-	git_module_property('ClioPatria', version(CP_version)),
+	git_module_property('ClioPatria', version(CP_version)),!,
 	(  current_prolog_flag(version_git, PL_version)
 	-> true
 	;   current_prolog_flag(version, PL_version)
