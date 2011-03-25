@@ -50,7 +50,9 @@ mapping_relations({'http://www.w3.org/2004/02/skos/core#exactMatch':exact,
 		   'http://www.w3.org/2004/02/skos/core#closeMatch':close,
 		   'http://www.w3.org/2004/02/skos/core#narrowMatch':narrower,
 		   'http://www.w3.org/2004/02/skos/core#broadMatch':broader,
-		   'http://www.w3.org/2004/02/skos/core#related':related
+		   'http://www.w3.org/2004/02/skos/core#related':related,
+		   'http://purl.org/vocabularies/amalgame#unrelated':unrelated,
+		   'http://purl.org/vocabularies/amalgame#unsure':unsure
 		  }).
 
 
