@@ -6,7 +6,6 @@
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_abstract)).
 
-:- set_setting_default(graphviz:format, svg).
 :- rdf_meta
         context_triple(r, t),
         transitive_context(r).
