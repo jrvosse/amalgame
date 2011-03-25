@@ -21,22 +21,20 @@ amalgame:input
 	rdfs:range  amalgame:Alignment ;
 	rdfs:subPropertyOf opmv:used.
 
-amalgame:produced owl:inverseOf opmv:wasProducedBy.
+amalgame:selectedBy 
+	rdfs:domain  amalgame:Alignment ;
+	rdfs:range opmv:Process ;
+	rdfs:subPropertyOf opmv:wasGeneratedBy.
 
-amalgame:selected
-	rdfs:domain opmv:Process ;
-	rdfs:range  amalgame:Alignment ;
-	rdfs:subPropertyOf amalgame:produced.
+amalgame:discardedBy 
+	rdfs:domain  amalgame:Alignment ;
+	rdfs:range opmv:Process ;
+	rdfs:subPropertyOf opmv:wasGeneratedBy.
 
-amalgame:discarded
-	rdfs:domain amalgame:Process ;
-	rdfs:range  amalgame:Alignment ;
-	rdfs:subPropertyOf amalgame:produced.
-
-amalgame:undecided
-	rdfs:domain amalgame:Process ;
-	rdfs:range  amalgame:Alignment ;
-	rdfs:subPropertyOf amalgame:produced.
+amalgame:untouchedBy 
+	rdfs:domain  amalgame:Alignment ;
+	rdfs:range opmv:Process ;
+	rdfs:subPropertyOf opmv:wasGeneratedBy.
 
 amalgame:NoAlignmentGraph a rdfs:Class ;
 	rdfs:label "No Alignment Graph"@en ;
@@ -175,12 +173,12 @@ amalgame:nickname a rdf:Property , owl:FunctionalProperty ;
 	rdfs:range rdfs:Literal .
 
 amalgame:source a rdf:Property ;
-	rdfs:domain amalgame:Alignment ;
+	rdfs:subPropertyOf opmv:used ;
 	rdfs:range align:Ontology ;
 	rdfs:range skos:ConceptScheme .
 
 amalgame:target a rdf:Property ;
-	rdfs:domain amalgame:Alignment ;
+	rdfs:subPropertyOf opmv:used ;
 	rdfs:range align:Ontology ;
 	rdfs:range skos:ConceptScheme .
 
