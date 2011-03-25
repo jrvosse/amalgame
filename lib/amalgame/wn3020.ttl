@@ -38,28 +38,24 @@ _:glosslabel11 a :Mapping ;
 _:glosslabelmatcher a :Exact_Label_Match ;
     rdfs:label "Exact label match process to disamb. 1N gloss matches" ;
     :input _:gloss1N ;
-    :parameters "sourcelabel=http://www.w3.org/2004/02/skos/core%23altLabel&targetlabel=http://www.w3.org/2004/02/skos/core%23altLabel" ;
-    opmv:wasPerformedBy :Amalgame .
+    :parameters "sourcelabel=http://www.w3.org/2004/02/skos/core%23altLabel&targetlabel=http://www.w3.org/2004/02/skos/core%23altLabel" .
 
 _:glossmatcher a :Exact_Label_Match ;
     rdfs:label "Exact gloss match process" ;
     :source <http://purl.org/vocabularies/princeton/wn30/> ;
     :target <http://www.w3.org/2006/03/wn/wn20/> ;
-    :parameters "sourcelabel=http://www.w3.org/2004/02/skos/core%23definition&targetlabel=http://www.w3.org/2004/02/skos/core%23definition" ;
-    opmv:wasPerformedBy :Amalgame .
+    :parameters "sourcelabel=http://www.w3.org/2004/02/skos/core%23definition&targetlabel=http://www.w3.org/2004/02/skos/core%23definition" .
 
 
 
 # Selector processes used to generate the (intermediate) results:
 _:glossselect11process a :Arity_select ;
     rdfs:label "1-1 selection process" ;
-    :input _:gloss_mapping ;
-    opmv:wasPerformedBy :Amalgame .
+    :input _:gloss_mapping .
 
 _:glosslabelselect11process a :Arity_select ;
     rdfs:label "1-1 selection process" ;
-    :input _:gloss_label_mapping ;
-    opmv:wasPerformedBy :Amalgame .
+    :input _:gloss_label_mapping .
 
 
 # Intermediate mapping
