@@ -72,8 +72,8 @@ e(Id, Mapping) :-
 %	Mapping is a list of mappings in Graph.
 
 graph_mapping(Graph, Mapping) :-
-	findall(align(S,T,[]),
-		has_map([S,T], _, Graph),
+	findall(align(S,T,P),
+		has_map([S,T], edoal, P, Graph),
 		Mapping).
 
 %%      mapping_process(+Process, +Type, +Id, -Mapping)
@@ -86,7 +86,7 @@ mapping_process(Process, Type, Id, Mapping) :-
 	resource_to_term(Type, Module),
 	process_options(Process, Module, Options),
 	debug(align, 'running ~w matcher', [Module]),
-	(   rdf(Process, amalgame:input, MappingIn)  % input is an alignment graphs
+	(   rdf(Process, amalgame:input, MappingIn)  % input is an alignment graph
 	->  call(Module:filter, MappingIn, Mapping, Options)
 	;   rdf(Process, amalgame:source, Source),
 	    rdf(Process, amalgame:target, Target)
@@ -103,7 +103,7 @@ mapping_process(Process, Type, Id, Mapping) :-
 	rdfs_subclass_of(Type, amalgame:'Select'),
 	!,
  	rdf(Process, amalgame:input, Source),
-	rdf_has(Id, opmv:wasGeneratedBy, Process, P0),
+	rdf_has(Id, opmv:wasGeneratedBy, Process, P0), !,
 	resource_to_term(P0, P),
  	resource_to_term(Type, Module),
 	process_options(Process, Module, Options),
