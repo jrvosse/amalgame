@@ -203,6 +203,7 @@ js_cell_format -->
 	 checked = active ? "CHECKED" : "";
 	 html += "<div><input name=name class=rcheck autocomplete=off value="+uri+" type=radio "+checked+"><span>"+label+"</span></div>";
      }
+     html += "comment: <input name=comment class=comment autocomplete=off>";
      html += "</div>";\n',
 '    return html;'
 			  ]).
@@ -221,13 +222,15 @@ js_row_select(Id) -->
 '    if(e.target.hasClass("rcheck")) {
 	 var t = e.target,
 	     relation = t.get("value"),
+	     comment = row.one(".comment").get("value"),
 	     rlabel = Y.relations[relation],
 	     active = {uri:relation, label:rlabel},
  	     data = current.get("data");\n',
 '	 Y.io("',EvaluateServer,'", {data:{source:source,
 					   target:target,
 					   relation:relation,
-					   graph:"test"
+					   graph:"test",
+					   comment:comment
 					  }});\n',
 '	 data.relation = active;
 	 current.set("data",data);
