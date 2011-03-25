@@ -98,6 +98,10 @@ assert_cell(C1, C2, Options) :-
 	->  rdf_assert(A, align:map, Cell, Graph)
 	;   rdf_assert(Graph, align:map, Cell, Graph)
 	),
+	(   option(comment(Comment), Options), Comment \= ''
+	->  rdf_assert(Cell, rdfs:comment, literal(Comment), Graph)
+	;   true
+	),
 	(   option(source(Source), Options)
 	->  term_to_atom(Source, SourceAtom),
 	    rdf_assert(Cell, amalgame:source, literal(SourceAtom), Graph)
