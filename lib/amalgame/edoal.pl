@@ -77,8 +77,11 @@ assert_alignment(URI, Options) :-
 %	Options include:
 %	- measure(M) the confidence level (M defaults to 0.00001).
 %	- relation(R) the type of relation (R defaults to skos:closeMatch)
-%	- method(M) method used if different from method set for
-%	- aligmnent A (default: none)
+%	- method(M) method used (literal)
+%	- match(M)  matching value [0..1]
+%	- alignment(A) (default: none)
+%	- comment(C) (C default: none)
+%
 
 assert_cell(C1, C2, Options) :-
 	rdf_equal(skos:closeMatch, CloseMatch),
@@ -97,6 +100,10 @@ assert_cell(C1, C2, Options) :-
 	(   option(alignment(A), Options)
 	->  rdf_assert(A, align:map, Cell, Graph)
 	;   rdf_assert(Graph, align:map, Cell, Graph)
+	),
+	(   option(comment(Comment), Options), Comment \= ''
+	->  rdf_assert(Cell, rdfs:comment, literal(Comment), Graph)
+	;   true
 	),
 	(   option(source(Source), Options)
 	->  term_to_atom(Source, SourceAtom),
@@ -125,57 +132,11 @@ assert_cell(C1, C2, Options) :-
 	    )
 	;   true
 	),
-	(   option(prov(Prov), Options)
-	->  assign_prov(Cell, Prov, Options)
+	(   option(user(Agent), Options)
+	->  rdf_assert(Cell, amalgame:agent, Agent, Graph)
 	;   true
-	)
-	.
-assign_prov(_, [],_) :- !.
-assign_prov(Cell, [Prov|Tail], Options):-
-	option(graph(Graph), Options, align),
-	rdf_bnode(Provenance),
-	rdf_assert(Cell, amalgame:provenance, Provenance, Graph),
-	% get_time(T), format_time(atom(Time), '%Y-%m-%dT%H-%M-%S%Oz', T),
-	% option(evaluator(Evaluator), Prov, 'anonymous'),
-	% rdf_assert(Provenance, rdf:type, amalgame:'Provenance', Graph),
-	% rdf_assert(Provenance, dcterms:creator, literal(Evaluator), Graph),
-	% rdf_assert(Provenance, dcterms:date, literal(Time), Graph),
-	(   option(method(Methods), Prov)
-	->  (   is_list(Methods)
-	    ->	forall(member(Method, Methods),
-		       (   term_to_atom(Method, MethodAtom),
-			   rdf_assert(Provenance, amalgame:method, literal(MethodAtom), Graph)
-		       ))
-	    ;	term_to_atom(Methods, MethodAtom),
-		rdf_assert(Provenance, amalgame:method, literal(MethodAtom), Graph)
-	    )
-	;   true
-	),
-	(   option(match(Matches), Prov)
-	->  (   is_list(Matches)
-	    ->	forall(member(Match, Matches),
-		       (   term_to_atom(Match, MatchAtom),
-			   rdf_assert(Provenance, amalgame:match, literal(MatchAtom), Graph)
-		       ))
-	    ;	term_to_atom(Matches, MatchAtom),
-		rdf_assert(Provenance, amalgame:match, literal(MatchAtom), Graph)
-	    )
-	;   true
-	),
-	(   option(graph(PGraph), Prov) % FIXME need to deal with reification issues, sources are lost in code below!
-	->  forall(member(rdf(_,P,O), PGraph), rdf_assert(Provenance, P, O, Graph)),
-	    forall(member(rdf_reachable(_,P,O), PGraph), rdf_assert(Provenance, P, O, Graph))
-	;   true
-	),
-	(	option(comment(Comment), Prov), Comment \= ''
-	->	rdf_assert(Provenance, rdfs:comment, literal(Comment), Graph)
-	;	true
-	),
-	(	option(relation(OriginalRelation), Prov)
-	->	rdf_assert(Provenance, amalgame:relation, OriginalRelation, Graph)
-	;	true
-	),
-	assign_prov(Cell, Tail, Options).
+	).
+
 
 %%	edoal_to_triples(+Request, +EdoalGraph, +SkosGraph, +Options) is
 %%	det.
