@@ -165,6 +165,7 @@ myalign(Type, SourceVoc, TargetVoc) :-
 	% Step 1a: align by exact label match on skos:definition,  split off ambiguous and count results
 	% Ambiguous results will be further processed in step 1b, non matching concepts in step 2.
 	align(SourceVoc, TargetVoc, source_candidate, exact_label_match, target_candidate, GlossMatch, OptionsDef, A1a),
+	% materialize_alignment_graph(GlossMatch, [graph(rawgloss)]), fail,
 	arity_select:selecter(GlossMatch, UnambiguousGloss, AmbiguousGloss, _, []),
 	debug_partition('Gloss match',  [ambiguous(AmbiguousGloss),unambiguous(UnambiguousGloss)]),
 
@@ -201,6 +202,7 @@ myalign(Type, SourceVoc, TargetVoc) :-
 	memberchk(selected(BestGlossAndLabel), JaccardTPartition),
 	memberchk(undecided(AmbiLabelT), JaccardSPartition),
 
+	rdf_equal(amalgame:untyped,Type),
 	% Step 3: Materialize the good stuff found so far, so we can use this to do structural matching later
 	debug(align, '~p: Materializing alignments found so far.', [Type]),
 	graph_name('1a_unambiguous_gloss',   Type, UnambiguousGlossName),
@@ -279,7 +281,7 @@ align(Source, Target, Candidate, Match, Test, Output, Options, Process) :-
  	sort(As0, As),
 	merge_provenance(As, Output).
 
-type_match(T,T) :-!.
+type_match(_,_) :-!.
 type_match(A,S) :-
 	A='http://www.w3.org/2006/03/wn/wn20/schema/AdjectiveSynset',
 	S='http://www.w3.org/2006/03/wn/wn20/schema/AdjectiveSatelliteSynset',
