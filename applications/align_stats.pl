@@ -942,6 +942,11 @@ li_select_unique_labels(Graph) -->
 
 li_materialize_virtual(Graph) -->
 	{
+	\+ rdfs_individual_of(Graph, amalgame:'Mapping')
+	}, !.
+
+li_materialize_virtual(Graph) -->
+	{
 	 http_link_to_id(http_materialize_graph, [], MatLink)
 	}
 	,
