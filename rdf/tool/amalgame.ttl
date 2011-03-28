@@ -8,6 +8,7 @@
 @prefix xsd:      <http://www.w3.org/2001/XMLSchema#> .
 
 amalgame:Match  rdfs:subClassOf opmv:Process.
+amalgame:Merge  rdfs:subClassOf opmv:Process.
 amalgame:Select rdfs:subClassOf opmv:Process.
 
 amalgame:Snowball_Match    rdfs:subClassOf amalgame:Match .  
