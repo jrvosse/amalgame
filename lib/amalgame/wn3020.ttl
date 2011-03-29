@@ -16,27 +16,22 @@
 
 # Set 1a: 1-1 gloss matches
 _:gloss11 a :Mapping ;
-    rdfs:label "Gloss mapping 1-1" ;
+    rdfs:label "F 1a: Gloss mapping 1-1" ;
     :selectedBy _:glossselect11process .
 
 # Set 1b: 1-1 gloss + label matches
 _:glosslabel11 a :Mapping ;
-    rdfs:label "Gloss label mapping 1-1" ;
+    rdfs:label "F 1b: Gloss label mapping 1-1" ;
     :selectedBy _:glosslabelselect11process .
 
 # Set 1c: 1-n gloss + label matches
-_:glosslabel11 a :Mapping ;
-    rdfs:label "Gloss label mapping 1-1" ;
-    :discardedBy _:glosslabelselect11process .
-
-# Set 1c: 1-n gloss + label matches
-_:glosslabel11 a :Mapping ;
-    rdfs:label "Gloss label mapping 1-1" ;
+_:glosslabelnm a :Mapping ;
+    rdfs:label "F 1c: Gloss mapping N-M" ;
     :discardedBy _:glosslabelselect11process .
 
 # Matching processes used to generate the (intermediate) results:
 _:glosslabelmatcher a :Exact_Label_Match ;
-    rdfs:label "Exact label match process to disamb. 1N gloss matches" ;
+    rdfs:label "Exact label match process to disamb. N to M gloss matches" ;
     :input _:gloss1N ;
     :parameters "sourcelabel=http://www.w3.org/2004/02/skos/core%23altLabel&targetlabel=http://www.w3.org/2004/02/skos/core%23altLabel" .
 
@@ -57,17 +52,25 @@ _:glosslabelselect11process a :Arity_select ;
     rdfs:label "1-1 selection process" ;
     :input _:gloss_label_mapping .
 
+_:goodglosslabelmergeprocess a :Merge;
+    rdfs:label "Merge process" ;
+    :input _:gloss11 ;
+    :input _:glosslabel11 ;
+    :input _:glosslabelnm .
 
 # Intermediate mapping
 _:gloss_mapping a :Mapping ;
-    rdfs:label "Gloss mapping" ;
+    rdfs:label "I 1aa: Gloss mapping" ;
     opmv:wasGeneratedBy _:glossmatcher.
 
 _:gloss_label_mapping a :Mapping ;
-    rdfs:label "Gloss+label mapping" ;
+    rdfs:label "I 1b: Gloss+label mapping" ;
     opmv:wasGeneratedBy _:glosslabelmatcher.
 
 _:gloss1N a :Mapping ;
-    rdfs:label "Gloss mapping 1-N" ;
+    rdfs:label "I 1ab: Gloss mapping 1-N" ;
     :discardedBy _:glossselect11process .
 
+_:goodglosslabelmatches a :Mapping ;
+    rdfs:label "I 2aa: Merge of all gloss-based labels we assume correct" ;
+    opmv:wasGeneratedBy _:goodglosslabelmergeprocess.
