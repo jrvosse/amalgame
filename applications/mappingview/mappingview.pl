@@ -1,7 +1,6 @@
 :- module(mapping_view,
-	  [ html_mapping_view//1,    % +Id
- 	    js_mapping_view//3       % +Mapping_URL, +Id, +HTML_Element
-	  ]).
+	  [ html_mapping_view//1    % +MappingURL
+ 	  ]).
 
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
@@ -78,35 +77,33 @@ html_page(URL) :-
  			],
 			[ div(class('yui3-skin-sam'),
 			      [ div(id(header), []),
-				div(id(main), \html_body(URL))
+				div(id(main),
+				    \html_mapping_view(URL))
 			      ])
 			]).
 
-html_body(URL) -->
-	html_requires(css('gallery-paginator.css')),
-  	html_mapping_view(mappingview),
-	html(script(type('text/javascript'),
-		    \js_yui3([{modules:{gallery: 'gallery-2011.01.03-18-30'}
- 			      }],
-			     [node,event,widget,datasource,datatable,'datatable-sort',
-			      'gallery-paginator','querystring-stringify-simple'
- 			     ],
-			     [\js_mapping_view(URL, mappingview, '#mappingview')
-			     ])
-		   )).
-
-%%	html_mapping_view
+%%	html_mapping_view(+MappingURI)
 %
-%	Emit HTML container for mapping view
+%	Emit HTML component with a list of mappings.
 
-html_mapping_view(Id) -->
-	html_requires(css('mappingview.css')),
+html_mapping_view(URL) -->
+	html_requires(css('gallery-paginator.css')),
+  	html_requires(css('mappingview.css')),
 	html([ \html_resource_info(source),
 	       div(class(content),
-		   [ div(id(Id), []),
+		   [ div(id(mappingview), []),
 		     div(id(paginator), [])
 		   ]),
-	       \html_resource_info(target)
+	       \html_resource_info(target),
+	       script(type('text/javascript'),
+		      \js_yui3([{modules:{gallery: 'gallery-2011.01.03-18-30'}
+				}],
+			       [node,event,widget,datasource,datatable,'datatable-sort',
+				'gallery-paginator','querystring-stringify-simple'
+			       ],
+			       [\js_mapping_view(URL, mappingview, '#mappingview')
+			       ])
+		     )
 	     ]).
 
 html_resource_info(Which) -->
@@ -122,10 +119,13 @@ js_mapping_view(URL, Id, El) -->
 	  atom_concat(Id, 'Paginator', P),
 	  mapping_relations(Relations)
 	},
-	html(['Y.relations=',\js_args([Relations]),';']),
+	html(['Y.relations=',\js_args([Relations]),';\n',
+	      'Y.selected=',\js_args([URL]),';\n'
+	     ]),
   	js_mapping_view_datasource(DS),
 	js_datatable(Id, El, DS),
 	js_paginator(P),
+	js_load_mappings(Id),
 	js_yui3_on(DS, response,
 		   \js_function([e],
 				\[ P,'.setTotalRecords(e.response.meta.totalNumberOfResults, true);\n',
@@ -133,10 +133,23 @@ js_mapping_view(URL, Id, El) -->
 				 ])),
 	js_yui3_on(P, changeRequest,
 		   \js_function([state],
-				\[ 'this.setPage(state.page, true);\n',
-				   Id,'.datasource.load({request:"?url=',URL,'&offset="+state.recordOffset});\n'
-				 ])),
-   	html([Id,'.datasource.load({request:"?url=',URL,'"});\n']).
+				\[ 'this.setPage(state.page, true);
+				    loadMappings({offset:state.recordOffset});'
+ 				 ])),
+	html(['loadMappings()']).
+
+
+
+js_load_mappings(Id) -->
+	js_function_decl(loadMappings, [conf],
+			 \[
+'   if(Y.selected) {
+	 conf = conf ? conf : {};
+	 conf.url = Y.selected;
+	 var request = Y.QueryString.stringify(conf);console.log(request);
+	 ',Id,'.datasource.load({request:"?"+request})
+    }'
+			  ]).
 
 js_mapping_view_datasource(Id) -->
 	{ http_location_by_id(http_data_mapping, Server)
