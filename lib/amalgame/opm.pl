@@ -77,9 +77,9 @@ opm_triple(S, rdf(S,P,O)) :-
 %	* request(Request) to record information about the request URI
 %	used in the web service to create Artifacts.
 
-opm_was_generated_by(_, [], _, _).
+opm_was_generated_by(_, [], _, _) :- !.
 opm_was_generated_by(Process, Artifacts, Graph, Options) :-
-	is_list(Artifacts),
+	is_list(Artifacts),!,
 	rdf_assert(Process, rdf:type, opmv:'Process',	Graph),
 	forall(member(Artifact, Artifacts),
 	       (   rdf_assert(Artifact, rdf:type, opmv:'Artifact',    Graph),
@@ -121,7 +121,7 @@ opm_was_generated_by(Process, Artifacts, Graph, Options) :-
 	true.
 
 opm_was_generated_by(Process, Artifact, Graph, Options) :-
-	atom(Artifact),
+	atom(Artifact),!,
 	opm_was_generated_by(Process, [Artifact], Graph, Options).
 
 opm_clear_process(Process) :-
