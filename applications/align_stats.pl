@@ -250,7 +250,7 @@ http_clear_alignstats(Request):-
 	call_showing_messages(clear_alignstats(What),
 			      [head(title(Title)),
 			       header(h4(Title)),
-			       footer(div([h4('Cleared all caches')|
+			       footer(div([h4(['Cleared ', What, ' caches'])|
 					   ClearActions
 					  ]))
 			      ]).
@@ -712,7 +712,7 @@ show_overlap -->
 	      ul([class(ag_overlap_actions)],
 		 [
 		  % li([a([href(ComputeLink)], 'Compute'), ' all missing statistics.']),
-		  li([a([href(ClearCacheLink)], 'Clear'), ' vocabulary statistics cache'])
+		  li([a([href(ClearCacheLink)], 'Clear'), ' generated overlap graphs.'])
 		  %\li_del_derived
 		 ])
 	     ]).
