@@ -72,7 +72,7 @@ e(Id, Mapping) :-
 %	Mapping is a list of mappings in Graph.
 
 graph_mapping(Graph, Mapping) :-
-	findall(align(S,T,P),
+	findall(align(S,T,[P]),
 		has_map([S,T], edoal, P, Graph),
 		Mapping).
 
@@ -87,15 +87,19 @@ mapping_process(Process, Type, Id, Mapping) :-
 	process_options(Process, Module, Options),
 	debug(align, 'running ~w matcher', [Module]),
 	(   rdf(Process, amalgame:input, MappingIn)  % input is an alignment graph
-	->  call(Module:filter, MappingIn, Mapping, Options)
+	->  call(Module:filter, MappingIn, Mapping0, Options)
 	;   rdf(Process, amalgame:source, Source),
 	    rdf(Process, amalgame:target, Target)
-	->  call(Module:matcher, Source, Target, Mapping, Options)
+	->  call(Module:matcher, Source, Target, Mapping0, Options)
 	),
+	merge_provenance(Mapping0, Mapping),
 	length(Mapping, N),
 	(   N == 0
 	->  gtrace
-	;   debug(align, 'Caching ~w correspondences', [N]),
+	;   rdf_label(Id, Label),
+	    % atom_concat(xxx, Id, URL),
+	    % materialize_alignment_graph(Mapping, [graph(URL)]),
+	    debug(align, 'Caching ~w correspondences for ~w', [N,Label]),
 	    assert(map_cache(Id, Mapping))
 	).
 
@@ -115,6 +119,17 @@ mapping_process(Process, Type, Id, Mapping) :-
 	select_mapping(P, Selected, Discarded, Undecided, Mapping),
 	length(Mapping, N1),
 	debug(align, 'Selected ~w (~w)', [N1,P]).
+
+mapping_process(Process, Type, Id, Mapping) :-
+	rdfs_subclass_of(Type, amalgame:'Merge'),
+	!,
+ 	findall(Input,
+		(   rdf(Process, amalgame:input, Input0),
+		    sort(Input0, Input)
+		), Inputs),
+ 	merge_graphs(Inputs, Mapping),
+	length(Mapping, L),
+	debug(align, 'Merged ~w (~w)', [Id,L]).
 
 select_mapping(selectedby,   Selected, _, _, Selected).
 select_mapping(discardedby, _, Discarded, _, Discarded).
@@ -215,12 +230,15 @@ graph_member(E, Class) :-
 graph_member(align(S,T,P), MappingId) :-
 	rdfs_individual_of(MappingId, amalgame:'Mapping'),
 	(   has_map(_,_,MappingId)
-	->  has_map([S,T], P, MappingId)
+	->  has_map([S,T], Ps, MappingId),
+	    P=[Ps]
 	;   map_cache(MappingId, Mapping)
 	->  debug(align, 'using cache for ~w', [MappingId]),
 	    member(align(S,T,P), Mapping)
 	;   e(MappingId, Mapping)
-	->  member(align(S,T,P), Mapping)
+	->  length(Mapping, Len),
+	    debug(align, 'graph_member: ~w maps for ~p', [Len, MappingId]),
+	    member(align(S,T,P), Mapping)
 	).
 
 xgraph_member(_, Id) :-
