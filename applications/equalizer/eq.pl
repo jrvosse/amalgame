@@ -13,8 +13,12 @@
 :- use_module(library(http/json)).
 :- use_module(library(http/json_convert)).
 
+:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdfs)).
+
 :- use_module(start_page).
 :- use_module(applications(mappingview/mappingview)).
+:- use_module(applications(opmviz/opmviz)).
 
 % add local web directories from which static files are served.
 
@@ -52,8 +56,7 @@ http_eq_workflow(Request) :-
 		     [ uri(WorkflowURI,
 			   [description('URI of an alignment workflow')])
 		     ]),
-	workflow_history(WorkflowURI, Workflow),
-	html_page(Workflow, _).
+ 	html_page(WorkflowURI, @null).
 
 http_eq_new(Request) :-
 	http_parameters(Request,
@@ -63,7 +66,9 @@ http_eq_new(Request) :-
 			      [description('Target vocabulary')])
 		     ]),
 	new_workflow(Source, Target, Workflow),
-	html_page(Workflow, _).
+	html_page(Workflow, @null).
+
+new_workflow(_, _, test).
 
 		 /*******************************
 		 *	      HTML		*
@@ -81,8 +86,10 @@ html_page(Workflow, Mapping) :-
  			  div(id(header),
 			      []),
 			  div(id(main),
-			      [ div(id(workflow), []),
-				div(id(mappings), [])
+			      [ div(id(workflow),
+				    \html_opmviz(Workflow)),
+				div(id(mappings),
+				   \html_mapping_view(Mapping))
 			      ]),
  			  script(type('text/javascript'),
 				 [ \yui_script(Workflow, Mapping)
