@@ -27,7 +27,24 @@ selecter(AlignmentGraph, Sel, Dis, [], Options) :-
 	sort(Target1, T1), sort(TargetN, TN),
 
 	ord_intersection(S1, T1, Sel),
-	ord_union(SN, TN, Dis).
+	ord_union(SN, TN, Dis),
+
+	% length(SourceSorted, SSN),
+	% length(TargetSorted, TSN),
+	% length(Source1, S1N),
+	% length(SourceN, SNN),
+	% length(Target1, T1N),
+	% length(TargetN, TNN),
+	% length(AlignmentGraph, N0),
+	% length(Sel, SelN),
+	% length(Dis, DisN),
+	% 
+	% debug(align, 'arity select on AlignmentGraph of length: ~w', N0),
+	% debug(align, 'S1/SN: ~w/~w T1/TN: ~w/~w', [S1N, SNN, T1N, TNN]),
+	% debug(align, 'SS/TS: ~w/~w', [SSN, TSN]),
+	% debug(align, 'Sel/Dis: ~w/~w', [SelN, DisN]),
+	true.
+
 
 partition(AlignmentGraph, Partition, Options) :-
 	% Hack: All parts are source-sorted, except for PN1,
