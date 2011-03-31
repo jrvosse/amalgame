@@ -165,16 +165,21 @@ myalign(Type, SourceVoc, TargetVoc) :-
 	% Step 1a: align by exact label match on skos:definition,  split off ambiguous and count results
 	% Ambiguous results will be further processed in step 1b, non matching concepts in step 2.
 	align(SourceVoc, TargetVoc, source_candidate, exact_label_match, target_candidate, GlossMatch, OptionsDef, A1a),
-	% materialize_alignment_graph(GlossMatch, [graph(rawgloss)]), fail,
+	materialize_alignment_graph(GlossMatch, [graph(rawgloss)]), % fail,
 	arity_select:selecter(GlossMatch, UnambiguousGloss, AmbiguousGloss, _, []),
 	debug_partition('Gloss match',  [ambiguous(AmbiguousGloss),unambiguous(UnambiguousGloss)]),
+	materialize_alignment_graph(AmbiguousGloss, [graph(glossNM)]), % fail,
 
 	% Step 1b: align ambiguous gloss matches by exact label match on skos:altLabel,
 	% split off ambiguous and count results.
 	% We assume ambiguous results here are concepts that are splitted or merged in the two versions
 	% and thus OK
 	align(AmbiguousGloss, _, alignment_element, exact_label_match, _, GlossLabelMatch, OptionsLabel, A1b),
+	materialize_alignment_graph(GlossLabelMatch, [graph(rawglosslabel)]),
 	arity_select:selecter(GlossLabelMatch, UnambiguousGlossLabel, AmbiguousGlossLabel, _, []),
+	materialize_alignment_graph(UnambiguousGlossLabel, [graph(glosslabel11)]),
+	materialize_alignment_graph(AmbiguousGlossLabel, [graph(glosslabelNM)]),
+
 	debug_partition('Ambiguous gloss + label', [ambiguous(AmbiguousGlossLabel),unambiguous(UnambiguousGlossLabel)]),
 	merge_graphs([UnambiguousGloss, UnambiguousGlossLabel, AmbiguousGlossLabel], GoodGlossLabelMatches),
 
@@ -212,9 +217,9 @@ myalign(Type, SourceVoc, TargetVoc) :-
 	% graph_name('2b_nogloss_mostlabel',   Type, NoGlossMostLabelName),
 	graph_name('2c_best_gloss_label',    Type, BestGlossLabelName),
 	% graph_name('xz_ambiguous_label',     Type, AmbiLabelName),
-	materialize_alignment_graph(UnambiguousGloss,      [graph(UnambiguousGlossName), process(A1a)]),
-	materialize_alignment_graph(AmbiguousGlossLabel,   [graph(AmbiguousGlossName), process(A1b)]),
-	materialize_alignment_graph(UnambiguousGlossLabel, [graph(GlossLabelName), process(A1a)]),
+	% materialize_alignment_graph(UnambiguousGloss,      [graph(UnambiguousGlossName), process(A1a)]),
+	%materialize_alignment_graph(AmbiguousGlossLabel,   [graph(AmbiguousGlossName), process(A1b)]),
+	% materialize_alignment_graph(UnambiguousGlossLabel, [graph(GlossLabelName), process(A1a)]),
 	materialize_alignment_graph(UnambiguousLabel,      [graph(NoGlossLabelName)]),
 	% materialize_alignment_graph(MostLabels,	           [graph(NoGlossMostLabelName)]),
 	materialize_alignment_graph(BestGlossAndLabel,	   [graph(BestGlossLabelName)]),
