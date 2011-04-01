@@ -58,9 +58,14 @@ voc_exclude(Type, [A|ATail], [E|ETail], Accum, Result) :-
 	).
 
 get_exclusion_concepts(ExcSrcs, ExcTars, Options) :-
-	option(exclude(Alignments), Options),!,
+	option(exclude(A), Options),
+	(   is_list(A)
+	->  Alignments =A
+	;   e(A, Alignments)
+	),
 	maplist(align_source, Alignments, ExcSrcs),
 	maplist(align_target, Alignments, ExcTars).
+
 
 get_exclusion_concepts(ExcSrcs, ExcTars, Options) :-
 	!,

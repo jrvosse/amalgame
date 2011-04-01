@@ -112,7 +112,7 @@ mapping_process(Process, Type, Id, Mapping) :-
 	resource_to_term(P0, P),
  	resource_to_term(Type, Module),
 	process_options(Process, Module, Options),
-	findall(A, graph_member(A, Source), Graph0),
+	e(Source, Graph0),
 	sort(Graph0, Graph),
 	length(Graph, N0),
 	debug(align, 'running ~w select on ~w corr.', [Module, N0]),
@@ -129,6 +129,15 @@ mapping_process(Process, Type, Id, Mapping) :-
  	merge_graphs(Expanded, Mapping),
 	length(Mapping, L),
 	debug(align, 'Merged ~w (~w)', [Id,L]).
+
+mapping_process(Process, Type, Id, Mapping) :-
+	rdfs_subclass_of(Type, amalgame:'VocExclude'),
+	!,
+	rdf(Process, amalgame:source, Source),
+	rdf(Process, amalgame:exclude, Exclude),
+	voc_exclude:concept_selecter(Source, [], Mapping, [], [exclude(Exclude)]),
+	length(Mapping, L),
+	debug(align, 'Exclusion results ~w (~w)', [Id,L]).
 
 select_mapping(selectedby,   Selected, _, _, Selected).
 select_mapping(discardedby, _, Discarded, _, Discarded).

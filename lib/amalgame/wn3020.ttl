@@ -51,10 +51,15 @@ _:glosslabelselect11process a :Arity_select ;
     :input _:gloss_label_mapping .
 
 _:goodglosslabelmergeprocess a :Merge;
-    rdfs:label "M1: Merge process" ;
+    rdfs:label "M1: Merge good gloss and label matches process" ;
     :input _:gloss11 ;
     :input _:glosslabel11 ;
     :input _:glosslabelnm .
+
+_:goodglosslabelexcludeprocess a :VocExclude;
+    rdfs:label "E1: Exclude good gloss and label matches process" ;
+    :source <http://purl.org/vocabularies/princeton/wn30/> ;
+    :exclude _:goodglosslabelmatches .
 
 # Intermediate mapping
 _:gloss_mapping a :Mapping ;
@@ -72,6 +77,10 @@ _:gloss1N a :Mapping ;
 _:goodglosslabelmatches a :Mapping ;
     rdfs:label "I2aa: Merge of all gloss-based labels we assume correct" ;
     opmv:wasGeneratedBy _:goodglosslabelmergeprocess.
+
+_:tobematched a :Mapping ;
+    rdfs:label "I2ab: Still to be mapped source concepts, ignoring gloss-based labels we assume correct" ;
+    opmv:wasGeneratedBy _:goodglosslabelexcludeprocess.
 
 
 
