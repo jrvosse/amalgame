@@ -56,8 +56,9 @@ align_source(align(S,_,_), S).
 e(Id, Mapping) :-
 	rdf_display_label(Id, Label),
 	debug(align, 'Expanding ~w', [Label]),
-
-	(   (	rdf(Id, rdf:type, amalgame:'LoadedAlignment')
+	(   map_cache(Id, Mapping)
+	->  true
+	;   (	rdf(Id, rdf:type, amalgame:'LoadedAlignment')
 	    ;	rdf(Id, rdf:type, amalgame:'AmalgameAlignment')
 	    )
 	->  graph_mapping(Id, Mapping)
@@ -123,11 +124,9 @@ mapping_process(Process, Type, Id, Mapping) :-
 mapping_process(Process, Type, Id, Mapping) :-
 	rdfs_subclass_of(Type, amalgame:'Merge'),
 	!,
- 	findall(Input,
-		(   rdf(Process, amalgame:input, Input0),
-		    sort(Input0, Input)
-		), Inputs),
- 	merge_graphs(Inputs, Mapping),
+ 	findall(Input, rdf(Process, amalgame:input, Input), Inputs),
+	maplist(e, Inputs, Expanded),
+ 	merge_graphs(Expanded, Mapping),
 	length(Mapping, L),
 	debug(align, 'Merged ~w (~w)', [Id,L]).
 
