@@ -130,13 +130,13 @@ mapping_process(Process, Type, Id, Mapping) :-
 	length(Mapping, L),
 	debug(align, 'Merged ~w (~w)', [Id,L]).
 
-mapping_process(Process, Type, Id, Mapping) :-
+mapping_process(Process, Type, Id, Voc) :-
 	rdfs_subclass_of(Type, amalgame:'VocExclude'),
 	!,
 	rdf(Process, amalgame:source, Source),
 	rdf(Process, amalgame:exclude, Exclude),
-	voc_exclude:concept_selecter(Source, [], Mapping, [], [exclude(Exclude)]),
-	length(Mapping, L),
+	voc_exclude:concept_selecter(Source, [], Voc, [], [exclude(Exclude)]),
+	length(Voc, L),
 	debug(align, 'Exclusion results ~w (~w)', [Id,L]).
 
 select_mapping(selectedby,   Selected, _, _, Selected).
@@ -334,12 +334,12 @@ materialize_alignment_graph(Input, Options) :-
 	->  rdf_unload(Graph)
 	;   true
 	),
-	(   Input = []
-	->  true
-	;   rdf_persistency(Graph, false),
+	(   memberchk(align(_,_,_), Input)
+	->  rdf_persistency(Graph, false),
 	    rdf_assert(Graph, rdf:type, amalgame:'AmalgameAlignment', Graph),
 	    opm_was_generated_by(ProcessBnode, Graph, OpmGraph, [was_derived_from(DerivedFrom)|Options]),
 	    mat_alignment_graph(Input, Options)
+	;   true
 	).
 
 mat_alignment_graph([], _).
