@@ -90,8 +90,8 @@ assert_cell(C1, C2, Options) :-
 	option(relation(R),  Options, CloseMatch),
 	rdf_bnode(Cell),
 	rdf_assert(Cell, rdf:type, align:'Cell', Graph),
-	rdf_assert(Cell, align:entity1, C1, Graph),
-	rdf_assert(Cell, align:entity2, C2, Graph),
+	(var(C1) -> true; rdf_assert(Cell, align:entity1, C1, Graph)),
+	(var(C2) -> true; rdf_assert(Cell, align:entity2, C2, Graph)),
 	rdf_assert(Cell, align:measure, literal(M), Graph),
 	% Relation should be a literal according to the specs, but we do not like this ...
 	% rdf_assert(Cell, align:relation, literal(R), Graph),
