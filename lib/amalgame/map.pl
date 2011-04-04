@@ -125,10 +125,30 @@ has_map_chk(Map, Format, Graph) :-
 has_edoal_map_([E1,E2], Cell, Graph) :-
 	(   ground(E1)
 	->  rdf(Cell, align:entity1, E1, Graph),
-	    rdf(Cell, align:entity2, E2, Graph)
-	;   rdf(Cell, align:entity2, E2, Graph),
-	    rdf(Cell, align:entity1, E1, Graph)
+	    (	ground(E2)
+	    ->	rdf(Cell, align:entity2, E2, Graph)
+	    ;	rdf(Cell, align:entity2, E2, Graph)
+	    ->	true
+	    ;	true
+	    )
+	;   ground(E2) % We know that E1 is var.
+	->  rdf(Cell, align:entity2, E2, Graph),
+	    (	rdf(Cell, align:entity1, E1, Graph)
+	    ->	true
+	    ;	true
+	    )
 	).
+
+has_edoal_map_([E1,E2], Cell, Graph) :-
+	var(E1), var(E2),
+	rdf(Cell, align:entity1, E1, Graph),
+	rdf(Cell, align:entity2, E2, Graph).
+
+has_edoal_map_([E1,E2], Cell, Graph) :-
+	var(E1), var(E2),
+	rdf(Cell, align:entity1, E1, Graph),
+	\+ rdf(Cell, align:entity2, _, Graph).
+
 
 %%	retract_map(+Map, +Format, Graph) is det.
 %
