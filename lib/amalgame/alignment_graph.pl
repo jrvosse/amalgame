@@ -10,16 +10,18 @@
 	    compare_align/4
 	  ]).
 
+:- use_module(library(http/http_parameters)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(semweb/rdf_persistency)).
 :- use_module(library(semweb/rdf_turtle_write)).
+
 :- use_module(library(amalgame/edoal)).
 :- use_module(library(amalgame/map)).
 :- use_module(library(amalgame/opm)).
+:- use_module(library(amalgame/alignment)).
 
-:- use_module(library(http/http_parameters)).
 
 % components
 :- use_module(library(amalgame/matchers/snowball_match)).
@@ -130,13 +132,13 @@ mapping_process(Process, Type, Id, Mapping) :-
 	length(Mapping, L),
 	debug(align, 'Merged ~w (~w)', [Id,L]).
 
-mapping_process(Process, Type, Id, Voc) :-
+mapping_process(Process, Type, Id, Mapping) :-
 	rdfs_subclass_of(Type, amalgame:'VocExclude'),
-	!,
 	rdf(Process, amalgame:source, Source),
+	!,
 	rdf(Process, amalgame:exclude, Exclude),
-	voc_exclude:concept_selecter(Source, [], Voc, [], [exclude(Exclude)]),
-	length(Voc, L),
+	voc_exclude:concept_selecter(scheme(Source), Mapping, [exclude_sources(Exclude)]),
+	length(Mapping, L),
 	debug(align, 'Exclusion results ~w (~w)', [Id,L]).
 
 select_mapping(selectedby,   Selected, _, _, Selected).
@@ -340,7 +342,8 @@ materialize_alignment_graph(Input, Options) :-
 	    opm_was_generated_by(ProcessBnode, Graph, OpmGraph, [was_derived_from(DerivedFrom)|Options]),
 	    mat_alignment_graph(Input, Options)
 	;   true
-	).
+	),
+	align_ensure_stats(all(Graph)).
 
 mat_alignment_graph([], _).
 mat_alignment_graph([align(S,T, P)|As], Options) :-
