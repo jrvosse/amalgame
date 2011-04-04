@@ -79,7 +79,7 @@ _:goodglosslabelmatches a :Mapping ;
     opmv:wasGeneratedBy _:goodglosslabelmergeprocess.
 
 _:tobematched a :Mapping ;
-    rdfs:label "I2ab: Still to be mapped source concepts, ignoring gloss-based labels we assume correct" ;
+    rdfs:label "I2ab: templates with still to be mapped source concepts, ignoring gloss-based labels we assume correct" ;
     opmv:wasGeneratedBy _:goodglosslabelexcludeprocess.
 
 
