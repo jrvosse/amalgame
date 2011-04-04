@@ -10,6 +10,7 @@
 amalgame:Match  rdfs:subClassOf opmv:Process.
 amalgame:Merge  rdfs:subClassOf opmv:Process.
 amalgame:Select rdfs:subClassOf opmv:Process.
+amalgame:VocExclude rdfs:subClassOf opmv:Process.
 
 amalgame:Snowball_Match    rdfs:subClassOf amalgame:Match .  
 amalgame:Exact_Label_Match rdfs:subClassOf amalgame:Match .  
@@ -18,6 +19,11 @@ amalgame:Select1_1    rdfs:subClassOf amalgame:Select .
 amalgame:Arity_select rdfs:subClassOf amalgame:Select .
 
 amalgame:input 
+	rdfs:domain opmv:Process ;
+	rdfs:range  amalgame:Alignment ;
+	rdfs:subPropertyOf opmv:used.
+
+amalgame:exclude 
 	rdfs:domain opmv:Process ;
 	rdfs:range  amalgame:Alignment ;
 	rdfs:subPropertyOf opmv:used.
