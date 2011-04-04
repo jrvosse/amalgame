@@ -147,8 +147,8 @@ align_ensure_stats(mapped(Graph)) :-
 	rdf(Graph, amalgame:mappedSourceConcepts, _),!.
 align_ensure_stats(mapped(Graph)) :-
 	(   is_alignment_graph(Graph, Format)
-	->  findall(M1, has_map([M1, _], Format, Graph), M1s),
-	    findall(M2, has_map([_, M2], Format, Graph), M2s),
+	->  findall(M1, (has_map([M1, _], Format, Graph), nonvar(M1)), M1s),
+	    findall(M2, (has_map([_, M2], Format, Graph), nonvar(M2)), M2s),
 	    sort(M1s, MappedSourceConcepts),
 	    sort(M2s, MappedTargetConcepts),
 	    length(MappedSourceConcepts, NrMappedSourceConcepts),
@@ -244,7 +244,8 @@ find_target(Graph, edoal, Target) :-
 	!.
 
 find_target(Graph, Format, Target) :-
-	has_map([_, E2], Format, Graph), !,
+	has_map([_, E2], Format, Graph),
+	nonvar(E2),!,
 	(   rdf_has(E2, skos:inScheme, Target)
 	->  true
 	;   iri_xml_namespace(E2, Target)
