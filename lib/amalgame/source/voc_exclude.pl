@@ -31,6 +31,22 @@ concept_selecter(SourceVoc, TargetVoc, SelSourceVoc, SelTargetVoc, Options) :-
 	ord_subtract(SsSorted, EsSorted, SelSourceVoc),
 	ord_subtract(TsSorted, EtSorted, SelTargetVoc).
 
+concept_selecter(scheme(SourceVoc), Result, Options) :-
+	option(exclude_sources(Exc), Options),!,
+	(   is_list(Exc)
+	->  Alignments =Exc
+	;   e(Exc, Alignments)
+	),
+	maplist(align_source, Alignments, ExcSrcs),
+	findall(S, graph_member(S, SourceVoc), Sources),
+
+	length(ExcSrcs, NESs), length(Sources, NSs), NSLeft is NSs - NESs,
+	debug(align, 'Excluding ~w sources from ~w, leaving ~w',[NESs, NSs, NSLeft]),
+	sort(Sources, SsSorted),
+	sort(ExcSrcs, EsSorted),
+	ord_subtract(SsSorted, EsSorted, SelSourceVoc),
+	maplist(align_source, Result, SelSourceVoc).
+
 
 concept_selecter(SourceAlignment, TargetAlignment, Options) :-
 	option(exclude_sources(Exc), Options),!,
@@ -94,8 +110,8 @@ source_select(Source, URIs, Options) :-
 	sort(Es, EsSorted),
 	ord_subtract(SsSorted, EsSorted, URIs).
 
-align_source(align(S,_,_), S).
-align_target(align(_,T,_), T).
+align_source(align(S1,_,P), S2) :- (nonvar(S2) -> P=[]; true), S1=S2.
+align_target(align(_,T1,P), T2) :- (nonvar(T2) -> P=[]; true), T1=T2.
 
 
 
