@@ -36,6 +36,18 @@
 :- http_handler(amalgame(eq/workflow), http_eq_workflow, []).
 
 
+mapping_relations(['http://www.w3.org/2004/02/skos/core#exactMatch'-exact,
+		   'http://www.w3.org/2004/02/skos/core#closeMatch'-close,
+		   'http://www.w3.org/2004/02/skos/core#narrowMatch'-narrower,
+		   'http://www.w3.org/2004/02/skos/core#broadMatch'-broader,
+		   'http://www.w3.org/2004/02/skos/core#related'-related,
+		   'http://purl.org/vocabularies/amalgame#unrelated'-unrelated,
+		   'http://purl.org/vocabularies/amalgame#unsure'-unsure
+		  ]).
+
+
+
+
 %%	http_equalizer(+Request)
 %
 %	HTTP handler for web page for interactive vocabulary alignment.
@@ -81,31 +93,110 @@ new_workflow(_, _, test).
 html_page(Workflow, Mapping) :-
   	reply_html_page(equalizer(main),
 			[ title(['Align vocabularies'])
- 			],
-			[ \html_requires(css('equalizer.css')),
- 			  div(id(header),
-			      []),
-			  div(id(main),
-			      [ div(id(workflow),
-				    \html_opmviz(Workflow)),
-				div(id(mappings),
-				   \html_mapping_view(Mapping))
-			      ]),
- 			  script(type('text/javascript'),
-				 [ \yui_script(Workflow, Mapping)
-				 ])
+			],
+			[ \html_requires(css('eq.css')),
+			  \html_requires('http://yui.yahooapis.com/combo?3.3.0/build/cssreset/reset-min.css&3.3.0/build/cssgrids/grids-min.css&3.3.0/build/cssfonts/fonts-min.css&gallery-2011.02.23-19-01/build/gallery-node-accordion/assets/skins/sam/gallery-node-accordion.css'),
+  			  div(class('yui3-skin-sam'),
+			      [ div([id(main), class('yui3-g')],
+				    [ div([class('yui3-u'), id(workflow)],
+					  [ div(class(hd), []),
+					    div(class(bd),
+						[ \html_opmviz(Workflow),
+						  \html_mapping_info
+						])
+					  ]),
+				      div([class('yui3-u'), id(controls)],
+					  div([class('yui3-accordion'), id('controls-acc')],
+					      [\html_acc_item(actions, actions,
+							      div(id(actions), [tbd])),
+					       \html_acc_item(statistics, statistics,
+							      div(id(statistics), [tbd])),
+					       \html_acc_item(mappings, mappings,
+							      \html_mapping_view(Mapping))
+					      ]))
+				    ]),
+				script(type('text/javascript'),
+				       [ \yui_script
+				       ])
+			      ])
 			]).
+
+
+html_mapping_info -->
+	html(div(id(info),
+		 [ div(class(relations),
+		       [ div(class(hd), relations),
+		         div([class(bd), id(relations)],
+			    \html_relations)
+		       ]),
+		   div(class('yui3-g'),
+		       [ div(class('yui3-u-1-2'),
+			     [ div(class(hd), source),
+			       div(class(bd),
+				   div([id(sourceinfo), class('resource-info')], []))
+			     ]),
+			 div(class('yui3-u-1-2'),
+			     [ div(class(hd), target),
+			       div(class(bd),
+				   div([id(targetinfo), class('resource-info')], []))
+			     ])
+		       ])
+		 ])).
+
+html_relations -->
+	{ mapping_relations(Rs) },
+	html([
+	     \html_relation_radio(Rs),
+	      div(class(comment),
+		  [label('because: '),
+		   input([name(comment), class(comment), autocomplete(off)])])
+	     ]).
+
+html_relation_radio([]) --> !.
+html_relation_radio([URI-Label|Rs]) -->
+	html([input([name(relation),
+		     class(rcheck),
+		     autocomplete(off),
+		     value(URI),
+		     type(radio)]),
+	      span(Label)
+	     ]),
+	html_relation_radio(Rs).
+
+%%	html_acc_item(+Id, +Label, +HTMLBody)
+%
+%	Emit html markup for a YUI3 accordion item.
+
+html_acc_item(Id, Label, Body) -->
+	html(div([class('yui3-accordion-item yui3-accordion-item-active'), id(Id)],
+		 [ div(class('yui3-accordion-item-hd'),
+		       a([href('javascript:{}'), class('yui3-accordion-item-trigger')],
+			   Label)),
+		   div(class('yui3-accordion-item-bd'),
+		       Body)
+		 ])).
 
 %%	yui_script(+Workflow, +Mapping)
 %
 %	Emit YUI object.
 
-yui_script(_Workflow, _Mapping) -->
-	js_yui3([
+%%	yui_script
+%
+%	Emit YUI object.
+
+yui_script -->
+ 	js_yui3([{modules:{gallery: 'gallery-2011.02.23-19-01'
+  			  }}
 		],
-		[node,event,widget,datasource],
-		[
- 		]).
+		[node,event,anim,
+		 'gallery-node-accordion'
+  		],
+		[ 'Y.one("#controls-acc").plug(Y.Plugin.NodeAccordion,
+					   {anim:false,
+					    effect:Y.Easing.backIn,
+					    minHeight:250
+					   })'
+  		]).
 
 		 /*******************************
 		 *	  data handlers		*
