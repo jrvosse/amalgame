@@ -4,15 +4,59 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(isub)).
+:- use_module(library(amalgame/alignment_graph)).
 
-:- public match/3.
-:- multifile amalgame:component/2.
 
-amalgame:component(matcher, isub_match(align(uri, uri, provenance), align(uri,uri,provenance),
-					      [sourcelabel(uri, [default(skos:definition)]),
-					       targetlabel(uri, [default(skos:definition)]),
-					       threshold(integer)
-					      ])).
+:- public filter/3.
+:- public matcher/4.
+:- public parameter/3.
+
+parameter(sourcelabel,
+	  [uri, default(P)],
+	  'Property to get label of the source by') :-
+	rdf_equal(rdfs:label, P).
+parameter(targetlabel,
+	  [uri, default(P)],
+	  'Property to get the label of the target by') :-
+	rdf_equal(rdfs:label, P).
+parameter(threshold,
+	  [float, default(-1.0)],
+	  'threshold edit distance').
+parameter(language,
+	  [atom, optional(true)],
+	  'Language of source label').
+parameter(matchacross_lang,
+	  [boolean, default(true)],
+	  'Allow labels from different language to be matched').
+parameter(case_sensitive,
+	  [boolean, default(false)],
+	  'When true the case of labels must be equal').
+
+filter(Alignments, Mappings, Options) :-
+	findall(M, align(Alignments, M, Options), Mappings).
+
+align(Alignments, M, Options) :-
+	graph_member(A, Alignments),
+	A = align(S,T,P),
+	(   T = scheme(TargetVoc) ->
+	    match(align(S,T2,P), M, Options),
+	    graph_member(T2, TargetVoc)
+	;   match(A,M,Options)
+	).
+
+%%	matcher(+Source, +Target, -Mappings, +Options)
+%
+%	Mappings is a list of matches between instances of Source and
+%	Target.
+
+matcher(Source, Target, Mappings, Options) :-
+	findall(M, align(Source, Target, M, Options), Mappings).
+
+align(Source, Target, Match, Options) :-
+	graph_member(S, Source),
+	match(align(S,T,[]), Match, Options),
+	graph_member(T, Target).
+
 
 match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options) :-
  	rdf_equal(skos:definition, DefaultProp),
