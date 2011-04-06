@@ -148,10 +148,10 @@ mapping_process(Process, Type, Id, Mapping) :-
 	    rdf(Process, amalgame:target, TargetId),
 	    TargetOption=targetvoc(TargetId)
 	;   rdf(Process, amalgame:input, InputId),
-	    e(InputId, Input),
+	    expand_mapping(InputId, Input),
 	    TargetOption=noop(none)
 	),
-	e(ExcludeId, Exclude),
+	expand_mapping(ExcludeId, Exclude),
 	voc_exclude:concept_selecter(Input, Mapping, [ExcludeOption,TargetOption]),
 	length(Mapping, L),
 	debug(align, 'Exclusion results ~w (~w)', [Id,L]).
@@ -260,7 +260,7 @@ graph_member(align(S,T,P), MappingId) :-
 	;   map_cache(MappingId, Mapping)
 	->  debug(align, 'using cache for ~w', [MappingId]),
 	    member(align(S,T,P), Mapping)
-	;   e(MappingId, Mapping)
+	;   expand_mapping(MappingId, Mapping)
 	->  length(Mapping, Len),
 	    debug(align, 'graph_member: ~w maps for ~p', [Len, MappingId]),
 	    member(align(S,T,P), Mapping)

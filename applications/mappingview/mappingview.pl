@@ -301,7 +301,7 @@ http_data_mapping(Request) :-
 				 [default(0), number,
 				  description('first result that is returned')])
 		       ]),
-	e(URL, Mapping0),
+	expand_mapping(URL, Mapping0),
 	length(Mapping0, Length),
 	maplist(mapping_label, Mapping0, Mapping1),
 	sort_key(SortBy, SortKey),

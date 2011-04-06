@@ -39,7 +39,7 @@ concept_selecter(scheme(SourceVoc), Result, Options) :-
 	option(exclude_sources(Exc), Options),!,
 	(   is_list(Exc)
 	->  Alignments =Exc
-	;   e(Exc, Alignments)
+	;   expand_mapping(Exc, Alignments)
 	),
 	maplist(align_source, Alignments, ExcSrcs),
 	findall(S, graph_member(S, SourceVoc), Sources),
@@ -84,7 +84,7 @@ get_exclusion_concepts(ExcSrcs, ExcTars, Options) :-
 	option(exclude(A), Options),!,
 	(   is_list(A)
 	->  Alignments =A
-	;   e(A, Alignments)
+	;   expand_mapping(A, Alignments)
 	),
 	maplist(align_source, Alignments, ExcSrcs),
 	maplist(align_target, Alignments, ExcTars).
