@@ -17,7 +17,11 @@
 :- http_handler(root(opmviz), http_opmviz, []).
 
 
-opmviz_options([wrap_url(opm_url)]).
+opmviz_options([edge_links(false),
+		wrap_url(opm_url),
+		shape_hook(opm_shape),
+		graph_attributes([])
+	       ]).
 
 
 %%	http_graphviz(+Request)
@@ -78,3 +82,24 @@ is_opm_property(P) :-
 
 opm_url(R, HREF) :-
 	format(atom(HREF), 'javascript:nodeSelect("~w")', [R]).
+
+%%	opm_shape(+Resource, -Shape)
+%
+%	Defines graph node shape for different types of OPM resources.
+
+opm_shape(R, [shape(octagon),
+	      style(filled),
+	      fillcolor('#DDDDDD'),
+	      fontsize(10)]) :-
+	atom(R),
+	rdfs_individual_of(R, opmv:'Process'),
+	!.
+opm_shape(R, [shape(ellipse),
+	     fontsize(10)]) :-
+	atom(R),
+	rdfs_individual_of(R, opmv:'Artifact'),
+	!.
+opm_shape(_R, [shape(box),
+	       fontsize(10)]).
+
+

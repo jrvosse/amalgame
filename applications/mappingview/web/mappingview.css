@@ -5,6 +5,7 @@ body {
 	font-family: arial;
 	font-size: 85%;
 }
+/*
 .content {
 	float: left;
 	width: 500px;
@@ -16,7 +17,7 @@ body {
 	border-width: 1px 0 0 0;
 	border-style: solid;
 	border-color: #7F7F7F;
-}
+}*/
 #sourcetree,
 #targettree {
 }
@@ -49,30 +50,6 @@ body {
 }
 .yui3-datatable td .activerelations {
 	text-align: center;
-}
-.yui3-datatable td .otherrelations {
-	display: none;
-}
-.yui3-datatable-selected td .activerelations {
-	padding-bottom: 60px;
-}
-.yui3-datatable-selected td .otherrelations {
- 	background-color: #EDF5FF;
-    border: 1px solid #666666;
-    color: #222222;
-    display: block;
-    height: 44px;
-    margin-left: -192px;
-    margin-top: -54px;
-    padding: 2px 4px 4px;
-    position: absolute;
-    width: 455px;
-}
-.yui3-datatable-selected td .commentbox {
-	padding-top: 6px;
-}
-.yui3-datatable-selected td .comment {
-	width: 70%;
 }
 
 /* resource info */

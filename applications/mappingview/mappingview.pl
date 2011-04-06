@@ -28,7 +28,7 @@
 :- use_module(library(amalgame/map)).
 :- use_module(library(ag_util)).
 
-:- setting(rows_per_page, integer, 20,
+:- setting(rows_per_page, integer, 100,
 	   'Maximum number of mappings shown.').
 
 % add local web directories from which static files are served.
@@ -45,14 +45,6 @@
 :- http_handler(amalgame(data/mappingevaluate), http_data_mapping_evaluate, []).
 :- http_handler(amalgame(private/resourcecontext), http_resource_context, []).
 
-mapping_relations({'http://www.w3.org/2004/02/skos/core#exactMatch':exact,
-		   'http://www.w3.org/2004/02/skos/core#closeMatch':close,
-		   'http://www.w3.org/2004/02/skos/core#narrowMatch':narrower,
-		   'http://www.w3.org/2004/02/skos/core#broadMatch':broader,
-		   'http://www.w3.org/2004/02/skos/core#related':related,
-		   'http://purl.org/vocabularies/amalgame#unrelated':unrelated,
-		   'http://purl.org/vocabularies/amalgame#unsure':unsure
-		  }).
 
 
 %%	http_mapping_view(+Request)
@@ -98,7 +90,8 @@ html_mapping_view(URL) -->
 	       script(type('text/javascript'),
 		      \js_yui3([{modules:{gallery: 'gallery-2011.01.03-18-30'}
 				}],
-			       [node,event,widget,datasource,datatable,'datatable-sort',
+			       [node,event,widget,datasource,datatable,
+				'datatable-sort', 'datatable-scroll',
 				'gallery-paginator','querystring-stringify-simple'
 			       ],
 			       [\js_mapping_view(URL, mappingview, '#mappingview')
@@ -116,12 +109,10 @@ html_resource_info(Which) -->
 
 js_mapping_view(URL, Id, El) -->
 	{ atom_concat(Id, 'DS', DS),
-	  atom_concat(Id, 'Paginator', P),
-	  mapping_relations(Relations)
-	},
-	html(['Y.relations=',\js_args([Relations]),';\n',
-	      'Y.selected=',\js_args([URL]),';\n'
-	     ]),
+	  atom_concat(Id, 'Paginator', P)
+ 	},
+	html(['Y.selected=',\js_args([URL]),';\n'
+ 	     ]),
   	js_mapping_view_datasource(DS),
 	js_datatable(Id, El, DS),
 	js_paginator(P),
@@ -141,12 +132,18 @@ js_mapping_view(URL, Id, El) -->
 
 
 js_load_mappings(Id) -->
+	html(\[
+'   nodeSelect = function(uri) {
+	Y.selected=uri;
+	loadMappings();
+    }\n'
+	      ]),
 	js_function_decl(loadMappings, [conf],
 			 \[
 '   if(Y.selected) {
 	 conf = conf ? conf : {};
 	 conf.url = Y.selected;
-	 var request = Y.QueryString.stringify(conf);console.log(request);
+	 var request = Y.QueryString.stringify(conf);
 	 ',Id,'.datasource.load({request:"?"+request})
     }'
 			  ]).
@@ -186,6 +183,9 @@ js_datatable(Id, El, Datasource) -->
 	js_yui3_plug(Id,
 		     'Y.Plugin.DataTableDataSource',
 		     { datasource: symbol(Datasource) }),
+	/*js_yui3_plug(Id,
+		     'Y.Plugin.DataTableScroll',
+		     { height: '400px'}),*/
 	js_yui3_on(Id, tbodyCellClick, \js_row_select(Id)),
 	html([Id,'.render("',El,'");\n']).
 
@@ -208,20 +208,9 @@ js_cell_format -->
  			  ]),
 	js_function_decl(formatRelation, [o],
 			 \[
-'    var relations = Y.relations,
-	 active = o.value ? relations[o.value] : "",
-	 name = o.rowindex;
-     var html = "<div class=activerelations><div><span>"+active+"</span></div></div>";
-     html += "<div class=otherrelations>";\n',
-'    for(var uri in relations) {
-	 var label = relations[uri],
-	 checked = active ? "CHECKED" : "";
-	 html += "<input name=name class=rcheck autocomplete=off value="+uri+" type=radio "+checked+"><span>"+label+"</span>";
-     }
-     html += "<div class=commentbox>because: <input name=comment class=comment autocomplete=off></div>";
-     html += "</div>";\n',
-'    return html;'
-			  ]).
+'    var active = o.value ? o.value : "";
+     return "<div class=activerelations><div><span>"+active+"</span></div></div>";'
+ 			  ]).
 
 js_row_select(Id) -->
 	{ http_location_by_id(http_resource_context, Server),
