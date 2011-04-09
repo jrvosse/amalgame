@@ -36,7 +36,13 @@ filter(Alignments, Mappings, Options) :-
 
 align(Alignments, M, Options) :-
 	graph_member(A, Alignments),
-	match(A, M, Options).
+	A = align(S,T,P),
+	(   T = scheme(TargetVoc) ->
+	    match(align(S,T2,P), M, Options),
+	    graph_member(T2, TargetVoc)
+	;   match(A,M,Options)
+	).
+
 
 
 %%	matcher(+Source, +Target, -Mappings, +Options)

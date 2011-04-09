@@ -1,5 +1,5 @@
 :- module(alignment_graph,
-	  [ e/2,
+	  [ expand_mapping/2,
 	    flush_map_cache/0,
 	    flush_map_cache/1,
 	    graph_member/2,
@@ -55,7 +55,7 @@ source_count(As, -1) :-
 
 align_source(align(S,_,_), S).
 
-e(Id, Mapping) :-
+expand_mapping(Id, Mapping) :-
 	rdf_display_label(Id, Label),
 	debug(align, 'Expanding ~w', [Label]),
 	(   map_cache(Id, Mapping)
@@ -114,7 +114,7 @@ mapping_process(Process, Type, Id, Mapping) :-
 	resource_to_term(P0, P),
  	resource_to_term(Type, Module),
 	process_options(Process, Module, Options),
-	e(Source, Graph0),
+	expand_mapping(Source, Graph0),
 	sort(Graph0, Graph),
 	length(Graph, N0),
 	debug(align, 'running ~w select on ~w corr.', [Module, N0]),
@@ -127,17 +127,32 @@ mapping_process(Process, Type, Id, Mapping) :-
 	rdfs_subclass_of(Type, amalgame:'Merge'),
 	!,
  	findall(Input, rdf(Process, amalgame:input, Input), Inputs),
-	maplist(e, Inputs, Expanded),
+	maplist(expand_mapping, Inputs, Expanded),
  	merge_graphs(Expanded, Mapping),
 	length(Mapping, L),
 	debug(align, 'Merged ~w (~w)', [Id,L]).
 
 mapping_process(Process, Type, Id, Mapping) :-
 	rdfs_subclass_of(Type, amalgame:'VocExclude'),
-	rdf(Process, amalgame:source, Source),
 	!,
-	rdf(Process, amalgame:exclude, Exclude),
-	voc_exclude:concept_selecter(scheme(Source), Mapping, [exclude_sources(Exclude)]),
+	resource_to_term(Type, Module),
+	process_options(Process, Module, Options),
+	option(type(SourceOrTarget), Options, source),
+	(   SourceOrTarget = source
+	->  ExcludeOption = exclude_sources(Exclude)
+	;   ExcludeOption = exclude_targets(Exclude)
+	),
+	rdf(Process, amalgame:exclude, ExcludeId),
+	(   rdf(Process, amalgame:source, SourceId)
+	->  Input = scheme(SourceId),
+	    rdf(Process, amalgame:target, TargetId),
+	    TargetOption=targetvoc(TargetId)
+	;   rdf(Process, amalgame:input, InputId),
+	    expand_mapping(InputId, Input),
+	    TargetOption=noop(none)
+	),
+	expand_mapping(ExcludeId, Exclude),
+	voc_exclude:concept_selecter(Input, Mapping, [ExcludeOption,TargetOption]),
 	length(Mapping, L),
 	debug(align, 'Exclusion results ~w (~w)', [Id,L]).
 
@@ -245,7 +260,7 @@ graph_member(align(S,T,P), MappingId) :-
 	;   map_cache(MappingId, Mapping)
 	->  debug(align, 'using cache for ~w', [MappingId]),
 	    member(align(S,T,P), Mapping)
-	;   e(MappingId, Mapping)
+	;   expand_mapping(MappingId, Mapping)
 	->  length(Mapping, Len),
 	    debug(align, 'graph_member: ~w maps for ~p', [Len, MappingId]),
 	    member(align(S,T,P), Mapping)
@@ -339,7 +354,7 @@ materialize_alignment_graph(Input, Options) :-
 	(   memberchk(align(_,_,_), Input)
 	->  rdf_persistency(Graph, false),
 	    rdf_assert(Graph, rdf:type, amalgame:'AmalgameAlignment', Graph),
-	    opm_was_generated_by(ProcessBnode, Graph, OpmGraph, [was_derived_from(DerivedFrom)|Options]),
+	    % opm_was_generated_by(ProcessBnode, Graph, OpmGraph, [was_derived_from(DerivedFrom)|Options]),
 	    mat_alignment_graph(Input, Options)
 	;   true
 	),

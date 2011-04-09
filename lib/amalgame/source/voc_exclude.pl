@@ -3,6 +3,10 @@
 	  ]
 	 ).
 
+parameter(type,
+	  [oneof(source,target), default(source)],
+	  'Property to exclude matching sources or targets').
+
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(amalgame/alignment_graph)).
 
@@ -35,7 +39,7 @@ concept_selecter(scheme(SourceVoc), Result, Options) :-
 	option(exclude_sources(Exc), Options),!,
 	(   is_list(Exc)
 	->  Alignments =Exc
-	;   e(Exc, Alignments)
+	;   expand_mapping(Exc, Alignments)
 	),
 	maplist(align_source, Alignments, ExcSrcs),
 	findall(S, graph_member(S, SourceVoc), Sources),
@@ -45,7 +49,10 @@ concept_selecter(scheme(SourceVoc), Result, Options) :-
 	sort(Sources, SsSorted),
 	sort(ExcSrcs, EsSorted),
 	ord_subtract(SsSorted, EsSorted, SelSourceVoc),
-	maplist(align_source, Result, SelSourceVoc).
+	(   option(targetvoc(TargetVoc), Options)
+	->  maplist(align_source(TargetVoc), Result, SelSourceVoc)
+	;   maplist(align_source, Result, SelSourceVoc)
+	).
 
 
 concept_selecter(SourceAlignment, TargetAlignment, Options) :-
@@ -77,7 +84,7 @@ get_exclusion_concepts(ExcSrcs, ExcTars, Options) :-
 	option(exclude(A), Options),!,
 	(   is_list(A)
 	->  Alignments =A
-	;   e(A, Alignments)
+	;   expand_mapping(A, Alignments)
 	),
 	maplist(align_source, Alignments, ExcSrcs),
 	maplist(align_target, Alignments, ExcTars).
@@ -113,6 +120,6 @@ source_select(Source, URIs, Options) :-
 align_source(align(S1,_,P), S2) :- (nonvar(S2) -> P=[]; true), S1=S2.
 align_target(align(_,T1,P), T2) :- (nonvar(T2) -> P=[]; true), T1=T2.
 
-
+align_source(TargetVoc, align(S,scheme(TargetVoc),[]), S).
 
 

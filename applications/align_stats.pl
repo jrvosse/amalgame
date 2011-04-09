@@ -143,7 +143,7 @@ http_compute_overlaps(Request) :-
 
 http_materialize_graph(Request) :-
 	http_parameters(Request, [graph(Graph, []), target(Target, [])]),
-	e(Graph, Mappings),
+	expand_mapping(Graph, Mappings),
 	materialize_alignment_graph(Mappings, [graph(Target)]),
 	align_clear_stats(graph(Target)),
 	align_ensure_stats(all(Target)),
@@ -495,9 +495,9 @@ show_alignment_overview(Graph) -->
 		   \li_stratify_merges_graph(Graph)
 
 		 ]
-		),
+		)
 
-	      div([id(ag_graph_as_resource)], \graph_as_resource(Graph, []))
+	      % div([id(ag_graph_as_resource)], \graph_as_resource(Graph, []))
 
 	     ]).
 
