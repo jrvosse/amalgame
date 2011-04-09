@@ -1,22 +1,16 @@
-:- module(mapping_view,
-	  [ html_mapping_view//1    % +MappingURL
- 	  ]).
+:- module(mapping,
+	  [ mapping_relation/2
+	  ]).
 
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
-:- use_module(library(http/http_request_value)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_host)).
 :- use_module(library(http/http_path)).
-:- use_module(library(http/html_head)).
 :- use_module(library(http/http_json)).
-:- use_module(library(http/js_write)).
-:- use_module(library(yui3)).
 :- use_module(library(http/json)).
-:- use_module(library(http/json_convert)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
-:- use_module(library(semweb/rdf_litindex)).
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(settings)).
 :- use_module(user(user_db)).
@@ -31,255 +25,23 @@
 :- setting(rows_per_page, integer, 100,
 	   'Maximum number of mappings shown.').
 
-% add local web directories from which static files are served.
-
-:- prolog_load_context(directory, Dir),
-   asserta(user:file_search_path(mv, Dir)).
-:- asserta(user:file_search_path(css, mv(web))).
-:- asserta(user:file_search_path(js, mv(web))).
-
 % http handlers for this applications
 
-:- http_handler(amalgame(mappingview), http_mapping_view, []).
 :- http_handler(amalgame(data/mapping), http_data_mapping, []).
 :- http_handler(amalgame(data/mappingevaluate), http_data_mapping_evaluate, []).
 :- http_handler(amalgame(private/resourcecontext), http_resource_context, []).
 
-
-
-%%	http_mapping_view(+Request)
+%%	mapping_relation(+Id, +URI)
 %
-%	HTTP handler for web page with concept finder widget.
+%	Available mapping relations.
 
-http_mapping_view(Request) :-
-	http_parameters(Request,
-			[ url(URL,
-			      [description('URL of an alignment graph')])
-			]),
-	html_page(URL).
-
-
-		 /*******************************
-		 *		HTML		*
-		 *******************************/
-
-html_page(URL) :-
-   	reply_html_page(test,%cliopatria(default),
-			[ title(['mapping -- ', URL])
- 			],
-			[ div(class('yui3-skin-sam'),
-			      [ div(id(header), []),
-				div(id(main),
-				    \html_mapping_view(URL))
-			      ])
-			]).
-
-%%	html_mapping_view(+MappingURI)
-%
-%	Emit HTML component with a list of mappings.
-
-html_mapping_view(URL) -->
-	html_requires(css('gallery-paginator.css')),
-  	html_requires(css('mappingview.css')),
-	html([ \html_resource_info(source),
-	       div(class(content),
-		   [ div(id(mappingview), []),
-		     div(id(paginator), [])
-		   ]),
-	       \html_resource_info(target),
-	       script(type('text/javascript'),
-		      \js_yui3([{modules:{gallery: 'gallery-2011.01.03-18-30'}
-				}],
-			       [node,event,widget,datasource,datatable,
-				'datatable-sort', 'datatable-scroll',
-				'gallery-paginator','querystring-stringify-simple'
-			       ],
-			       [\js_mapping_view(URL, mappingview, '#mappingview')
-			       ])
-		     )
-	     ]).
-
-html_resource_info(Which) -->
-	html(div([id(Which+info), class('resource-info')], [])).
-
-
-%%	js_mapping_view
-%
-%	Emit JavaScript to initialize a mapping view
-
-js_mapping_view(URL, Id, El) -->
-	{ atom_concat(Id, 'DS', DS),
-	  atom_concat(Id, 'Paginator', P)
- 	},
-	html(['Y.selected=',\js_args([URL]),';\n'
- 	     ]),
-  	js_mapping_view_datasource(DS),
-	js_datatable(Id, El, DS),
-	js_paginator(P),
-	js_load_mappings(Id),
-	js_yui3_on(DS, response,
-		   \js_function([e],
-				\[ P,'.setTotalRecords(e.response.meta.totalNumberOfResults, true);\n',
-				   P,'.render();'
-				 ])),
-	js_yui3_on(P, changeRequest,
-		   \js_function([state],
-				\[ 'this.setPage(state.page, true);
-				    loadMappings({offset:state.recordOffset});'
- 				 ])),
-	html(['loadMappings()']).
-
-
-
-js_load_mappings(Id) -->
-	html(\[
-'   nodeSelect = function(uri) {
-	Y.selected=uri;
-	loadMappings();
-    }\n'
-	      ]),
-	js_function_decl(loadMappings, [conf],
-			 \[
-'   if(Y.selected) {
-	 conf = conf ? conf : {};
-	 conf.url = Y.selected;
-	 var request = Y.QueryString.stringify(conf);
-	 ',Id,'.datasource.load({request:"?"+request})
-    }'
-			  ]).
-
-js_mapping_view_datasource(Id) -->
-	{ http_location_by_id(http_data_mapping, Server)
-	},
-	js_new(Id,
-	       'Y.DataSource.IO'({source:Server})),
-	js_yui3_plug(Id,
-		'Y.Plugin.DataSourceJSONSchema',
-		{ schema:
-		  { resultListLocator: mapping,
-		    resultFields: [source, target, relation],
-		    metaFields: {totalNumberOfResults:totalNumberOfResults}
-		  }
-		}).
-
-js_datatable(Id, El, Datasource) -->
- 	js_set_info,
-	js_cell_format,
-	js_new(Id,
-	       'Y.DataTable.Base'({columnset:[{key:source,
-					       formatter:symbol(formatResource),
-					       sortable:symbol(true)
-					      },
-					      {key:relation,
-					       formatter:symbol(formatRelation),
-					       sortable:symbol(true)
-					      },
-					      {key:target,
-					       formatter:symbol(formatResource),
-					       sortable:symbol(true)
-					      }],
-				   plugins: [ symbol('Y.Plugin.DataTableSort') ]
-				  })),
-	js_yui3_plug(Id,
-		     'Y.Plugin.DataTableDataSource',
-		     { datasource: symbol(Datasource) }),
-	/*js_yui3_plug(Id,
-		     'Y.Plugin.DataTableScroll',
-		     { height: '400px'}),*/
-	js_yui3_on(Id, tbodyCellClick, \js_row_select(Id)),
-	html([Id,'.render("',El,'");\n']).
-
-js_paginator(Id) -->
-	{ setting(rows_per_page, Rows)
-	},
-	js_new(Id, 'Y.Paginator'({rowsPerPage:Rows,
-				  template: '{FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink}',
-				  firstPageLinkLabel:'|&lt;',
-				  previousPageLinkLabel: '&lt;',
-				  nextPageLinkLabel: '&gt;',
-				  lastPageLinkLabel: '&gt;|'
-				 })),
-	js_yui3_render(Id, '#paginator').
-
-js_cell_format -->
- 	js_function_decl(formatResource, [o],
-			 \[
-'    return o.value.label;'
- 			  ]),
-	js_function_decl(formatRelation, [o],
-			 \[
-'    var active = o.value ? o.value : "";
-     return "<div class=activerelations><div><span>"+active+"</span></div></div>";'
- 			  ]).
-
-js_row_select(Id) -->
-	{ http_location_by_id(http_resource_context, Server),
-	  http_location_by_id(http_data_mapping_evaluate, EvaluateServer)
-	},
-	js_function([e],
-			 \[
-'    var row = e.currentTarget.get("parentNode"),
-         records = ',Id,'.get("recordset"),
-         current = records.getRecord( row.get("id")),
-	 source = current.getValue("source").uri,
-	 target = current.getValue("target").uri;\n',
-'    if(e.target.hasClass("rcheck")) {
-	 var t = e.target,
-	     relation = t.get("value"),
-	     comment = row.one(".comment").get("value"),
-	     rlabel = Y.relations[relation],
-	     active = {uri:relation, label:rlabel},
- 	     data = current.get("data");\n',
-'	 Y.io("',EvaluateServer,'", {data:{source:source,
-					   target:target,
-					   relation:relation,
-					   graph:"test",
-					   comment:comment
-					  }});\n',
-'	 data.relation = active;
-	 current.set("data",data);
-	 e.currentTarget.one(".activerelations").setContent("<div><span>"+rlabel+"</span></div>");
-     }\n',
-'    else {
-     var add = (e.ctrlKey||e.metaKey) ? true : false;\n',
-'    if(!add) {
-	  Y.all(".yui3-datatable tr").removeClass("yui3-datatable-selected");
-	  Y.selected = {};
-     };
-     row.addClass("yui3-datatable-selected");\n',
-'    if(!Y.selected[source]) {
-	  Y.io("',Server,'", {data:{uri:source},
-			      on:{success:setInfo},
-			      arguments:{node:"#sourceinfo",add:add}
-			     });
-     }',
-'    if(!Y.selected[target]) {
-	  Y.io("',Server,'", {data:{uri:target},
-			      on:{success:setInfo},
-			      arguments:{node:"#targetinfo",add:add}
-			     });
-     }\n',
-'    Y.selected[source] = true;
-     Y.selected[target] = true;
-     }'
- 			  ]).
-
-js_set_info -->
-	js_function_decl(setInfo, [e,o,args],
-			 \[
-'     var node = Y.one(args.node);
-      if(args.add) { node.append(o.responseText) }
-      else { node.setContent(o.responseText) };\n',
-'     node.all(".moretoggle").on("click", function(e) {
-	   p = e.currentTarget.get("parentNode");
-	   p.all(".moretoggle").toggleClass("hidden");
-	   p.one(".morelist").toggleClass("hidden");
-     });\n'
-			  ]).
-
- 		 /*******************************
-		 *		API		*
-		 *******************************/
+mapping_relation(exact, 'http://www.w3.org/2004/02/skos/core#exactMatch').
+mapping_relation(close, 'http://www.w3.org/2004/02/skos/core#closeMatch').
+mapping_relation(narrower, 'http://www.w3.org/2004/02/skos/core#narrowMatch').
+mapping_relation(broader, 'http://www.w3.org/2004/02/skos/core#broadMatch').
+mapping_relation(related, 'http://www.w3.org/2004/02/skos/core#related').
+mapping_relation(unrelated, 'http://purl.org/vocabularies/amalgame#unrelated').
+mapping_relation(unsure, 'http://purl.org/vocabularies/amalgame#unsure').
 
 %%	http_data_mapping(+Request)
 %
@@ -301,19 +63,34 @@ http_data_mapping(Request) :-
 				 [default(0), number,
 				  description('first result that is returned')])
 		       ]),
+	node_type(URL, Type),
 	e(URL, Mapping0),
-	length(Mapping0, Length),
-	maplist(mapping_label, Mapping0, Mapping1),
+ 	maplist(mapping_label, Mapping0, Mapping1),
 	sort_key(SortBy, SortKey),
 	sort_by_arg(Mapping1, SortKey, MSorted),
  	list_offset(MSorted, Offset, MOffset),
 	list_limit(MOffset, Limit, MLimit, _),
 	mapping_data(MLimit, Mapping),
+	mapping_statistics(Mapping0, Statistics),
 	reply_json(json([url=URL,
-			 totalNumberOfResults=Length,
-			 limit=Limit,
+ 			 limit=Limit,
 			 offset=Offset,
-			 mapping=Mapping])).
+			 type=Type,
+			 mapping=Mapping,
+			 statistics=Statistics])).
+
+node_type(URL, Type) :-
+	rdf(URL, rdf:type, Class),
+ 	opm_type(Class, Type).
+
+opm_type(C, mapping) :-
+	rdf_equal(C, amalgame:'Mapping'),
+	!.
+opm_type(C, process) :-
+	rdfs_subclass_of(C, opmv:'Process'),
+	!.
+opm_type(_, vocab).
+
 
 sort_key(source, 2).
 sort_key(target, 4).
@@ -323,18 +100,43 @@ mapping_label(align(S, T, Prov), align(S,SL,T,TL,Prov)) :-
 	resource_label_text(T, TL).
 
 mapping_data([], []).
-mapping_data([Align|As], [Obj|Os]) :-
+mapping_data([Align|As], [json(Data)|Os]) :-
 	Align = align(Source, SLabel, Target, TLabel, _Prov),
-	Obj = json([source=json([uri=Source, label=SLabel]),
-		    target=json([uri=Target, label=TLabel]),
-		    relation=Relation
-		   ]),
-	(   has_map([Source, Target], _, Properties, test), %@TBD check in right graph
-	    memberchk(relation(Relation), Properties)
-	->  true
-	;   Relation = ''
+	Data0 = [source=json([uri=Source, label=SLabel]),
+		 target=json([uri=Target, label=TLabel])
+		],
+ 	(   has_map([Source, Target], _, Properties, test), %@TBD check in right graph
+	    memberchk(relation(R), Properties)
+	->  relation_label(R, RLabel),
+	    Data = [relation=json([uri=R, label=RLabel])|Data0]
+	;   Data = Data0
 	),
  	mapping_data(As, Os).
+
+relation_label(R, Label) :-
+	mapping_relation(Label, R), !.
+relation_label(R, R).
+
+%%	mapping_statistics(+Mapping, -Stats)
+%
+%	Stats of mapping
+
+mapping_statistics(Mappings, Stats) :-
+	Stats = json([mappingcount=Total,
+		      sourcecount=SN,
+		      targetcount=TN
+		     ]),
+	maplist(align_source, Mappings, Ss0),
+	maplist(align_target, Mappings, Ts0),
+	sort(Ss0, Ss),
+	sort(Ts0, Ts),
+	length(Mappings, Total),
+	length(Ss, SN),
+	length(Ts, TN).
+
+align_source(align(S,_,_), S).
+align_target(align(_,T,_), T).
+
 
 
 %%	http_data_mapping_evaluate(+Request)

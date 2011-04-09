@@ -12,7 +12,10 @@
 @prefix sparql:    <http://purl.org/net/opmv/types/sparql#> .
 @prefix :    <http://purl.org/vocabularies/amalgame#> .
 
-_:noun_mapping 
+<>  a :Workflow ;
+    rdfs:label "GTAA-Cornetto" .
+
+_:noun_mapping
     a :Mapping ;
     rdfs:label "label match (stemming)" ;
     opmv:wasGeneratedBy [

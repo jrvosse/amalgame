@@ -5,16 +5,19 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_request_value)).
+:- use_module(library(http/http_session)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_host)).
 :- use_module(library(http/http_path)).
 :- use_module(library(http/html_head)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
+:- use_module(library(semweb/rdf_label)).
 :- use_module(components(label)).
 :- use_module(components(graphviz)).
+:- use_module(library(yui3)).
 
-:- http_handler(root(opmviz), http_opmviz, []).
+:- http_handler(amalgame(opmviz), http_opmviz, []).
 
 
 opmviz_options([edge_links(false),
@@ -23,6 +26,9 @@ opmviz_options([edge_links(false),
 		graph_attributes([])
 	       ]).
 
+is_meta(wrap_url).
+is_meta(shape_hook).
+
 
 %%	http_graphviz(+Request)
 %
@@ -30,16 +36,25 @@ opmviz_options([edge_links(false),
 
 http_opmviz(Request) :-
 	http_parameters(Request,
-			[ graph(Graph,
+			[ format(Format,
+				 [default(html),
+				  oneof([xdot,svg,html]),
+				  description('Return svg graph or html page with embedded object')
+				 ]),
+			  graph(Graph,
 				 [description('URI from which we request the context')])
  			]),
 	opmviz_options(Options),
-	reply_html_page(cliopatria(default),
-			[ title(['Graph for ', \turtle_label(Graph)])
-			],
-			[ \graphviz_graph(opm_triples(Graph), Options)
-			]).
-
+	(   Format \== html
+	->  opm_triples(Graph, Triples),
+	    meta_options(is_meta, Options, QOptions),
+	    reply_graphviz_graph(Triples, Format, QOptions)
+	;   reply_html_page(cliopatria(default),
+			    [ title(['Graph for ', \turtle_label(Graph)])
+			    ],
+			    [ \graphviz_graph(opm_triples(Graph), Options)
+			    ])
+	).
 
 %%	html_opmviz(+Graph)
 %
@@ -49,6 +64,16 @@ html_opmviz(Graph) -->
 	{ opmviz_options(Options)
 	},
 	graphviz_graph(opm_triples(Graph), Options).
+
+html_opmviz(Graph) -->
+	{ http_link_to_id(http_opmviz, [graph(Graph),format(svg)], HREF)
+ 	},
+	html([ object([ id(opmviz),
+			data(HREF),
+			type('image/svg+xml')
+ 		      ],
+		      [])
+	     ]).
 
 
 %%	opm_triples(Graph, Triples)
@@ -80,8 +105,13 @@ is_opm_property(P) :-
 %
 %	URL becomes a javascript link.
 
+opm_url(R, R).
 opm_url(R, HREF) :-
-	format(atom(HREF), 'javascript:nodeSelect("~w")', [R]).
+	(   rdf_label(R, L0)
+	->  literal_text(L0, L)
+	;   L = R
+	),
+	format(atom(HREF), 'javascript:nodeSelect("~w", "~w")', [R, L]).
 
 %%	opm_shape(+Resource, -Shape)
 %

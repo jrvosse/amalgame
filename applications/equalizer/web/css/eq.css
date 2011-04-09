@@ -1,0 +1,118 @@
+body {
+	font-family: Arial,Helvetica,sans-serif;
+	font-color: #222;
+	overflow: hidden;
+}
+#top {
+	height: 450px;
+	overflow: auto;
+	border-bottom: 1px solid #AAA;
+}
+#bottom {
+	overflow: auto;
+}
+#alignment {
+	padding-right: 400px;
+	height: 100%;
+	overflow: auto;
+}
+#opm {
+	width: 100%;
+}
+#right {
+	width: 400px;
+	margin-right: -400px;
+}
+
+#mapping {
+}
+
+/* controls */
+#controls .yui3-accordion-item-hd {
+	line-height: 1.4;
+}
+#controls .yui3-accordion-item-active .yui3-accordion-item-trigger {
+	background-position: 105% -398px;
+}
+#controls .yui3-accordion-item-trigger {
+	background-position: 105% -348px;
+}
+#controls .controlset {
+	border-width: 0 1px 1px;
+}
+.controlset.hidden {
+	display: none;
+}
+
+/* infobox */
+#infobox .content {
+	padding: 5px 10px;
+}
+#infobox .loading {
+	padding: 20px 0;
+	background: url("loading.gif") no-repeat 50% 50%;
+}
+#infobox .hidden {
+	display: none;
+}
+#infobox td {
+	padding: 0 10px 5px 0;
+}
+
+/* mapping */
+#mapping {
+	overflow: auto;
+}
+#mapping .hd {
+	padding: 5px 10px;
+	background: url("http://yui.yahooapis.com/3.0.0/build/assets/skins/sam/sprite.png") repeat-x scroll 0 0 transparent;
+}
+#mapping  {
+	padding-left: 450px;
+}
+#mappingtable {
+	width: 450px;
+	margin-left: -450px;
+}
+#correspondance {
+	width: 100%;
+}
+
+/* mapping table */
+.yui3-datatable { 
+	margin: 0;
+}
+.yui3-datatable table {
+	width: 100%;
+}
+.yui3-datatable caption {
+	display: none;
+}
+.yui3-datatable th {
+	text-align: center;
+}
+.yui3-datatable td {
+	cursor: pointer;
+	vertical-align: top;
+}
+.yui3-datatable td:first-child,
+.yui3-datatable td:last-child {
+	width: 40%;
+}
+.yui3-datatable td .relation {
+	text-align: center;
+}
+.paginator {
+	text-align: center;
+}
+
+/* opm graph */
+#opm .selected text {
+	font-weight: bold;
+}
+#opm .selected ellipse,
+#opm .selected polygon {
+	fill: #DBEAFF;
+	stroke-width: 2px;
+}
+
