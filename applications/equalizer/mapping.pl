@@ -64,7 +64,7 @@ http_data_mapping(Request) :-
 				  description('first result that is returned')])
 		       ]),
 	node_type(URL, Type),
-	e(URL, Mapping0),
+	expand_mapping(URL, Mapping0),
  	maplist(mapping_label, Mapping0, Mapping1),
 	sort_key(SortBy, SortKey),
 	sort_by_arg(Mapping1, SortKey, MSorted),
