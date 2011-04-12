@@ -2,28 +2,15 @@
 
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
-:- use_module(library(http/http_request_value)).
 :- use_module(library(http/http_host)).
 :- use_module(library(http/http_path)).
 :- use_module(library(http/html_head)).
-:- use_module(library(http/http_json)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/js_write)).
 :- use_module(library(yui3_beta)).
-:- use_module(library(http/json)).
-:- use_module(library(http/json_convert)).
-
-:- use_module(library(semweb/rdf_db)).
-:- use_module(library(semweb/rdfs)).
-:- use_module(library(semweb/rdf_label)).
-
-:- use_module(library(ag_util)).
-:- use_module(library(amalgame/map)).
-:- use_module(library(amalgame/alignment_graph)).
-
-:- use_module(components(label)).
 
 :- use_module(start_page).
+:- use_module(controls).
 :- use_module(opmviz).
 :- use_module(mapping).
 
@@ -103,7 +90,8 @@ html_page(Graph, Mapping) :-
 					[ div([class('yui3-u'), id(opm)],
 					      []),
 					  div([class('yui3-u'), id(right)],
-					      [\html_controls])
+					      [div(id(controls),
+						   \html_controls)])
 					])),
 				div(id(bottom),
 				    div([id(mapping), class('yui3-g')],
@@ -117,36 +105,6 @@ html_page(Graph, Mapping) :-
 				       ])
 			      ])
 			]).
-
-html_controls -->
-	html(div(id(controls),
-		 [div([id(info), class('yui3-accordion')],
-		      [ \html_acc_item(infobox, 'Info', [])
-		      ]),
-		  div([id(mappingcontrols), class('controlset hidden yui3-accordion')],
-		      [\html_acc_item(filter, 'Filter', [filter]),
-		       \html_acc_item(select, 'Select', [select]),
-		       \html_acc_item(merge, 'Merge', [merge])
-		      ]),
-		  div([id(processcontrols), class('controlset hidden yui3-accordion')],
-		      []),
-		  div([id(vocabcontrols), class('controlset hidden yui3-accordion')],
-		      [\html_acc_item(align, 'Align', \html_align_controls)
-		      ])
-		 ])).
-
-html_acc_item(Id, Label, Body) -->
-	html(div([id(Id), class('yui3-accordion-item')],
-		 [ div(class('yui3-accordion-item-hd'),
-		       a([href('javascript:void(0)'),
-			  class('yui3-accordion-item-trigger')],
-			 Label)),
-		   div(class('yui3-accordion-item-bd'),
-		       Body)
-		 ])).
-
-html_align_controls -->
-	html([]).
 
 
 %%	yui_script(+Graph, +Mapping)
@@ -183,7 +141,7 @@ js_path(mapping, Path) :-
 
 js_module(gallery, 'gallery-2011.02.23-19-01').
 js_module(equalizer, json([fullpath(Path),
-			   requires([node, event,anim,
+			   requires([node, event,anim,tabview,
 				     'datasource-io','datasource-jsonschema','datasource-cache',
 				     'querystring-stringify-simple',
 				     'gallery-resize','gallery-node-accordion',
@@ -208,3 +166,20 @@ js_module(mappingtable, json([fullpath(Path),
 
 
 
+
+%%	http:convert_parameter(+Type, +In, -URI) is semidet.
+%
+%	HTTP parameter conversion for the following types:
+%
+%	    * uri
+%	    This  conversion  accepts NS:Local and absolute URIs.
+
+http:convert_parameter(uri, In, URI) :-
+	(   sub_atom(In, B, _, A, :),
+	    sub_atom(In, _, A, 0, Local),
+	    xml_name(Local)
+	->  sub_atom(In, 0, B, _, NS),
+	    rdf_global_id(NS:Local, URI)
+	;   is_absolute_url(In)
+	->  URI = In
+	).

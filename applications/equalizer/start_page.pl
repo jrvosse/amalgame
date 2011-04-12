@@ -1,4 +1,4 @@
-:- module(start_page,
+:- module(eq_start_page,
 	  [ html_start_page/0
 	  ]).
 

@@ -116,3 +116,8 @@ body {
 	stroke-width: 2px;
 }
 
+
+/* controls */
+.control-buttons {
+	text-align: right;
+}

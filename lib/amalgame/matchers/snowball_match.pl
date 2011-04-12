@@ -8,44 +8,41 @@
 :- use_module(library(amalgame/alignment_graph)).
 :- use_module(library(amalgame/candidate)).
 
-:- public parameter/3.
+:- public amalgame_module/2.
+:- public parameter/4.
 :- public filter/3.
 :- public matcher/4.
 
+amalgame_module(amalgame:'Matcher', amalgame:'Snowball_Matcher').
 
-parameter(sourcelabel,
-	  [uri, default(P)],
+parameter(sourcelabel, uri, P,
 	  'Property to get label of the source by') :-
 	rdf_equal(rdfs:label, P).
-parameter(targetlabel,
-	  [uri, default(P)],
+parameter(targetlabel, uri, P,
 	  'Property to get the label of the target by') :-
 	rdf_equal(rdfs:label, P).
-parameter(language,
-	  [atom, optional(true)],
+parameter(language, atom, '',
 	  'Language of source label').
-parameter(matchacross_lang,
-	  [boolean, default(true)],
+parameter(matchacross_lang, boolean, true,
 	  'Allow labels from different language to be matched').
-parameter(case_senstitive,
-	  [boolean, default(false)],
+parameter(case_senstitive, boolean, false,
 	  'When true the case of labels must be equal').
-parameter(snowball_language,
-	  [atom, default(dutch)],
+parameter(snowball_language, atom, dutch,
 	  'Language to use for stemmer').
-parameter(edit_distance,
-	  [integer, default(0)],
+parameter(edit_distance, integer, 0,
 	  'When >0 allow additional differences between labels').
 
 %%	filter(+MappingsIn, -MappingsOut, +Options)
 %
-%	Filter mappings based on exact matching of labels.
+%	Filter mappings based on matching stemmed labels.
 
-filter(Alignments, Mappings, Options) :-
-	findall(M, ( graph_member(A, Alignments),
-		     match(A, M, Options)
-		   ),
-		Mappings).
+filter([], [], _).
+filter([C0|Cs], [C|Mappings], Options) :-
+	match(C0, C, Options),
+	!,
+	filter(Cs, Mappings, Options).
+filter([_|Cs], Mappings, Options) :-
+	filter(Cs, Mappings, Options).
 
 %%	matcher(+Source, +Target, -Mappings, +Options)
 %

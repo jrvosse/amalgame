@@ -1,11 +1,17 @@
-:- module(select1_1,[]).
+:- module(select1_1, []).
 
 :- use_module(library(semweb/rdf_db)).
 
+:- public amalgame_module/2.
 :- public selecter/5.
+
+amalgame_module(amalgame:'Selecter', amalgame:'Select1_1').
+
 
 %%	selecter(+Source, -Selected, -Discarded, -Undecided, +Options)
 %
+%	Selected contains only the correspondance where a source has one
+%	target.
 
 selecter(AlignmentGraph, Sel, Dis, [], _Options) :-
  	select_(AlignmentGraph, Sel, Dis).
@@ -25,3 +31,5 @@ same_source([align(S,T,P)|As], S, [align(S,T,P)|Same], Rest) :-
 	!,
 	same_source(As, S, Same, Rest).
 same_source(As, _S, [], As).
+
+

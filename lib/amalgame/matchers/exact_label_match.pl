@@ -2,28 +2,25 @@
 	  []).
 
 :- use_module(library(semweb/rdf_db)).
-:- use_module(library(amalgame/alignment_graph)).
+:- use_module(library(amalgame/vocabulary)).
 
+:- public amalgame_module/2.
 :- public filter/3.
 :- public matcher/4.
-:- public parameter/3.
+:- public parameter/4.
 
-parameter(sourcelabel,
-	  [uri, default(P)],
+amalgame_module(amalgame:'Matcher', amalgame:'Exact_Label_Matcher').
+
+parameter(sourcelabel, uri, P,
 	  'Property to get label of the source by') :-
 	rdf_equal(rdfs:label, P).
-parameter(targetlabel,
-	  [uri, default(P)],
+parameter(targetlabel, uri, P,
 	  'Property to get the label of the target by') :-
 	rdf_equal(rdfs:label, P).
-parameter(language,
-	  [atom, optional(true)],
-	  'Language of source label').
-parameter(matchacross_lang,
-	  [boolean, default(true)],
+parameter(language, atom, '', 'Language of source label').
+parameter(matchacross_lang, boolean, true,
 	  'Allow labels from different language to be matched').
-parameter(case_sensitive,
-	  [boolean, default(false)],
+parameter(case_sensitive, boolean, false,
 	  'When true the case of labels must be equal').
 
 
@@ -31,18 +28,13 @@ parameter(case_sensitive,
 %
 %	Filter mappings based on exact matching of labels.
 
-filter(Alignments, Mappings, Options) :-
-	findall(M, align(Alignments, M, Options), Mappings).
-
-align(Alignments, M, Options) :-
-	graph_member(A, Alignments),
-	A = align(S,T,P),
-	(   T = scheme(TargetVoc) ->
-	    match(align(S,T2,P), M, Options),
-	    graph_member(T2, TargetVoc)
-	;   match(A,M,Options)
-	).
-
+filter([], [], _).
+filter([C0|Cs], [C|Mappings], Options) :-
+	match(C0, C, Options),
+	!,
+	filter(Cs, Mappings, Options).
+filter([_|Cs], Mappings, Options) :-
+	filter(Cs, Mappings, Options).
 
 
 %%	matcher(+Source, +Target, -Mappings, +Options)
@@ -54,9 +46,9 @@ matcher(Source, Target, Mappings, Options) :-
 	findall(M, align(Source, Target, M, Options), Mappings).
 
 align(Source, Target, Match, Options) :-
-	graph_member(S, Source),
+	vocab_member(S, Source),
 	match(align(S,T,[]), Match, Options),
-	graph_member(T, Target).
+	vocab_member(T, Target).
 
 
 

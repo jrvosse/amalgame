@@ -1,12 +1,10 @@
-:- module(mapping,
+:- module(eq_mapping,
 	  [ mapping_relation/2
 	  ]).
 
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/html_write)).
-:- use_module(library(http/http_host)).
-:- use_module(library(http/http_path)).
 :- use_module(library(http/http_json)).
 :- use_module(library(http/json)).
 :- use_module(library(semweb/rdf_db)).
@@ -17,7 +15,7 @@
 :- use_module(components(label)).
 
 :- use_module(library(skos/vocabularies)).
-:- use_module(library(amalgame/alignment_graph)).
+:- use_module(library(amalgame/expand_graph)).
 :- use_module(library(amalgame/edoal)).
 :- use_module(library(amalgame/map)).
 :- use_module(library(ag_util)).

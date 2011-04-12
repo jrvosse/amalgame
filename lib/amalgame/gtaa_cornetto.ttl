@@ -19,37 +19,43 @@ _:noun_mapping
     a :Mapping ;
     rdfs:label "label match (stemming)" ;
     opmv:wasGeneratedBy [
-        a :Snowball_Match ;
+        a :Snowball_Matcher ;
         rdfs:label "Noun mapping" ;
         :source <http://data.beeldengeluid.nl/gtaa/Onderwerpen> ;
         :target <http://purl.org/vocabularies/cornetto/NounSynset> ;
         :parameters "snowball_language=dutch" ;
         opmv:wasPerformedBy :Amalgame ;
     ] .
-    
-_:noun_exact_mapping 
+
+_:noun_exact_mapping
     a :Mapping ;
     rdfs:label "label match (exact)" ;
     opmv:wasGeneratedBy [
-        a :Exact_Label_Match ;
+        a :Exact_Label_Matcher ;
         rdfs:label "Noun mapping" ;
         :source <http://data.beeldengeluid.nl/gtaa/Onderwerpen> ;
         :target <http://purl.org/vocabularies/cornetto/NounSynset> ;
         opmv:wasPerformedBy :Amalgame ;
-    ] .    
-    
-_:noun_selection 
+    ] .
+
+_:noun_selection
     a :Select1_1 ;
     rdfs:label "Noun 1-1 selection" ;
     :input _:noun_mapping ;
     opmv:wasPerformedBy :Amalgame .
-     
+
 _:select11
     a :Mapping ;
     rdfs:label "Noun mapping 1-1" ;
     :selectedBy _:noun_selection .
-    
+
 _:select1N
     a :Mapping ;
     rdfs:label "Noun mapping 1-N" ;
     :discardedBy _:noun_selection .
+
+
+
+
+
+

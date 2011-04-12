@@ -83,10 +83,16 @@ YUI.add('equalizer', function(Y) {
 			this.opmviz = new Y.OPMViz().render(NODE_OPM);
 			this.opmviz.on("nodeSelect", this._onNodeSelect, this);
 			
-			// We have a separate module for the controls
+			// The controls are accordion nodes
 			Y.all(".yui3-accordion").plug(Y.Plugin.NodeAccordion, { 
    				anim: true, 
 				speed:0.1
+			});
+
+			// The options in the controls are tabviews
+			var controls = {};
+			Y.all(".yui3-tabview").each( function(node) {
+				controls[node] = new Y.TabView({srcNode: node}).render();
 			});
 
 			// The infobox is part of the controls,
@@ -188,7 +194,7 @@ YUI.add('equalizer', function(Y) {
 	Y.Equalizer = Equalizer;
 	
 }, '0.0.1', { requires: [
-	'node,event','anim',
+	'node,event','anim','tabview',
 	'datasource-io','datasource-jsonschema','datasource-cache',
 	'querystring-stringify-simple',
 	'gallery-resize','gallery-node-accordion'

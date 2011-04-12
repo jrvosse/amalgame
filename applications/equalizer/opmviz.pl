@@ -1,4 +1,4 @@
-:- module(opmviz,
+:- module(eq_opmviz,
 	  [ html_opmviz//1
 	  ]).
 
