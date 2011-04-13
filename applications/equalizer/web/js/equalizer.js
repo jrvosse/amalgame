@@ -20,7 +20,7 @@ YUI.add('equalizer', function(Y) {
 	}
 	Equalizer.NAME = "equalizer";
 	Equalizer.ATTRS = {
-		graph : {
+		alignment : {
 			value: null
 		},
 		mapping : {
@@ -94,6 +94,10 @@ YUI.add('equalizer', function(Y) {
 			Y.all(".yui3-tabview").each( function(node) {
 				controls[node] = new Y.TabView({srcNode: node}).render();
 			});
+			Y.all("#controls form").each( function(form) {
+				form.one("input.control-submit").on("click", this._onControlSubmit, this, form);
+			}, this);
+			
 
 			// The infobox is part of the controls,
 			// but has some additional routines
@@ -115,21 +119,21 @@ YUI.add('equalizer', function(Y) {
 		},
 		
 		fetchGraph : function(conf) {
-			var graph = this.get("graph"),
+			var alignment = this.get("alignment"),
 				paths = this.get("paths"),
 				opmviz = this.opmviz;
 				
-			if(graph) {
+			if(alignment) {
 				conf = conf ? conf : {};
-				conf.graph = graph;
+				conf.graph = alignment;
 				
  				Y.io(paths.opmgraph, {
 					data:conf,
 					on:{success:function(e,o) {
 						// As the server returns an XML document, including doctype
 						// we first take out the actual svg element
-						var graph = o.responseXML.lastChild;
- 						opmviz.setGraph(graph);
+						var SVG = o.responseXML.lastChild;
+ 						opmviz.setGraph(SVG);
 					}}
 				})
 			}
@@ -165,6 +169,40 @@ YUI.add('equalizer', function(Y) {
 					callback:callback
 				})
 			}	
+		},
+		
+		_onControlSubmit : function(e, form) {
+			var paths = this.get("paths"),
+				opmviz = this.opmviz,
+				data = {
+					input:this.get("selected"),
+					process:form.get("id"),
+					alignment:this.get("alignment")
+				};
+				
+			form.all("input").each(function(input) {
+				var name = input.get("name"),
+					value = input.get("value");
+				if(name&&value&&input.get("type")!=="button") {
+					data[name] = value;
+				}
+			});
+			form.all("select").each(function(select) {
+				var name = select.get("name"),
+					index = select.get('selectedIndex'),
+					value = select.get("options").item(index).get("value")
+				if(value) {
+					data[name] = value;
+				}
+			});
+			
+			Y.io(paths.addprocess, {
+				data:data,
+				on:{success:function(e,o) {
+					var SVG = o.responseXML.lastChild;
+						opmviz.setGraph(SVG);
+				}}
+			})
 		},
 				
 		_onNodeSelect : function(e) {

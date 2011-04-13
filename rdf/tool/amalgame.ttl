@@ -12,8 +12,8 @@ amalgame:Merge  rdfs:subClassOf opmv:Process.
 amalgame:Select rdfs:subClassOf opmv:Process.
 amalgame:Voc_Exclude rdfs:subClassOf opmv:Process.
 
-amalgame:Snowball_Match    rdfs:subClassOf amalgame:Match .  
-amalgame:Exact_Label_Match rdfs:subClassOf amalgame:Match .  
+amalgame:Snowball_Matcher    rdfs:subClassOf amalgame:Match .  
+amalgame:Exact_Label_Matcher rdfs:subClassOf amalgame:Match .  
 amalgame:Isub_Match        rdfs:subClassOf amalgame:Match .  
 
 amalgame:Select1_1    rdfs:subClassOf amalgame:Select .

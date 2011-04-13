@@ -1,5 +1,6 @@
 :- module(eq_opmviz,
-	  [ html_opmviz//1
+	  [ html_opmviz//1,
+	    reply_alignment_graph/2
 	  ]).
 
 :- use_module(library(http/http_dispatch)).
@@ -44,17 +45,26 @@ http_opmviz(Request) :-
 			  graph(Graph,
 				 [description('URI from which we request the context')])
  			]),
-	opmviz_options(Options),
 	(   Format \== html
-	->  opm_triples(Graph, Triples),
-	    meta_options(is_meta, Options, QOptions),
-	    reply_graphviz_graph(Triples, Format, QOptions)
-	;   reply_html_page(cliopatria(default),
+	->  reply_alignment_graph(Graph, Format)
+	;   opmviz_options(Options),
+	    reply_html_page(cliopatria(default),
 			    [ title(['Graph for ', \turtle_label(Graph)])
 			    ],
 			    [ \graphviz_graph(opm_triples(Graph), Options)
 			    ])
 	).
+
+%%	reply_alignment_graph(+AlignmentURI)
+%
+%	Emit an alignment graph.
+
+reply_alignment_graph(Alignment, Format) :-
+	opmviz_options(Options),
+	opm_triples(Alignment, Triples),
+	meta_options(is_meta, Options, QOptions),
+	reply_graphviz_graph(Triples, Format, QOptions).
+
 
 %%	html_opmviz(+Graph)
 %

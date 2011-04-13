@@ -6,38 +6,49 @@
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_json)).
+:- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(amalgame/amalgame_modules)).
 
+:- use_module(opmviz).
 
 :- http_handler(amalgame(data/addprocess), http_add_process, []).
 
 http_add_process(Request) :-
 	http_parameters(Request,
 			[ input(Input,
-				[uri, description('URI of input mapping')]),
+				[uri,
+				 description('URI of input mapping')]),
 			  process(Process,
-				  [uri, description('URI of the process')]),
-			  alignment(Graph,
-				    [uri, description('URI of the alignment graph to which the process is added')])
+				  [uri,
+				   description('URI of the process class')]),
+			  alignment(Alignment,
+				    [uri,
+				     description('URI of the alignment graph to which the process is added')])
 			],
 			[form_data(Params0)]),
 	subtract(Params0, [input=_,process=_], Params),
- 	assert_process(Input, Process, Graph, Params),
-	reply_json(json([input=Input,
-			 process=Process
-			])).
+ 	assert_process(Input, Process, Alignment, Params),
+	reply_alignment_graph(Alignment, svg).
 
-assert_process(Input, Process, Graph, Params) :-
+assert_process(Input, ProcessType, Graph, Params) :-
 	rdf_bnode(ProcessURI),
 	rdf_bnode(OutputURI),
+	process_label(ProcessType, ProcessLabel),
 	uri_query_components(Search, Params),
- 	rdf_transaction((rdf_assert(ProcessURI, rdf:type, Process, Graph),
+ 	rdf_transaction((rdf_assert(ProcessURI, rdf:type, ProcessType, Graph),
+			 rdf_assert(ProcessURI, rdfs:label, ProcessLabel, Graph),
 			 rdf_assert(ProcessURI, amalgame:input, Input, Graph),
 			 rdf_assert(ProcessURI, amalgame:parameters, Search, Graph))),
 	rdf_transaction((rdf_assert(OutputURI, rdf:type, amalgame:'Mapping', Graph),
 			 rdf_assert(OutputURI, opmv:wasGeneratedBy, ProcessURI, Graph))).
 
+process_label(P, Lit) :-
+	(   rdf_label(P, L)
+	->  Lit = L
+	;   rdf_global_id(_:Local, P),
+	    Lit = literal(Local)
+	).
 
 
 html_controls -->
@@ -100,11 +111,11 @@ module_label(M, Label) :-
 	rdf_global_id(_:Label, M).
 
 html_tab_panel([]) --> !.
-html_tab_panel([_URI-Module|Ms]) -->
+html_tab_panel([URI-Module|Ms]) -->
 	{ amalgame_module_parameters(Module, Params)
 	},
-	html(div(id(Module),
-		[ table(tbody(\html_parameter_form(Params, Module))),
+	html(form(id(URI),
+		[ table(tbody(\html_parameter_form(Params))),
 		  div(class('control-buttons'),
 		      input([type(button), class('control-submit'), value('Go')]))
 		])),
@@ -114,25 +125,24 @@ html_tab_panel([_URI-Module|Ms]) -->
 %
 %	Emit html form components corresponding to Parameters.
 
-html_parameter_form([],_) --> !.
-html_parameter_form([parameter(Id, Type, Default, Desc)|Ps], Module) -->
+html_parameter_form([]) --> !.
+html_parameter_form([parameter(Name, Type, Default, Desc)|Ps]) -->
  	html(tr(title(Desc),
-		 [td(label(Id)),
-		  td(\input_value(Type, Default, Module:Id))
+		 [td(label(Name)),
+		  td(\input_value(Type, Default, Name))
 		  ])),
-	html_parameter_form(Ps, Module).
+	html_parameter_form(Ps).
 
 
-%%	input_value(+Type, +Value, +Id)// is det.
+%%	input_value(+Type, +Value, +Name)// is det.
 %
 %	Emit an form-field for Value.
 
 :- multifile
-	input_item/5.			% input_item(+Type, +Value, +Id)//
+	input_item/5.	       % input_item(+Type, +Value, +Name)//
 
-input_value(Type, Value, Id) -->
-	{ html_name(Id, Name) },
-	(   input_item(Type, Value, Name)
+input_value(Type, Value, Name) -->
+ 	(   input_item(Type, Value, Name)
 	->  []
 	;   builtin_input_item(Type, Value, Name)
 	).
@@ -161,18 +171,4 @@ oneof([H|T], Value) -->
 	;   html([ option([                   value(H)], H) ])
 	),
 	oneof(T, Value).
-
-
-		 /*******************************
-		 *	       UTIL		*
-		 *******************************/
-
-%%	html_name(+Setting, -Name) is det.
-%%	html_name(-Setting, +Name) is det.
-%
-%	Convert between Module:Setting and Name for use in form-fields.
-
-html_name(Module:Setting, Name) :-
-	atomic_list_concat([Module, Setting], ':', Name).
-
 

@@ -28,53 +28,57 @@
 % http handlers for this applications
 
 :- http_handler(amalgame(eq), http_equalizer, []).
-:- http_handler(amalgame(eq/new), http_eq_new, []).
-:- http_handler(amalgame(eq/mapping), http_eq_mapping, []).
-:- http_handler(amalgame(eq/workflow), http_eq_workflow, []).
 
 %%	http_equalizer(+Request)
 %
 %	HTTP handler for web page for interactive vocabulary alignment.
 
-http_equalizer(_Request) :-
-	html_start_page.
-
-http_eq_mapping(Request) :-
+http_equalizer(Request) :-
 	http_parameters(Request,
-		     [ uri(MappingURI,
-			   [description('URI of a mapping graph')])
+			[ alignment(Alignment,
+				    [uri, optional(true),
+				     description('URI of an alignment')]),
+			  mapping(Mapping,
+				  [uri, optional(true),
+				   description('URI of a mapping')]),
+			  source(Source,
+				 [uri, optional(true),
+				  description('URI of a source vocabulary')]),
+			  targer(Target,
+				 [uri, optional(true),
+				  description('URI of a target vocabulary')])
 		     ]),
-	Workflow = [MappingURI],
-	html_page(Workflow, MappingURI).
+	(   nonvar(Alignment)
+	->  html_page(Alignment, @null)
+	;   nonvar(Mapping)
+	->  new_alignment(Mapping, Alignment),
+	    html_page(Alignment, Mapping)
+	;   nonvar(Source),
+	    nonvar(Target)
+	->  new_alignment(Source, Target, Alignment),
+	    html_page(Alignment, @null)
+	;   html_start_page
+	).
 
-http_eq_workflow(Request) :-
-	http_parameters(Request,
-		     [ uri(WorkflowURI,
-			   [description('URI of an alignment workflow')])
-		     ]),
- 	html_page(WorkflowURI, @null).
+new_alignment(Mapping, Alignment) :-
+	rdf_bnode(Alignment),
+	rdf_transaction((rdf_assert(Mapping, rdf:type, amalgame:'Mapping', Alignment))).
 
-http_eq_new(Request) :-
-	http_parameters(Request,
-		     [ source(Source,
-			      [description('Source vocabulary')]),
-		       target(Target,
-			      [description('Target vocabulary')])
-		     ]),
-	new_workflow(Source, Target, Workflow),
-	html_page(Workflow, @null).
+new_alignment(Source, Target, Alignment) :-
+	rdf_bnode(Alignment),
+	rdf_transaction((rdf_assert(Source, rdf:type, amalgame:'Source', Alignment),
+			 rdf_assert(Target, rdf:type, amalgame:'Target', Alignment))).
 
-new_workflow(_, _, test).
 
 		 /*******************************
 		 *	      HTML		*
 		 *******************************/
 
-%%	html_page(+Graph, +Mapping)
+%%	html_page(+Alignment, +Mapping)
 %
 %	Emit html page with layout for the appliation.
 
-html_page(Graph, Mapping) :-
+html_page(Alignment, Mapping) :-
 	html_set_options([dialect(html)]),
   	reply_html_page(equalizer(main),
 			[ title(['Align vocabularies'])
@@ -101,7 +105,7 @@ html_page(Graph, Mapping) :-
 					      [])
 					])),
  				script(type('text/javascript'),
-				       [ \yui_script(Graph, Mapping)
+				       [ \yui_script(Alignment, Mapping)
 				       ])
 			      ])
 			]).
@@ -111,7 +115,7 @@ html_page(Graph, Mapping) :-
 %
 %	Emit YUI object.
 
-yui_script(Graph, Mapping) -->
+yui_script(Alignment, Mapping) -->
 	{ findall(K-V, js_path(K, V), Paths),
 	  findall(M-C, js_module(M,C), Modules),
 	  pairs_keys(Modules, Includes)
@@ -120,7 +124,7 @@ yui_script(Graph, Mapping) -->
 	     ],
 	     Includes,
 	     [ \yui3_new(eq, 'Y.Equalizer',
-			 json([graph(Graph),
+			 json([alignment(Alignment),
 			       mapping(Mapping),
  			       paths(json(Paths))
 			      ]))
@@ -133,7 +137,9 @@ yui_script(Graph, Mapping) -->
 js_path(opmgraph, Path) :-
 	http_link_to_id(http_opmviz, [format(svg)], Path).
 js_path(mapping, Path) :-
-	http_link_to_id(http_data_mapping, [], Path).
+	http_location_by_id(http_data_mapping, Path).
+js_path(addprocess, Path) :-
+	http_location_by_id(http_add_process, Path).
 
 %%	js_module(+Key, +Module_Conf)
 %

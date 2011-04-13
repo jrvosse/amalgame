@@ -50,7 +50,7 @@ html_start_page :-
 html_new_project -->
 	html_acc_item(new, 'start new alignment project',
 		      [ div(id(navigator), []),
-			form(action(location_by_id(http_eq_new)),
+			form(action(location_by_id(http_equalizer)),
 			     [ \html_vocab_select(source),
 			       \html_vocab_select(target),
 			       \html_submit('Start')
@@ -61,7 +61,7 @@ html_load_mapping -->
 	{ findall(G, is_alignment_graph(G,_), Graphs)
 	},
 	html_acc_item(mapping, 'load mappings',
-		      [ form(action(location_by_id(http_mapping_view)),
+		      [ form(action(location_by_id(http_equalizer)),
 			     [ \html_alignment_table(Graphs),
  			       \html_submit('Start')
 			     ])
