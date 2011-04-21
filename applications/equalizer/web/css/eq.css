@@ -107,11 +107,14 @@ body {
 }
 
 /* opm graph */
-#opm .selected text {
+.yui3-opmviz {
+	padding: 5px 5px 15px;
+}
+.yui3-opmviz .selected text {
 	font-weight: bold;
 }
-#opm .selected ellipse,
-#opm .selected polygon {
+.yui3-opmviz .selected ellipse,
+.yui3-opmviz .selected polygon {
 	fill: #DBEAFF;
 	stroke-width: 2px;
 }

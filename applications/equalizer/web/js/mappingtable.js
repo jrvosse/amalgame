@@ -50,7 +50,7 @@ YUI.add('mappingtable', function(Y) {
 			.render(content.appendChild(Node.create(
 				'<div class="table"></div>'
 			)));
-						
+			/*	
 			this.paginator = new Y.Paginator({
 				rowsPerPage:this.get("rows"),
 				template: '{FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink}',
@@ -65,7 +65,7 @@ YUI.add('mappingtable', function(Y) {
 			this.paginator.on("changeRequest", function(state) {
 				this.setPage(state.page, true);
 				instance.updateRecords({offset:state.recordOffset});
-			});
+			});*/
 		},
 		
 		handleResponse : function(o) {
@@ -74,8 +74,8 @@ YUI.add('mappingtable', function(Y) {
 				records = o.response.results,
 				total = o.response.meta.totalNumberOfResults;
 			
-			paginator.setPage(1, true);
-			paginator.setTotalRecords(total, true);
+			//paginator.setPage(1, true);
+			//paginator.setTotalRecords(total, true);
 			table.set("recordset", records);
 		},
 		

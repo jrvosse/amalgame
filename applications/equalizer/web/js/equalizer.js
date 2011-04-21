@@ -38,6 +38,12 @@ YUI.add('equalizer', function(Y) {
 				return Lang.isObject(val)
 			}
 		},
+		nodes:{
+			value:{},
+			validator: function(val) {
+				return Lang.isObject(val)
+			}
+		},
 	    strings: {
 	        value: {},
 			validator: function(val) {
@@ -147,14 +153,7 @@ YUI.add('equalizer', function(Y) {
 			var callback = 	{
 				success: function(o) {
 					var meta = o.response.meta,
-						statistics = meta.statistics,
-						type = meta.type;
-					
-					// We only show the controls that correspond with type
-					NODE_CONTROLS.all(".controlset").addClass("hidden");
-					var activeSet = (type=="mapping") ? NODE_MCONTROLS : 
-						((type=="process") ? NODE_PCONTROLS : NODE_VCONTROLS);
-					activeSet.removeClass("hidden");
+						statistics = meta.statistics;
 					
 					// update the other components
 					infobox.set("data", statistics);
@@ -206,10 +205,27 @@ YUI.add('equalizer', function(Y) {
 		},
 				
 		_onNodeSelect : function(e) {
-			var uri = e.uri;
+			var uri = e.uri,
+				type = this.get("nodes")[uri]||"vocab";
 			this.set("selected", uri);
-			this.mappingtable.set("selected", uri);
-			this.fetchMapping();
+			console.log(type);
+			// depending on the result type we update
+			// different components
+			if(type=="mapping") {
+				activeSet = NODE_MCONTROLS;
+				this.mappingtable.set("selected", uri);
+				this.fetchMapping();
+			} else if(type=="process") {
+				activeSet = NODE_PCONTROLS;
+			} else if(type=="vocab") {
+				activeSet = NODE_VCONTROLS;
+			}
+			// We only show the controls for the active type
+			NODE_CONTROLS.all(".controlset").addClass("hidden");
+			activeSet.removeClass("hidden");
+			
+			
+
 		},
 		
 		// The bottom part of the screen fills the height of the viewport
@@ -232,7 +248,7 @@ YUI.add('equalizer', function(Y) {
 	Y.Equalizer = Equalizer;
 	
 }, '0.0.1', { requires: [
-	'node,event','anim','tabview',
+	'node','event','anim','tabview',
 	'datasource-io','datasource-jsonschema','datasource-cache',
 	'querystring-stringify-simple',
 	'gallery-resize','gallery-node-accordion'
