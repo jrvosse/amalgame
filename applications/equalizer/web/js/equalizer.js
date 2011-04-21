@@ -208,7 +208,6 @@ YUI.add('equalizer', function(Y) {
 			var uri = e.uri,
 				type = this.get("nodes")[uri]||"vocab";
 			this.set("selected", uri);
-			console.log(type);
 			// depending on the result type we update
 			// different components
 			if(type=="mapping") {

@@ -81,8 +81,8 @@ new_alignment(Source, Target, Alignment) :-
 new_alignment(Source, Target, Alignment) :-
 	rdf_bnode(Alignment),
 	rdf_transaction((rdf_assert(Alignment, rdf:type, amalgame:'Alignment', Alignment),
-			 rdf_assert(Source, rdf:type, amalgame:'Source', Alignment),
-			 rdf_assert(Target, rdf:type, amalgame:'Target', Alignment))),
+			 rdf_assert(Alignment, amalgame:source, Source, Alignment),
+			 rdf_assert(Alignment, amalgame:target, Target, Alignment))),
 	http_session_assert(new_alignment(Alignment, Source, Target)).
 
 		 /*******************************

@@ -12,8 +12,10 @@
 @prefix sparql:    <http://purl.org/net/opmv/types/sparql#> .
 @prefix :    <http://purl.org/vocabularies/amalgame#> .
 
-<>  a :Workflow ;
-    rdfs:label "GTAA-Cornetto" .
+<>  a :Alignment ;
+    rdfs:label "GTAA-Cornetto" ;
+    :source <http://data.beeldengeluid.nl/gtaa/Onderwerpen> ;
+    :target <http://purl.org/vocabularies/cornetto/NounSynset> .
 
 _:noun_mapping
     a :Mapping ;

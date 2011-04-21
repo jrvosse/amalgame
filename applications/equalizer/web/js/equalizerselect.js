@@ -106,23 +106,20 @@ YUI.add('equalizer-select', function(Y) {
 	      	Y.on("click", this._valueSet, "#targetbtn", this, "target");
 	
 	
-			// the start button for the mapping selector is only shown when
-			// a mapping is selected
-			Y.all("#mapping .option").on("click", function(e) {
+			// the start button for the alignment selector is only shown when
+			// an alignment is selected
+			Y.all("#open .option").on("click", function(e) {
 	  			e.target.toggleClass("selected");
-	  			var nodes = Y.Node.all("#mapping .selected");
+	  			var nodes = Y.Node.all("#open .selected");
 				if(nodes.size()>0) {
-	     			Y.one("#mapping .start").set("disabled", false);
+	     			Y.one("#open .start").set("disabled", false);
           		} else {
-	     			Y.one("#mapping .start").set("disabled", true);
+	     			Y.one("#open .start").set("disabled", true);
 	  			}
      		});
-	
-			// The controls are accordion nodes
- 			Y.one(NODE_CONTENT).plug(Y.Plugin.NodeAccordion, { 
-   				anim: true, 
-				speed:0.1
-			});
+			Y.all("#import input").on("click", function(e) {
+	     		//Y.one("#import .start").set("disabled", false);
+     		});
 			
 			this.DS = DS;
 			this.CB = CB;

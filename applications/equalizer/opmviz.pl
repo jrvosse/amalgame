@@ -97,17 +97,20 @@ html_opmviz(Graph) -->
 opm_triples(Graph, Triples) :-
 	findall(rdf(S,P,O),
 		(   rdf(S,P,O,Graph),
+		    \+rdf(S, rdf:type, amalgame:'Alignment'),
 		    is_opm_property(P)
 		),
 		Triples),
 	Triples \== [],
 	!.
-opm_triples(Graph, [rdf(S,Vocab,Graph),
-		    rdf(T,Vocab,Graph)]) :-
-	rdf(S, rdf:type, amalgame:'Source', Graph),
-	rdf(T, rdf:type, amalgame:'Target', Graph),
-	!,
-	rdf_equal(Vocab, amalgame:vocabulary).
+opm_triples(Graph, [rdf(Graph,PS,Source),
+		    rdf(Graph,PT,Target)]) :-
+	rdf_equal(amalgame:source, PS),
+	rdf_equal(amalgame:target, PT),
+ 	rdf(Graph, PS, Source),
+	rdf(Graph, PT, Target),
+	Source \== Target,
+	!.
 opm_triples(_Graph, []).
 
 
