@@ -95,8 +95,6 @@ get_exclusion_concepts(ExcSrcs, ExcTars, Options) :-
 	option(exclude_sources(ExcSrcs), Options, []),
 	option(exclude_targets(ExcTars), Options, []),
 
-amalgame:component(source_select, align_exlude(align_source, uris, [exclude(align_graph)])).
-
 %%	source_select(+Source, +URIs, +Options)
 %
 %	URIs is a list of sorted Resources, representing all Concepts in
