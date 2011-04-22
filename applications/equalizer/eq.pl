@@ -157,6 +157,9 @@ js_path(mapping, Path) :-
 	http_location_by_id(http_data_mapping, Path).
 js_path(addprocess, Path) :-
 	http_location_by_id(http_add_process, Path).
+js_path(concepts, Path) :-
+	  http_location_by_id(http_concepts, Path).
+
 
 %%	js_module(+Key, +Module_Conf)
 %
@@ -185,6 +188,17 @@ js_module(mappingtable, json([fullpath(Path),
 					datatable,'datatable-sort'])
 			     ])) :-
 	http_absolute_location(js('mappingtable.js'), Path, []).
+js_module(columnbrowser, json([fullpath(Path),
+			       requires([node,event,
+				   'gallery-resize','gallery-value-change',
+				   resourcelist])
+			])) :-
+	http_absolute_location(js('columnbrowser.js'), Path, []).
+js_module(resourcelist, json([fullpath(Path),
+			      requires([node,event,widget])
+		       ])) :-
+	http_absolute_location(js('resourcelist.js'), Path, []).
+
 
 %%	js_alignment_nodes(+Alignment, -Nodes)
 %

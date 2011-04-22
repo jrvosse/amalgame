@@ -4,23 +4,13 @@ YUI.add('equalizer-select', function(Y) {
 		Node = Y.Node,
 		Plugin = Y.Plugin;
 	
-	var	NODE_CONTENT 		= Y.one("#content"),
-		NODE_NAV 			= Y.one("#navigator");
+	var	NODE_CONTENT 		= Y.one("#content");
 	
 	function EqualizerSelect(config) {
 		EqualizerSelect.superclass.constructor.apply(this, arguments);
 	}
 	EqualizerSelect.NAME = "equalizer-select";
 	EqualizerSelect.ATTRS = {
-		paths:{
-			value:{
-				conceptschemes:'/',
-				concepts:'/'
-			},
-			validator: function(val) {
-				return Lang.isObject(val)
-			}
-		},
 	    strings: {
 	        value: {},
 			validator: function(val) {
@@ -41,71 +31,19 @@ YUI.add('equalizer-select', function(Y) {
 				anim:true,
 				effect:Y.Easing.backIn
 			});
-			
-			// the vocabulary selecter dynamically fetches concepts from the server
-			// The source of the datasource is set on request as it can be different
-			// per selected item
-			var DS = new Y.DataSource.IO({source:""})
-			.plug(Y.Plugin.DataSourceJSONSchema, {
-				schema: {
-					resultListLocator: "results",
-		    		resultFields: ["id", "label", "hasNext", "matches", "scheme"],
-		    		metaFields: {totalNumberOfResults:"totalNumberOfResults"}
-		  		}
-			})
-			.plug(Y.Plugin.DataSourceCache, {
-				cfg:{max:20}
-			});
+			// the start button for the vocabulary selector is only shown when
+			// a source and a target are selected
+			Y.all("#new .option").on("click", function(e) {
+	  			e.target.toggleClass("selected");
+	  			var nodes = Y.Node.all("#new .selected");
+				if(nodes.size()>1) {
+	     			Y.one("#new .start").set("disabled", false);
+          		} else {
+	     			Y.one("#new .start").set("disabled", true);
+	  			}
+     		});
 
-			// For the vocabulary selecter we use the columnbrowser widget
-			// We define three types of colums: 
-			//      the conceptschemes, the topconcepts in this scheme
-			//      and the narrower concepts
-			var CB = new Y.mazzle.ColumnBrowser({
-				datasource: DS,
-		  		title:"navigator",
-		  		maxNumberItems: 100,
-				columns: [
-					{request: paths.conceptschemes,
-				     label: "conceptscheme",
-				     formatter: this.formatItem
-				  	},
-		  			{request: paths.concepts,
-		      		 label: "concept",
-					 params:{
-						type:"topconcept",
-		       			parent:"voc"
-		      		 },
-					 options:[
-						{value:"inscheme",
-			 			 label:"concepts in scheme"
-						},
-	                	{value:"topconcept",
-			 			 selected:true,
-			 			 label: "top concepts"
-						}]
-					},
-		    		{request: paths.concepts,
-		      		 params: {type:"child"},
-		      		 options:[
-						{value:"descendant",
-			 			 label:"descendants"
-						},
-						{value:"child",
-			 			 selected:true,
-			 			 label:"children"
-						}],
-		      		 repeat: true
-		    		}
-		  		]
-			});
-			CB.setTitle = function() {}
-	      	CB.setFooter = function() {}
-			CB.render(NODE_NAV);
-	      	Y.on("click", this._valueSet, "#sourcebtn", this, "source");
-	      	Y.on("click", this._valueSet, "#targetbtn", this, "target");
-	
-	
+			
 			// the start button for the alignment selector is only shown when
 			// an alignment is selected
 			Y.all("#open .option").on("click", function(e) {
@@ -120,9 +58,6 @@ YUI.add('equalizer-select', function(Y) {
 			Y.all("#import input").on("click", function(e) {
 	     		//Y.one("#import .start").set("disabled", false);
      		});
-			
-			this.DS = DS;
-			this.CB = CB;
 		},
 		
 		formatItem : function(o) {
@@ -136,7 +71,9 @@ YUI.add('equalizer-select', function(Y) {
 			}
 		 	HTML += "<div class='resourcelist-item-value' title='"+uri+"'>"+value+"</div>";
 		 	return HTML;
-		},
+		}
+		
+		/*,
 		
 		_valueSet : function(e, which) {
 			var selected =  this.CB.get("selected");
@@ -157,14 +94,14 @@ YUI.add('equalizer-select', function(Y) {
     				Y.one("#new .start").set("disabled", true);
        			}
      		}
-		}		
+		}*/
+				
 	});
 	
 	Y.EqualizerSelect = EqualizerSelect;
 	
 }, '0.0.1', { requires: [
 	'node','base','event','anim',
-	'datasource-io','datasource-jsonschema','datasource-cache',
-	'gallery-resize','gallery-node-accordion'
+	'gallery-node-accordion'
 	]
 });

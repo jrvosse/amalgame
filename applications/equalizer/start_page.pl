@@ -26,8 +26,10 @@
 %	project.
 
 html_start_page :-
- 	findall(A, amalgame_alignment(A), Alignments0),
- 	sort(Alignments0, Alignments),
+	findall(C, rdf(C, rdf:type, skos:'ConceptScheme'), Cs),
+ 	findall(A, amalgame_alignment(A), As),
+	sort(Cs, ConceptSchemes),
+ 	sort(As, Alignments),
   	reply_html_page(equalizer(start),
 			[ title(['Amalgame - projects'])
  			],
@@ -40,7 +42,7 @@ html_start_page :-
 				div(id(main),
 				    [ h1('AMALGAME'),
 				      div([id(content), class('yui3-accordion')],
-					  [ \html_new,
+					  [ \html_new(ConceptSchemes),
  					    \html_open(Alignments),
 					    \html_import
 					  ])
@@ -60,22 +62,35 @@ amalgame_alignment(alignment(Alignment, Source, Target)) :-
 %
 %
 
-html_new -->
+html_new(Schemes) -->
 	html_acc_item(new, 'new alignment project',
-		      [ div(id(navigator), []),
-			form(action(location_by_id(http_equalizer)),
-			     [ \html_vocab_select(source),
-			       \html_vocab_select(target),
+		      [ form(action(location_by_id(http_equalizer)),
+			     [ \html_vocab_table(Schemes),
 			       \html_submit('Start')
 			     ])
 		      ]).
 
-html_vocab_select(Id) -->
-	html(div(class(vocselect),
-		 [input([id(Id+btn), class(select), type(button), value('set as '+Id)]),
-		  input([type(text), autocomplete(off), class(label), disabled(true), id(Id+label), value('')]),
-		  input([type(hidden), value(''), autocomplete(off), name(Id), id(Id)])
-		 ])).
+html_vocab_table(Vs) -->
+	html(table([thead(tr(\html_vocab_head)),
+		    tbody(\html_vocab_rows(Vs))
+		   ])).
+
+html_vocab_head -->
+	html([th(source),
+	      th(target),
+	      th(name),
+	      th(concepts)
+ 	     ]).
+
+html_vocab_rows([]) --> !.
+html_vocab_rows([URI|Vs]) -->
+ 	html(tr([td(input([type(radio), autocomplete(off), class(option), name(source), value(URI)])),
+		 td(input([type(radio), autocomplete(off), class(option), name(target), value(URI)])),
+		 td(\html_graph_name(URI)),
+		 td('-')
+  		])),
+	html_vocab_rows(Vs).
+
 
 %%	html_open(+Alignments)
 %
@@ -179,26 +194,15 @@ html_acc_item(Id, Label, Body) -->
 %	Emit YUI object.
 
 yui_script -->
-	{ findall(K-V, js_path(K, V), Paths),
-	  findall(M-C, js_module(M,C), Modules),
+	{ findall(M-C, js_module(M,C), Modules),
 	  pairs_keys(Modules, Includes)
  	},
  	yui3([json([modules(json(Modules))])
 	     ],
 	     Includes,
-	     [ \yui3_new(eq, 'Y.EqualizerSelect',
-			 json([ paths(json(Paths))
-			      ]))
-	     ]).
+	     [ \yui3_new(eq, 'Y.EqualizerSelect', [])
+ 	     ]).
 
-%%	js_path(+Key, +Server_Path)
-%
-%	Path to the server used in javascript.
-
-js_path(conceptschemes, Path) :-
-	http_location_by_id(http_concept_schemes, Path).
-js_path(concepts, Path) :-
-	  http_location_by_id(http_concepts, Path).
 
 %%	js_module(+Key, +Module_Conf)
 %
@@ -207,21 +211,11 @@ js_path(concepts, Path) :-
 js_module(gallery, 'gallery-2011.02.23-19-01').
 js_module('equalizer-select', json([fullpath(Path),
 				    requires([node,base,event,anim,
-					      'datasource-io','datasource-cache','datasource-jsonschema',
-					      'gallery-node-accordion',
-					      columnbrowser])
+ 					      'gallery-node-accordion'])
 			  ])) :-
 	http_absolute_location(js('equalizerselect.js'), Path, []).
-js_module(resourcelist, json([fullpath(Path),
-			      requires([node,event,widget])
-		       ])) :-
-	http_absolute_location(js('resourcelist.js'), Path, []).
-js_module(columnbrowser, json([fullpath(Path),
-			       requires([node,event,
-				   'gallery-resize','gallery-value-change',
-				   resourcelist])
-			])) :-
-	http_absolute_location(js('columnbrowser.js'), Path, []).
+
+
 
 
 :- http_handler(amalgame(load/url), eq_upload_url, []).
@@ -255,14 +249,3 @@ eq_upload_url(Request) :-
 	rdf_load(URL, [graph(Graph)]),
 	http_link_to_id(http_equalizer, [alignment(Graph)], Redirect),
 	http_redirect(moved, Redirect, Request).
-
-
-/*
-	;   nonvar(URL)
-	->  http_link_to_id(upload_url, url(URL), Src)
-	),
-	reply_html_page('Amalgame import',
-		   [ iframe(src(Src)),
-		     div(continue)
-		   ]).
-*/

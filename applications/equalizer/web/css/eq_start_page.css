@@ -136,11 +136,11 @@
 }
 
 /* alignment table */
-#open th {
+#main th {
 	font-weight: bold;
 }
-#open th,
-#open td {
+#main th,
+#main td {
 	padding: 2px 8px;
 	vertical-align: top;
 }
