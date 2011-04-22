@@ -89,8 +89,9 @@ mapping_process(Process, Type, Id, Mapping) :-
 	resource_to_term(Type, Module),
 	process_options(Process, Module, Options),
 	debug(align, 'running ~w matcher', [Module]),
-	(   rdf(Process, amalgame:input, MappingIn)  % input is an alignment graph
-	->  call(Module:filter, MappingIn, Mapping0, Options)
+	(   rdf(Process, amalgame:input, InputId)  % input is a named alignment graph
+	->  expand_mapping(InputId, MappingIn),
+	    call(Module:filter, MappingIn, Mapping0, Options)
 	;   rdf(Process, amalgame:source, Source),
 	    rdf(Process, amalgame:target, Target)
 	->  call(Module:matcher, Source, Target, Mapping0, Options)
@@ -133,7 +134,7 @@ mapping_process(Process, Type, Id, Mapping) :-
 	debug(align, 'Merged ~w (~w)', [Id,L]).
 
 mapping_process(Process, Type, Id, Mapping) :-
-	rdfs_subclass_of(Type, amalgame:'VocExclude'),
+	rdfs_subclass_of(Type, amalgame:'Voc_Exclude'),
 	!,
 	resource_to_term(Type, Module),
 	process_options(Process, Module, Options),
@@ -188,9 +189,9 @@ process_options(_, _, []).
 
 module_options(Module, Options, Parameters) :-
 	findall(O-P,
-		( call(Module:parameter, Name, Properties, _Description),
+		( call(Module:parameter, Name, Type, Default, _Description),
 		  O =.. [Name, Value],
-		  P =.. [Name, Value, Properties]
+		  P =.. [Name, Value, [Type, default(Default)]]
 		),
 		Pairs),
 	pairs_keys_values(Pairs, Options, Parameters).
