@@ -9,27 +9,22 @@
 
 :- public filter/3.
 :- public matcher/4.
-:- public parameter/3.
+:- public parameter/4.
 
-parameter(sourcelabel,
-	  [uri, default(P)],
+parameter(sourcelabel, uri, P,
 	  'Property to get label of the source by') :-
 	rdf_equal(rdfs:label, P).
-parameter(targetlabel,
-	  [uri, default(P)],
+parameter(targetlabel, uri, P,
 	  'Property to get the label of the target by') :-
 	rdf_equal(rdfs:label, P).
-parameter(threshold,
-	  [float, default(-1.0)],
+parameter(threshold, float, -1.0,
 	  'threshold edit distance').
-parameter(language,
-	  [atom, optional(true)],
+parameter(language, atom, '',
 	  'Language of source label').
 parameter(matchacross_lang,
-	  [boolean, default(true)],
+	  boolean, true,
 	  'Allow labels from different language to be matched').
-parameter(case_sensitive,
-	  [boolean, default(false)],
+parameter(case_sensitive, boolean, false,
 	  'When true the case of labels must be equal').
 
 filter(Alignments, Mappings, Options) :-

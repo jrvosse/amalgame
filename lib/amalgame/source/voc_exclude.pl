@@ -3,18 +3,18 @@
 	  ]
 	 ).
 
+:- public parameter/4.
+:- public source_select/3.
+:- public concept_selecter/5.
+:- public concept_selecter/3.
+
 parameter(type,
-	  [oneof(source,target), default(source)],
+	  oneof(source,target), source,
 	  'Property to exclude matching sources or targets').
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(amalgame/alignment_graph)).
 
-:- public source_select/3.
-:- multifile amalgame:component/2.
-
-:- public concept_selecter/5.
-:- public concept_selecter/3.
 
 concept_selecter(SourceVoc, TargetVoc, SelSourceVoc, SelTargetVoc, Options) :-
 	get_exclusion_concepts(ExcSrcs, ExcTars, Options),
@@ -88,14 +88,6 @@ get_exclusion_concepts(ExcSrcs, ExcTars, Options) :-
 	),
 	maplist(align_source, Alignments, ExcSrcs),
 	maplist(align_target, Alignments, ExcTars).
-
-
-get_exclusion_concepts(ExcSrcs, ExcTars, Options) :-
-	!,
-	option(exclude_sources(ExcSrcs), Options, []),
-	option(exclude_targets(ExcTars), Options, []),
-
-amalgame:component(source_select, align_exlude(align_source, uris, [exclude(align_graph)])).
 
 %%	source_select(+Source, +URIs, +Options)
 %

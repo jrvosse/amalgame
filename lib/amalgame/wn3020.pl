@@ -25,7 +25,6 @@
 :- use_module(library(amalgame/partition/target_ambiguity)).
 :- use_module(library(amalgame/partition/best_label)).
 :- use_module(library(amalgame/partition/best_numeric)).
-:- use_module(library(amalgame/partition/most_labels_jacco)).
 :- use_module(library(amalgame/partition/most_methods)).
 :- use_module(library(amalgame/source/align_exclude)).
 :- use_module(library(amalgame/source/voc_exclude)).
