@@ -29,8 +29,13 @@ parameter(case_sensitive, boolean, false,
 %	Filter mappings based on exact matching of labels.
 
 filter([], [], _).
-filter([C0|Cs], [C|Mappings], Options) :-
-	match(C0, C, Options),
+filter([align(S,T,P)|Cs], [C|Mappings], Options) :-
+	(   T = scheme(_)
+	->  match(align(S,_,P), C, Options),
+	    C=align(_,T2,_),
+	    vocab_member(T2, T)
+	;   match(align(S,T,P), C, Options)
+	),
 	!,
 	filter(Cs, Mappings, Options).
 filter([_|Cs], Mappings, Options) :-
@@ -57,10 +62,14 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
  	option(sourcelabel(MatchProp1), Options, RdfsLabel),
  	option(targetlabel(MatchProp2), Options, RdfsLabel),
 	option(matchacross_lang(MatchAcross), Options, true),
-	option(language(SourceLang), Options, _),
 	option(case_sensitive(CaseSensitive), Options, false),
+	option(language(Lang), Options, ''),
 
-	% FIX ME, case option not yet used in matching!
+	(   Lang == ''
+	->  true
+	;   SourceLang = Lang
+	),
+
 	(   CaseSensitive
 	->  CaseString=cs, SearchTarget=literal(lang(TargetLang, TargetLabel))
 	;   CaseString=ci, SearchTarget=literal(exact(SourceLabel), lang(TargetLang, TargetLabel))
