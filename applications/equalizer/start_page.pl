@@ -3,16 +3,18 @@
 	  ]).
 
 :- use_module(library(http/http_dispatch)).
+:- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_host)).
 :- use_module(library(http/http_path)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/http_json)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/js_write)).
-:- use_module(library(yui3)).
+:- use_module(library(yui3_beta)).
 :- use_module(library(http/json)).
 :- use_module(library(http/json_convert)).
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_label)).
 :- use_module(components(label)).
 :- use_module(applications(concept_finder/concept_finder)).
@@ -24,21 +26,23 @@
 %	project.
 
 html_start_page :-
+ 	findall(A, amalgame_alignment(A), Alignments0),
+ 	sort(Alignments0, Alignments),
   	reply_html_page(equalizer(start),
 			[ title(['Amalgame - projects'])
  			],
 			[ \html_requires(css('eq_start_page.css')),
-			  \html_requires('http://yui.yahooapis.com/combo?3.3.0/build/cssreset/reset-min.css&3.3.0/build/cssfonts/fonts-min.css&gallery-2011.02.23-19-01/build/gallery-node-accordion/assets/skins/sam/gallery-node-accordion.css'),
-			  \html_requires('http://github.com/mattparker/yui3-gallery/raw/master/build/gallery-resize/assets/resize-core.css'),
-			  \html_requires('http://github.com/mattparker/yui3-gallery/raw/master/build/gallery-resize/assets/skin/sam/resize-skin.css'),
- 			  div(class('yui3-skin-sam'),
+ 			  \html_requires(css('resize-core.css')),
+			  \html_requires(css('resize-skin.css')),
+			  \html_requires('http://yui.yahooapis.com/combo?3.3.0/build/cssreset/reset-min.css&3.3.0/build/cssgrids/grids-min.css&3.3.0/build/cssfonts/fonts-min.css&gallery-2011.02.23-19-01/build/gallery-node-accordion/assets/skins/sam/gallery-node-accordion.css'),
+ 			  div(class('yui-skin-sam yui3-skin-sam'),
 			      [ div(id(header), []),
 				div(id(main),
 				    [ h1('AMALGAME'),
 				      div([id(content), class('yui3-accordion')],
-					  [ \html_new_project,
-					    \html_load_mapping,
-					    \html_load_workflow
+					  [ \html_new,
+ 					    \html_open(Alignments),
+					    \html_import
 					  ])
 				    ]),
 				script(type('text/javascript'),
@@ -47,8 +51,17 @@ html_start_page :-
 			      ])
 			]).
 
-html_new_project -->
-	html_acc_item(new, 'start new alignment project',
+amalgame_alignment(alignment(Alignment, Source, Target)) :-
+	rdfs_individual_of(Alignment, amalgame:'Alignment'),
+	rdf(Alignment, amalgame:source, Source),
+	rdf(Alignment, amalgame:target, Target).
+
+%%	html_new
+%
+%
+
+html_new -->
+	html_acc_item(new, 'new alignment project',
 		      [ div(id(navigator), []),
 			form(action(location_by_id(http_equalizer)),
 			     [ \html_vocab_select(source),
@@ -57,27 +70,81 @@ html_new_project -->
 			     ])
 		      ]).
 
-html_load_mapping -->
-	{ findall(G, is_alignment_graph(G,_), Graphs)
-	},
-	html_acc_item(mapping, 'load mappings',
-		      [ form(action(location_by_id(http_equalizer)),
-			     [ \html_alignment_table(Graphs),
- 			       \html_submit('Start')
-			     ])
-		      ]).
-
-html_load_workflow -->
-	html_acc_item(workflow, 'load alignment workflow',
-		      [tbd]).
-
-
 html_vocab_select(Id) -->
 	html(div(class(vocselect),
 		 [input([id(Id+btn), class(select), type(button), value('set as '+Id)]),
 		  input([type(text), autocomplete(off), class(label), disabled(true), id(Id+label), value('')]),
 		  input([type(hidden), value(''), autocomplete(off), name(Id), id(Id)])
 		 ])).
+
+%%	html_open(+Alignments)
+%
+%
+
+html_open(Alignments) -->
+	html_acc_item(open, 'open alignment',
+		      [ form(action(location_by_id(http_equalizer)),
+			     [ \html_alignment_table(Alignments),
+ 			       \html_submit('Start')
+			     ])
+		      ]).
+html_alignment_table(Alignments) -->
+	html(table([thead(tr(\html_alignment_head)),
+		    tbody(\html_alignment_rows(Alignments))
+		   ])).
+
+html_alignment_head -->
+	html([th([]),
+	      th(name),
+	      th(source),
+	      th(target)
+ 	     ]).
+
+html_alignment_rows([]) --> !.
+html_alignment_rows([alignment(URI,Source,Target)|Gs]) -->
+ 	html(tr([td(input([type(radio), autocomplete(off), class(option), name(alignment), value(URI)])),
+		 td(\html_graph_name(URI)),
+		 td([\turtle_label(Source)]),
+		 td([\turtle_label(Target)])
+ 		])),
+	html_alignment_rows(Gs).
+
+html_graph_name(Graph) -->
+	{ graph_label(Graph, Label)
+	},
+	html(Label).
+
+graph_label(Graph, Label) :-
+	rdf_label(Graph, Lit),
+	literal_text(Lit, Label).
+graph_label(Graph, Graph).
+
+
+html_import -->
+	html_acc_item(import, 'import alignment',
+		      [ form(action(location_by_id(eq_upload_url)),
+			     [ 'URL: ',
+			       input([type(text), name(url), value('http://'),
+				      autocomplete(off), size(50)
+				     ]),
+			       input([type(submit), value('Upload')])
+			   ]),
+			form([action(location_by_id(eq_upload_data)),
+			      method('POST'),
+			      enctype('multipart/form-data')
+			     ],
+			     [ 'File: ',
+			       input([type(file), name(data),
+				      size(50)%, autocomplete(off)
+				     ]),
+			       input([type(submit), value('Upload')])
+			     ])
+		      ]).
+
+
+%%	html_submit(+Label)
+%
+%
 
 html_submit(Label) -->
 	html(div(class(controls),
@@ -103,42 +170,8 @@ html_acc_item(Id, Label, Body) -->
 %
 %	Emit HTML table with alignment graph properties.
 
-html_alignment_table(Graphs) -->
-	html(table([thead(tr(\html_alignment_head)),
-		    tbody(\html_alignment_rows(Graphs))
-		   ])).
 
-html_alignment_head -->
-	html([th([]),
-	      th(name),
-	      th(source),
-	      th(target),
-	      th(mappings)
-	     ]).
 
-html_alignment_rows([]) --> !.
-html_alignment_rows([Graph|Gs]) -->
-	{ rdf(Graph, amalgame:source, Source),
-	  rdf(Graph, amalgame:target, Target),
- 	  rdf(Graph, amalgame:count, MappingCount)
-	},
-	html(tr([td(input([type(checkbox), autocomplete(off), class(option), name(url), value(Graph)])),
-		 td(\html_graph_name(Graph)),
-		 td([\turtle_label(Source)]),
-		 td([\turtle_label(Target)]),
-		 td(class(count), MappingCount)
-		])),
-	html_alignment_rows(Gs).
-
-html_graph_name(Graph) -->
-	{ graph_label(Graph, Label)
-	},
-	html(Label).
-
-graph_label(Graph, Label) :-
-	rdf_label(Graph, Lit),
-	literal_text(Lit, Label).
-graph_label(Graph, Graph).
 
 
 %%	yui_script
@@ -146,152 +179,90 @@ graph_label(Graph, Graph).
 %	Emit YUI object.
 
 yui_script -->
-	{ http_absolute_location(js('resourcelist.js'), ResourceList, []),
-	  http_absolute_location(js('columnbrowser.js'), ColumnBrowser, [])
-  	},
-	js_yui3([{modules:{gallery: 'gallery-2011.02.23-19-01',
- 			   resourcelist:{fullpath:ResourceList},
-			   columnbrowser:{fullpath:ColumnBrowser}
- 			  }}
-		],
-		[node,event,widget,anim,datasource,
-		 'gallery-node-accordion','gallery-resize','gallery-value-change',
-   		 resourcelist,columnbrowser
- 		],
-		[ \js_navigator('#navigator', navigator),
-		  \js_mappings,
- 		  'Y.one("#content").plug(Y.Plugin.NodeAccordion,
-					  {multiple:false,
-					   fade:true,
-					   anim:true,
-					   effect:Y.Easing.backIn})'
-  		]).
-
-%%	js_navigator(+HTMLElement, +Id)
-%
-%	Emit javascript to initialize a Y.Mazzle.columnbrowser.
-
-js_navigator(El, Id) -->
-	js_navigator_format,
-	js_navigator_datasource(ds),
-	js_navigator_widget(Id, ds),
-	js_yui3_render(Id, El),
-	js_navigator_select(Id),
-	html([Id,'.setTitle = function() {};\n',
-	      Id,'.setFooter = function(o) {};\n',
-	      'Y.on("click", valueSet, "#sourcebtn", this, "source");\n',
-	      'Y.on("click", valueSet, "#targetbtn", this, "target");\n'
+	{ findall(K-V, js_path(K, V), Paths),
+	  findall(M-C, js_module(M,C), Modules),
+	  pairs_keys(Modules, Includes)
+ 	},
+ 	yui3([json([modules(json(Modules))])
+	     ],
+	     Includes,
+	     [ \yui3_new(eq, 'Y.EqualizerSelect',
+			 json([ paths(json(Paths))
+			      ]))
 	     ]).
 
-js_navigator_datasource(Id) -->
-	js_new(Id,
-	       'Y.DataSource.IO'({source:''})),
-	js_yui3_plug(Id,
-		'Y.Plugin.DataSourceJSONSchema',
-		{ schema:
-		  { resultListLocator: results,
-		    resultFields: [id, label, hasNext, matches, scheme],
-		    metaFields: {totalNumberOfResults:totalNumberOfResults}
-		  }
-		}),
-	js_yui3_plug(Id,
-		'Y.Plugin.DataSourceCache',
-		{ cfg:{max:20}}).
-
-js_navigator_widget(Id, DataSource) -->
-	{ http_location_by_id(http_concept_schemes, ConceptSchemes),
-	  http_location_by_id(http_concepts, Concepts)
- 	},
-	js_new(Id,
-	       'Y.mazzle.ColumnBrowser'(
-		{ datasource: symbol(DataSource),
-		  title:navigator,
-		  maxNumberItems: 100,
-		  columns:
-		  [ { request: ConceptSchemes,
-		      label: conceptscheme,
-		      formatter: symbol(formatItem)
-		    },
-		  { request: Concepts,
-		      label: concept,
-		      params:
-		      {type:topconcept,
-		       parent:voc
-		      },
- 		      options:
-		      [ {value:inscheme,
-			 label:'concepts in scheme'
-			},
-	                {value:topconcept,
-			 selected:true,
-			 label: 'top concepts'
-			}
-		      ]
-		    },
-		    { request: Concepts,
-		      params: {type:child},
-		      options:
-		      [ {value:descendant,
-			 label:descendants
-			},
-			{value:child,
-			 selected:true,
-			 label:children
-			}
-		      ],
-		      repeat: true
-		    }
-		  ]
-		})).
-
-js_navigator_format -->
-	js_function_decl(formatItem, [o],
-			 \[
-'    var label = o["label"],
-	 uri   = o["id"],
-	 value = (label&&!Y.Lang.isObject(label)) ? label : uri;\n',
-'    var HTML = "";
-	 if(o.hasNext) { HTML += "<div class=\'more\'>&gt;</div>"; }
-	 HTML += "<div class=\'resourcelist-item-value\' title=\'"+uri+"\'>"+value+"</div>";
-	 return HTML;'
-			  ]).
-
-js_navigator_select(Id) -->
-	js_function_decl(valueSet, [e, which],
-		    \[
-'   var selected =  ',Id,'.get("selected");\n',
-'   if(selected) {
-	Y.log(which+": "+selected.id);
-	var uri = selected.id,
-	    label = selected.label,
-	    labelNode = Y.one("#"+which+"label"),
-	    uriNode = Y.one("#"+which);\n',
-'	    labelNode.set("value", label);
-	    labelNode.addClass("filled");
-	uriNode.set("value", uri);\n',
-'       var nodes = Y.Node.all("#new .label.filled");
-	if(nodes.size()==2) {
-	    Y.one("#new .start").set("disabled", false);
-	} else {
-	    Y.one("#new .start").set("disabled", true);
-        }
-     }'
-		   ]).
-
-
-%%	js_mappings
+%%	js_path(+Key, +Server_Path)
 %
-%	Emit JavaScript to handle interaction of mapping list
+%	Path to the server used in javascript.
 
-js_mappings -->
-	html(\[
-'    Y.all("#mapping .option").on("click", function(e) {
-	  e.target.toggleClass("selected");
-	  var nodes = Y.Node.all("#mapping .selected");\n',
-'	  if(nodes.size()>0) {
-	     Y.one("#mapping .start").set("disabled", false);
-          } else {
-	     Y.one("#mapping .start").set("disabled", true);
-	  }
-     });\n'
-	      ]).
+js_path(conceptschemes, Path) :-
+	http_location_by_id(http_concept_schemes, Path).
+js_path(concepts, Path) :-
+	  http_location_by_id(http_concepts, Path).
+
+%%	js_module(+Key, +Module_Conf)
+%
+%	YUI3 and application specific modules used in javascript.
+
+js_module(gallery, 'gallery-2011.02.23-19-01').
+js_module('equalizer-select', json([fullpath(Path),
+				    requires([node,base,event,anim,
+					      'datasource-io','datasource-cache','datasource-jsonschema',
+					      'gallery-node-accordion',
+					      columnbrowser])
+			  ])) :-
+	http_absolute_location(js('equalizerselect.js'), Path, []).
+js_module(resourcelist, json([fullpath(Path),
+			      requires([node,event,widget])
+		       ])) :-
+	http_absolute_location(js('resourcelist.js'), Path, []).
+js_module(columnbrowser, json([fullpath(Path),
+			       requires([node,event,
+				   'gallery-resize','gallery-value-change',
+				   resourcelist])
+			])) :-
+	http_absolute_location(js('columnbrowser.js'), Path, []).
+
+
+:- http_handler(amalgame(load/url), eq_upload_url, []).
+:- http_handler(amalgame(load/data), eq_upload_data, []).
+
+%%	http_eq_load(Request)
+%
+%	Handler for alignment import
+
+eq_upload_data(Request) :-
+	http_parameters(Request,
+			[ data(Data,
+			       [ description('RDF data to be loaded')
+			       ])
+ 			]),
+	rdf_bnode(Graph),
+ 	atom_to_memory_file(Data, MemFile),
+	setup_call_cleanup(open_memory_file(MemFile, read, Stream),
+			   api_sesame:guess_format_and_load(Stream, [graph(Graph)]),
+			   ( close(Stream),
+			     free_memory_file(MemFile)
+			   )),
+	http_link_to_id(http_equalizer, [alignment(Graph)], Redirect),
+	http_redirect(moved, Redirect, Request).
+
+eq_upload_url(Request) :-
+	http_parameters(Request,
+			[ url(URL, [])
+ 			]),
+	rdf_bnode(Graph),
+	rdf_load(URL, [graph(Graph)]),
+	http_link_to_id(http_equalizer, [alignment(Graph)], Redirect),
+	http_redirect(moved, Redirect, Request).
+
+
+/*
+	;   nonvar(URL)
+	->  http_link_to_id(upload_url, url(URL), Src)
+	),
+	reply_html_page('Amalgame import',
+		   [ iframe(src(Src)),
+		     div(continue)
+		   ]).
+*/

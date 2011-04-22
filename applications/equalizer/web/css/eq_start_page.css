@@ -136,14 +136,16 @@
 }
 
 /* alignment table */
-#mapping th {
+#open th {
 	font-weight: bold;
 }
-#mapping th,
-#mapping td {
+#open th,
+#open td {
 	padding: 2px 8px;
 	vertical-align: top;
 }
-#mapping td.count {
-	text-align: right;
+
+/* import */
+#import form {
+	padding: 10px;
 }

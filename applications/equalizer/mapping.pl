@@ -61,8 +61,7 @@ http_data_mapping(Request) :-
 				 [default(0), number,
 				  description('first result that is returned')])
 		       ]),
-	node_type(URL, Type),
-	expand_mapping(URL, Mapping0),
+ 	expand_mapping(URL, Mapping0),
  	maplist(mapping_label, Mapping0, Mapping1),
 	sort_key(SortBy, SortKey),
 	sort_by_arg(Mapping1, SortKey, MSorted),
@@ -73,22 +72,8 @@ http_data_mapping(Request) :-
 	reply_json(json([url=URL,
  			 limit=Limit,
 			 offset=Offset,
-			 type=Type,
-			 mapping=Mapping,
+ 			 mapping=Mapping,
 			 statistics=Statistics])).
-
-node_type(URL, Type) :-
-	rdf(URL, rdf:type, Class),
- 	opm_type(Class, Type).
-
-opm_type(C, mapping) :-
-	rdf_equal(C, amalgame:'Mapping'),
-	!.
-opm_type(C, process) :-
-	rdfs_subclass_of(C, opmv:'Process'),
-	!.
-opm_type(_, vocab).
-
 
 sort_key(source, 2).
 sort_key(target, 4).
@@ -115,6 +100,7 @@ relation_label(R, Label) :-
 	mapping_relation(Label, R), !.
 relation_label(R, R).
 
+
 %%	mapping_statistics(+Mapping, -Stats)
 %
 %	Stats of mapping
@@ -134,7 +120,6 @@ mapping_statistics(Mappings, Stats) :-
 
 align_source(align(S,_,_), S).
 align_target(align(_,T,_), T).
-
 
 
 %%	http_data_mapping_evaluate(+Request)

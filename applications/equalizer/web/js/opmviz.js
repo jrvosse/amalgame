@@ -20,6 +20,9 @@ YUI.add('opmviz', function(Y) {
 			
 			// Bind event handlers to the links in the graph
 			// and prevent the default behavior from xlink:href
+			//
+			// hack: we use the shape of the node to determine 
+			// the type of OPM node
 			Y.delegate("click", function(e) {
 				e.preventDefault();
 				var target = e.currentTarget,

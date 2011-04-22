@@ -89,13 +89,30 @@ html_opmviz(Graph) -->
 %%	opm_triples(Graph, Triples)
 %
 %	Triples are all rdf(S,P,O) in Graph.
+%	When there are no opm triples in the graph, we check if there
+%	are a source and target defined. As we only want to show nodes
+%	in this case, and gviz_write_rdf/3 requires a set of triples, we
+%	use the rdf:'bag'contstruct.
 
 opm_triples(Graph, Triples) :-
 	findall(rdf(S,P,O),
 		(   rdf(S,P,O,Graph),
+		    \+rdf(S, rdf:type, amalgame:'Alignment'),
 		    is_opm_property(P)
 		),
-		Triples).
+		Triples),
+	Triples \== [],
+	!.
+opm_triples(Graph, [rdf(Graph,PS,Source),
+		    rdf(Graph,PT,Target)]) :-
+	rdf_equal(amalgame:source, PS),
+	rdf_equal(amalgame:target, PT),
+ 	rdf(Graph, PS, Source),
+	rdf(Graph, PT, Target),
+	Source \== Target,
+	!.
+opm_triples(_Graph, []).
+
 
 is_opm_property(P) :-
 	rdfs_subproperty_of(P, opmv:used),
@@ -109,7 +126,6 @@ is_opm_property(P) :-
 is_opm_property(P) :-
 	rdfs_subproperty_of(P, opmv:wasTriggeredBy),
 	!.
-
 
 %%	opm_url(+Resource, -URL)
 %
@@ -128,18 +144,22 @@ opm_url(R, HREF) :-
 %	Defines graph node shape for different types of OPM resources.
 
 opm_shape(R, [shape(octagon),
-	      style(filled),
+ 	      style(filled),
 	      fillcolor('#DDDDDD'),
 	      fontsize(10)]) :-
 	atom(R),
 	rdfs_individual_of(R, opmv:'Process'),
 	!.
 opm_shape(R, [shape(ellipse),
-	     fontsize(10)]) :-
+	      fontsize(10)]) :-
 	atom(R),
 	rdfs_individual_of(R, opmv:'Artifact'),
 	!.
+opm_shape(R, [shape(box),
+ 	      fontsize(10)
+	     ]) :-
+	rdfs_individual_of(R, opmv:'Alignment').
 opm_shape(_R, [shape(box),
-	       fontsize(10)]).
+ 	       fontsize(10)]).
 
 

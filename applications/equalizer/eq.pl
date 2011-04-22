@@ -8,6 +8,9 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(http/js_write)).
 :- use_module(library(yui3_beta)).
+:- use_module(library(http/http_session)).
+:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdfs)).
 
 :- use_module(start_page).
 :- use_module(controls).
@@ -44,7 +47,7 @@ http_equalizer(Request) :-
 			  source(Source,
 				 [uri, optional(true),
 				  description('URI of a source vocabulary')]),
-			  targer(Target,
+			  target(Target,
 				 [uri, optional(true),
 				  description('URI of a target vocabulary')])
 		     ]),
@@ -60,15 +63,27 @@ http_equalizer(Request) :-
 	;   html_start_page
 	).
 
+%%	new_alignment(+Mapping, -AlignmentURI)
+%
+%	Assert a new alignment graph.
+
+new_alignment(Mapping, Alignment) :-
+	http_session_data(new_alignment(Alignment, Mapping)),
+	!.
 new_alignment(Mapping, Alignment) :-
 	rdf_bnode(Alignment),
-	rdf_transaction((rdf_assert(Mapping, rdf:type, amalgame:'Mapping', Alignment))).
+	rdf_transaction((rdf_assert(Alignment, rdf:type, amalgame:'Alignment', Alignment),
+			 rdf_assert(Mapping, rdf:type, amalgame:'Mapping', Alignment))).
 
 new_alignment(Source, Target, Alignment) :-
+	http_session_data(new_alignment(Alignment, Source, Target)),
+	!.
+new_alignment(Source, Target, Alignment) :-
 	rdf_bnode(Alignment),
-	rdf_transaction((rdf_assert(Source, rdf:type, amalgame:'Source', Alignment),
-			 rdf_assert(Target, rdf:type, amalgame:'Target', Alignment))).
-
+	rdf_transaction((rdf_assert(Alignment, rdf:type, amalgame:'Alignment', Alignment),
+			 rdf_assert(Alignment, amalgame:source, Source, Alignment),
+			 rdf_assert(Alignment, amalgame:target, Target, Alignment))),
+	http_session_assert(new_alignment(Alignment, Source, Target)).
 
 		 /*******************************
 		 *	      HTML		*
@@ -118,7 +133,8 @@ html_page(Alignment, Mapping) :-
 yui_script(Alignment, Mapping) -->
 	{ findall(K-V, js_path(K, V), Paths),
 	  findall(M-C, js_module(M,C), Modules),
-	  pairs_keys(Modules, Includes)
+	  pairs_keys(Modules, Includes),
+	  js_alignment_nodes(Alignment, Nodes)
  	},
  	yui3([json([modules(json(Modules))])
 	     ],
@@ -126,7 +142,8 @@ yui_script(Alignment, Mapping) -->
 	     [ \yui3_new(eq, 'Y.Equalizer',
 			 json([alignment(Alignment),
 			       mapping(Mapping),
- 			       paths(json(Paths))
+ 			       paths(json(Paths)),
+			       nodes(json(Nodes))
 			      ]))
 	     ]).
 
@@ -169,8 +186,26 @@ js_module(mappingtable, json([fullpath(Path),
 			     ])) :-
 	http_absolute_location(js('mappingtable.js'), Path, []).
 
+%%	js_alignment_nodes(+Alignment, -Nodes)
+%
+%	Nodes contains all nodes in alignment with their OPM type.
 
+js_alignment_nodes(Alignment, Nodes) :-
+	findall(S, rdf(S,_,_,Alignment), Nodes0),
+	sort(Nodes0, Nodes1),
+ 	maplist(node_type, Nodes1, Nodes).
 
+node_type(R, R=Type) :-
+	rdf(R, rdf:type, Class),
+	(   rdf_equal(Class, amalgame:'Alignment')
+	->  Type = alignment
+	;   rdfs_subclass_of(Class, amalgame:'Mapping')
+	->  Type = mapping
+	;   rdfs_subclass_of(Class, opmv:'Process')
+	->  Type = process
+	),
+	!.
+node_type(R, R=vocab).
 
 
 %%	http:convert_parameter(+Type, +In, -URI) is semidet.
