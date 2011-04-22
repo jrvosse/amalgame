@@ -11,6 +11,7 @@
 
 :- use_module(start_page).
 :- use_module(controls).
+:- use_module(process).
 :- use_module(opmviz).
 :- use_module(mapping).
 :- use_module(eq_util).
@@ -38,17 +39,11 @@ http_equalizer(Request) :-
 	http_parameters(Request,
 			[ alignment(Alignment,
 				    [uri, optional(true),
-				     description('URI of an alignment')]),
- 			  scheme(Schemes,
-				 [zero_or_more,
-				  description('Zero or more concept schemes')])
+				     description('URI of an alignment')])
 			]),
 	(   nonvar(Alignment)
 	->  html_page(Alignment, @null)
- 	;   Schemes = [_|_]
-	->  new_alignment(Schemes, Alignment),
-	    html_page(Alignment, @null)
-	;   html_start_page
+ 	;   html_start_page
 	).
 
 		 /*******************************

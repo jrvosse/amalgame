@@ -11,14 +11,10 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(http/js_write)).
 :- use_module(library(yui3_beta)).
-:- use_module(library(http/json)).
-:- use_module(library(http/json_convert)).
 :- use_module(library(semweb/rdf_db)).
-:- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_label)).
 :- use_module(components(label)).
-:- use_module(applications(concept_finder/concept_finder)).
-:- use_module(library(amalgame/alignment)).
+:- use_module(eq_util).
 
 %%	html_start_page
 %
@@ -60,7 +56,7 @@ html_start_page :-
 
 html_new(Schemes) -->
 	html_acc_item(new, 'new alignment project',
-		      [ form(action(location_by_id(http_equalizer)),
+		      [ form(action(location_by_id(http_eq_new)),
 			     [ \html_vocab_table(Schemes),
 			       \html_submit('Start')
 			     ])
@@ -137,14 +133,14 @@ graph_label(Graph, Graph).
 
 html_import -->
 	html_acc_item(import, 'import alignment',
-		      [ form(action(location_by_id(eq_upload_url)),
+		      [ form(action(location_by_id(http_eq_upload_url)),
 			     [ 'URL: ',
 			       input([type(text), name(url), value('http://'),
 				      autocomplete(off), size(50)
 				     ]),
 			       input([type(submit), value('Upload')])
 			   ]),
-			form([action(location_by_id(eq_upload_data)),
+			form([action(location_by_id(http_eq_upload_data)),
 			      method('POST'),
 			      enctype('multipart/form-data')
 			     ],
@@ -216,16 +212,34 @@ js_module('equalizer-select', json([fullpath(Path),
 	http_absolute_location(js('equalizerselect.js'), Path, []).
 
 
+		 /*******************************
+		 *	       upload	        *
+		 *******************************/
+
+:- http_handler(amalgame(new), http_eq_new, []).
+:- http_handler(amalgame(load/url), http_eq_upload_url, []).
+:- http_handler(amalgame(load/data), http_eq_upload_data, []).
+
+%%	http_eq_new(+Request)
+%
+%	Handler to create a new alignment
+
+http_eq_new(Request) :-
+	http_parameters(Request,
+			[ scheme(Schemes,
+				 [zero_or_more,
+				  description('Zero or more concept schemes')])
+			]),
+	new_alignment(Schemes, Graph),
+	http_link_to_id(http_equalizer, [alignment(Graph)], Redirect),
+	http_redirect(moved, Redirect, Request).
 
 
-:- http_handler(amalgame(load/url), eq_upload_url, []).
-:- http_handler(amalgame(load/data), eq_upload_data, []).
-
-%%	http_eq_load(Request)
+%%	http_eq_upload_data(+Request)
 %
 %	Handler for alignment import
 
-eq_upload_data(Request) :-
+http_eq_upload_data(Request) :-
 	http_parameters(Request,
 			[ data(Data,
 			       [ description('RDF data to be loaded')
@@ -241,7 +255,7 @@ eq_upload_data(Request) :-
 	http_link_to_id(http_equalizer, [alignment(Graph)], Redirect),
 	http_redirect(moved, Redirect, Request).
 
-eq_upload_url(Request) :-
+http_eq_upload_url(Request) :-
 	http_parameters(Request,
 			[ url(URL, [])
  			]),

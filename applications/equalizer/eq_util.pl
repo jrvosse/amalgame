@@ -6,21 +6,15 @@
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
-:- use_module(library(http/http_session)).
-
 
 %%	new_alignment(+Schemes, -AlignmentURI)
 %
 %	Assert a new alignment graph.
 
 new_alignment(Schemes, Alignment) :-
-	http_session_data(alignment(Alignment, Schemes)),
-	!.
-new_alignment(Schemes, Alignment) :-
 	rdf_bnode(Alignment),
 	rdf_transaction((rdf_assert(Alignment, rdf:type, amalgame:'Alignment', Alignment),
-			 add_schemes(Schemes, Alignment))),
-	http_session_assert(alignment(Alignment, Schemes)).
+			 add_schemes(Schemes, Alignment))).
 
 add_schemes([], _).
 add_schemes([Scheme|Ss], A) :-
