@@ -27,6 +27,7 @@
 :- use_module(library(amalgame/matchers/snowball_match)).
 :- use_module(library(amalgame/matchers/exact_label_match)).
 :- use_module(library(amalgame/select/select1_1)).
+:- use_module(library(amalgame/source/voc_exclude)).
 
 :- dynamic
 	map_cache/2.
