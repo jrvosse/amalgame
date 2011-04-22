@@ -27,10 +27,9 @@
 
 html_start_page :-
 	findall(C, rdf(C, rdf:type, skos:'ConceptScheme'), Cs),
- 	findall(A, amalgame_alignment(A), As),
+ 	findall(A-S, amalgame_alignment(A, S), Alignments),
 	sort(Cs, ConceptSchemes),
- 	sort(As, Alignments),
-  	reply_html_page(equalizer(start),
+   	reply_html_page(equalizer(start),
 			[ title(['Amalgame - projects'])
  			],
 			[ \html_requires(css('eq_start_page.css')),
@@ -53,10 +52,7 @@ html_start_page :-
 			      ])
 			]).
 
-amalgame_alignment(alignment(Alignment, Source, Target)) :-
-	rdfs_individual_of(Alignment, amalgame:'Alignment'),
-	rdf(Alignment, amalgame:source, Source),
-	rdf(Alignment, amalgame:target, Target).
+
 
 %%	html_new
 %
@@ -76,9 +72,8 @@ html_vocab_table(Vs) -->
 		   ])).
 
 html_vocab_head -->
-	html([th(source),
-	      th(target),
-	      th(name),
+	html([th([]),
+ 	      th(name),
 	      th('# concepts (estimate)')
  	     ]).
 
@@ -86,11 +81,9 @@ html_vocab_rows([]) --> !.
 html_vocab_rows([Scheme|Vs]) -->
 	{ rdf_estimate_complexity(_, skos:inScheme, Scheme, Count)
 	},
- 	html(tr([td(input([type(radio), autocomplete(off), class(option),
-			   name(source), value(Scheme)])),
-		 td(input([type(radio), autocomplete(off), class(option),
-			   name(target), value(Scheme)])),
-		 td(\html_graph_name(Scheme)),
+ 	html(tr([td(input([type(checkbox), autocomplete(off), class(option),
+			   name(scheme), value(Scheme)])),
+ 		 td(\html_graph_name(Scheme)),
 		 td(class(count), Count)
   		])),
 	html_vocab_rows(Vs).
@@ -115,18 +108,21 @@ html_alignment_table(Alignments) -->
 html_alignment_head -->
 	html([th([]),
 	      th(name),
-	      th(source),
-	      th(target)
- 	     ]).
+	      th(includes)
+  	     ]).
 
 html_alignment_rows([]) --> !.
-html_alignment_rows([alignment(URI,Source,Target)|Gs]) -->
+html_alignment_rows([URI-Schemes|Gs]) -->
  	html(tr([td(input([type(radio), autocomplete(off), class(option), name(alignment), value(URI)])),
 		 td(\html_graph_name(URI)),
-		 td([\turtle_label(Source)]),
-		 td([\turtle_label(Target)])
+		 td(\html_scheme_labels(Schemes))
  		])),
 	html_alignment_rows(Gs).
+
+html_scheme_labels([]) --> !.
+html_scheme_labels([S|Ss]) -->
+	html(div(\turtle_label(S))),
+	html_scheme_labels(Ss).
 
 html_graph_name(Graph) -->
 	{ graph_label(Graph, Label)

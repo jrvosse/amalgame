@@ -37,11 +37,14 @@ body {
 #controls .yui3-accordion-item-trigger {
 	background-position: 105% -348px;
 }
+#controls .yui3-accordion-item-bd.disabled {
+	color: #BBB;
+}
 #controls .controlset {
 	border-width: 0 1px 1px;
 }
-.controlset.hidden {
-	display: none;
+#controls table {
+	width: 100%;
 }
 
 /* infobox */

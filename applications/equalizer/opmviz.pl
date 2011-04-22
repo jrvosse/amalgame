@@ -103,14 +103,13 @@ opm_triples(Graph, Triples) :-
 		Triples),
 	Triples \== [],
 	!.
-opm_triples(Graph, [rdf(Graph,PS,Source),
-		    rdf(Graph,PT,Target)]) :-
-	rdf_equal(amalgame:source, PS),
-	rdf_equal(amalgame:target, PT),
- 	rdf(Graph, PS, Source),
-	rdf(Graph, PT, Target),
-	Source \== Target,
-	!.
+opm_triples(Graph, Triples) :-
+	rdf_equal(amalgame:includes, P),
+	findall(rdf(Graph,P,S),
+		rdf(Graph,P,S),
+		Triples),
+	Triples \== [],
+ 	!.
 opm_triples(_Graph, []).
 
 

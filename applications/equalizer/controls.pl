@@ -11,6 +11,7 @@
 :- use_module(library(amalgame/amalgame_modules)).
 
 :- use_module(opmviz).
+:- use_module(eq_util).
 
 :- http_handler(amalgame(data/addprocess), http_add_process, []).
 
@@ -18,8 +19,17 @@ http_add_process(Request) :-
 	http_parameters(Request,
 			[ input(Input,
 				[uri,
+				 optional(true),
 				 description('URI of input mapping')]),
-			  process(Process,
+			  source(Source,
+				 [uri,
+				  optional(true),
+				  description('URI of the source')]),
+			  target(Target,
+				 [uri,
+				  optional(true),
+				  description('URI of the target')]),
+			  process(ProcessType,
 				  [uri,
 				   description('URI of the process class')]),
 			  alignment(Alignment,
@@ -27,21 +37,34 @@ http_add_process(Request) :-
 				     description('URI of the alignment graph to which the process is added')])
 			],
 			[form_data(Params0)]),
-	subtract(Params0, [input=_,process=_], Params),
- 	assert_process(Input, Process, Alignment, Params),
-	reply_alignment_graph(Alignment, svg).
+	(   ((nonvar(Source), nonvar(Target)) ; nonvar(Input))
+	->  rdf_bnode(ProcessURI),
+	    subtract(Params0, [input=_,source=_,target=_,process=_], Params),
+	    rdf_transaction((
+			     assert_process(ProcessURI, ProcessType, Alignment, Params),
+			     assert_input(ProcessURI, Alignment, Source, Target, Input)))
+	),
+	js_alignment_nodes(Alignment, Nodes),
+	reply_json(json([nodes=json(Nodes)])).
 
-assert_process(Input, ProcessType, Graph, Params) :-
-	rdf_bnode(ProcessURI),
-	rdf_bnode(OutputURI),
+assert_input(Process, Graph, Source, Target, _Input) :-
+ 	nonvar(Source),
+	nonvar(Target),
+	!,
+	rdf_assert(Process, amalgame:source, Source, Graph),
+	rdf_assert(Process, amalgame:target, Target, Graph).
+assert_input(Process, Graph, _Source, _Target, Input) :-
+ 	rdf_assert(Process, amalgame:input, Input, Graph).
+
+assert_process(ProcessURI, ProcessType, Graph, Params) :-
+ 	rdf_bnode(OutputURI),
 	process_label(ProcessType, ProcessLabel),
 	uri_query_components(Search, Params),
- 	rdf_transaction((rdf_assert(ProcessURI, rdf:type, ProcessType, Graph),
-			 rdf_assert(ProcessURI, rdfs:label, ProcessLabel, Graph),
-			 rdf_assert(ProcessURI, amalgame:input, Input, Graph),
-			 rdf_assert(ProcessURI, amalgame:parameters, Search, Graph))),
-	rdf_transaction((rdf_assert(OutputURI, rdf:type, amalgame:'Mapping', Graph),
-			 rdf_assert(OutputURI, opmv:wasGeneratedBy, ProcessURI, Graph))).
+ 	rdf_assert(ProcessURI, rdf:type, ProcessType, Graph),
+	rdf_assert(ProcessURI, rdfs:label, ProcessLabel, Graph),
+	rdf_assert(ProcessURI, amalgame:parameters, Search, Graph),
+	rdf_assert(OutputURI, rdf:type, amalgame:'Mapping', Graph),
+        rdf_assert(OutputURI, opmv:wasGeneratedBy, ProcessURI, Graph).
 
 process_label(P, Lit) :-
 	(   rdf_label(P, L)
@@ -52,37 +75,49 @@ process_label(P, Lit) :-
 
 
 html_controls -->
- 	html([div([id(info), class('yui3-accordion')],
-		  [ \html_accordion_item(infobox, 'Info', [])
-		  ]),
-	      div([id(mappingcontrols), class('controlset hidden yui3-accordion')],
-		  [\html_mapping_controls
-		  ]),
-	      div([id(processcontrols), class('controlset hidden yui3-accordion')],
-		  []),
-	      div([id(vocabcontrols), class('controlset hidden yui3-accordion')],
-		  [])
-	     ]).
-
-html_mapping_controls -->
 	{ amalgame_class_modules(amalgame:'Matcher', Matchers),
-	  amalgame_class_modules(amalgame:'Selecter', Selecters)
+ 	  amalgame_class_modules(amalgame:'Selecter', Selecters)
 	},
-	html_accordion_item(filter, 'Filter', \html_tab_view(Matchers)),
-	html_accordion_item(select, 'Select', \html_tab_view(Selecters)).
 
+ 	html(div([class('yui3-accordion')],
+		  [ \html_accordion_item(infobox, 'Info', info, false, []),
+		    \html_accordion_item(align, 'Align', vocab, true,
+			    [\html_align_select,
+			     \html_tab_view(Matchers)
+			    ]),
+		    \html_accordion_item(merge, 'Merge', vocab, true, []),
+		    \html_accordion_item(filter, 'Filter', mapping, true,
+					 \html_tab_view(Matchers)),
+		    \html_accordion_item(partition, 'Partition', mapping, true,
+					 \html_tab_view(Selecters))
+		  ])
+	     ).
 
-%%	html_accordion_item(+Id, +Label, +Body)
+html_align_select -->
+	html(table([tr([td(input([type(button), id(sourcebtn), disabled(true), value('set as source')])),
+			td(input([type(text), disabled(true), id(source), name(source), size(40), autocomplete(off)]))
+		       ]),
+		    tr([td(input([type(button), id(targetbtn), disabled(true), value('set as target')])),
+			td(input([type(text), disabled(true), id(target), name(target), size(40), autocomplete(off)]))
+		       ])
+		   ])).
+
+%%	html_accordion_item(+Id, +Label, +CSSClass, +Disabled +Body)
 %
 %	Emit YUI3 node accordion html markup.
 
-html_accordion_item(Id, Label, Body) -->
-	html(div([id(Id), class('yui3-accordion-item')],
+html_accordion_item(Id, Label, Class, Disabled, Body) -->
+	{ (   Disabled
+	  ->  D = disabled
+	  ;   D = ''
+	  )
+	},
+	html(div([id(Id), class('yui3-accordion-item '+Class)],
 		 [ div(class('yui3-accordion-item-hd'),
 		       a([href('javascript:void(0)'),
 			  class('yui3-accordion-item-trigger')],
 			 Label)),
-		   div(class('yui3-accordion-item-bd'),
+		   div(class('yui3-accordion-item-bd '+D),
 		       Body)
 		 ])).
 
@@ -117,7 +152,7 @@ html_tab_panel([URI-Module|Ms]) -->
 	html(form(id(URI),
 		[ table(tbody(\html_parameter_form(Params))),
 		  div(class('control-buttons'),
-		      input([type(button), class('control-submit'), value('Go')]))
+		      input([type(button), disabled(true), class('control-submit'), value('Go')]))
 		])),
 	html_tab_panel(Ms).
 
@@ -152,16 +187,17 @@ builtin_input_item(boolean, Value, Name) --> !,
 builtin_input_item(between(L,U), Value, Name) --> !,
 	html(input([ type(range),
 		     name(Name),
+		     disabled(true),
 		     min(L), max(U), value(Value)
 		   ])).
 builtin_input_item(oneof(List), Value, Name) --> !,
-	html(select([name(Name)], \oneof(List, Value))).
+	html(select([name(Name), disabled(true)], \oneof(List, Value))).
 builtin_input_item(atom, Value, Name) --> !,
-	html(input([name(Name), size(40), value(Value)])).
+	html(input([name(Name), size(40), disabled(true), value(Value)])).
 builtin_input_item(_, Value, Name) -->
 	{ format(string(S), '~q', [Value])
 	},
-	html(input([name(Name), size(40), value(S)])).
+	html(input([name(Name), size(40), disabled(true), value(S)])).
 
 oneof([], _) -->
 	[].

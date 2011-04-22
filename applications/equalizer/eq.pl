@@ -8,14 +8,12 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(http/js_write)).
 :- use_module(library(yui3_beta)).
-:- use_module(library(http/http_session)).
-:- use_module(library(semweb/rdf_db)).
-:- use_module(library(semweb/rdfs)).
 
 :- use_module(start_page).
 :- use_module(controls).
 :- use_module(opmviz).
 :- use_module(mapping).
+:- use_module(eq_util).
 
 % add local web directories from which static files are served.
 
@@ -41,49 +39,17 @@ http_equalizer(Request) :-
 			[ alignment(Alignment,
 				    [uri, optional(true),
 				     description('URI of an alignment')]),
-			  mapping(Mapping,
-				  [uri, optional(true),
-				   description('URI of a mapping')]),
-			  source(Source,
-				 [uri, optional(true),
-				  description('URI of a source vocabulary')]),
-			  target(Target,
-				 [uri, optional(true),
-				  description('URI of a target vocabulary')])
-		     ]),
+ 			  scheme(Schemes,
+				 [zero_or_more,
+				  description('Zero or more concept schemes')])
+			]),
 	(   nonvar(Alignment)
 	->  html_page(Alignment, @null)
-	;   nonvar(Mapping)
-	->  new_alignment(Mapping, Alignment),
-	    html_page(Alignment, Mapping)
-	;   nonvar(Source),
-	    nonvar(Target)
-	->  new_alignment(Source, Target, Alignment),
+ 	;   Schemes = [_|_]
+	->  new_alignment(Schemes, Alignment),
 	    html_page(Alignment, @null)
 	;   html_start_page
 	).
-
-%%	new_alignment(+Mapping, -AlignmentURI)
-%
-%	Assert a new alignment graph.
-
-new_alignment(Mapping, Alignment) :-
-	http_session_data(new_alignment(Alignment, Mapping)),
-	!.
-new_alignment(Mapping, Alignment) :-
-	rdf_bnode(Alignment),
-	rdf_transaction((rdf_assert(Alignment, rdf:type, amalgame:'Alignment', Alignment),
-			 rdf_assert(Mapping, rdf:type, amalgame:'Mapping', Alignment))).
-
-new_alignment(Source, Target, Alignment) :-
-	http_session_data(new_alignment(Alignment, Source, Target)),
-	!.
-new_alignment(Source, Target, Alignment) :-
-	rdf_bnode(Alignment),
-	rdf_transaction((rdf_assert(Alignment, rdf:type, amalgame:'Alignment', Alignment),
-			 rdf_assert(Alignment, amalgame:source, Source, Alignment),
-			 rdf_assert(Alignment, amalgame:target, Target, Alignment))),
-	http_session_assert(new_alignment(Alignment, Source, Target)).
 
 		 /*******************************
 		 *	      HTML		*
@@ -168,6 +134,7 @@ js_path(concepts, Path) :-
 js_module(gallery, 'gallery-2011.02.23-19-01').
 js_module(equalizer, json([fullpath(Path),
 			   requires([node, event,anim,tabview,
+				     'json-parse',
 				     'datasource-io','datasource-jsonschema','datasource-cache',
 				     'querystring-stringify-simple',
 				     'gallery-resize','gallery-node-accordion',
@@ -200,41 +167,6 @@ js_module(resourcelist, json([fullpath(Path),
 	http_absolute_location(js('resourcelist.js'), Path, []).
 
 
-%%	js_alignment_nodes(+Alignment, -Nodes)
-%
-%	Nodes contains all nodes in alignment with their OPM type.
-
-js_alignment_nodes(Alignment, Nodes) :-
-	findall(S, rdf(S,_,_,Alignment), Nodes0),
-	sort(Nodes0, Nodes1),
- 	maplist(node_type, Nodes1, Nodes).
-
-node_type(R, R=Type) :-
-	rdf(R, rdf:type, Class),
-	(   rdf_equal(Class, amalgame:'Alignment')
-	->  Type = alignment
-	;   rdfs_subclass_of(Class, amalgame:'Mapping')
-	->  Type = mapping
-	;   rdfs_subclass_of(Class, opmv:'Process')
-	->  Type = process
-	),
-	!.
-node_type(R, R=vocab).
 
 
-%%	http:convert_parameter(+Type, +In, -URI) is semidet.
-%
-%	HTTP parameter conversion for the following types:
-%
-%	    * uri
-%	    This  conversion  accepts NS:Local and absolute URIs.
 
-http:convert_parameter(uri, In, URI) :-
-	(   sub_atom(In, B, _, A, :),
-	    sub_atom(In, _, A, 0, Local),
-	    xml_name(Local)
-	->  sub_atom(In, 0, B, _, NS),
-	    rdf_global_id(NS:Local, URI)
-	;   is_absolute_url(In)
-	->  URI = In
-	).

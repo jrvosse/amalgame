@@ -36,7 +36,7 @@ YUI.add('equalizer-select', function(Y) {
 			Y.all("#new .option").on("click", function(e) {
 	  			e.target.toggleClass("selected");
 	  			var nodes = Y.Node.all("#new .selected");
-				if(nodes.size()>1) {
+				if(nodes.size()>0) {
 	     			Y.one("#new .start").set("disabled", false);
           		} else {
 	     			Y.one("#new .start").set("disabled", true);
@@ -72,29 +72,6 @@ YUI.add('equalizer-select', function(Y) {
 		 	HTML += "<div class='resourcelist-item-value' title='"+uri+"'>"+value+"</div>";
 		 	return HTML;
 		}
-		
-		/*,
-		
-		_valueSet : function(e, which) {
-			var selected =  this.CB.get("selected");
-			if(selected) {
-				Y.log(which+": "+selected.id);
-				var uri = selected.id,
-				    label = selected.label,
-				    labelNode = Y.one("#"+which+"label"),
-				    uriNode = Y.one("#"+which);
-				
-				labelNode.set("value", label);
-				labelNode.addClass("filled");
-				uriNode.set("value", uri);
-				var nodes = Y.Node.all("#new .label.filled");
-				if(nodes.size()==2) {
-	    			Y.one("#new .start").set("disabled", false);
-				} else {
-    				Y.one("#new .start").set("disabled", true);
-       			}
-     		}
-		}*/
 				
 	});
 	

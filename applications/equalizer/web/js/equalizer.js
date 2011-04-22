@@ -60,10 +60,10 @@ YUI.add('equalizer', function(Y) {
 			// We make the top part of the window resizable
 			// The bottom part react to this resize to match the viewport
 			// Changes in the viewport size also are delegated to the bottom and top
-			this.setBottomHeight();
+			this._setBottomHeight();
 			NODE_TOP.plug(Plugin.Resize, {draggable:true,handles:["b"],animate:true});
-			NODE_TOP.dd.on( "drag:end", this.setBottomHeight, this);
-			Y.on("resize", this.setSize, window, this);
+			NODE_TOP.dd.on( "drag:end", this._setBottomHeight, this);
+			Y.on("resize", this._setSize, window, this);
 			
 			// We define a datasource to simplify 
 			// access to the mappings later
@@ -111,6 +111,11 @@ YUI.add('equalizer', function(Y) {
 				srcNode: NODE_INFOBOX,
 				content: "select a node"
 			});
+			
+			// the alignment control has two additional buttons
+			// to set the source and target
+			Y.on("click", this._valueSet, "#sourcebtn", this, "source");
+	      	Y.on("click", this._valueSet, "#targetbtn", this, "target");
 						
 			// We have a separate widget for everything related to a single mapping
 			this.mappingtable = new Y.MappingTable({
@@ -128,6 +133,19 @@ YUI.add('equalizer', function(Y) {
 			var alignment = this.get("alignment"),
 				paths = this.get("paths"),
 				opmviz = this.opmviz;
+		
+			// reset the selected node
+			this.set("selected", null);	
+			this._toggleControls();
+			
+			var callback = {
+				success: function(e,o) {
+					// As the server returns an XML document, including doctype
+					// we first take out the actual svg element
+					var SVG = o.responseXML.lastChild;
+					opmviz.setGraph(SVG);
+				}
+			};
 				
 			if(alignment) {
 				conf = conf ? conf : {};
@@ -135,12 +153,7 @@ YUI.add('equalizer', function(Y) {
 				
  				Y.io(paths.opmgraph, {
 					data:conf,
-					on:{success:function(e,o) {
-						// As the server returns an XML document, including doctype
-						// we first take out the actual svg element
-						var SVG = o.responseXML.lastChild;
- 						opmviz.setGraph(SVG);
-					}}
+					on:callback
 				})
 			}
 		},
@@ -171,13 +184,27 @@ YUI.add('equalizer', function(Y) {
 		},
 		
 		_onControlSubmit : function(e, form) {
-			var paths = this.get("paths"),
+			var oSelf = this,
+				paths = this.get("paths"),
 				opmviz = this.opmviz,
+				source = Y.one("#source").get("value"),
+				target = Y.one("#target").get("value"),
+				input = this.get("selected"),
 				data = {
-					input:this.get("selected"),
 					process:form.get("id"),
 					alignment:this.get("alignment")
 				};
+
+			if(source&&target) {
+				data.source = source;
+				data.target = target;
+				Y.one("#source").set("value", "");
+				Y.one("#target").set("value", "");
+			} else if(input) {
+				data.input = input
+			} else {
+				return "no input";
+			}	
 				
 			form.all("input").each(function(input) {
 				var name = input.get("name"),
@@ -198,8 +225,8 @@ YUI.add('equalizer', function(Y) {
 			Y.io(paths.addprocess, {
 				data:data,
 				on:{success:function(e,o) {
-					var SVG = o.responseXML.lastChild;
-						opmviz.setGraph(SVG);
+					oSelf.set("nodes", Y.JSON.parse(o.responseText).nodes);
+					oSelf.fetchGraph();
 				}}
 			})
 		},
@@ -211,28 +238,43 @@ YUI.add('equalizer', function(Y) {
 			// depending on the result type we update
 			// different components
 			if(type=="mapping") {
-				activeSet = NODE_MCONTROLS;
 				this.mappingtable.set("selected", uri);
 				this.fetchMapping();
 			} else if(type=="process") {
-				activeSet = NODE_PCONTROLS;
 			} else if(type=="vocab") {
-				activeSet = NODE_VCONTROLS;
 			}
-			// We only show the controls for the active type
-			NODE_CONTROLS.all(".controlset").addClass("hidden");
-			activeSet.removeClass("hidden");
-			
-			
+			this._toggleControls(type);
+		},
 
+		_toggleControls : function(active) {
+			// We only show the controls for the active type
+			NODE_CONTROLS.all(".yui3-accordion-item").each(function(node) {
+				if(node.hasClass(active)) {
+					node.all("input").removeAttribute("disabled");
+					node.all("select").removeAttribute("disabled");
+					node.one(".yui3-accordion-item-bd").removeClass("disabled");
+				} else {
+					node.all('input').setAttribute("disabled", true);
+					node.all("select").setAttribute("disabled", true);
+					node.one(".yui3-accordion-item-bd").addClass("disabled");
+				}
+			});
+		},
+		
+		_valueSet : function(e, which) {
+			var selected =  this.get("selected");
+			if(selected) {
+				Y.log(which+": "+selected);
+				Y.one("#"+which).set("value", selected);
+     		}
 		},
 		
 		// The bottom part of the screen fills the height of the viewport
-		setBottomHeight : function() {
+		_setBottomHeight : function() {
 			var	bottomheight = NODE_TOP.get('winHeight') - NODE_TOP.get('clientHeight');  
 			NODE_BOTTOM.setStyle("height", bottomheight+"px");
 		},
-		setSize : function() {
+		_setSize : function() {
 			var width = NODE_TOP.get('winWidth'),
 				height = NODE_TOP.get('winHeight'),
 				topheight = Math.min(height-50, NODE_TOP.get('clientHeight')), 
