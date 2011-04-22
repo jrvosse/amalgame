@@ -144,6 +144,9 @@
 	padding: 2px 8px;
 	vertical-align: top;
 }
+#main td.count {
+	text-align: right;
+}
 
 /* import */
 #import form {

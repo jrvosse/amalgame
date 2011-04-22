@@ -79,15 +79,19 @@ html_vocab_head -->
 	html([th(source),
 	      th(target),
 	      th(name),
-	      th(concepts)
+	      th('# concepts (estimate)')
  	     ]).
 
 html_vocab_rows([]) --> !.
-html_vocab_rows([URI|Vs]) -->
- 	html(tr([td(input([type(radio), autocomplete(off), class(option), name(source), value(URI)])),
-		 td(input([type(radio), autocomplete(off), class(option), name(target), value(URI)])),
-		 td(\html_graph_name(URI)),
-		 td('-')
+html_vocab_rows([Scheme|Vs]) -->
+	{ rdf_estimate_complexity(_, skos:inScheme, Scheme, Count)
+	},
+ 	html(tr([td(input([type(radio), autocomplete(off), class(option),
+			   name(source), value(Scheme)])),
+		 td(input([type(radio), autocomplete(off), class(option),
+			   name(target), value(Scheme)])),
+		 td(\html_graph_name(Scheme)),
+		 td(class(count), Count)
   		])),
 	html_vocab_rows(Vs).
 
