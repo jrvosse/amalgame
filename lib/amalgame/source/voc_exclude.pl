@@ -89,12 +89,6 @@ get_exclusion_concepts(ExcSrcs, ExcTars, Options) :-
 	maplist(align_source, Alignments, ExcSrcs),
 	maplist(align_target, Alignments, ExcTars).
 
-
-get_exclusion_concepts(ExcSrcs, ExcTars, Options) :-
-	!,
-	option(exclude_sources(ExcSrcs), Options, []),
-	option(exclude_targets(ExcTars), Options, []),
-
 %%	source_select(+Source, +URIs, +Options)
 %
 %	URIs is a list of sorted Resources, representing all Concepts in
