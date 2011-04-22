@@ -14,6 +14,7 @@
 :- use_module(process).
 :- use_module(opmviz).
 :- use_module(mapping).
+:- use_module(stats).
 :- use_module(eq_util).
 
 % add local web directories from which static files are served.
@@ -42,7 +43,7 @@ http_equalizer(Request) :-
 				     description('URI of an alignment')])
 			]),
 	(   nonvar(Alignment)
-	->  html_page(Alignment, @null)
+	->  html_page(Alignment)
  	;   html_start_page
 	).
 
@@ -50,11 +51,11 @@ http_equalizer(Request) :-
 		 *	      HTML		*
 		 *******************************/
 
-%%	html_page(+Alignment, +Mapping)
+%%	html_page(+Alignment)
 %
 %	Emit html page with layout for the appliation.
 
-html_page(Alignment, Mapping) :-
+html_page(Alignment) :-
 	html_set_options([dialect(html)]),
   	reply_html_page(equalizer(main),
 			[ title(['Align vocabularies'])
@@ -81,17 +82,17 @@ html_page(Alignment, Mapping) :-
 					      [])
 					])),
  				script(type('text/javascript'),
-				       [ \yui_script(Alignment, Mapping)
+				       [ \yui_script(Alignment)
 				       ])
 			      ])
 			]).
 
 
-%%	yui_script(+Graph, +Mapping)
+%%	yui_script(+Graph)
 %
 %	Emit YUI object.
 
-yui_script(Alignment, Mapping) -->
+yui_script(Alignment) -->
 	{ findall(K-V, js_path(K, V), Paths),
 	  findall(M-C, js_module(M,C), Modules),
 	  pairs_keys(Modules, Includes),
@@ -102,8 +103,7 @@ yui_script(Alignment, Mapping) -->
 	     Includes,
 	     [ \yui3_new(eq, 'Y.Equalizer',
 			 json([alignment(Alignment),
-			       mapping(Mapping),
- 			       paths(json(Paths)),
+  			       paths(json(Paths)),
 			       nodes(json(Nodes))
 			      ]))
 	     ]).
@@ -114,6 +114,8 @@ yui_script(Alignment, Mapping) -->
 
 js_path(opmgraph, Path) :-
 	http_link_to_id(http_opmviz, [format(svg)], Path).
+js_path(statistics, Path) :-
+	http_location_by_id(http_eq_stats, Path).
 js_path(mapping, Path) :-
 	http_location_by_id(http_data_mapping, Path).
 js_path(addprocess, Path) :-
@@ -132,7 +134,7 @@ js_module(equalizer, json([fullpath(Path),
 				     'json-parse',
 				     'datasource-io','datasource-jsonschema','datasource-cache',
 				     'querystring-stringify-simple',
-				     'gallery-resize','gallery-node-accordion',
+				     'gallery-resize',
 				     opmviz,infobox,mappingtable])
 			  ])) :-
 	http_absolute_location(js('equalizer.js'), Path, []).
@@ -150,6 +152,11 @@ js_module(mappingtable, json([fullpath(Path),
 					datatable,'datatable-sort'])
 			     ])) :-
 	http_absolute_location(js('mappingtable.js'), Path, []).
+js_module(controls, json([fullpath(Path),
+			  requires([node,event,
+				    'gallery-node-accordion'])
+			])) :-
+	http_absolute_location(js('controls.js'), Path, []).
 js_module(columnbrowser, json([fullpath(Path),
 			       requires([node,event,
 				   'gallery-resize','gallery-value-change',

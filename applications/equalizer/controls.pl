@@ -14,25 +14,26 @@ html_controls -->
 	},
 
  	html(div([class('yui3-accordion')],
-		  [ \html_accordion_item(infobox, 'Info', info, false, []),
-		    \html_accordion_item(align, 'Align', vocab, true,
-			    [\html_align_select,
-			     \html_tab_view(Matchers)
-			    ]),
-		    \html_accordion_item(merge, 'Merge', vocab, true, []),
-		    \html_accordion_item(filter, 'Filter', mapping, true,
-					 \html_tab_view(Matchers)),
-		    \html_accordion_item(partition, 'Partition', mapping, true,
+		  [ \html_accordion_item(infobox, 'Info',
+					 'yui3-accordion-item-active info', []),
+		    \html_accordion_item(match, 'Match', vocab,
+					 [\html_align_select,
+					  \html_tab_view(Matchers)
+					 ]),
+		    %\html_accordion_item(merge, 'Merge', vocab, []),
+		    \html_accordion_item(filter, 'Filter', mapping,
+					\html_tab_view(Matchers)),
+		    \html_accordion_item(select, 'Select', mapping,
 					 \html_tab_view(Selecters))
 		  ])
 	     ).
 
 html_align_select -->
-	html(table([tr([td(input([type(button), id(sourcebtn), disabled(true), value('set as source')])),
-			td(input([type(text), disabled(true), id(source), name(source), size(40), autocomplete(off)]))
+	html(table([tr([td(input([type(button), id(sourcebtn), value('set as source')])),
+			td(input([type(text), id(source), name(source), size(40), autocomplete(off)]))
 		       ]),
-		    tr([td(input([type(button), id(targetbtn), disabled(true), value('set as target')])),
-			td(input([type(text), disabled(true), id(target), name(target), size(40), autocomplete(off)]))
+		    tr([td(input([type(button), id(targetbtn), value('set as target')])),
+			td(input([type(text), id(target), name(target), size(40), autocomplete(off)]))
 		       ])
 		   ])).
 
@@ -40,18 +41,13 @@ html_align_select -->
 %
 %	Emit YUI3 node accordion html markup.
 
-html_accordion_item(Id, Label, Class, Disabled, Body) -->
-	{ (   Disabled == true
-	  ->  D = disabled
-	  ;   D = ''
-	  )
-	},
-	html(div([id(Id), class('yui3-accordion-item '+Class)],
+html_accordion_item(Id, Label, Class, Body) -->
+ 	html(div([id(Id), class('yui3-accordion-item '+Class)],
 		 [ div(class('yui3-accordion-item-hd'),
 		       a([href('javascript:void(0)'),
 			  class('yui3-accordion-item-trigger')],
 			 Label)),
-		   div(class('yui3-accordion-item-bd '+D),
+		   div(class('yui3-accordion-item-bd'),
 		       Body)
 		 ])).
 
@@ -86,7 +82,7 @@ html_tab_panel([URI-Module|Ms]) -->
 	html(form(id(URI),
 		[ table(tbody(\html_parameter_form(Params))),
 		  div(class('control-buttons'),
-		      input([type(button), disabled(true), class('control-submit'), value('Go')]))
+		      input([type(button), class('control-submit'), value('Go')]))
 		])),
 	html_tab_panel(Ms).
 
@@ -121,17 +117,16 @@ builtin_input_item(boolean, Value, Name) --> !,
 builtin_input_item(between(L,U), Value, Name) --> !,
 	html(input([ type(range),
 		     name(Name),
-		     disabled(true),
-		     min(L), max(U), value(Value)
+ 		     min(L), max(U), value(Value)
 		   ])).
 builtin_input_item(oneof(List), Value, Name) --> !,
-	html(select([name(Name), disabled(true)], \oneof(List, Value))).
+	html(select([name(Name)], \oneof(List, Value))).
 builtin_input_item(atom, Value, Name) --> !,
-	html(input([name(Name), size(40), disabled(true), value(Value)])).
+	html(input([name(Name), size(40), value(Value)])).
 builtin_input_item(_, Value, Name) -->
 	{ format(string(S), '~q', [Value])
 	},
-	html(input([name(Name), size(40), disabled(true), value(S)])).
+	html(input([name(Name), size(40), value(S)])).
 
 oneof([], _) -->
 	[].

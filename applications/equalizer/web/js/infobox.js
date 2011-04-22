@@ -11,12 +11,6 @@ YUI.add('infobox', function(Y) {
 		srcNode: {
 			value: null
 		},
-		data:{
-			value:null,
-			validator:function(val) {
-				return Lang.isObject(val);
-			}
-		},
 		waiting: {
 			value:false,
 			validator:function(val) {
@@ -24,7 +18,13 @@ YUI.add('infobox', function(Y) {
 			}
 		},
 		content: {
-			value:''
+			value: null
+		},
+		datasource: {
+			value: null
+		},
+		selected: {
+			value: null
 		}
 	};
 	
@@ -40,31 +40,31 @@ YUI.add('infobox', function(Y) {
 			));
 			this.bd = bd;
 			this.after('waitingChange', this.toggleLoading, this);
-			this.after('dataChange', this.updateContent, this);
+			this.after('selectedChange', this.load, this);
 		},
 		
-		updateContent : function() {
-			var data = this.get("data"),
-				content = this.content;	
-			if(data) {
-				content.setContent(this.formatInfoBox(data));
-			} else {
-				content.setContent(this.get("content"));
-			}
-			// make sure the content will fit
-			if(this.bd.get("clientHeight") > 0) {
-				this.bd.setStyle("height", "inherit");
-			}
-			this.set("waiting", false);
-		},
-		
-		formatInfoBox : function (stats) {
-			var html = "<table><tbody>";
-			for(var stat in stats) {
-				html += "<tr><td>"+stat+"</td><td>"+stats[stat]+"</td></tr>";
-			}
-			html += "</tbody></table>";
-			return html;
+		load : function() {
+			var instance = this,
+				selected = this.get("selected"),
+				datasource = this.get("datasource"),
+				bd = this.bd,
+				content = this.content;
+
+			if(selected) {
+				this.set("waiting", true);
+				datasource.sendRequest({
+					request:'?url='+selected,
+					callback:{success:function(o) {
+						var HTML = o.response.results[0].responseText;
+						content.setContent(HTML);
+						// make sure the content will fit
+						if(bd.get("clientHeight") > 0) {
+							bd.setStyle("height", "inherit");
+						}
+						instance.set("waiting", false);
+					}}
+				})
+			}	
 		},
 		
 		toggleLoading : function () {

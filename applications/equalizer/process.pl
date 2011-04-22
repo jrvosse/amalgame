@@ -7,8 +7,12 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_label)).
+:- use_module(library(amalgame/expand_graph)).
 
 :- use_module(eq_util).
+
+:- setting(precompute_mapping, boolean, true,
+	   'When true mappings are computed in the background').
 
 :- http_handler(amalgame(data/addprocess), http_add_process, []).
 
@@ -76,7 +80,13 @@ assert_output(Process, _Type, Graph) :-
 new_mapping_output(Process, P, Graph) :-
 	rdf_bnode(OutputURI),
 	rdf_assert(OutputURI, rdf:type, amalgame:'Mapping', Graph),
-        rdf_assert(OutputURI, P, Process, Graph).
+        rdf_assert(OutputURI, P, Process, Graph),
+	(   setting(precompute_mapping, true)
+	->  debug(eq, 'precompute ~w', [OutputURI]),
+	    thread_create(expand_mapping(OutputURI, _), _,
+			  [ detached(true) ])
+	;   true
+	).
 
 
 process_label(P, Lit) :-

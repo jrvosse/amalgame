@@ -29,9 +29,8 @@ YUI.add('mappingtable', function(Y) {
 	Y.extend(MappingTable, Y.Base, {
 		initializer: function(config) {
 			var instance = this,
-				content = this.get("srcNode"),
-				fetchFn = this.get("fetch");
-
+				content = this.get("srcNode");
+			
 			this.table = new Y.DataTable.Base({
 				columnset:[{key:"source",
 					       formatter:this.formatResource,
@@ -64,38 +63,43 @@ YUI.add('mappingtable', function(Y) {
 			)));
 			this.paginator.on("changeRequest", function(state) {
 				this.setPage(state.page, true);
-				instance.updateRecords({offset:state.recordOffset});
+				instance.load({offset:state.recordOffset}, true);
 			});
-		},
-		
-		handleResponse : function(o) {
-			var table = this.table,
-				paginator = this.paginator,
-				records = o.response.results,
-				total = o.response.meta.totalNumberOfResults;
 			
-			paginator.setPage(1, true);
-			paginator.setTotalRecords(total, true);
-			table.set("recordset", records);
+			// get new data if selected is changed
+			this.after('selectedChange', this.load, this);
 		},
 		
-		updateRecords : function(conf) {
+		load : function(conf, recordsOnly) {
 			var selected = this.get("selected"),
-				DS = this.get("datasource"),
-				table = this.table;
-			
+				datasource = this.get("datasource"),
+				table = this.table,
+				paginator = this.paginator;
+
+			var callback = 	{
+				success: function(o) {
+					var records = o.response.results,
+						total = o.response.meta.totalNumberOfResults;
+					
+					if(!recordsOnly) {
+						paginator.setPage(1, true);
+						paginator.setTotalRecords(total, true);
+					}
+					table.set("recordset", records);
+				}
+			};
+				
 			if(selected) {
 				conf = conf ? conf : {};
 				conf.url = selected;
-				DS.sendRequest({
+				//infobox.set("waiting", true);
+				datasource.sendRequest({
 					request:'?'+Y.QueryString.stringify(conf),
-					callback: {success: function(o) {
-						table.set("recordset", o.response.results);
-					}}
+					callback:callback
 				})
 			}	
 		},
-		
+				
 		formatResource : function(o) {
 			var label = o.value ? o.value.label : "";
      		return "<div class=resource>"+label+"</div>";

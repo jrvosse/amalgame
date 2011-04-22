@@ -62,18 +62,18 @@ http_data_mapping(Request) :-
 				  description('first result that is returned')])
 		       ]),
  	expand_mapping(URL, Mapping0),
+	length(Mapping0, Count),
  	maplist(mapping_label, Mapping0, Mapping1),
 	sort_key(SortBy, SortKey),
 	sort_by_arg(Mapping1, SortKey, MSorted),
  	list_offset(MSorted, Offset, MOffset),
 	list_limit(MOffset, Limit, MLimit, _),
 	mapping_data(MLimit, Mapping),
-	mapping_statistics(Mapping0, Statistics),
-	reply_json(json([url=URL,
+ 	reply_json(json([url=URL,
  			 limit=Limit,
 			 offset=Offset,
  			 mapping=Mapping,
-			 statistics=Statistics])).
+			 total=Count])).
 
 sort_key(source, 2).
 sort_key(target, 4).
@@ -99,27 +99,6 @@ mapping_data([Align|As], [json(Data)|Os]) :-
 relation_label(R, Label) :-
 	mapping_relation(Label, R), !.
 relation_label(R, R).
-
-
-%%	mapping_statistics(+Mapping, -Stats)
-%
-%	Stats of mapping
-
-mapping_statistics(Mappings, Stats) :-
-	Stats = json([mappingcount=Total,
-		      sourcecount=SN,
-		      targetcount=TN
-		     ]),
-	maplist(align_source, Mappings, Ss0),
-	maplist(align_target, Mappings, Ts0),
-	sort(Ss0, Ss),
-	sort(Ts0, Ts),
-	length(Mappings, Total),
-	length(Ss, SN),
-	length(Ts, TN).
-
-align_source(align(S,_,_), S).
-align_target(align(_,T,_), T).
 
 
 %%	http_data_mapping_evaluate(+Request)

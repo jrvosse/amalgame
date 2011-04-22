@@ -8,9 +8,6 @@ YUI.add('equalizer', function(Y) {
 		NODE_BOTTOM 		= Y.one("#bottom"),
 		NODE_OPM 			= Y.one("#opm"),
 		NODE_CONTROLS 		= Y.one("#controls"),
-		NODE_MCONTROLS 		= Y.one("#mappingcontrols"),
-		NODE_PCONTROLS 		= Y.one("#processcontrols"),
-		NODE_VCONTROLS 		= Y.one("#vocabcontrols"),
 		NODE_INFOBOX 		= Y.one("#infobox"),
 		NODE_MAPPINGTABLE 	= Y.one("#mappingtable"),
 		NODE_CORRESPONDANCE = Y.one("#correspondance");
@@ -23,16 +20,15 @@ YUI.add('equalizer', function(Y) {
 		alignment : {
 			value: null
 		},
-		mapping : {
-			value: null
-		},
 		selected : {
 			value: null
 		},
 		paths:{
 			value:{
 				opmgraph:'/amalgame/opmviz',
-				mapping:'/amalgame/data/mapping'
+				mapping:'/amalgame/data/mapping',
+				addprocess:'/amalgame/addprocess',
+				statistics:'/amalgame/statisctis'
 			},
 			validator: function(val) {
 				return Lang.isObject(val)
@@ -55,8 +51,25 @@ YUI.add('equalizer', function(Y) {
 	Y.extend(Equalizer, Y.Base, {
 		
 		initializer: function(args) {
-			var paths = this.get("paths");
-							
+			// initalize the different modules
+			this._initViewport();
+			this._initGraph();
+			this._initInfo();
+			this._initControls();			
+			this._initMappings();
+			
+			// bind the modules together
+			this.opmviz.on("nodeSelect", function(e) {
+				this.set("selected", e.uri);
+			}, this);
+			this.after("selectedChange", this._onSelectChange, this);
+			this.controls.on("submit", this._onControlSubmit, this);
+			
+			// Let's get some stuff
+			this._fetchGraph();
+		},
+		
+		_initViewport : function() {
 			// We make the top part of the window resizable
 			// The bottom part react to this resize to match the viewport
 			// Changes in the viewport size also are delegated to the bottom and top
@@ -64,11 +77,40 @@ YUI.add('equalizer', function(Y) {
 			NODE_TOP.plug(Plugin.Resize, {draggable:true,handles:["b"],animate:true});
 			NODE_TOP.dd.on( "drag:end", this._setBottomHeight, this);
 			Y.on("resize", this._setSize, window, this);
+		},
+		
+		_initGraph : function() {
+			this.opmviz = new Y.OPMViz().render(NODE_OPM);
+		},
+		
+		_initInfo : function() {
+			var paths = this.get("paths");
+			
+			// The infobox is part of the controls,
+			// but has some additional routines
+			var DS = new Y.DataSource.IO({
+				source: paths.statistics
+			})
+			.plug({fn:Y.Plugin.DataSourceCache, cfg:{max:10}});
+			this.infobox = new Y.InfoBox({
+				srcNode: NODE_INFOBOX,
+				content: "select a node",
+				datasource: DS
+			});
+		},
+		
+		_initControls : function() {			
+			this.controls = new Y.Controls({
+				srcNode: NODE_CONTROLS
+			});
+		},
+		
+		_initMappings : function() {
+			var paths = this.get("paths");
 			
 			// We define a datasource to simplify 
-			// access to the mappings later
-			// and add caching support
-			this.mappingDS = new Y.DataSource.IO({
+			// access to the mappings later and add caching support
+			var DS = new Y.DataSource.IO({
 				source: paths.mapping
 			})
 			.plug(Plugin.DataSourceJSONSchema, {
@@ -76,76 +118,25 @@ YUI.add('equalizer', function(Y) {
 					resultListLocator: "mapping",
 		      		resultFields: ["source", "target", "relation"],
 		      		metaFields: {
-						type:"type",
-						statistics:"statistics",
-						totalNumberOfResults:"statistics.mappingcount"
+ 						totalNumberOfResults:"total"
 					}
 		    	}
 		  	})
 			.plug({fn:Y.Plugin.DataSourceCache, cfg:{max:10}});
-			
-			// We have a separate widget for the OPM graph visualization
-			// by the nodeSelect event we bind it to the other modules
-			this.opmviz = new Y.OPMViz().render(NODE_OPM);
-			this.opmviz.on("nodeSelect", this._onNodeSelect, this);
-			
-			// The controls are accordion nodes
-			Y.all(".yui3-accordion").plug(Y.Plugin.NodeAccordion, { 
-   				anim: true, 
-				speed:0.1
-			});
 
-			// The options in the controls are tabviews
-			var controls = {};
-			Y.all(".yui3-tabview").each( function(node) {
-				controls[node] = new Y.TabView({srcNode: node}).render();
-			});
-			Y.all("#controls form").each( function(form) {
-				form.one("input.control-submit").on("click", this._onControlSubmit, this, form);
-			}, this);
-			
-
-			// The infobox is part of the controls,
-			// but has some additional routines
-			this.infobox = new Y.InfoBox({
-				srcNode: NODE_INFOBOX,
-				content: "select a node"
-			});
-			
-			// the alignment control has two additional buttons
-			// to set the source and target
-			Y.on("click", this._valueSet, "#sourcebtn", this, "source");
-	      	Y.on("click", this._valueSet, "#targetbtn", this, "target");
-						
-			// We have a separate widget for everything related to a single mapping
 			this.mappingtable = new Y.MappingTable({
 				srcNode: NODE_MAPPINGTABLE,
-				datasource: this.mappingDS
+				datasource:DS
 			});
-			
-			// Let's get some stuff
-			this.fetchGraph();
-			
-			
 		},
 		
-		fetchGraph : function(conf) {
+		_fetchGraph : function(conf) {
 			var alignment = this.get("alignment"),
 				paths = this.get("paths"),
 				opmviz = this.opmviz;
 		
 			// reset the selected node
 			this.set("selected", null);	
-			this._toggleControls();
-			
-			var callback = {
-				success: function(e,o) {
-					// As the server returns an XML document, including doctype
-					// we first take out the actual svg element
-					var SVG = o.responseXML.lastChild;
-					opmviz.setGraph(SVG);
-				}
-			};
 				
 			if(alignment) {
 				conf = conf ? conf : {};
@@ -153,120 +144,52 @@ YUI.add('equalizer', function(Y) {
 				
  				Y.io(paths.opmgraph, {
 					data:conf,
-					on:callback
+					on:{success: function(e,o) {
+						// As the server returns an XML document, including doctype
+						// we first take out the actual svg element
+						var SVG = o.responseXML.lastChild;
+						opmviz.setGraph(SVG);
+						}
+					}
 				})
 			}
 		},
 		
-		fetchMapping : function() {
-			var infobox = this.infobox,
-				mappingtable = this.mappingtable,
-				selected = this.get("selected");
-								
-			var callback = 	{
-				success: function(o) {
-					var meta = o.response.meta,
-						statistics = meta.statistics;
-					
-					// update the other components
-					infobox.set("data", statistics);
-					mappingtable.handleResponse(o);
-				}
-			};
-				
-			if(selected) {
-				infobox.set("waiting", true);
-				this.mappingDS.sendRequest({
-					request:'?'+Y.QueryString.stringify({url:selected}),
-					callback:callback
-				})
-			}	
-		},
-		
-		_onControlSubmit : function(e, form) {
+		_onControlSubmit : function(o) {
 			var oSelf = this,
 				paths = this.get("paths"),
-				opmviz = this.opmviz,
-				source = Y.one("#source").get("value"),
-				target = Y.one("#target").get("value"),
-				input = this.get("selected"),
-				data = {
-					process:form.get("id"),
-					alignment:this.get("alignment")
-				};
-
-			if(source&&target) {
-				data.source = source;
-				data.target = target;
-				Y.one("#source").set("value", "");
-				Y.one("#target").set("value", "");
-			} else if(input) {
-				data.input = input
-			} else {
-				return "no input";
-			}	
-				
-			form.all("input").each(function(input) {
-				var name = input.get("name"),
-					value = input.get("value");
-				if(name&&value&&input.get("type")!=="button") {
-					data[name] = value;
-				}
-			});
-			form.all("select").each(function(select) {
-				var name = select.get("name"),
-					index = select.get('selectedIndex'),
-					value = select.get("options").item(index).get("value")
-				if(value) {
-					data[name] = value;
-				}
-			});
+				data = o.data;
+			
+			// data only contains the process parameters
+			// we need to add the context
+			data.alignment = this.get("alignment");
 			
 			Y.io(paths.addprocess, {
 				data:data,
 				on:{success:function(e,o) {
 					oSelf.set("nodes", Y.JSON.parse(o.responseText).nodes);
-					oSelf.fetchGraph();
+					oSelf._fetchGraph();
 				}}
 			})
 		},
 				
-		_onNodeSelect : function(e) {
-			var uri = e.uri,
+		_onSelectChange : function(e) {
+			var uri = e.newVal,
 				type = this.get("nodes")[uri]||"vocab";
-			this.set("selected", uri);
-			// depending on the result type we update
-			// different components
+				
+			// update the controls and the info
+			this.controls.set("input", uri);
+			this.controls.set("type", type);
+			this.infobox.set("selected", uri);
+			
+			// update other controls based on the type
 			if(type=="mapping") {
 				this.mappingtable.set("selected", uri);
-				this.fetchMapping();
-			} else if(type=="process") {
-			} else if(type=="vocab") {
 			}
-			this._toggleControls(type);
-		},
-
-		_toggleControls : function(active) {
-			// We only show the controls for the active type
-			NODE_CONTROLS.all(".yui3-accordion-item").each(function(node) {
-				if(node.hasClass(active)) {
-					node.all("input").removeAttribute("disabled");
-					node.all("select").removeAttribute("disabled");
-					node.one(".yui3-accordion-item-bd").removeClass("disabled");
-				} else {
-					node.all('input').setAttribute("disabled", true);
-					node.all("select").setAttribute("disabled", true);
-					node.one(".yui3-accordion-item-bd").addClass("disabled");
-				}
-			});
-		},
-		
-		_valueSet : function(e, which) {
-			var selected =  this.get("selected");
-			if(selected) {
-				Y.log(which+": "+selected);
-				Y.one("#"+which).set("value", selected);
-     		}
+			else if(type=="process") {
+			}
+			else if(type=="vocab") {
+			}
 		},
 		
 		// The bottom part of the screen fills the height of the viewport
