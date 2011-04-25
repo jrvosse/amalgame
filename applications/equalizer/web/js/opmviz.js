@@ -8,7 +8,11 @@ YUI.add('opmviz', function(Y) {
 		OPMViz.superclass.constructor.apply(this, arguments);
 	}
 	OPMViz.NAME = "opmviz";
-	OPMViz.ATTRS = {};
+	OPMViz.ATTRS = {
+		active: {
+			value:null
+		}
+	};
 	
 	Y.extend(OPMViz, Y.Widget, {
 		initializer: function(config) {
@@ -27,6 +31,7 @@ YUI.add('opmviz', function(Y) {
 					e.preventDefault();
 					var target = e.currentTarget,
 						uri = target.getAttribute("xlink:href");
+					this.set("active", uri);
 					Y.log("selected: "+uri);
 					Y.all("svg a").removeAttribute("class", "selected");
 					target.setAttribute("class", "selected");
@@ -34,10 +39,22 @@ YUI.add('opmviz', function(Y) {
 				}, "svg", "a", this);
 			}
 		},
-		syncUI : function() {},
+		
+		syncUI : function() {
+			// put back the active selection
+			var active = this.get("active");
+			if(active) {
+				this.get("contentBox").all("a").each(function(node) {
+					if(node.getAttribute("xlink:href")==active) {
+						node.setAttribute("class", "selected");
+					}
+				})
+			}
+		},
 		
 		setGraph : function(graph) {
 			this.get("contentBox").setContent(graph);
+			this.syncUI();
 			this.bindUI();
 		}
 	});

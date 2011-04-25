@@ -14,7 +14,7 @@ html_controls -->
 	},
 
  	html(div([class('yui3-accordion')],
-		  [ \html_accordion_item(infobox, 'Info',
+		  [ \html_accordion_item(infobox, 'Properties',
 					 'yui3-accordion-item-active info', []),
 		    \html_accordion_item(match, 'Match', vocab,
 					 [\html_align_select,

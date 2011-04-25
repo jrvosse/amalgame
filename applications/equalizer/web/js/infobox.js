@@ -18,7 +18,7 @@ YUI.add('infobox', function(Y) {
 			}
 		},
 		content: {
-			value: null
+			value: ""
 		},
 		datasource: {
 			value: null
@@ -32,28 +32,58 @@ YUI.add('infobox', function(Y) {
 		
 		initializer : function(config) {
 			var bd = this.get("srcNode").one('.yui3-accordion-item-bd');
-			this.content = bd.appendChild(Node.create(
+			var selected = this.get("selected"),
+				label = selected ? selected.label : "",
+				type = selected ? selected.type : "";
+			
+			var topNode = bd.appendChild(Node.create(
+				'<div class="top hidden"></div>'
+			));
+			this.typeNode = topNode.appendChild(Node.create(
+				'<span class="type">'+type+'</span>'
+			));
+			this.labelNode = topNode.appendChild(Node.create(
+				'<input type="text" name="label" class="label" size="40" value="'+label+'">'
+			));
+			var update = topNode.appendChild(Node.create(
+				'<input type="button" value="change">'
+			));
+			update.on("click", this._updateLabel, this);
+			
+			this.contentNode = bd.appendChild(Node.create(
 				'<div class="content">'+this.get("content")+'</div>'
 			));
 			this.loading = bd.appendChild(Node.create(
 				'<div class="loading hidden"></div>'
 			));
+			this.topNode = topNode;
 			this.bd = bd;
 			this.after('waitingChange', this.toggleLoading, this);
-			this.after('selectedChange', this.load, this);
+			this.after('selectedChange', this._update, this);
 		},
 		
-		load : function() {
+		_update : function() {
 			var instance = this,
 				selected = this.get("selected"),
+				uri = selected.uri,
+				label = selected ? selected.label : "",
+				type = selected ? selected.type : "",
 				datasource = this.get("datasource"),
 				bd = this.bd,
-				content = this.content;
+				content = this.contentNode;
 
 			if(selected) {
+				this.topNode.removeClass("hidden");
+				this.labelNode.set("value", label);
+				this.typeNode.setContent(type);
+			} else {
+				this.topNode.addClass("hidden");
+			}
+			
+			if(uri) {
 				this.set("waiting", true);
 				datasource.sendRequest({
-					request:'?url='+selected,
+					request:'?url='+uri,
 					callback:{success:function(o) {
 						var HTML = o.response.results[0].responseText;
 						content.setContent(HTML);
@@ -67,15 +97,26 @@ YUI.add('infobox', function(Y) {
 			}	
 		},
 		
+		_updateLabel : function() {
+			var oldLabel = this.get("selected").label,
+				uri = this.get("selected").uri,
+				newLabel = this.labelNode.get("value");
+			if(newLabel!==oldLabel) {
+				this.fire("labelChange", {uri:uri, oldVal:oldLabel, newVal:newLabel});
+			}
+		},
+		
 		toggleLoading : function () {
 			if(this.get("waiting")) {
-				this.content.addClass("hidden");
+				this.contentNode.addClass("hidden");
 				this.loading.removeClass("hidden");
 			} else {
 				this.loading.addClass("hidden");
-				this.content.removeClass("hidden");
+				this.contentNode.removeClass("hidden");
 			}
 		}
+		
+		
 		
 	});
 		

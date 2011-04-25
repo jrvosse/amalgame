@@ -12,10 +12,7 @@ YUI.add('controls', function(Y) {
 		srcNode: {
 			value: null
 		},
-		input: {
-			value: null
-		},
-		type: {
+		selected: {
 			value: null
 		}
 	};
@@ -47,7 +44,7 @@ YUI.add('controls', function(Y) {
 	      	Y.on("click", this._valueSet, "#targetbtn", this, "target");
 			
 			// toggle the controls when selected is changed
-			this.after('typeChange', this._toggleControls, this);
+			this.after('selectedChange', this._toggleControls, this);
 		},
 				
 		_onControlSubmit : function(e, form) {
@@ -55,7 +52,7 @@ YUI.add('controls', function(Y) {
 				content = this.get("srcNode"),
 				source = content.one("#source").get("value"),
 				target = content.one("#target").get("value"),
-				input = this.get("input"),
+				selected = this.get("selected"),
 				data = this._getFormData(form);
 				
 			data.process = form.get("id");
@@ -65,8 +62,8 @@ YUI.add('controls', function(Y) {
 				data.target = target;
 				content.one("#source").set("value", "");
 				content.one("#target").set("value", "");
-			} else if(input) {
-				data.input = input
+			} else if(selected) {
+				data.input = selected.uri;
 			} else {
 				return "no input";
 			}
@@ -100,7 +97,8 @@ YUI.add('controls', function(Y) {
 		
 		_toggleControls : function() {
 			var srcNode = this.get("srcNode"),
-				type = this.get("type");
+				selected = this.get("selected"),
+				type = selected ? selected.type : "vocab";
 				
 			// We only show the controls for the active type
 			srcNode.all(".yui3-accordion-item").each(function(node) {
@@ -120,9 +118,9 @@ YUI.add('controls', function(Y) {
 		},
 		
 		_valueSet : function(e, which) {
-			var input =  this.get("input");
-			if(input) {
-				Y.one("#"+which).set("value", input);
+			var selected =  this.get("selected");
+			if(selected) {
+				Y.one("#"+which).set("value", selected.uri);
      		}
 		}
 		

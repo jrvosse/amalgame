@@ -13,6 +13,7 @@
 :- use_module(library(yui3_beta)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_label)).
+:- use_module(user(user_db)).
 :- use_module(components(label)).
 :- use_module(eq_util).
 
@@ -234,12 +235,30 @@ http_eq_new(Request) :-
 	http_link_to_id(http_equalizer, [alignment(Graph)], Redirect),
 	http_redirect(moved, Redirect, Request).
 
+%%	new_alignment(+Schemes, -AlignmentURI)
+%
+%	Assert a new alignment graph.
+
+new_alignment(Schemes, Alignment) :-
+	authorized(write(default, _)),
+	rdf_bnode(Alignment),
+	rdf_transaction((rdf_assert(Alignment, rdf:type, amalgame:'Alignment', Alignment),
+			 assert_user_provenance(Alignment, Alignment),
+			 add_schemes(Schemes, Alignment))).
+
+add_schemes([], _).
+add_schemes([Scheme|Ss], A) :-
+	rdf_assert(A, amalgame:includes, Scheme, A),
+	add_schemes(Ss, A).
+
+
 
 %%	http_eq_upload_data(+Request)
 %
 %	Handler for alignment import
 
 http_eq_upload_data(Request) :-
+	authorized(write(default, _)),
 	http_parameters(Request,
 			[ data(Data,
 			       [ description('RDF data to be loaded')
@@ -256,6 +275,7 @@ http_eq_upload_data(Request) :-
 	http_redirect(moved, Redirect, Request).
 
 http_eq_upload_url(Request) :-
+	authorized(write(default, _)),
 	http_parameters(Request,
 			[ url(URL, [])
  			]),
@@ -263,3 +283,4 @@ http_eq_upload_url(Request) :-
 	rdf_load(URL, [graph(Graph)]),
 	http_link_to_id(http_equalizer, [alignment(Graph)], Redirect),
 	http_redirect(moved, Redirect, Request).
+

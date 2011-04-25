@@ -12,34 +12,37 @@ amalgame:Merge  rdfs:subClassOf opmv:Process.
 amalgame:Select rdfs:subClassOf opmv:Process.
 amalgame:Voc_Exclude rdfs:subClassOf opmv:Process.
 
-amalgame:Snowball_Matcher    rdfs:subClassOf amalgame:Match .  
-amalgame:Exact_Label_Matcher rdfs:subClassOf amalgame:Match .  
-amalgame:Isub_Match        rdfs:subClassOf amalgame:Match .  
+amalgame:Snowball_Matcher    rdfs:subClassOf amalgame:Match .
+amalgame:Exact_Label_Matcher rdfs:subClassOf amalgame:Match .
+amalgame:Isub_Match        rdfs:subClassOf amalgame:Match .
 
 amalgame:Select1_1    rdfs:subClassOf amalgame:Select .
 amalgame:Arity_select rdfs:subClassOf amalgame:Select .
 
-amalgame:input 
+amalgame:includes
+        rdfs:domain skos:ConceptScheme ;
+        rdfs:range amalgame:Alignment .
+amalgame:input
 	rdfs:domain opmv:Process ;
 	rdfs:range  amalgame:Alignment ;
 	rdfs:subPropertyOf opmv:used.
 
-amalgame:exclude 
+amalgame:exclude
 	rdfs:domain opmv:Process ;
 	rdfs:range  amalgame:Alignment ;
 	rdfs:subPropertyOf opmv:used.
 
-amalgame:selectedBy 
+amalgame:selectedBy
 	rdfs:domain  amalgame:Alignment ;
 	rdfs:range opmv:Process ;
 	rdfs:subPropertyOf opmv:wasGeneratedBy.
 
-amalgame:discardedBy 
+amalgame:discardedBy
 	rdfs:domain  amalgame:Alignment ;
 	rdfs:range opmv:Process ;
 	rdfs:subPropertyOf opmv:wasGeneratedBy.
 
-amalgame:untouchedBy 
+amalgame:untouchedBy
 	rdfs:domain  amalgame:Alignment ;
 	rdfs:range opmv:Process ;
 	rdfs:subPropertyOf opmv:wasGeneratedBy.
@@ -109,7 +112,7 @@ amalgame:FullyMappedConceptScheme a rdfs:Class;
 	rdfs:subClassOf skos:ConceptScheme;
 	rdfs:label "100% mapped concept scheme"@en ;
 	rdfs:comment "A SKOS Concept Scheme of which all concepts have been mapped to another scheme"@en .
-	
+
 amalgame:UnmappedConceptScheme a rdfs:Class;
 	rdfs:subClassOf skos:ConceptScheme;
 	rdfs:label "Unmapped concept scheme"@en ;
@@ -119,7 +122,7 @@ amalgame:DerivedConceptScheme a rdfs:Class;
 	rdfs:subClassOf skos:ConceptScheme;
 	rdfs:label "Derived concept scheme"@en ;
 	rdfs:comment "A SKOS Concept Scheme which has been derived from another scheme"@en .
-	
+
 amalgame:member a rdf:Property ;
 	rdfs:label "overlap member"@en ;
 	rdfs:comment "Used to define the alignment graphs that define an Overlap."@en ;
@@ -222,7 +225,7 @@ amalgame:request a rdf:Property, owl:FunctionalProperty ;
 	rdfs:domain amalgame:Provenance ;
 	rdfs:range rdfs:Resource .
 
-amalgame:sampleMethod a rdf:Property; 
+amalgame:sampleMethod a rdf:Property;
 	rdfs:label "sample method used create this sample graph"@en ;
 	rdfs:domain amalgame:Provenance ;
 	rdfs:range rdfs:Literal .

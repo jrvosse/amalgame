@@ -8,6 +8,7 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(http/js_write)).
 :- use_module(library(yui3_beta)).
+:- use_module(user(user_db)).
 
 :- use_module(start_page).
 :- use_module(controls).
@@ -37,6 +38,7 @@
 %	HTTP handler for web page for interactive vocabulary alignment.
 
 http_equalizer(Request) :-
+	authorized(write(default, _)),
 	http_parameters(Request,
 			[ alignment(Alignment,
 				    [uri, optional(true),
@@ -120,6 +122,8 @@ js_path(mapping, Path) :-
 	http_location_by_id(http_data_mapping, Path).
 js_path(addprocess, Path) :-
 	http_location_by_id(http_add_process, Path).
+js_path(updatelabel, Path) :-
+	http_location_by_id(http_update_label, Path).
 js_path(concepts, Path) :-
 	  http_location_by_id(http_concepts, Path).
 

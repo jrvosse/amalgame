@@ -59,11 +59,9 @@ YUI.add('equalizer', function(Y) {
 			this._initMappings();
 			
 			// bind the modules together
-			this.opmviz.on("nodeSelect", function(e) {
-				this.set("selected", e.uri);
-			}, this);
-			this.after("selectedChange", this._onSelectChange, this);
+			this.opmviz.on("nodeSelect", this._onNodeSelect, this);
 			this.controls.on("submit", this._onControlSubmit, this);
+			this.infobox.after("labelChange", this._onLabelChange, this);
 			
 			// Let's get some stuff
 			this._fetchGraph();
@@ -134,9 +132,6 @@ YUI.add('equalizer', function(Y) {
 			var alignment = this.get("alignment"),
 				paths = this.get("paths"),
 				opmviz = this.opmviz;
-		
-			// reset the selected node
-			this.set("selected", null);	
 				
 			if(alignment) {
 				conf = conf ? conf : {};
@@ -172,15 +167,36 @@ YUI.add('equalizer', function(Y) {
 				}}
 			})
 		},
+		
+		_onLabelChange : function(o) {
+			var oSelf = this,
+				paths = this.get("paths"),
+				data = {
+					alignment:this.get("alignment"),
+					uri:o.uri,
+					label:o.newVal
+				};
+			
+			Y.io(paths.updatelabel, {
+				data:data,
+				on:{success:function(e,o) {
+					oSelf.set("nodes", Y.JSON.parse(o.responseText).nodes);
+					oSelf._fetchGraph();
+				}}
+			})
+		},
 				
-		_onSelectChange : function(e) {
-			var uri = e.newVal,
-				type = this.get("nodes")[uri]||"vocab";
+		_onNodeSelect : function(e) {
+			var uri = e.uri,
+				node = this.get("nodes")[uri],
+				type = node.type,
+				label = node.label;
+			node.uri = uri;
 				
+			this.set("selected", uri);	
 			// update the controls and the info
-			this.controls.set("input", uri);
-			this.controls.set("type", type);
-			this.infobox.set("selected", uri);
+			this.controls.set("selected", node);
+			this.infobox.set("selected", node);
 			
 			// update other controls based on the type
 			if(type=="mapping") {

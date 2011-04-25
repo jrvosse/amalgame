@@ -1,25 +1,27 @@
 :- module(eq_util,
-	  [ new_alignment/2,
+	  [ assert_user_provenance/2,
 	    amalgame_alignment/2,
- 	    js_alignment_nodes/2
+ 	    js_alignment_nodes/2,
+	    now_xsd/1,
+	    xsd_timestamp/2
 	  ]).
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
+:- use_module(library(semweb/rdf_label)).
+:- use_module(user(user_db)).
 
-%%	new_alignment(+Schemes, -AlignmentURI)
+
+
+%%	assert_user_provenance(+Resource, -NamedGraph)
 %
-%	Assert a new alignment graph.
+%	Assert provenance about create process.
 
-new_alignment(Schemes, Alignment) :-
-	rdf_bnode(Alignment),
-	rdf_transaction((rdf_assert(Alignment, rdf:type, amalgame:'Alignment', Alignment),
-			 add_schemes(Schemes, Alignment))).
-
-add_schemes([], _).
-add_schemes([Scheme|Ss], A) :-
-	rdf_assert(A, amalgame:includes, Scheme, A),
-	add_schemes(Ss, A).
+assert_user_provenance(R, Graph) :-
+	current_user(User),
+	now_xsd(Time),
+	rdf_assert(R, dc:creator, User, Graph),
+	rdf_assert(R, dc:date, literal(type(xsd:date, Time)), Graph).
 
 
 %%	amalgame_alignment(?Alignment, ?Schemes)
@@ -38,11 +40,24 @@ amalgame_alignment(Alignment, Schemes) :-
 %	Nodes contains all nodes in alignment with their OPM type.
 
 js_alignment_nodes(Alignment, Nodes) :-
-	findall(S, rdf(S,_,_,Alignment), Nodes0),
+	findall(S, graph_resource(Alignment, S), Nodes0),
 	sort(Nodes0, Nodes1),
- 	maplist(node_type, Nodes1, Nodes).
+ 	maplist(node_data, Nodes1, Nodes).
 
-node_type(R, R=Type) :-
+graph_resource(Graph, R) :-
+	rdf(R,rdf:type,_,Graph).
+graph_resource(Graph, R) :-
+	rdf(Graph, amalgame:includes, R).
+
+node_data(R, R=json([type=Type, label=Label])) :-
+	rdf_display_label(R, Lit),
+	literal_text(Lit, Label),
+	(   node_type(R, T)
+	->  Type = T
+	;   Type = vocab
+	).
+
+node_type(R, Type) :-
 	rdf(R, rdf:type, Class),
 	(   rdf_equal(Class, amalgame:'Alignment')
 	->  Type = alignment
@@ -50,10 +65,7 @@ node_type(R, R=Type) :-
 	->  Type = mapping
 	;   rdfs_subclass_of(Class, opmv:'Process')
 	->  Type = process
-	),
-	!.
-node_type(R, R=vocab).
-
+	).
 
 
 %%	http:convert_parameter(+Type, +In, -URI) is semidet.
@@ -72,3 +84,22 @@ http:convert_parameter(uri, In, URI) :-
 	;   is_absolute_url(In)
 	->  URI = In
 	).
+
+
+%%	now_xsd(-Text:atom)
+%
+%	Text is the current time in xsd:date format.
+
+now_xsd(Text) :-
+	get_time(TimeStamp),
+	xsd_timestamp(TimeStamp, Text).
+
+%%	xsd_timestamp(+Time:timestamp, -Text:atom) is det.
+%
+%	Generate a description of a Time in xsd:date format
+
+xsd_timestamp(Time, Atom) :-
+	stamp_date_time(Time, Date, 'UTC'),
+        format_time(atom(Atom),
+                    '%FT%T%:z',
+                    Date, posix).

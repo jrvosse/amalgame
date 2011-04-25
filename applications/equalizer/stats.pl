@@ -21,30 +21,56 @@ http_eq_stats(Request) :-
 			[ url(URL,
 			      [description('URL of mapping graph')])
  		       ]),
+	amalgame_provenance(URL, Prov),
 	amalgame_stats(URL, Stats),
+	append(Prov, Stats, Info),
 	html_current_option(content_type(Type)),
-	phrase(html_stats(Stats), HTML),
+	phrase(html_table(Info), HTML),
 	format('Content-type: ~w~n~n', [Type]),
 	print_html(HTML).
 
-html_stats(Stats) -->
+html_table(Stats) -->
  	html(table(tbody(\html_rows(Stats)))).
 
 html_rows([]) --> !.
-html_rows([Key=Value|Ss]) -->
-	html(tr([td(Key),
-		 td(Value)
-		])),
+html_rows([Key-Value|Ss]) -->
+	html_row(Key, Value),
 	html_rows(Ss).
+
+html_row(Key, set(Values)) -->
+	 html(tr([th(Key),
+		  td([])
+		 ])),
+	 html_rows(Values).
+html_row(Key, Value) -->
+	 html(tr([td(Key),
+		 td(\html_cell(Value))
+		])).
+
+html_cell([]) --> !.
+html_cell(Vs) -->
+	{ is_list(Vs)
+	},
+	!,
+	html_cell_list(Vs).
+html_cell(V) -->
+ 	html(V).
+
+html_cell_list([V]) -->
+	html_cell(V).
+html_cell_list([V|Vs]) -->
+	html_cell(V),
+	html(', '),
+	html_cell_list(Vs).
 
 
 %%	amalgame_stats(+Mapping, -Stats)
 %
 %	Stats of a resourcemapping
 
-amalgame_stats(URL, ['total mappings'=Total,
-		     'mapped source concepts'=SN,
-		     'mapped target concepts'=TN
+amalgame_stats(URL, ['total mappings'-Total,
+		     'mapped source concepts'-SN,
+		     'mapped target concepts'-TN
 		    ]) :-
 	rdfs_individual_of(URL, amalgame:'Mapping'),
 	!,
@@ -58,7 +84,7 @@ amalgame_stats(URL, ['total mappings'=Total,
 	length(Ts, TN).
 
 amalgame_stats(Scheme,
-	    ['total concepts'=Total
+	    ['total concepts'-Total
 	    ]) :-
 	rdfs_individual_of(Scheme, skos:'ConceptScheme'),
 	!,
@@ -67,5 +93,51 @@ amalgame_stats(Scheme,
 
 amalgame_stats(_, []).
 
+
+%%	amalgame_provenance(+R, -Provenance:[key-value])
+%
+%	Provenance is a list of key-value pairs with provenance about R.
+
+amalgame_provenance(R, Provenance) :-
+	findall(Key-Value, ag_prov(R, Key, Value), Provenance).
+
+
+
+
+ag_prov(R, 'created by', V) :-
+	rdf(R, dc:creator, V).
+ag_prov(R, 'created at', V) :-
+	rdf(R, dc:date, V).
+ag_prov(Graph, contributors, Vs) :-
+	rdfs_individual_of(Graph, amalgame:'Alignment'),
+ 	findall(V,
+		(   rdf(R, _, _, Graph),
+		    \+ R == Graph,
+		    rdf(R, dc:creator, V),
+		    \+ rdf(Graph, dc:creator, V)
+		), Vs0),
+	Vs0 \== [],
+	!,
+	sort(Vs0, Vs).
+ag_prov(Process, parameters, set(Params)) :-
+	rdfs_individual_of(Process, opmv:'Process'),
+	!,
+	rdf(Process, amalgame:parameters, SearchString),
+	concat_atom(Ps, '&', SearchString),
+	maplist(param_to_prov, Ps, Params).
+
+param_to_prov(P, Key-Value) :-
+ 	concat_atom([Key,Value], '=', P).
+
+
+/*ag_prov(Mapping, Key, Value) :-
+	rdfs_individual_of(Mapping, amalgame:'Mapping'),
+	!,
+	rdf_has(Mapping, opmv:wasGeneratedBy, Process),
+	ag_prov(Process, Key, Value).
+*/
+
 align_source(align(S,_,_), S).
 align_target(align(_,T,_), T).
+
+

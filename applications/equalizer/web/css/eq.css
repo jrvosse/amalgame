@@ -61,6 +61,19 @@ body {
 #infobox td {
 	padding: 0 10px 5px 0;
 }
+#infobox th {
+	font-weight: bold;
+}
+#infobox .top {
+	padding: 5px 0;
+	margin: 0 10px;
+	border-bottom: 1px solid #CCC;
+}
+#infobox .type {
+	padding-right: 5px;
+	font-variant: small-caps;
+}
+
 
 /* mapping */
 #mapping {

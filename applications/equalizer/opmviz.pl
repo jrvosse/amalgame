@@ -95,23 +95,15 @@ html_opmviz(Graph) -->
 %	use the rdf:'bag'contstruct.
 
 opm_triples(Graph, Triples) :-
-	findall(rdf(S,P,O),
-		(   rdf(S,P,O,Graph),
-		    \+rdf(S, rdf:type, amalgame:'Alignment'),
-		    is_opm_property(P)
-		),
-		Triples),
-	Triples \== [],
-	!.
-opm_triples(Graph, Triples) :-
-	rdf_equal(amalgame:includes, P),
-	findall(rdf(Graph,P,S),
-		rdf(Graph,P,S),
-		Triples),
-	Triples \== [],
- 	!.
-opm_triples(_Graph, []).
+	findall(rdf(S,P,O), opm_graph_triple(Graph,S,P,O), Triples).
 
+% hack, to get a better layout we reverse the arrow :(
+opm_graph_triple(Graph,Scheme,P,Graph) :-
+	rdf_equal(amalgame:includedIn, P),
+	rdf(Graph,amalgame:includes,Scheme,Graph).
+opm_graph_triple(Graph,S,P,O) :-
+	rdf(S,P,O,Graph),
+	is_opm_property(P).
 
 is_opm_property(P) :-
 	rdfs_subproperty_of(P, opmv:used),
