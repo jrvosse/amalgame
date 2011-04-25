@@ -1,14 +1,14 @@
 /* main layout */
-#main {
+#content {
 	margin: 0 10px;
 	padding-left: 210px;
 }
-#mappinglist {
+#left {
 	width: 200px;
 	margin-right: 10px;
 	margin-left: -210px;
 }
-#mappingtable {
+#main {
 	width: 100%;
 	
 }
@@ -51,6 +51,10 @@
 .yui3-datatable td {
 	cursor: pointer;
 	vertical-align: top;
+}
+.yui3-datatable-selected {
+	background-color: #3875D7;
+	color: white;
 }
 .yui3-datatable td:first-child,
 .yui3-datatable td:last-child {

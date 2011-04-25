@@ -51,11 +51,14 @@ html_page(Alignment) :-
 			  \html_requires(css('gallery-paginator.css')),
 			   \html_eq_header(http_eq_evaluate, Alignment),
    			  div(class('yui3-skin-sam yui-skin-sam'),
-			      [ div([id(main), class('yui3-g')],
-				    [ div([class('yui3-u'), id(mappinglist)],
-					  []),
-				      div([class('yui3-u'), id(mappingtable)],
-					  [])
+			      [ div([id(content), class('yui3-g')],
+				    [ div([class('yui3-u'), id(left)],
+					  div(id(mappinglist), [])),
+				      div([class('yui3-u'), id(main)],
+					  [ div(id(sourceinfo), []),
+					    div(id(mappingtable), []),
+					    div(id(targetinfo), [])
+					  ])
 				    ])
 			      ]),
 			  script(type('text/javascript'),
