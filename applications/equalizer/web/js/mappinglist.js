@@ -39,7 +39,6 @@ YUI.add('mappinglist', function(Y) {
 						uri:mapping.uri,
 						label:mapping.label
 					};
-				console.log(target, index, mapping, arg);	
 				this.set("selected", mapping);
 				listNode.all("li").removeClass("selected");
 				e.currentTarget.addClass("selected");

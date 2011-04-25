@@ -18,7 +18,7 @@ YUI.add('mappingtable', function(Y) {
 				return Lang.isNumber(val);
 			}
 		},
-		selected: {
+		mapping: {
 			value: null
 		},
 		datasource: {
@@ -66,12 +66,15 @@ YUI.add('mappingtable', function(Y) {
 				instance.load({offset:state.recordOffset}, true);
 			});
 			
-			// get new data if selected is changed
-			this.after('selectedChange', this.load, this);
+			// get new data if mapping is changed
+			this.after('mappingChange', this.load, this);
+			this.table.on('tbodyRowClick', function(e) {
+				console.log(e);
+			}, this);
 		},
 		
 		load : function(conf, recordsOnly) {
-			var selected = this.get("selected"),
+			var mapping = this.get("mapping"),
 				datasource = this.get("datasource"),
 				table = this.table,
 				paginator = this.paginator;
@@ -89,9 +92,9 @@ YUI.add('mappingtable', function(Y) {
 				}
 			};
 				
-			if(selected) {
+			if(mapping) {
 				conf = conf ? conf : {};
-				conf.url = selected;
+				conf.url = mapping;
 				//infobox.set("waiting", true);
 				datasource.sendRequest({
 					request:'?'+Y.QueryString.stringify(conf),

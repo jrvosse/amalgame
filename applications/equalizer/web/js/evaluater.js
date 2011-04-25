@@ -49,9 +49,10 @@ YUI.add('evaluater', function(Y) {
 			
 			// bind the modules
 			this.mappinglist.on("mappingSelect", function(o) {
-				console.log(o);
-				this.mappingtable.set("selected", o.uri);
+				this.set("selected", o);
+				this.mappingtable.set("mapping", o.uri);
 			}, this);
+			
 			
 		},
 		
@@ -61,7 +62,8 @@ YUI.add('evaluater', function(Y) {
 			}).render(NODE_MAPPING_LIST);
 		},	
 		_initTable : function() {
-			var paths = this.get("paths");
+			var paths = this.get("paths"),
+				mapping = this.get("selected");
 			
 			// We define a datasource to simplify 
 			// access to the mappings later and add caching support
@@ -81,7 +83,8 @@ YUI.add('evaluater', function(Y) {
 
 			this.mappingtable = new Y.MappingTable({
 				srcNode: NODE_MAPPING_TABLE,
-				datasource:DS
+				datasource:DS,
+				mapping:mapping
 			});
 		}
 				
