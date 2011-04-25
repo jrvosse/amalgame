@@ -1,6 +1,5 @@
-:- module(eq_start_page,
-	  [ html_start_page/0
-	  ]).
+:- module(eq_selecter,
+	  []).
 
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
@@ -17,22 +16,30 @@
 :- use_module(components(label)).
 :- use_module(eq_util).
 
-%%	html_start_page
+% http handlers for this applications
+:- http_handler(amalgame(eq), http_eq, []).
+:- http_handler(amalgame(new), http_eq_new, []).
+:- http_handler(amalgame(load/url), http_eq_upload_url, []).
+:- http_handler(amalgame(load/data), http_eq_upload_data, []).
+
+%%	http_eq(+Request)
 %
 %	Emit html page to start a new or load an existing alignment
 %	project.
 
-html_start_page :-
+http_eq(_Request) :-
+	authorized(write(default, _)),
+	html_page.
+
+html_page :-
 	findall(C, rdf(C, rdf:type, skos:'ConceptScheme'), Cs),
  	findall(A-S, amalgame_alignment(A, S), Alignments),
 	sort(Cs, ConceptSchemes),
    	reply_html_page(equalizer(start),
 			[ title(['Amalgame - projects'])
  			],
-			[ \html_requires(css('eq_start_page.css')),
- 			  \html_requires(css('resize-core.css')),
-			  \html_requires(css('resize-skin.css')),
-			  \html_requires('http://yui.yahooapis.com/combo?3.3.0/build/cssreset/reset-min.css&3.3.0/build/cssgrids/grids-min.css&3.3.0/build/cssfonts/fonts-min.css&gallery-2011.02.23-19-01/build/gallery-node-accordion/assets/skins/sam/gallery-node-accordion.css'),
+			[ \html_requires(css('selecter.css')),
+ 			  \html_requires('http://yui.yahooapis.com/combo?3.3.0/build/cssreset/reset-min.css&3.3.0/build/cssgrids/grids-min.css&3.3.0/build/cssfonts/fonts-min.css&gallery-2011.02.23-19-01/build/gallery-node-accordion/assets/skins/sam/gallery-node-accordion.css'),
  			  div(class('yui-skin-sam yui3-skin-sam'),
 			      [ div(id(header), []),
 				div(id(main),
@@ -92,7 +99,7 @@ html_vocab_rows([Scheme|Vs]) -->
 
 html_open(Alignments) -->
 	html_acc_item(open, 'open alignment',
-		      [ form(action(location_by_id(http_equalizer)),
+		      [ form(action(location_by_id(http_eq_build)),
 			     [ \html_alignment_table(Alignments),
  			       \html_submit('Start')
 			     ])
@@ -197,7 +204,7 @@ yui_script -->
  	yui3([json([modules(json(Modules))])
 	     ],
 	     Includes,
-	     [ \yui3_new(eq, 'Y.EqualizerSelect', [])
+	     [ \yui3_new(eq, 'Y.Selecter', [])
  	     ]).
 
 
@@ -206,20 +213,16 @@ yui_script -->
 %	YUI3 and application specific modules used in javascript.
 
 js_module(gallery, 'gallery-2011.02.23-19-01').
-js_module('equalizer-select', json([fullpath(Path),
+js_module(selecter, json([fullpath(Path),
 				    requires([node,base,event,anim,
  					      'gallery-node-accordion'])
 			  ])) :-
-	http_absolute_location(js('equalizerselect.js'), Path, []).
+	http_absolute_location(js('selecter.js'), Path, []).
 
 
 		 /*******************************
 		 *	       upload	        *
 		 *******************************/
-
-:- http_handler(amalgame(new), http_eq_new, []).
-:- http_handler(amalgame(load/url), http_eq_upload_url, []).
-:- http_handler(amalgame(load/data), http_eq_upload_data, []).
 
 %%	http_eq_new(+Request)
 %
@@ -232,8 +235,8 @@ http_eq_new(Request) :-
 				  description('Zero or more concept schemes')])
 			]),
 	new_alignment(Schemes, Graph),
-	http_link_to_id(http_equalizer, [alignment(Graph)], Redirect),
-	http_redirect(moved, Redirect, Request).
+	build_redirect(Request, Graph).
+
 
 %%	new_alignment(+Schemes, -AlignmentURI)
 %
@@ -271,8 +274,7 @@ http_eq_upload_data(Request) :-
 			   ( close(Stream),
 			     free_memory_file(MemFile)
 			   )),
-	http_link_to_id(http_equalizer, [alignment(Graph)], Redirect),
-	http_redirect(moved, Redirect, Request).
+	build_redirect(Request, Graph).
 
 http_eq_upload_url(Request) :-
 	authorized(write(default, _)),
@@ -281,6 +283,8 @@ http_eq_upload_url(Request) :-
  			]),
 	rdf_bnode(Graph),
 	rdf_load(URL, [graph(Graph)]),
-	http_link_to_id(http_equalizer, [alignment(Graph)], Redirect),
-	http_redirect(moved, Redirect, Request).
+	build_redirect(Request, Graph).
 
+build_redirect(Request, Graph) :-
+	http_link_to_id(http_eq_build, [alignment(Graph)], Redirect),
+	http_redirect(moved, Redirect, Request).

@@ -1,0 +1,76 @@
+/* main layout */
+#main {
+	margin: 0 10px;
+	padding-right: 400px;
+}
+#opm {
+	width: 100%;
+}
+#right {
+	width: 400px;
+	margin-right: -400px;
+}
+
+/* controls */
+#controls .yui3-accordion-item-hd {
+	line-height: 1.4;
+}
+#controls .yui3-accordion-item-active .yui3-accordion-item-trigger {
+	background-position: 105% -398px;
+}
+#controls .yui3-accordion-item-trigger {
+	background-position: 105% -348px;
+}
+#controls .yui3-accordion-item-bd.disabled {
+	color: #BBB;
+}
+#controls .controlset {
+	border-width: 0 1px 1px;
+}
+#controls table {
+	width: 100%;
+}
+.control-buttons {
+	text-align: right;
+}
+
+
+/* infobox */
+#infobox .content {
+	padding: 5px 10px;
+}
+#infobox .loading {
+	padding: 20px 0;
+	background: url("loading.gif") no-repeat 50% 50%;
+}
+#infobox .hidden {
+	display: none;
+}
+#infobox td {
+	padding: 0 10px 5px 0;
+}
+#infobox th {
+	font-weight: bold;
+}
+#infobox .top {
+	padding: 5px 0;
+	margin: 0 10px;
+	border-bottom: 1px solid #CCC;
+}
+#infobox .type {
+	padding-right: 5px;
+	font-variant: small-caps;
+}
+
+/* opm graph */
+.yui3-opmviz {
+	padding: 5px 5px 15px;
+}
+.yui3-opmviz .selected text {
+	font-weight: bold;
+}
+.yui3-opmviz .selected ellipse,
+.yui3-opmviz .selected polygon {
+	fill: #DBEAFF;
+	stroke-width: 2px;
+}

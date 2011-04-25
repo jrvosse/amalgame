@@ -61,4 +61,4 @@ YUI.add('opmviz', function(Y) {
 	
 	Y.OPMViz = OPMViz;
 	
-}, '0.0.1', { requires: ['node,event','widget']});
+}, '0.0.1', { requires: ['node','event','widget']});

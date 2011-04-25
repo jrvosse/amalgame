@@ -1,4 +1,4 @@
-YUI.add('equalizer-select', function(Y) {
+YUI.add('selecter', function(Y) {
 	
 	var Lang = Y.Lang,
 		Node = Y.Node,
@@ -6,11 +6,11 @@ YUI.add('equalizer-select', function(Y) {
 	
 	var	NODE_CONTENT 		= Y.one("#content");
 	
-	function EqualizerSelect(config) {
-		EqualizerSelect.superclass.constructor.apply(this, arguments);
+	function Selecter(config) {
+		Selecter.superclass.constructor.apply(this, arguments);
 	}
-	EqualizerSelect.NAME = "equalizer-select";
-	EqualizerSelect.ATTRS = {
+	Selecter.NAME = "selecter";
+	Selecter.ATTRS = {
 	    strings: {
 	        value: {},
 			validator: function(val) {
@@ -19,7 +19,7 @@ YUI.add('equalizer-select', function(Y) {
 	    }
 	};
 	
-	Y.extend(EqualizerSelect, Y.Base, {
+	Y.extend(Selecter, Y.Base, {
 		
 		initializer: function(args) {
 			var paths = this.get("paths");
@@ -75,7 +75,7 @@ YUI.add('equalizer-select', function(Y) {
 				
 	});
 	
-	Y.EqualizerSelect = EqualizerSelect;
+	Y.Selecter = Selecter;
 	
 }, '0.0.1', { requires: [
 	'node','base','event','anim',

@@ -1,0 +1,30 @@
+/* main layout */
+#main {
+	margin: 0 10px;
+	padding-left: 250px;
+}
+#mappings {
+	width: 250px;
+	margin-left: -250px;
+}
+#overlaps {
+	width: 100%;
+	
+}
+
+/* mapping list */
+.yui3-mappinglist-content {
+	border: 1px solid #808080;
+}
+.yui3-mappinglist .hd {
+	background: url("http://yui.yahooapis.com/3.0.0/build/assets/skins/sam/sprite.png") repeat-x scroll 0 0 transparent;
+    padding: 5px;
+}
+.yui3-mappinglist li {
+	padding: 2px 4px;
+}
+.yui3-mappinglist li a {
+	text-decoration: none;
+	color: #222;
+}
+

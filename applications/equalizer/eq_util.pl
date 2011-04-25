@@ -1,17 +1,50 @@
 :- module(eq_util,
-	  [ assert_user_provenance/2,
+	  [ html_eq_header//2,
+	    assert_user_provenance/2,
 	    amalgame_alignment/2,
+	    js_mappings/2,
  	    js_alignment_nodes/2,
 	    now_xsd/1,
 	    xsd_timestamp/2
 	  ]).
 
+:- use_module(library(http/html_write)).
+:- use_module(library(http/http_dispatch)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_label)).
 :- use_module(user(user_db)).
 
+:- multifile
+	eq:menu_item/2.
 
+
+%%	html_eq_header(+Active, +Alignment)
+%
+%	Emit page header with menu bar
+
+html_eq_header(Active, Alignment) -->
+	{ findall(Path-Label, eq:menu_item(Path, Label), Items)
+	},
+	html(div(id(header),
+		 [ div(class(title), 'Amalgame'),
+		   ul(\html_eq_menu(Items, Active, Alignment))
+		 ])).
+
+html_eq_menu([], _, _) --> !.
+html_eq_menu([Handler-Label|Is], Active, Alignment) -->
+	html_menu_item(Handler, Label, Active, Alignment),
+	html_eq_menu(Is, Active, Alignment).
+
+html_menu_item(Handler, Label, Active, _Alignment) -->
+	{ Handler = Active
+	},
+	!,
+	html(li(class(selected), span(Label))).
+html_menu_item(Handler, Label, _Active, Alignment) -->
+	{ http_link_to_id(Handler, [alignment(Alignment)], Link)
+ 	},
+	html(li(a(href(Link), Label))).
 
 %%	assert_user_provenance(+Resource, -NamedGraph)
 %
@@ -33,6 +66,16 @@ amalgame_alignment(Alignment, Schemes) :-
 	rdfs_individual_of(Alignment, amalgame:'Alignment'),
 	findall(S,  rdf(Alignment, amalgame:includes, S), Schemes),
 	Schemes \== [].
+
+
+js_mappings(Alignment, Mappings) :-
+	findall(json([uri=M, label=L]),
+		mapping(Alignment, M, L),
+		Mappings).
+
+mapping(Alignment, URI, Label) :-
+	rdf(URI, rdf:type, amalgame:'Mapping',Alignment),
+	rdf_display_label(URI, Label).
 
 
 %%	js_alignment_nodes(+Alignment, -Nodes)
