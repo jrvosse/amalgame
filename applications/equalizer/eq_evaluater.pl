@@ -55,10 +55,11 @@ html_page(Alignment) :-
 				    [ div([class('yui3-u'), id(left)],
 					  div(id(mappinglist), [])),
 				      div([class('yui3-u'), id(main)],
-					  [ div(id(sourceinfo), []),
-					    div(id(mappingtable), []),
-					    div(id(targetinfo), [])
-					  ])
+					  div(class('yui3-g'),
+					      [ div([id(sourceinfo), class('yui3-u-1-3 resource-info')], []),
+						div([id(mappingtable), class('yui3-u-1-3')], []),
+						div([id(targetinfo), class('yui3-u-1-3 resource-info')], [])
+					      ]))
 				    ])
 			      ]),
 			  script(type('text/javascript'),
