@@ -11,7 +11,8 @@
 :- use_module(library(amalgame/amalgame_modules)).
 
 :- dynamic
-	mapping_cache/2.
+	mapping_cache/2,
+	vocab_cache/2.
 
 
 %%	expand_mapping(+Id, -Mapping:[align(s,t,prov)]) is det.
@@ -71,11 +72,9 @@ flush_mapping_cache(Id) :-
 %
 %       @TBD
 
-expand_vocab(Id, Concepts) :-
-	rdf_has(Id, opmv:wasGeneratedBy, _Process),
-	!,
-	Concepts = [].
-expand_vocab(Id, Id).
+
+expand_vocab(Id, Vocab) :-
+	vocab_cache(Id, Vocab).
 
 
 %%	exec_mapping_process(+Class, +Process, +Module, -Mapping,

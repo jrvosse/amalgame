@@ -5,7 +5,12 @@ YUI.add('evaluater', function(Y) {
 		Plugin = Y.Plugin;
 	
 	var	NODE_MAPPING_LIST = Y.one("#mappinglist"),
-		NODE_MAPPING_TABLE = Y.one("#mappingtable");
+		NODE_MAPPING_TABLE = Y.one("#mappingtable"),
+		NODE_RELATIONS = Y.one("#relations"),
+		NODE_COMMENT = Y.one("#comment"),
+		NODE_NEXT = Y.one("#next"),
+		NODE_PREV = Y.one("#prev"),
+		NODE_DETAIL = Y.one("#detail");
 	
 	function Evaluater(config) {
 		Evaluater.superclass.constructor.apply(this, arguments);
@@ -20,17 +25,19 @@ YUI.add('evaluater', function(Y) {
 		},
 		paths:{
 			value:{
+				mapping:"/amalgame/mapping",
+				info:"/amalgame/private/resourcecontext",
+				relation:"/amalgame/updaterelation"
+				
 			},
 			validator: function(val) {
 				return Lang.isObject(val)
 			}
 		},
 		mappings:{
-			value:{
-				mapping:"/amalgame/mapping"
-			},
+			value:[],
 			validator: function(val) {
-				return Lang.isObject(val)
+				return Lang.isArray(val)
 			}
 		},
 	    strings: {
@@ -46,14 +53,15 @@ YUI.add('evaluater', function(Y) {
 		initializer: function(args) {
 			this._initList();
 			this._initTable();
-			
+			this._initDetail();
 			// bind the modules
 			this.mappinglist.on("mappingSelect", function(o) {
 				this.set("selected", o);
 				this.mappingtable.set("mapping", o.uri);
 			}, this);
 			
-			
+			this.mappingtable.on("rowSelect", this._onRowSelect, this);
+			Y.delegate("click", this._onRelationSelect, NODE_RELATIONS, "input", this);
 		},
 		
 		_initList : function() {
@@ -86,6 +94,59 @@ YUI.add('evaluater', function(Y) {
 				datasource:DS,
 				mapping:mapping
 			});
+		},
+		
+		_initDetail : function() {
+			this.detailOverlay = new Y.Overlay({
+        		srcNode:NODE_DETAIL,
+        		visible:false,
+				centered:true,
+        		width:"90%"
+    		}).render();
+		},
+		
+		_onRowSelect : function(e) {
+			console.log(e);
+			this.detailOverlay.set("visible", true);
+						if(!this.selected[source]) {
+				this._fetchInfo(source, NODE_SOURCE_INFO, add);
+     		}
+			if(!this.selected[target]) {
+	  			this._fetchInfo(target, NODE_TARGET_INFO, add);
+     		}
+		},
+		
+		_onRelationSelect : function(e) {
+			var server = this.get("paths").relation,
+				relation = e.target.get("value"),
+				comment = NODE_COMMENT.get("value"),
+				label = e.target.get("parentNode").one("label").getContent();
+			
+			Y.io(server, {
+				data:{
+					source:source,
+					target:target,
+					relation:relation,
+					comment:comment
+				}
+			});
+		},
+		
+		_fetchInfo : function(uri, target, add) {
+			var server = this.get("paths").info;
+			Y.io(server, {
+				data:{uri:uri},
+				on:{success:function(e,o) {
+     					if(add) { target.append(o.responseText) }
+     					else { target.setContent(o.responseText) }
+						target.all(".moretoggle").on("click", function(e) {
+   							p = e.currentTarget.get("parentNode");
+   							p.all(".moretoggle").toggleClass("hidden");
+   							p.one(".morelist").toggleClass("hidden");
+						})
+					}
+				}
+			});
 		}
 				
 	});
@@ -93,7 +154,7 @@ YUI.add('evaluater', function(Y) {
 	Y.Evaluater = Evaluater;
 	
 }, '0.0.1', { requires: [
-	'node','event','anim',
+	'node','event','anim','overlay',
 	'datasource-io','datasource-jsonschema','datasource-cache',
 	'mappinglist','mappingtable'
 	]

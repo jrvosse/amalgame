@@ -26,9 +26,6 @@ YUI.add('mappingtable', function(Y) {
 		},
 		datasource: {
 			value: null
-		},
-		infoserver: {
-			value:"/amalgame/private/resourcecontext"
 		}
 	};
 	
@@ -113,48 +110,24 @@ YUI.add('mappingtable', function(Y) {
 		},
 		
 		_onRowSelect : function(e) {
-			console.log(e);
 			var row = e.currentTarget.get("parentNode"),
-         	records = this.table.get("recordset"),
-         	current = records.getRecord( row.get("id")),
-	 		source = current.getValue("source").uri,
-	 		target = current.getValue("target").uri;
-			console.log(source, target);
+         		records = this.table.get("recordset"),
+         		current = records.getRecord( row.get("id")),
+				data = {
+	 				source: current.getValue("source"),
+		 			target:current.getValue("target"),
+					relation:current.getValue("relation")
+				},
+				add = (e.ctrlKey||e.metaKey) ? true : false;
 			
-			var add = (e.ctrlKey||e.metaKey) ? true : false;
-			
-			if(!add) {
+			if(add) {
+				row.addClass("yui3-datatable-selected");
+			} else {
 	  			Y.all(".yui3-datatable tr").removeClass("yui3-datatable-selected");
-	  			this.selected = {};
-     		};
-     		row.addClass("yui3-datatable-selected");
-			
-			if(!this.selected[source]) {
-				this._fetchInfo(source, NODE_SOURCE_INFO, add);
      		}
-			if(!this.selected[target]) {
-	  			this._fetchInfo(target, NODE_TARGET_INFO, add);
-     		}
-    		this.selected[source] = true;
-     		this.selected[target] = true;
-		},
-		
-		_fetchInfo : function(uri, target, add) {
-			var server = this.get("infoserver");
-			Y.io(server, {
-				data:{uri:uri},
-				on:{success:function(e,o) {
-     					if(add) { target.append(o.responseText) }
-     					else { target.setContent(o.responseText) }
-						target.all(".moretoggle").on("click", function(e) {
-   							p = e.currentTarget.get("parentNode");
-   							p.all(".moretoggle").toggleClass("hidden");
-   							p.one(".morelist").toggleClass("hidden");
-						})
-					}
-				}
-			});
+			this.fire("rowSelect", data)
 		}
+		
 		
 	});
 	
