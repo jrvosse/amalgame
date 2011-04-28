@@ -5,8 +5,11 @@
 :- use_module(library(amalgame/partition/source_ambiguity)).
 :- use_module(library(amalgame/partition/target_ambiguity)).
 
+:- public amalgame_module/2.
 :- public selecter/5.
 :- public partition/3.
+
+amalgame_module(amalgame:'Selecter', amalgame:'Arity_select').
 
 %%	selecter(+Source, -Selected, -Discarded, -Undecided, +Options)
 %
@@ -38,7 +41,7 @@ selecter(AlignmentGraph, Sel, Dis, [], Options) :-
 	% length(AlignmentGraph, N0),
 	% length(Sel, SelN),
 	% length(Dis, DisN),
-	% 
+	%
 	% debug(align, 'arity select on AlignmentGraph of length: ~w', N0),
 	% debug(align, 'S1/SN: ~w/~w T1/TN: ~w/~w', [S1N, SNN, T1N, TNN]),
 	% debug(align, 'SS/TS: ~w/~w', [SSN, TSN]),
