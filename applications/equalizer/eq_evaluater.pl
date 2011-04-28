@@ -55,17 +55,54 @@ html_page(Alignment) :-
 				    [ div([class('yui3-u'), id(left)],
 					  div(id(mappinglist), [])),
 				      div([class('yui3-u'), id(main)],
-					  div(class('yui3-g'),
-					      [ div([id(sourceinfo), class('yui3-u-1-3 resource-info')], []),
-						div([id(mappingtable), class('yui3-u-1-3')], []),
-						div([id(targetinfo), class('yui3-u-1-3 resource-info')], [])
-					      ]))
-				    ])
+					  div([id(mappingtable)], []))
+				    ]),
+				div(id(detail),
+				   \html_overlay)
 			      ]),
 			  script(type('text/javascript'),
 				 [ \yui_script(Alignment)
 				 ])
 			]).
+
+html_overlay -->
+	{ findall(R-L, mapping_relation(L,R), Rs)
+	},
+	html(form([div(class('yui3-widget-hd'),
+		      [ ul(id(relations), \html_relations(Rs)),
+			div(['because: ',
+			     input([type(text), id(comment), size(50), autocomplete(off)])
+			    ])
+ 		      ]),
+		   div(class('yui3-widget-bd'),
+		       [div(class(controls),
+			    [ 'include all correspondences with the same:',
+			      input([type(checkbox), id(msources), autocomplete(off)]),
+			      label(source),
+			      input([type(checkbox), id(msources), autocomplete(off)]),
+			      label(target)
+			    ]),
+			div(class('yui3-g'),
+			    [ div([id(sourceinfo), class('yui3-u-1-2 resource-info')], []),
+			      div([id(targetinfo), class('yui3-u-1-2 resource-info')], [])
+			    ])
+		       ]),
+		       div(class('yui3-widget-ft'),
+			   [ div(class(controls), \html_controls)
+			   ])
+	     ])).
+
+html_relations([]) --> !.
+html_relations([URI-Label|T]) -->
+	html(li([input([type(radio), name(relation), value(URI)]),
+		 label(Label)
+		])),
+	html_relations(T).
+
+html_controls -->
+	html([ input([type(button), value(prev)]),
+	       input([type(submit), value(next)])
+	     ]).
 
 
 %%	yui_script(+Graph)
@@ -104,7 +141,7 @@ js_path(mapping, Path) :-
 js_module(gallery, 'gallery-2011.02.23-19-01').
 js_module(evaluater, json([fullpath(Path),
 			   requires([node, event,anim,
-				     'json-parse',
+				     'overlay','json-parse',
 				     'datasource-io','datasource-jsonschema','datasource-cache',
 				     'querystring-stringify-simple',
 				     mappinglist,mappingtable])

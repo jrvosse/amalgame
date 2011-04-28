@@ -120,3 +120,36 @@
 .resource-info .hidden {
 	display: none;
 }
+
+/* overlay */
+#detail {
+	border: 2px solid #CCCCCC;
+	background-color: #FFF;
+	opacity: 0.6;
+}
+#detail .yui3-widget-hd {
+	border-bottom: 1px solid #CCC;
+    padding: 5px 10px;
+	text-align: center;
+	opacity: 1;
+}
+#detail .yui3-widget-bd {
+	
+	padding: 5px 10px;
+}
+#detail .yui3-widget-ft {
+	border-bottom: 1px solid #CCC;
+    padding: 5px 10px;
+	text-align: right;
+	opacity: 1;
+}
+#relations li {
+	list-style: none;
+	display: inline;
+	padding: 0 5px;
+}
+#relations label {
+	padding-left: 2px;
+}
+.controls {
+}

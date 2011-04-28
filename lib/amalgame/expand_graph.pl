@@ -69,6 +69,9 @@ flush_mapping_cache(Id) :-
 %	Generate the Vocab.
 %	@param Id is URI of a conceptscheme or an identifier for a set
 %	of concepts derived by a vocabulary process,
+%
+%       @TBD
+
 
 expand_vocab(Id, Vocab) :-
 	vocab_cache(Id, Vocab).
