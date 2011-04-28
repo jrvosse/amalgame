@@ -96,16 +96,6 @@ delete_map([S,T], _O, Graph) :-
 	rdf(Bnode, align:entity2, T, Graph),!,
 	rdf_retractall(Bnode, _, _, Graph).
 
-d1:-
-	T = [
-	     align(a1, b1, []),
-	     align(a2, b2,[]),
-	     align(a1, b2,[]),
-	     align(a2, b1,[]),
-	     align(a2, b3, [])
-	     ],
-	select1_1:partition(T, P, []),
-	debug_partition(debug, P).
 
 myalign1 :-
 	align_stats:delete_alignment_graphs(_),
@@ -182,7 +172,7 @@ myalign(Type, SourceVoc, TargetVoc) :-
 	voc_exclude:concept_selecter(SourceVoc, Source_rest, [exclude_sources(GoodGlossLabelMatches)]),
 	align(Source_rest, TargetVoc, alignment_element, exact_label_match, target_candidate, LabelMatch0, OptionsLabel, _A2a),
 	voc_exclude:concept_selecter(LabelMatch0, LabelMatch, [exclude_targets(GoodGlossLabelMatches)]),
-	arity_select:selecter(LabelMatch, UnambiguousLabel, AmbiguousLabel, _, []),
+	arity_select:selecter(LabelMatch, _UnambiguousLabel, AmbiguousLabel, _, []),
 
 	% Step 2b: First try disambiguation by counting number of matching sense labels (cheap, counting existing matches)
 	% most_labels_jacco:partition(LabelMatch,
@@ -196,7 +186,7 @@ myalign(Type, SourceVoc, TargetVoc) :-
 	memberchk(selected(BestGlossAndLabelS), NearSPartition),
 	memberchk(undecided(AmbiLabelS), NearSPartition),
 	best_numeric:partition(BestGlossAndLabelS, NearTPartition, [disamb(target)]),
-	memberchk(selected(BestGlossAndLabel), NearTPartition),
+	memberchk(selected(_BestGlossAndLabel), NearTPartition),
 	memberchk(undecided(AmbiLabelT), NearSPartition),
 
 	rdf_equal(amalgame:untyped,Type),
