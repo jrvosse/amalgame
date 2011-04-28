@@ -68,11 +68,13 @@ flush_mapping_cache(Id) :-
 %	Generate the Vocab.
 %	@param Id is URI of a conceptscheme or an identifier for a set
 %	of concepts derived by a vocabulary process,
+%
+%       @TBD
 
 expand_vocab(Id, Concepts) :-
-	rdf_has(Id, opmv:wasGeneratedBy, Process),
+	rdf_has(Id, opmv:wasGeneratedBy, _Process),
 	!,
-	exec_vocab_process(Process, Id, Concepts).
+	Concepts = [].
 expand_vocab(Id, Id).
 
 
