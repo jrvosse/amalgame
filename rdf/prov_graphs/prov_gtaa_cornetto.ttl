@@ -1,0 +1,61 @@
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix dct:     <http://purl.org/dc/terms/> .
+@prefix foaf:    <http://xmlns.com/foaf/0.1/> .
+@prefix void:    <http://rdfs.org/ns/void#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix doap:    <http://usefulinc.com/ns/doap#> .
+@prefix opmv:    <http://purl.org/net/opmv/ns#> .
+@prefix common:    <http://purl.org/net/opmv/types/common#> .
+@prefix sparql:    <http://purl.org/net/opmv/types/sparql#> .
+@prefix :    <http://purl.org/vocabularies/amalgame#> .
+
+<>  a :Workflow ;
+    rdfs:label "GTAA-Cornetto" .
+
+_:noun_mapping
+    a :Mapping ;
+    rdfs:label "label match (stemming)" ;
+    opmv:wasGeneratedBy [
+        a :Snowball_Matcher ;
+        rdfs:label "Noun mapping" ;
+        :source <http://data.beeldengeluid.nl/gtaa/Onderwerpen> ;
+        :target <http://purl.org/vocabularies/cornetto/NounSynset> ;
+        :parameters "snowball_language=dutch" ;
+        opmv:wasPerformedBy :Amalgame ;
+    ] .
+
+_:noun_exact_mapping
+    a :Mapping ;
+    rdfs:label "label match (exact)" ;
+    opmv:wasGeneratedBy [
+        a :Exact_Label_Matcher ;
+        rdfs:label "Noun mapping" ;
+        :source <http://data.beeldengeluid.nl/gtaa/Onderwerpen> ;
+        :target <http://purl.org/vocabularies/cornetto/NounSynset> ;
+        opmv:wasPerformedBy :Amalgame ;
+    ] .
+
+_:noun_selection
+    a :Select1_1 ;
+    rdfs:label "Noun 1-1 selection" ;
+    :input _:noun_mapping ;
+    opmv:wasPerformedBy :Amalgame .
+
+_:select11
+    a :Mapping ;
+    rdfs:label "Noun mapping 1-1" ;
+    :selectedBy _:noun_selection .
+
+_:select1N
+    a :Mapping ;
+    rdfs:label "Noun mapping 1-N" ;
+    :discardedBy _:noun_selection .
+
+
+
+
+
+

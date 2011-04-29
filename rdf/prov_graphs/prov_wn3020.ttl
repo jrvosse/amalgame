@@ -1,0 +1,127 @@
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix dct:     <http://purl.org/dc/terms/> .
+@prefix foaf:    <http://xmlns.com/foaf/0.1/> .
+@prefix void:    <http://rdfs.org/ns/void#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix doap:    <http://usefulinc.com/ns/doap#> .
+@prefix opmv:    <http://purl.org/net/opmv/ns#> .
+@prefix common:  <http://purl.org/net/opmv/types/common#> .
+@prefix sparql:  <http://purl.org/net/opmv/types/sparql#> .
+@prefix exp: 	 <http://localhost/my/wn3020/> .
+@prefix :   	 <http://purl.org/vocabularies/amalgame#> .
+
+# Final results as discussed in the paper:
+
+# Set 1a: 1-1 gloss matches
+exp:gloss11 a :Mapping ;
+    rdfs:label "F1a: Gloss mapping 1-1" ;
+    :selectedBy exp:glossselect11process .
+
+# Set 1b: 1-1 gloss + label matches
+exp:glosslabel11 a :Mapping ;
+    rdfs:label "F1b: Gloss label mapping 1-1" ;
+    :selectedBy exp:glosslabelselect11process .
+
+# Set 1c: 1-n gloss + label matches
+exp:glosslabelnm a :Mapping ;
+    rdfs:label "F1c: Gloss mapping N-M" ;
+    :discardedBy exp:glosslabelselect11process .
+
+# Set 2a: 1-1 nogloss but label matches
+exp:label11 a :Mapping ;
+    rdfs:label "F2a: Label mapping 1-1" ;
+    :selectedBy exp:labelselect11process .
+
+# Matching processes used to generate the (intermediate) results:
+exp:glossmatcher a :Exact_Label_Match ;
+    rdfs:label "P1a: Exact gloss match process" ;
+    :source <http://purl.org/vocabularies/princeton/wn30/> ;
+    :target <http://www.w3.org/2006/03/wn/wn20/> ;
+    :parameters "sourcelabel=http://www.w3.org/2004/02/skos/core%23definition&targetlabel=http://www.w3.org/2004/02/skos/core%23definition" .
+
+exp:glosslabelmatcher a :Exact_Label_Match ;
+    rdfs:label "P1b: Exact label match process to disamb. N to M gloss matches" ;
+    :input exp:gloss1N ;
+    :parameters "sourcelabel=http://www.w3.org/2004/02/skos/core%23altLabel&targetlabel=http://www.w3.org/2004/02/skos/core%23altLabel" .
+
+exp:labelmatcher a :Exact_Label_Match ;
+    rdfs:label "P2a: Exact label match process on non-gloss matches" ;
+    :input exp:tobematched ;
+    :parameters "sourcelabel=http://www.w3.org/2004/02/skos/core%23altLabel&targetlabel=http://www.w3.org/2004/02/skos/core%23altLabel" .
+
+exp:nearglossmatcher a :Isub_Match ;
+    rdfs:label "P2b: Near label match process on non-gloss matches" ;
+    :input exp:labelnm ;
+    :parameters "sourcelabel=http://www.w3.org/2004/02/skos/core%23definition&targetlabel=http://www.w3.org/2004/02/skos/core%23definition" .
+
+# Selector processes used to generate the (intermediate) results:
+exp:glossselect11process a :Arity_select ;
+    rdfs:label "S1a: 1-1 selection process" ;
+    :input exp:gloss_mapping .
+
+exp:glosslabelselect11process a :Arity_select ;
+    rdfs:label "S1b: 1-1 selection process" ;
+    :input exp:gloss_label_mapping .
+
+exp:goodglosslabelmergeprocess a :Merge;
+    rdfs:label "M1: Merge good gloss and label matches process" ;
+    :input exp:gloss11 ;
+    :input exp:glosslabel11 ;
+    :input exp:glosslabelnm .
+
+exp:goodglosslabelsourceexcludeprocess a :Voc_Exclude;
+    rdfs:label "E1: Exclude good gloss and label matches sources process" ;
+    :source <http://purl.org/vocabularies/princeton/wn30/> ;
+    :target <http://www.w3.org/2006/03/wn/wn20/> ;
+    :parameters "type=source" ;	   
+    :exclude exp:goodglosslabelmatches .
+
+exp:goodglosslabeltargetexcludeprocess a :Voc_Exclude;
+    rdfs:label "E2: Exclude good gloss and label matches target process" ;
+    :input exp:label_mapping ;
+    :parameters "type=target" ;	   
+    :exclude exp:goodglosslabelmatches .
+
+exp:labelselect11process a :Arity_select ;
+    rdfs:label "S2a: 1-1 selection process" ;
+    :input exp:label_mapping_tf .
+
+# Intermediate mappings
+exp:gloss_mapping a :Mapping ;
+    rdfs:label "I1aa: Gloss mapping" ;
+    opmv:wasGeneratedBy exp:glossmatcher.
+
+exp:gloss_label_mapping a :Mapping ;
+    rdfs:label "I1b: Gloss+label mapping" ;
+    opmv:wasGeneratedBy exp:glosslabelmatcher.
+
+exp:gloss1N a :Mapping ;
+    rdfs:label "I1ab: Gloss mapping N-M" ;
+    :discardedBy exp:glossselect11process .
+
+exp:goodglosslabelmatches a :Mapping ;
+    rdfs:label "I2aa: Merge of all gloss-based labels we assume correct" ;
+    opmv:wasGeneratedBy exp:goodglosslabelmergeprocess.
+
+exp:tobematched a :Mapping ;
+    rdfs:label "I2ab: templates with still to be mapped source concepts, ignoring gloss-based labels we assume correct" ;
+    opmv:wasGeneratedBy exp:goodglosslabelsourceexcludeprocess.
+
+exp:label_mapping a :Mapping ;
+    rdfs:label "I2ac: Label mapping of concepts we failed to match in step 1" ;
+    opmv:wasGeneratedBy exp:labelmatcher.
+
+exp:label_mapping_tf a :Mapping ;
+    rdfs:label "I2ad: Target-filtering of I2ac" ;
+    opmv:wasGeneratedBy exp:goodglosslabeltargetexcludeprocess.
+
+exp:labelnm a :Mapping ;
+    rdfs:label "I2ba: Label mapping N-M" ;
+    :discardedBy exp:labelselect11process .
+
+exp:glossnear a :Mapping ;
+    rdfs:label "I2bb: Isub gloss match" ;
+    opmv:wasGeneratedBy exp:nearglossmatcher.
