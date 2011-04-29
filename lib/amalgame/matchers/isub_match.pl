@@ -10,6 +10,9 @@
 :- public filter/3.
 :- public matcher/4.
 :- public parameter/4.
+:- public amalgame_module/2.
+
+amalgame_module(amalgame:'Matcher', amalgame:'Isub_Matcher').
 
 parameter(sourcelabel, uri, P,
 	  'Property to get label of the source by') :-
