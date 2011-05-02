@@ -114,17 +114,14 @@ YUI.add('mappingtable', function(Y) {
          		records = this.table.get("recordset"),
          		current = records.getRecord( row.get("id")),
 				data = {
-	 				source: current.getValue("source"),
-		 			target:current.getValue("target"),
+	 				sourceConcept: current.getValue("source"),
+		 			targetConcept: current.getValue("target"),
 					relation:current.getValue("relation")
-				},
-				add = (e.ctrlKey||e.metaKey) ? true : false;
-			
-			if(add) {
-				row.addClass("yui3-datatable-selected");
-			} else {
-	  			Y.all(".yui3-datatable tr").removeClass("yui3-datatable-selected");
-     		}
+				};
+			if(!add) {
+				Y.all(".yui3-datatable tr").removeClass("yui3-datatable-selected");
+			}
+			row.addClass("yui3-datatable-selected");
 			this.fire("rowSelect", data)
 		}
 		
