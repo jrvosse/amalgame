@@ -1,5 +1,6 @@
 :- module(eq, []).
 
+:- use_module(library(opmv_schema)).
 :- use_module(eq_selecter).
 :- use_module(eq_builder).
 :- use_module(eq_analyser).
