@@ -14,7 +14,7 @@ amalgame:Voc_Exclude rdfs:subClassOf opmv:Process.
 
 amalgame:Snowball_Matcher    rdfs:subClassOf amalgame:Match .
 amalgame:Exact_Label_Matcher rdfs:subClassOf amalgame:Match .
-amalgame:Isub_Match        rdfs:subClassOf amalgame:Match .
+amalgame:Isub_Matcher        rdfs:subClassOf amalgame:Match .
 
 amalgame:Select1_1    rdfs:subClassOf amalgame:Select .
 amalgame:Arity_select rdfs:subClassOf amalgame:Select .
