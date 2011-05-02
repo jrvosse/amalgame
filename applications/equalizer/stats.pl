@@ -8,6 +8,8 @@
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(amalgame/expand_graph)).
 
+:- use_module(cliopatria(components/label)).
+
 % http handlers for this applications
 
 :- http_handler(amalgame(data/stats), http_eq_stats, []).
@@ -70,7 +72,8 @@ html_cell_list([V|Vs]) -->
 
 amalgame_stats(URL, ['total mappings'-Total,
 		     'mapped source concepts'-SN,
-		     'mapped target concepts'-TN
+		     'mapped target concepts'-TN,
+		     'browse' - a(href(HREF), URL)
 		    ]) :-
 	rdfs_individual_of(URL, amalgame:'Mapping'),
 	!,
@@ -81,17 +84,26 @@ amalgame_stats(URL, ['total mappings'-Total,
 	sort(Ts0, Ts),
 	length(Mapping, Total),
 	length(Ss, SN),
-	length(Ts, TN).
+	length(Ts, TN),
+	resource_link(URL, HREF).
 
 amalgame_stats(Scheme,
-	    ['total concepts'-Total
+	    ['Total concepts'-Total,
+	     'browse' - a(href(HREF), Scheme)
 	    ]) :-
 	rdfs_individual_of(Scheme, skos:'ConceptScheme'),
 	!,
  	findall(C,rdf(C,skos:inScheme,Scheme), Cs),
-	length(Cs, Total).
+	length(Cs, Total),
+	resource_link(Scheme,HREF).
 
-amalgame_stats(_, []).
+amalgame_stats(URL, ['browse' - a(href(HREF), URL)]) :-
+	resource_link(URL,HREF).
+%:-
+%	phrase(rdf_link(URL), Tokens),
+%	with_output_to(atom(Link), print_html(Tokens)).
+
+
 
 
 %%	amalgame_provenance(+R, -Provenance:[key-value])
