@@ -69,7 +69,7 @@ assert_process(Process, Type, Graph, Params) :-
 	uri_query_components(Search, Params),
  	rdf_assert(Process, rdf:type, Type, Graph),
 	rdf_assert(Process, rdfs:label, Label, Graph),
-	rdf_assert(Process, amalgame:parameters, Search, Graph).
+	rdf_assert(Process, amalgame:parameters, literal(Search), Graph).
 
 assert_output(Process, Type, Graph) :-
 	rdfs_subclass_of(Type, amalgame:'Select'),

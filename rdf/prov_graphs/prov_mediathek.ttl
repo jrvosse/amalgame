@@ -1,0 +1,69 @@
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix dct:     <http://purl.org/dc/terms/> .
+@prefix foaf:    <http://xmlns.com/foaf/0.1/> .
+@prefix void:    <http://rdfs.org/ns/void#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix doap:    <http://usefulinc.com/ns/doap#> .
+@prefix opmv:    <http://purl.org/net/opmv/ns#> .
+@prefix common:    <http://purl.org/net/opmv/types/common#> .
+@prefix sparql:    <http://purl.org/net/opmv/types/sparql#> .
+@prefix :    <http://purl.org/vocabularies/amalgame#> .
+@prefix mediathek: <http://europeanaconnect.eu/voc/austrianmediathek/> .
+
+
+# Named toplevel resources (28,118)
+<>  a :Workflow ;
+    rdfs:label "Mediathek-SWD/Geonames" .
+
+_:select_geo
+	a :Voc_Exclude ;
+	rdfs:label "Select subtree" ;
+    :input	<http://europeanaconnect.eu/voc/austrianmediathek/> ;
+    :parameters "topNode=geographic" ;
+	opmv:wasPerformedBy :Amalgame .
+
+_:selectedG
+    a :Mapping ;
+    rdfs:label "Mediathek Geographic" ;
+    :selectedBy _:select_geo .
+
+_:selectedNG
+    a :Mapping;
+    rdfs:label "Mediathek Non-geographic" ;
+    :discardedBy _:select_geo .
+	
+	
+	
+_:exact_mapping_swd
+    a :Mapping ;
+    rdfs:label "label match (exact)" ;
+    opmv:wasGeneratedBy [
+        a :Exact_Label_Matcher ;
+        rdfs:label "Pref/Alt to Pref Label matching" ;
+        :source _:selectedNG ;
+        :target <http://d-nb.info/gnd/> ;
+        opmv:wasPerformedBy :Amalgame ;
+    ] .	
+
+_:exact_mapping_geonames
+    a :Mapping ;
+    rdfs:label "label match (exact)" ;
+    opmv:wasGeneratedBy [
+        a :Exact_Label_Matcher ;
+        rdfs:label "Pref/Alt Label matching" ;
+        :source	_:selectedG;
+        :target	<http://sws.geonames.org/> ;
+        opmv:wasPerformedBy :Amalgame ;
+    ] .		
+<http://d-nb.info/gnd/> rdfs:label "SWD".	
+<http://sws.geonames.org/> rdfs:label "GeoNames" .
+<http://europeanaconnect.eu/voc/austrianmediathek/> a skos:ConceptScheme;
+	rdfs:label "Systematik der Osterreichische Mediathek"@de . 
+	
+	
+	
+
+	

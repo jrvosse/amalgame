@@ -12,6 +12,7 @@
 :- use_module(library(yui3_beta)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_label)).
+:- use_module(library(semweb/rdf_file_type)).
 :- use_module(user(user_db)).
 :- use_module(components(label)).
 :- use_module(eq_util).
@@ -270,7 +271,7 @@ http_eq_upload_data(Request) :-
 	rdf_bnode(Graph),
  	atom_to_memory_file(Data, MemFile),
 	setup_call_cleanup(open_memory_file(MemFile, read, Stream),
-			   api_sesame:guess_format_and_load(Stream, [graph(Graph)]),
+			   rdf_guess_format_and_load(Stream, [graph(Graph)]),
 			   ( close(Stream),
 			     free_memory_file(MemFile)
 			   )),

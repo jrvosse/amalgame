@@ -76,8 +76,9 @@ flush_mapping_cache(Id) :-
 expand_vocab(Id, Vocab) :-
 	vocab_cache(Id, Vocab),
 	!.
-expand_vocab(Id, Id).
-
+expand_vocab(Vocab, Vocab) :-
+	rdf(Vocab, rdf:type, skos:'ConceptScheme').
+	
 %%	exec_mapping_process(+Class, +Process, +Module, -Mapping,
 %%	+Options)
 %

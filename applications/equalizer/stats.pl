@@ -122,7 +122,7 @@ ag_prov(Graph, contributors, Vs) :-
 ag_prov(Process, parameters, set(Params)) :-
 	rdfs_individual_of(Process, opmv:'Process'),
 	!,
-	rdf(Process, amalgame:parameters, SearchString),
+	rdf(Process, amalgame:parameters, literal(SearchString)),
 	concat_atom(Ps, '&', SearchString),
 	maplist(param_to_prov, Ps, Params).
 
