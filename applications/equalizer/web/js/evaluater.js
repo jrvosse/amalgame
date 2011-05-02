@@ -6,8 +6,7 @@ YUI.add('evaluater', function(Y) {
 	
 	var	NODE_MAPPING_LIST = Y.one("#mappinglist"),
 		NODE_MAPPING_TABLE = Y.one("#mappingtable"),
-		NODE_RELATIONS = Y.one("#relations"),
-		NODE_COMMENT = Y.one("#comment"),
+		NODE_CONCEPTS = Y.one("#concepts"),
 		NODE_NEXT = Y.one("#next"),
 		NODE_PREV = Y.one("#prev"),
 		NODE_DETAIL = Y.one("#detail");
@@ -40,6 +39,12 @@ YUI.add('evaluater', function(Y) {
 				return Lang.isArray(val)
 			}
 		},
+		relations: {
+	        value: {},
+			validator: function(val) {
+				return Lang.isObject(val)
+			}
+	    },
 	    strings: {
 	        value: {},
 			validator: function(val) {
@@ -51,6 +56,7 @@ YUI.add('evaluater', function(Y) {
 	Y.extend(Evaluater, Y.Base, {
 		
 		initializer: function(args) {
+			this._selected = {};
 			this._initList();
 			this._initTable();
 			this._initDetail();
@@ -61,7 +67,7 @@ YUI.add('evaluater', function(Y) {
 			}, this);
 			
 			this.mappingtable.on("rowSelect", this._onRowSelect, this);
-			Y.delegate("click", this._onRelationSelect, NODE_RELATIONS, "input", this);
+			//Y.delegate("click", this._onRelationSelect, NODE_RELATIONS, "input", this);
 		},
 		
 		_initList : function() {
@@ -107,13 +113,23 @@ YUI.add('evaluater', function(Y) {
 		
 		_onRowSelect : function(e) {
 			console.log(e);
+			var server = this.get("paths").info,
+				data = {
+					relation: e.relation.uri,
+					source: e.sourceConcept.uri,
+					target: e.targetConcept.uri,
+					allSource: NODE_SOURCEALL.get("value"),
+					allTarge: NODE_TARGETALL.get("value")
+				};
+		
+			Y.io(server, {
+				data: data,
+				on:{success:function(e,o) {
+						NODE_CONCEPTS.setContent(o.responseText);
+						}
+					}
+			});		
 			this.detailOverlay.set("visible", true);
-						if(!this.selected[source]) {
-				this._fetchInfo(source, NODE_SOURCE_INFO, add);
-     		}
-			if(!this.selected[target]) {
-	  			this._fetchInfo(target, NODE_TARGET_INFO, add);
-     		}
 		},
 		
 		_onRelationSelect : function(e) {
@@ -130,32 +146,24 @@ YUI.add('evaluater', function(Y) {
 					comment:comment
 				}
 			});
-		},
-		
-		_fetchInfo : function(uri, target, add) {
-			var server = this.get("paths").info;
-			Y.io(server, {
-				data:{uri:uri},
-				on:{success:function(e,o) {
-     					if(add) { target.append(o.responseText) }
-     					else { target.setContent(o.responseText) }
+		}
+				
+/*
 						target.all(".moretoggle").on("click", function(e) {
    							p = e.currentTarget.get("parentNode");
    							p.all(".moretoggle").toggleClass("hidden");
    							p.one(".morelist").toggleClass("hidden");
 						})
-					}
-				}
-			});
-		}
+*/				
 				
 	});
 	
 	Y.Evaluater = Evaluater;
 	
 }, '0.0.1', { requires: [
-	'node','event','anim','overlay',
+	'node','event','anim','overlay','io',
 	'datasource-io','datasource-jsonschema','datasource-cache',
+	'querystring-stringify-simple',
 	'mappinglist','mappingtable'
 	]
 });

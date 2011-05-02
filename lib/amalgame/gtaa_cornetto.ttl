@@ -14,8 +14,8 @@
 
 <>  a :Alignment ;
     rdfs:label "GTAA-Cornetto" ;
-    :source <http://data.beeldengeluid.nl/gtaa/Onderwerpen> ;
-    :target <http://purl.org/vocabularies/cornetto/NounSynset> .
+    :includes <http://data.beeldengeluid.nl/gtaa/Onderwerpen> ;
+    :includes <http://purl.org/vocabularies/cornetto/NounSynset> .
 
 _:noun_mapping
     a :Mapping ;

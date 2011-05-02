@@ -66,13 +66,8 @@ html_page(Alignment) :-
 			]).
 
 html_overlay -->
-	{ findall(R-L, mapping_relation(L,R), Rs)
-	},
-	html(form([div(class('yui3-widget-hd'),
-		      [ ul(id(relations), \html_relations(Rs)),
-			div(['because: ',
-			     input([type(text), id(comment), size(50), autocomplete(off)])
-			    ])
+ 	html(form([div(class('yui3-widget-hd'),
+		      [  'Correspondance'
  		      ]),
 		   div(class('yui3-widget-bd'),
 		       [div(class(controls),
@@ -82,22 +77,12 @@ html_overlay -->
 			      input([type(checkbox), id(msources), autocomplete(off)]),
 			      label(target)
 			    ]),
-			div(class('yui3-g'),
-			    [ div([id(sourceinfo), class('yui3-u-1-2 resource-info')], []),
-			      div([id(targetinfo), class('yui3-u-1-2 resource-info')], [])
-			    ])
+			div([class(concepts), id(concepts)], [])
 		       ]),
 		       div(class('yui3-widget-ft'),
 			   [ div(class(controls), \html_controls)
 			   ])
 	     ])).
-
-html_relations([]) --> !.
-html_relations([URI-Label|T]) -->
-	html(li([input([type(radio), name(relation), value(URI)]),
-		 label(Label)
-		])),
-	html_relations(T).
 
 html_controls -->
 	html([ input([type(button), value(prev)]),
@@ -113,7 +98,10 @@ yui_script(Alignment) -->
 	{ findall(K-V, js_path(K, V), Paths),
 	  findall(M-C, js_module(M,C), Modules),
 	  pairs_keys(Modules, Includes),
-	  js_mappings(Alignment, Mappings)
+	  js_mappings(Alignment, Mappings),
+	  findall(json([uri=R,label=L]),
+		  mapping_relation(L,R),
+		  Relations)
  	},
  	yui3([json([modules(json(Modules))])
 	     ],
@@ -121,7 +109,8 @@ yui_script(Alignment) -->
 	     [ \yui3_new(eq, 'Y.Evaluater',
 			 json([alignment(Alignment),
   			       paths(json(Paths)),
-			       mappings(Mappings)
+			       mappings(Mappings),
+			       relations(Relations)
 			      ]))
 	     ]).
 
@@ -133,6 +122,8 @@ js_path(statistics, Path) :-
 	http_location_by_id(http_eq_stats, Path).
 js_path(mapping, Path) :-
 	http_location_by_id(http_data_mapping, Path).
+%js_path(info, Path) :-
+%	http_location_by_id(http_correspondence, Path).
 
 %%	js_module(+Key, +Module_Conf)
 %
@@ -141,7 +132,7 @@ js_path(mapping, Path) :-
 js_module(gallery, 'gallery-2011.02.23-19-01').
 js_module(evaluater, json([fullpath(Path),
 			   requires([node, event,anim,
-				     'overlay','json-parse',
+				     'overlay','json-parse','io-base',
 				     'datasource-io','datasource-jsonschema','datasource-cache',
 				     'querystring-stringify-simple',
 				     mappinglist,mappingtable])
