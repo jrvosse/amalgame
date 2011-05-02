@@ -28,10 +28,6 @@ YUI.add('controls', function(Y) {
 				speed:0.1
 			});
 
-			// The options in the controls are tabviews
-			Y.all(".yui3-tabview").each( function(node) {
-				new Y.TabView({srcNode: node}).render();
-			});
 			content.all("form").each( function(form) {
 				form.one("input.control-submit").on("click", this._onControlSubmit, this, form);
 			}, this);
@@ -102,17 +98,10 @@ YUI.add('controls', function(Y) {
 				
 			// We only show the controls for the active type
 			srcNode.all(".yui3-accordion-item").each(function(node) {
-				var id = node.get("id");
-				if(id!=="infobox") {
-					if(type&&node.hasClass(type)) {
-						node.all("input").removeAttribute("disabled");
-						node.all("select").removeAttribute("disabled");
-						node.one(".yui3-accordion-item-bd").removeClass("disabled");
-					} else {
-						node.all('input').setAttribute("disabled", true);
-						node.all("select").setAttribute("disabled", true);
-						node.one(".yui3-accordion-item-bd").addClass("disabled");
-					}
+				if(type&&node.hasClass(type)) {
+					node.removeClass("disabled");
+				} else {
+					node.addClass("disabled");
 				}
 			});
 		},
