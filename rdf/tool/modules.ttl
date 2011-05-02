@@ -1,0 +1,28 @@
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix amalgame: <http://purl.org/vocabularies/amalgame#> .
+
+amalgame:Exact_Label_Matcher
+    rdfs:label "exact label matcher"@en ;
+    skos:definition "A basic label matcher"@en ;
+    rdfs:subClassOf amalgame:Matcher .
+
+amalgame:Snowball_Matcher
+    rdfs:label "snowball matcher"@en ;
+    skos:definition "A label matcher with similarity based on stemming."@en ;
+    rdfs:subClassOf amalgame:Matcher .
+
+amalgame:Isub_Matcher        
+	rdfs:label "isub string matcher"@en ;
+	skos:definition "An isub string similarity matcher based on the metric described by 'A string metric for ontology alignment' by Giorgos Stoilos, 2005."@en ;
+	rdfs:subClassOf amalgame:Matcher .
+
+amalgame:Select1_1
+    rdfs:label "select 1-1"@en ;
+    skos:definition "Select correspondences that have only 1 source and 1 target concept." ;
+    rdfs:subClassOf amalgame:Selecter .
+
+amalgame:Arity_select
+    rdfs:label "arity select"@en ;
+    rdfs:subClassOf amalgame:Selecter .
