@@ -31,33 +31,34 @@ YUI.add('infobox', function(Y) {
 	Y.extend(InfoBox, Y.Base, {
 		
 		initializer : function(config) {
-			var bd = this.get("srcNode").one('.yui3-accordion-item-bd');
+			var bd = this.get("srcNode");
 			var selected = this.get("selected"),
 				label = selected ? selected.label : "",
-				type = selected ? selected.type : "";
+				type = selected ? selected.type : "input";
 			
-			var topNode = bd.appendChild(Node.create(
-				'<div class="top hidden"></div>'
+			this.typeNode = bd.appendChild(Node.create(
+				'<div class="hd">'+type+'</div>'
 			));
-			this.typeNode = topNode.appendChild(Node.create(
-				'<span class="type">'+type+'</span>'
+
+			var labelBox = bd.appendChild(Node.create(
+				'<div class="labelbox hidden"></div>'
 			));
-			this.labelNode = topNode.appendChild(Node.create(
+			labelBox.appendChild("<label>label: <label>");
+			this.labelNode = labelBox.appendChild(Node.create(
 				'<input type="text" name="label" class="label" size="40" value="'+label+'">'
 			));
-			var update = topNode.appendChild(Node.create(
+			var update = labelBox.appendChild(Node.create(
 				'<input type="button" value="change">'
 			));
 			update.on("click", this._updateLabel, this);
 			
 			this.contentNode = bd.appendChild(Node.create(
-				'<div class="content">'+this.get("content")+'</div>'
+				'<div class="bd">'+this.get("content")+'</div>'
 			));
 			this.loading = bd.appendChild(Node.create(
 				'<div class="loading hidden"></div>'
 			));
-			this.topNode = topNode;
-			this.bd = bd;
+			this.labelBox = labelBox;
 			this.after('waitingChange', this.toggleLoading, this);
 			this.after('selectedChange', this._update, this);
 		},
@@ -69,15 +70,15 @@ YUI.add('infobox', function(Y) {
 				label = selected ? selected.label : "",
 				type = selected ? selected.type : "",
 				datasource = this.get("datasource"),
-				bd = this.bd,
+				bd = this.get("srcNode"),
 				content = this.contentNode;
 
 			if(selected) {
-				this.topNode.removeClass("hidden");
+				this.labelBox.removeClass("hidden");
 				this.labelNode.set("value", label);
 				this.typeNode.setContent(type);
 			} else {
-				this.topNode.addClass("hidden");
+				this.labelBox.addClass("hidden");
 			}
 			
 			if(uri) {

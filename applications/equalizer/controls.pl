@@ -8,26 +8,7 @@
 :- use_module(library(amalgame/amalgame_modules)).
 
 
-html_controls -->
-	{ amalgame_class_modules(amalgame:'Matcher', Matchers),
- 	  amalgame_class_modules(amalgame:'Selecter', Selecters)
-	},
-
- 	html(div([class('yui3-accordion')],
-		  [ \html_accordion_item(infobox, 'Properties',
-					 'yui3-accordion-item-active info', []),
-		    \html_accordion_item(match, 'Match', vocab,
-					 [\html_align_select,
-					  \html_tab_view(Matchers)
-					 ]),
-		    %\html_accordion_item(merge, 'Merge', vocab, []),
-		    \html_accordion_item(filter, 'Filter', mapping,
-					\html_tab_view(Matchers)),
-		    \html_accordion_item(select, 'Select', mapping,
-					 \html_tab_view(Selecters))
-		  ])
-	     ).
-
+/*
 html_align_select -->
 	html(table([tr([td(input([type(button), id(sourcebtn), value('set as source')])),
 			td(input([type(text), id(source), name(source), size(40), autocomplete(off)]))
@@ -36,55 +17,63 @@ html_align_select -->
 			td(input([type(text), id(target), name(target), size(40), autocomplete(off)]))
 		       ])
 		   ])).
+*/
 
-%%	html_accordion_item(+Id, +Label, +CSSClass, +Disabled, +Body)
+html_controls -->
+	{ findall(URI-M, current_amalgame_module(URI, M), Modules)
+	},
+ 	html([div(id(infobox), []),
+	      div([class('yui3-accordion')],
+		  \html_modules(Modules))
+	     ]).
+
+%%	html_modules(+Modules:uri-module)
 %
-%	Emit YUI3 node accordion html markup.
+%	Emit YUI3 node accordion items for each module.
 
-html_accordion_item(Id, Label, Class, Body) -->
- 	html(div([id(Id), class('yui3-accordion-item '+Class)],
+html_modules([]) --> !.
+html_modules([URI-Module|Ms]) -->
+	html_module(URI, Module),
+	html_modules(Ms).
+
+html_module(URI, Module) -->
+	{   amalgame_module_parameters(Module, Params),
+	   Class = 'mapping'
+	},
+ 	html(div([id(Module), class('yui3-accordion-item '+Class)],
 		 [ div(class('yui3-accordion-item-hd'),
 		       a([href('javascript:void(0)'),
 			  class('yui3-accordion-item-trigger')],
-			 Label)),
+			 \module_label(URI))),
 		   div(class('yui3-accordion-item-bd'),
-		       Body)
+		       [ div(class(desc),
+			     \module_desc(URI)),
+			 form(id(URI),
+			      [ table(tbody(\html_parameter_form(Params))),
+				div(class('control-buttons'),
+				    input([type(button), class('control-submit'), value('Go')]))
+			      ])
+		       ])
 		 ])).
 
-%%	html_tab_view(+Modules)
-%
-%	Emit YUI3 tabview html markup.
-%
-html_tab_view(Modules) -->
-	html(div(class('yui3-tabview'),
-		 [ ul(\html_tab_list(Modules)),
-		   div(\html_tab_panel(Modules))
-		 ])).
-
-html_tab_list([]) --> !.
-html_tab_list([URI-Module|Ms]) -->
-	{ module_label(URI, Label)
+module_label(M) -->
+	{ rdf_label(M, Lit),
+	  !,
+	  literal_text(Lit, Label)
 	},
-	html(li(a([href('#'+Module)], Label))),
-	html_tab_list(Ms).
-
-module_label(M, Label) :-
-	rdf_label(M, Lit),
-	!,
-	literal_text(Lit, Label).
-module_label(M, Label) :-
-	rdf_global_id(_:Label, M).
-
-html_tab_panel([]) --> !.
-html_tab_panel([URI-Module|Ms]) -->
-	{ amalgame_module_parameters(Module, Params)
+	html(Label).
+module_label(M) -->
+	{ rdf_global_id(_:Label, M)
 	},
-	html(form(id(URI),
-		[ table(tbody(\html_parameter_form(Params))),
-		  div(class('control-buttons'),
-		      input([type(button), class('control-submit'), value('Go')]))
-		])),
-	html_tab_panel(Ms).
+	html(Label).
+
+module_desc(M) -->
+	{ rdf_has(M, skos:definition, Lit),
+	  !,
+	  literal_text(Lit, Txt)
+	},
+	html(Txt).
+module_desc(_) --> !.
 
 %%	html_module_parameters(+ParameterList)
 %

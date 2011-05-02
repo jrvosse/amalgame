@@ -2,10 +2,10 @@
 
 :- use_module(library(semweb/rdf_db)).
 
-:- public amalgame_module/2.
+:- public amalgame_module/1.
 :- public selecter/5.
 
-amalgame_module(amalgame:'Selecter', amalgame:'Select1_1').
+amalgame_module(amalgame:'Select_1_1').
 
 
 %%	selecter(+Source, -Selected, -Discarded, -Undecided, +Options)

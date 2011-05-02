@@ -4,12 +4,12 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(amalgame/vocabulary)).
 
-:- public amalgame_module/2.
+:- public amalgame_module/1.
 :- public filter/3.
 :- public matcher/4.
 :- public parameter/4.
 
-amalgame_module(amalgame:'Matcher', amalgame:'Exact_Label_Matcher').
+amalgame_module(amalgame:'Exact_Label_Matcher').
 
 parameter(sourcelabel, uri, P,
 	  'Property to get label of the source by') :-

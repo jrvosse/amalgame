@@ -1,28 +1,16 @@
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix amalgame: <http://purl.org/vocabularies/amalgame#> .
-@prefix align:    <http://knowledgeweb.semanticweb.org/heterogeneity/alignment#> .
-@prefix opmv:     <http://purl.org/net/opmv/ns#> .
-@prefix owl:	  <http://www.w3.org/2002/07/owl#> .
-@prefix rdfs:     <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix skos:	  <http://www.w3.org/2004/02/skos/core#> .
-@prefix xsd:      <http://www.w3.org/2001/XMLSchema#> .
+@prefix align: <http://knowledgeweb.semanticweb.org/heterogeneity/alignment#> .
+@prefix opmv: <http://purl.org/net/opmv/ns#> .
 
-amalgame:Process rdfs:subClassOf opmv:Process.
-amalgame:Match  rdfs:subClassOf amalgame:Process.
-amalgame:Merge  rdfs:subClassOf amalgame:Process.
-amalgame:Select rdfs:subClassOf amalgame:Process.
-amalgame:Voc_Exclude rdfs:subClassOf opmv:Process.
-
-amalgame:Snowball_Matcher    rdfs:subClassOf amalgame:Match .
-amalgame:Exact_Label_Matcher rdfs:subClassOf amalgame:Match .
-
-amalgame:Isub_Matcher        
-	rdfs:label "isub string matcher";
-	skos:definition "An isub string similarity matcher based on the metric described by 'A string metric for ontology alignment' by Giorgos Stoilos, 2005."@en;
-	rdfs:subClassOf amalgame:Match .
-
-amalgame:Select1_1    rdfs:subClassOf amalgame:Select .
-amalgame:Arity_select rdfs:subClassOf amalgame:Select .
+amalgame:Process rdfs:subClassOf opmv:Process .
+amalgame:Matcher rdfs:subClassOf amalgame:Process .
+amalgame:Merger rdfs:subClassOf amalgame:Process .
+amalgame:Selecter rdfs:subClassOf amalgame:Process .
 
 amalgame:includes
         rdfs:domain skos:ConceptScheme ;

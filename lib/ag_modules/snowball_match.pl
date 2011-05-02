@@ -5,15 +5,15 @@
 :- use_module(library(semweb/rdf_litindex)).
 :- use_module(library(snowball)).
 :- use_module(library(lit_distance)).
-:- use_module(library(amalgame/alignment_graph)).
+:- use_module(library(amalgame/vocabulary)).
 :- use_module(library(amalgame/candidate)).
 
-:- public amalgame_module/2.
+:- public amalgame_module/1.
 :- public parameter/4.
 :- public filter/3.
 :- public matcher/4.
 
-amalgame_module(amalgame:'Matcher', amalgame:'Snowball_Matcher').
+amalgame_module(amalgame:'Snowball_Matcher').
 
 parameter(sourcelabel, uri, P,
 	  'Property to get label of the source by') :-
@@ -55,9 +55,9 @@ matcher(Source, Target, Mappings, Options) :-
 align(Source, Target, Match, Options) :-
 	option(prefix(0), Options),
 	!,
-	graph_member(S, Source),
+	vocab_member(S, Source),
 	match(align(S,T,[]), Match, Options),
-	graph_member(T, Target).
+	vocab_member(T, Target).
 
 align(Source, Target, Match, Options) :-
  	prefix_candidate(Source, Target, Match0, Options),

@@ -111,7 +111,7 @@ js_path(updatelabel, Path) :-
 
 js_module(gallery, 'gallery-2011.02.23-19-01').
 js_module(builder, json([fullpath(Path),
-			   requires([node,event,anim,tabview,
+			   requires([node,event,anim,
 				     'json-parse',
 				     'datasource-io','datasource-cache',
 				     'querystring-stringify-simple',
