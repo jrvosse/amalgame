@@ -7,14 +7,19 @@
 @prefix skos:	  <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd:      <http://www.w3.org/2001/XMLSchema#> .
 
-amalgame:Match  rdfs:subClassOf opmv:Process.
-amalgame:Merge  rdfs:subClassOf opmv:Process.
-amalgame:Select rdfs:subClassOf opmv:Process.
+amalgame:Process rdfs:subClassOf opmv:Process.
+amalgame:Match  rdfs:subClassOf amalgame:Process.
+amalgame:Merge  rdfs:subClassOf amalgame:Process.
+amalgame:Select rdfs:subClassOf amalgame:Process.
 amalgame:Voc_Exclude rdfs:subClassOf opmv:Process.
 
 amalgame:Snowball_Matcher    rdfs:subClassOf amalgame:Match .
 amalgame:Exact_Label_Matcher rdfs:subClassOf amalgame:Match .
-amalgame:Isub_Matcher        rdfs:subClassOf amalgame:Match .
+
+amalgame:Isub_Matcher        
+	rdfs:label "isub string matcher";
+	skos:definition "An isub string similarity matcher based on the metric described by 'A string metric for ontology alignment' by Giorgos Stoilos, 2005."@en;
+	rdfs:subClassOf amalgame:Match .
 
 amalgame:Select1_1    rdfs:subClassOf amalgame:Select .
 amalgame:Arity_select rdfs:subClassOf amalgame:Select .

@@ -97,6 +97,19 @@ amalgame_stats(Scheme,
 	length(Cs, Total),
 	resource_link(Scheme,HREF).
 
+amalgame_stats(URL,
+	       ['type'   - \(cp_label:rdf_link(Type)),
+		'about'   - Definition,
+		'browse' - a(href(Href), URL)
+	       ]) :-
+	resource_link(URL,  Href),
+	rdfs_individual_of(URL, amalgame:'Process'),
+	rdf(URL, rdf:type, Type),
+	(   rdf_has(Type, skos:definition, literal(Definition))
+	->  true
+	;   Definition = '-'
+	).
+
 amalgame_stats(URL, ['browse' - a(href(HREF), URL)]) :-
 	resource_link(URL,HREF).
 %:-
