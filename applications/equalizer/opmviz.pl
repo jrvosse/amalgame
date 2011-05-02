@@ -89,10 +89,6 @@ html_opmviz(Graph) -->
 %%	opm_triples(Graph, Triples)
 %
 %	Triples are all rdf(S,P,O) in Graph.
-%	When there are no opm triples in the graph, we check if there
-%	are a source and target defined. As we only want to show nodes
-%	in this case, and gviz_write_rdf/3 requires a set of triples, we
-%	use the rdf:'bag'contstruct.
 
 opm_triples(Graph, Triples) :-
 	findall(rdf(S,P,O), opm_graph_triple(Graph,S,P,O), Triples).
