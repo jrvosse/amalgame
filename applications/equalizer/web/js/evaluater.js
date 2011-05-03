@@ -112,7 +112,6 @@ YUI.add('evaluater', function(Y) {
 		},
 		
 		_onRowSelect : function(e) {
-			console.log(e);
 			var server = this.get("paths").info,
 				data = {
 					relation: e.relation.uri,

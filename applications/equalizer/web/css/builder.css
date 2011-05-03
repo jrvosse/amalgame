@@ -12,8 +12,14 @@
 }
 
 /* controls */
+#controls .yui3-accordion {
+	border-width: 1px 0 0;
+}
 #controls .yui3-accordion-item-hd {
 	line-height: 1.4;
+}
+#controls .yui3-accordion-item-bd {
+	background-color: white;
 }
 #controls .yui3-accordion-item-active .yui3-accordion-item-trigger {
 	background-position: 105% -398px;
@@ -22,16 +28,18 @@
 	background-position: 105% -348px;
 }
 #controls .yui3-accordion-item-bd .desc,
-#controls .yui3-accordion-item-bd form {
+#controls .yui3-accordion-item-bd form,
+#controls .yui3-accordion-item-bd .control-buttons {
 	padding: 5px 10px;
 }
 #controls .control.disabled {
 	display: none;
 }
-#controls .controlset {
-	border-width: 0 1px 1px;
+#controls .c {
+	margin: 0 10px;
+	padding: 5px 0;
 }
-#controls table {
+.control table {
 	width: 100%;
 }
 .control-buttons {
@@ -39,50 +47,46 @@
 }
 
 
-/* infobox */
-#infobox {
+/* control set */
+.control-set {
 	border-width: 1px 1px 0;
 	border-style: solid;
 	border-color: #808080;
 }
-#infobox .hd {
+.control-set .hd {
 	background: url("http://yui.yahooapis.com/3.0.0/build/assets/skins/sam/sprite.png") repeat-x scroll 0 0 transparent;
     padding: 5px 10px;
 }
-#infobox .bd {
-	padding: 5px 10px;
+
+/* select */
+#select {
+	margin-bottom: 20px;
 }
-#infobox .loading {
+#select .loading {
 	padding: 20px 0;
 	background: url("loading.gif") no-repeat 50% 50%;
 }
-#infobox .hidden {
+#select .empty {
+	padding: 10px;
+	border-bottom: 1px solid #808080;
+}
+#select .hidden {
 	display: none;
 }
-#infobox td {
+#select td {
 	padding: 0 10px 5px 0;
 }
-#infobox th {
+#select th {
 	font-weight: bold;
 }
-#infobox .labelbox {
-	margin: 0 10px;
-	padding: 5px 0;
+#info {
 	border-bottom: 1px solid #CCC;
 }
-#infobox .type {
-	padding-right: 5px;
-	font-variant: small-caps;
-}
 
-/* input select */
-#input {
-	border-width: 1px 1px 0;
-	border-style: solid;
-	border-color: #808080;
+/* align */
+#inputselect {
 	padding: 5px 10px;
 }
-
 
 /* opm graph */
 .yui3-opmviz {

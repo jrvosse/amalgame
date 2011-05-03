@@ -7,10 +7,41 @@
 @prefix align: <http://knowledgeweb.semanticweb.org/heterogeneity/alignment#> .
 @prefix opmv: <http://purl.org/net/opmv/ns#> .
 
-amalgame:Process rdfs:subClassOf opmv:Process .
-amalgame:Matcher rdfs:subClassOf amalgame:Process .
-amalgame:Merger rdfs:subClassOf amalgame:Process .
-amalgame:Selecter rdfs:subClassOf amalgame:Process .
+amalgame:Process 
+    rdfs:label "process"@en ;
+    skos:definition "Top class for all amalgame processes"@en ;
+    rdfs:subClassOf opmv:Process .
+amalgame:Matcher 
+    rdfs:label "matcher"@en ;
+    skos:definition "Component that creates a mapping given a source and target vocabulary"@en ;
+    rdfs:domain skos:ConceptScheme ;
+    rdfs:range amalgame:Mapping ;
+    rdfs:subClassOf amalgame:Process .
+amalgame:MatchFilter
+    rdfs:label "filter"@en ;
+    skos:definition "Component that filters a mapping by running an additional matcher"@en ;
+    rdfs:domain amalgame:Mapping ;
+    rdfs:range amalgame:Mapping ;
+    rdfs:subClassOf amalgame:Process .
+amalgame:MappingSelecter
+    rdfs:label "selecter"@en ;
+    skos:definition "Component that creates a new mapping by selecting a number of correspondences from an existing mapping"@en ;
+    rdfs:domain amalgame:Mapping ;
+    rdfs:range amalgame:Mapping ;
+    rdfs:subClassOf amalgame:Process .
+amalgame:VocabSelecter
+    rdfs:label "selecter"@en ;
+    skos:definition "Component that creates a new conceptScheme by selecting a number of concepts from an existing concept scheme"@en ;
+    rdfs:domain skos:ConceptScheme ;
+    rdfs:range skos:ConceptScheme ;
+    rdfs:subClassOf amalgame:Process .
+amalgame:Merger 
+    rdfs:label "merger"@en ;
+    skos:definition "Component that creates a mapping by combining the correspondences from a number of mappings"@en ;
+    rdfs:domain amalgame:Mapping ;
+    rdfs:range amalgame:Mapping ;
+    rdfs:subClassOf amalgame:Process .
+
 
 amalgame:includes
         rdfs:domain skos:ConceptScheme ;
