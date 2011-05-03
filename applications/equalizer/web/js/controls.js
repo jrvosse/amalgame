@@ -56,8 +56,8 @@ YUI.add('controls', function(Y) {
 			if(source&&target) {
 				data.source = source;
 				data.target = target;
-				content.one("#source").set("value", "");
-				content.one("#target").set("value", "");
+				//content.one("#source").set("value", "");
+				//content.one("#target").set("value", "");
 			} else if(selected) {
 				data.input = selected.uri;
 			} else {
@@ -109,6 +109,7 @@ YUI.add('controls', function(Y) {
 		_valueSet : function(e, which) {
 			var selected =  this.get("selected");
 			if(selected) {
+				Y.one("#"+which+'Label').set("value", selected.label);
 				Y.one("#"+which).set("value", selected.uri);
      		}
 		}

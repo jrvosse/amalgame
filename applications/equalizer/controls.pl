@@ -22,10 +22,14 @@ html_controls -->
 
 html_align_select -->
 	html(table([tr([td(input([type(button), id(sourcebtn), value('set as source')])),
-			td(input([type(text), id(source), name(source), size(40), autocomplete(off)]))
+			td([input([type(text), id(sourceLabel), size(40), autocomplete(off)]),
+			    input([type(hidden), id(source), name(source)])
+			   ])
 		       ]),
 		    tr([td(input([type(button), id(targetbtn), value('set as target')])),
-			td(input([type(text), id(target), name(target), size(40), autocomplete(off)]))
+			td([input([type(text), id(targetLabel), size(40), autocomplete(off)]),
+			    input([type(hidden), id(target), name(target)])
+			   ])
 		       ])
 		   ])).
 

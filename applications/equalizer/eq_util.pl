@@ -27,7 +27,8 @@ html_eq_header(Active, Alignment) -->
 	{ findall(Path-Label, eq:menu_item(Path, Label), Items)
 	},
 	html(div(id(header),
-		 [ div(class(title), 'Amalgame'),
+		 [ div(class(title),
+		       a(href(location_by_id(http_eq)), 'Amalgame')),
 		   ul(\html_eq_menu(Items, Active, Alignment))
 		 ])).
 
