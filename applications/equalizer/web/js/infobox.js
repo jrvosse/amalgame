@@ -90,7 +90,7 @@ YUI.add('infobox', function(Y) {
 		_updateLabel : function() {
 			var oldLabel = this.get("selected").label,
 				uri = this.get("selected").uri,
-				newLabel = this.labelNode.get("value");
+				newLabel = NODE_LABEL.get("value");
 			if(newLabel!==oldLabel) {
 				this.fire("labelChange", {uri:uri, oldVal:oldLabel, newVal:newLabel});
 			}
