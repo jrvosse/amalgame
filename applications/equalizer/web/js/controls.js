@@ -94,10 +94,10 @@ YUI.add('controls', function(Y) {
 		_toggleControls : function() {
 			var srcNode = this.get("srcNode"),
 				selected = this.get("selected"),
-				type = selected ? selected.type : "vocab";
+				type = selected ? selected.type : "";
 				
 			// We only show the controls for the active type
-			srcNode.all(".yui3-accordion-item").each(function(node) {
+			srcNode.all(".control").each(function(node) {
 				if(type&&node.hasClass(type)) {
 					node.removeClass("disabled");
 				} else {

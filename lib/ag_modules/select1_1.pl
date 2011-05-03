@@ -4,8 +4,10 @@
 
 :- public amalgame_module/1.
 :- public selecter/5.
+:- public input/1.
 
 amalgame_module(amalgame:'Select1_1').
+input(amalgame:'Mapping').
 
 
 %%	selecter(+Source, -Selected, -Discarded, -Undecided, +Options)

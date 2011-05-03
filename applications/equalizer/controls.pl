@@ -4,11 +4,22 @@
 
 :- use_module(library(http/html_write)).
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(amalgame/amalgame_modules)).
 
 
-/*
+html_controls -->
+	{ findall(URI-M, current_amalgame_module(URI, M), Modules)
+	},
+ 	html([div(id(infobox), []),
+	      div([id(input), class('control vocab')],
+		  \html_align_select),
+	      div([class('yui3-accordion')],
+		  \html_modules(Modules))
+	     ]).
+
+
 html_align_select -->
 	html(table([tr([td(input([type(button), id(sourcebtn), value('set as source')])),
 			td(input([type(text), id(source), name(source), size(40), autocomplete(off)]))
@@ -17,19 +28,13 @@ html_align_select -->
 			td(input([type(text), id(target), name(target), size(40), autocomplete(off)]))
 		       ])
 		   ])).
-*/
 
-html_controls -->
-	{ findall(URI-M, current_amalgame_module(URI, M), Modules)
-	},
- 	html([div(id(infobox), []),
-	      div([class('yui3-accordion')],
-		  \html_modules(Modules))
-	     ]).
 
 %%	html_modules(+Modules:uri-module)
 %
 %	Emit YUI3 node accordion items for each module.
+%
+%	@TBD
 
 html_modules([]) --> !.
 html_modules([URI-Module|Ms]) -->
@@ -37,10 +42,11 @@ html_modules([URI-Module|Ms]) -->
 	html_modules(Ms).
 
 html_module(URI, Module) -->
-	{   amalgame_module_parameters(Module, Params),
-	   Class = 'mapping'
+	{  amalgame_module_parameters(Module, Params),
+	   module_inputs(URI, Inputs),
+	   concat_atom(Inputs, ' ', Classes)
 	},
- 	html(div([id(Module), class('yui3-accordion-item '+Class)],
+ 	html(div([id(Module), class('yui3-accordion-item control '+Classes)],
 		 [ div(class('yui3-accordion-item-hd'),
 		       a([href('javascript:void(0)'),
 			  class('yui3-accordion-item-trigger')],
@@ -55,6 +61,18 @@ html_module(URI, Module) -->
 			      ])
 		       ])
 		 ])).
+
+module_inputs(M, [mapping, vocab]) :-
+	rdfs_subclass_of(M,amalgame:'Matcher'),
+	!.
+module_inputs(M, [mapping]) :-
+	rdfs_subclass_of(M,amalgame:'Selecter'),
+	!.
+module_inputs(M, [vocab]) :-
+	rdfs_subclass_of(M,amalgame:'Voc_Exclude'),
+	!.
+module_inputs(_, [mapping, vocab]).
+
 
 module_label(M) -->
 	{ rdf_label(M, Lit),
