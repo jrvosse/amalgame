@@ -9,7 +9,7 @@
 :- public selecter/5.
 :- public input/1.
 
-amalgame_module(amalgame:'Arity_select').
+amalgame_module(amalgame:'AritySelect').
 input(amalgame:'Mapping').
 
 

@@ -2,6 +2,7 @@
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(amalgame/map)).
+:- use_module(library(amalgame/vocabulary)).
 
 :- public amalgame_module/1.
 :- public parameter/4.
@@ -17,7 +18,7 @@ parameter(type,
 concept_selecter(scheme(SourceVoc), Result, Options) :-
 	option(exclude_sources(Exc), Options),!,
 	maplist(align_source, Exc, ExcSrcs),
-	findall(S, rdf_has(S, skos:inScheme, SourceVoc), Sources),
+	findall(S, vocab_member(S, scheme(SourceVoc)), Sources),
 
 	sort(Sources, SsSorted),
 	sort(ExcSrcs, EsSorted),
