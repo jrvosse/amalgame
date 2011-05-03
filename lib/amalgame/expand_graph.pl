@@ -112,10 +112,30 @@ exec_mapping_process(Class, Process, Module, Result, Options) :-
 exec_mapping_process(Class, Process, Module, Result, Options) :-
 	rdfs_subclass_of(Class, amalgame:'Merger'),
 	!,
+
 	findall(Input, rdf(Process, amalgame:input, Input), Inputs),
 	maplist(expand_mapping, Inputs, Expanded),
-  	call(Module:merger, Expanded, Result, Options).
+	call(Module:merger, Expanded, Result, Options).
 
+exec_mapping_process(Class, Process, Module, Result, Options) :-
+	rdfs_subclass_of(Class, amalgame:'VocSelecter'),
+        !,
+        option(type(SourceOrTarget), Options, source),
+        (   SourceOrTarget = source
+        ->  ExcludeOption = exclude_sources(Exclude)
+        ;   ExcludeOption = exclude_targets(Exclude)
+        ),
+        rdf(Process, amalgame:exclude, ExcludeId),
+        (   rdf(Process, amalgame:source, SourceId)
+        ->  Input = scheme(SourceId),
+            rdf(Process, amalgame:target, TargetId),
+            TargetOption=targetvoc(TargetId)
+        ;   rdf(Process, amalgame:input, InputId),
+            expand_mapping(InputId, Input),
+            TargetOption=noop(none)
+        ),
+        expand_mapping(ExcludeId, Exclude),
+	call(Module:concept_selecter(Input, Result, [ExcludeOption,TargetOption])).
 
 exec_mapping_process(Class, Process, _, _, _) :-
 	throw(error(existence_error(mapping_process, [Class, Process]), _)).
