@@ -366,31 +366,3 @@ mat_alignment_graph([align(S,T, P)|As], Options) :-
 save_alignment_graph(Graph, Options) :-
 	opm_include_dependency(Graph, Graph),
 	rdf_save_canonical_turtle(Graph, Options).
-
-%%	compare_align(Type, Order, A1, A2) is det.
-%
-%	compare alignment A1 and A2 on the standard order of the url of
-%	their source or target concept, depending on Type.
-
-xcompare_align(Type, Order, A1, A2) :-
-	debug(align, 'compare_align ~w ~w ~w ~w' , [Type, Order, A1, A2]),
-	fail.
-
-compare_align(source, Order, align(S1,_,_), align(S2,_,_)) :- compare(Order, S1, S2).
-
-compare_align(target, Order, align(_,T1,_), align(_,T2,_)) :- compare(Order, T1, T2).
-
-compare_align(sourceplus, Order, align(S1,T1,P1), align(S2,T2,P2)) :-
-	(   compare(FirstOrder, S1, S2), FirstOrder \== '='
-	->  FirstOrder = Order
-	;   compare(SecondOrder, T1, T2), SecondOrder \== '='
-	->  SecondOrder = Order
-	;   compare(Order, P1, P2)
-	).
-compare_align(targetplus, Order, align(S1,T1,P1), align(S2,T2,P2)) :-
-	(   compare(FirstOrder, T1, T2), FirstOrder \== '='
-	->  FirstOrder = Order
-	;   compare(SecondOrder, S1, S2), SecondOrder \== '='
-	->  SecondOrder = Order
-	;   compare(Order, P1, P2)
-	).
