@@ -7,10 +7,10 @@
 @prefix skos:	  <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd:      <http://www.w3.org/2001/XMLSchema#> .
 
-amalgame:Process rdfs:subClassOf opmv:Process.
-amalgame:Matcher  rdfs:subClassOf amalgame:Process.
-amalgame:Merger  rdfs:subClassOf amalgame:Process.
-amalgame:Selecter rdfs:subClassOf amalgame:Process.
+amalgame:Process     rdfs:subClassOf opmv:Process.
+amalgame:Matcher     rdfs:subClassOf amalgame:Process.
+amalgame:Selecter    rdfs:subClassOf amalgame:Process.
+amalgame:Merger      rdfs:subClassOf amalgame:Process.
 amalgame:Voc_Exclude rdfs:subClassOf opmv:Process.
 
 amalgame:Snowball_Matcher    rdfs:subClassOf amalgame:Matcher .
@@ -23,6 +23,8 @@ amalgame:Isub_Matcher
 
 amalgame:Select1_1    rdfs:subClassOf amalgame:Selecter .
 amalgame:Arity_select rdfs:subClassOf amalgame:Selecter .
+
+amalgame:MapMerger   rdfs:subClassOf amalgame:Merger.
 
 amalgame:includes
         rdfs:domain skos:ConceptScheme ;

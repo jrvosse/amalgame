@@ -9,6 +9,7 @@
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(amalgame/amalgame_modules)).
+:- use_module(library(amalgame/map)).
 
 :- dynamic
 	mapping_cache/2,
@@ -107,6 +108,15 @@ exec_mapping_process(Class, Process, Module, Result, Options) :-
  	rdf(Process, amalgame:input, InputId),
 	expand_mapping(InputId, MappingIn),
   	call(Module:selecter, MappingIn, Selected, Discarded, Undecided, Options).
+
+exec_mapping_process(Class, Process, Module, Result, Options) :-
+	rdfs_subclass_of(Class, amalgame:'Merger'),
+	!,
+	findall(Input, rdf(Process, amalgame:input, Input), Inputs),
+	maplist(expand_mapping, Inputs, Expanded),
+  	call(Module:merger, Expanded, Result, Options).
+
+
 exec_mapping_process(Class, Process, _, _, _) :-
 	throw(error(existence_error(mapping_process, [Class, Process]), _)).
 
@@ -169,21 +179,3 @@ module_options(Module, Options, Parameters) :-
 		),
 		Pairs),
 	pairs_keys_values(Pairs, Options, Parameters).
-
-
-%%	merge_provenance(+AlignIn, -AlignOut)
-%
-%	Collects all provenance for similar source target pairs.
-%	AlignIn is a sorted list of align/3 terms.
-
-merge_provenance([], []).
-merge_provenance([align(S, T, P)|As], Gs) :-
-	group_provenance(As, S, T, P, Gs).
-
-group_provenance([align(S,T,P)|As], S, T, P0, Gs) :-
-	!,
-	append(P, P0, P1),
-	group_provenance(As, S, T, P1, Gs).
-group_provenance(As, S, T, P, [align(S, T, Psorted)|Gs]) :-
-	sort(P, Psorted),
-	merge_provenance(As, Gs).
