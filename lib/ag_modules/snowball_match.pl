@@ -13,7 +13,7 @@
 :- public filter/3.
 :- public matcher/4.
 
-amalgame_module(amalgame:'Snowball_Matcher').
+amalgame_module(amalgame:'SnowballMatcher').
 
 parameter(sourcelabel, uri, P,
 	  'Property to get label of the source by') :-

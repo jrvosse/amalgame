@@ -1,5 +1,7 @@
 :- module(ag_map,
 	  [
+	   merge_provenance/2,     % +List, -Merged
+	   compare_align/4,        % +Type, ?Order, A1, A2
 	   map_iterator/1,	   % -Map
 	   map_iterator/2,	   % -Map, +GraphList
 	   has_map/4,              % ?Map, ?Format ?Options, ?Graph
@@ -197,7 +199,46 @@ prolog:message(map(occurs_min(Min, MappingList))) -->
 	[ 'Occurs in min ~w mapping graphs: ~w'-[Min, MLL] ].
 
 
+%%      compare_align(Type, Order, A1, A2) is det.
+%
+%       compare alignment A1 and A2 on the standard order of the url of
+%       their source or target concept, depending on Type.
+
+compare_align(source, Order, align(S1,_,_), align(S2,_,_)) :- compare(Order, S1, S2).
+
+compare_align(target, Order, align(_,T1,_), align(_,T2,_)) :- compare(Order, T1, T2).
+
+compare_align(sourceplus, Order, align(S1,T1,P1), align(S2,T2,P2)) :-
+        (   compare(FirstOrder, S1, S2), FirstOrder \== '='
+        ->  FirstOrder = Order
+        ;   compare(SecondOrder, T1, T2), SecondOrder \== '='
+        ->  SecondOrder = Order
+        ;   compare(Order, P1, P2)
+        ).
+compare_align(targetplus, Order, align(S1,T1,P1), align(S2,T2,P2)) :-
+        (   compare(FirstOrder, T1, T2), FirstOrder \== '='
+        ->  FirstOrder = Order
+        ;   compare(SecondOrder, S1, S2), SecondOrder \== '='
+        ->  SecondOrder = Order
+        ;   compare(Order, P1, P2)
+        ).
 
 
+%%      merge_provenance(+AlignIn, -AlignOut)
+%
+%       Collects all provenance for similar source target pairs.
+%       AlignIn is a sorted list of align/3 terms.
+
+merge_provenance([], []).
+merge_provenance([align(S, T, P)|As], Gs) :-
+        group_provenance(As, S, T, P, Gs).
+
+group_provenance([align(S,T,P)|As], S, T, P0, Gs) :-
+        !,
+        append(P, P0, P1),
+        group_provenance(As, S, T, P1, Gs).
+group_provenance(As, S, T, P, [align(S, T, Psorted)|Gs]) :-
+        sort(P, Psorted),
+        merge_provenance(As, Gs).
 
 

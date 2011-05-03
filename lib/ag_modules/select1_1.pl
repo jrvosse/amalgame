@@ -6,7 +6,7 @@
 :- public selecter/5.
 :- public input/1.
 
-amalgame_module(amalgame:'Select1_1').
+amalgame_module(amalgame:'Select11').
 input(amalgame:'Mapping').
 
 

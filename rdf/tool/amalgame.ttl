@@ -1,8 +1,3 @@
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
-@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix amalgame: <http://purl.org/vocabularies/amalgame#> .
 @prefix align: <http://knowledgeweb.semanticweb.org/heterogeneity/alignment#> .
 @prefix opmv: <http://purl.org/net/opmv/ns#> .
@@ -41,7 +36,6 @@ amalgame:Merger
     rdfs:domain amalgame:Mapping ;
     rdfs:range amalgame:Mapping ;
     rdfs:subClassOf amalgame:Process .
-
 
 amalgame:includes
         rdfs:domain skos:ConceptScheme ;

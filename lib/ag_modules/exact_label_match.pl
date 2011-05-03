@@ -12,6 +12,10 @@
 amalgame_module(amalgame:'Exact_Label_Matcher').
 amalgame_module(amalgame:'Exact_Label_Filter').
 
+/* Jacco's changes
+amalgame_module(amalgame:'ExactLabelMatcher').
+*/
+
 parameter(sourcelabel, uri, P,
 	  'Property to get label of the source by') :-
 	rdf_equal(rdfs:label, P).
