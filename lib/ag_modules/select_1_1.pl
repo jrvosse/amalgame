@@ -1,14 +1,12 @@
-:- module(arity_select,[]).
+:- module(select_1_1,[]).
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(amalgame/map)).
-:- use_module(library(amalgame/partition/source_ambiguity)).
-:- use_module(library(amalgame/partition/target_ambiguity)).
 
 :- public amalgame_module/1.
 :- public selecter/5.
 
-amalgame_module(amalgame:'AritySelect').
+amalgame_module(amalgame:'Select11').
 
 %%	selecter(+Source, -Selected, -Discarded, -Undecided, +Options)
 %
