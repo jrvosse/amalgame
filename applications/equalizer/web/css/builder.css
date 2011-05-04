@@ -12,6 +12,10 @@
 }
 
 /* controls */
+#controls {
+	position: fixed;
+	margin-right: 10px;
+}
 #controls .yui3-accordion {
 	border-width: 1px 0 0;
 }
