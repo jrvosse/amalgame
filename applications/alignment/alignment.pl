@@ -26,6 +26,8 @@ pages and services.
 :- use_module(library(amalgame/edoal)).
 :- use_module(library(amalgame/map)).
 
+:- use_module(library(ag_modules/exact_label_match)).
+
 
 :- http_handler(amalgame(align_form),       http_align_form,     []).
 :- http_handler(amalgame(align_vocs),       http_align_vocs,     []).
