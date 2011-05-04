@@ -7,11 +7,8 @@
 
 :- public amalgame_module/1.
 :- public selecter/5.
-:- public input/1.
 
 amalgame_module(amalgame:'AritySelect').
-input(amalgame:'Mapping').
-
 
 %%	selecter(+Source, -Selected, -Discarded, -Undecided, +Options)
 %

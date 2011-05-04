@@ -14,6 +14,7 @@
 :- public amalgame_module/1.
 
 amalgame_module(amalgame:'IsubMatcher').
+amalgame_module(amalgame:'IsubFilter').
 
 parameter(sourcelabel, uri, P,
 	  'Property to get label of the source by') :-

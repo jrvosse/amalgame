@@ -9,12 +9,8 @@
 :- public matcher/4.
 :- public parameter/4.
 
-amalgame_module(amalgame:'Exact_Label_Matcher').
-amalgame_module(amalgame:'Exact_Label_Filter').
-
-/* Jacco's changes
 amalgame_module(amalgame:'ExactLabelMatcher').
-*/
+amalgame_module(amalgame:'ExactLabelFilter').
 
 parameter(sourcelabel, uri, P,
 	  'Property to get label of the source by') :-
