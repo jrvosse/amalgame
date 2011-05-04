@@ -12,7 +12,6 @@ amalgame:ExactLabelFilter
     skos:definition "A filter of mappings based on exact matching labels of source and target concepts"@en ;
     rdfs:subClassOf amalgame:MatchFilter .
 
-
 amalgame:SnowballMatcher
     rdfs:label "snowball matcher"@en ;
     skos:definition "A label matcher with similarity based on stemming."@en ;
@@ -33,9 +32,14 @@ amalgame:IsubFilter
 
 amalgame:Select11
     rdfs:label "select 1-1"@en ;
-    skos:definition "Select correspondences that have only 1 source and 1 target concept." ;
+    skos:definition "Select correspondences that have only 1 source and 1 target concept."@en ;
     rdfs:subClassOf amalgame:MappingSelecter .
 
 amalgame:AritySelect
     rdfs:label "arity select"@en ;
     rdfs:subClassOf amalgame:MappingSelecter .
+    
+amalgame:MapMerger
+    rdfs:label "mapping merger"@en ;
+    skos:definition: "Merge two or more mappings into one new mapping. This can, for example, to collect the good mappings made by different processes."@en ;
+    rdfs:subClassOf amalgame:Merger .

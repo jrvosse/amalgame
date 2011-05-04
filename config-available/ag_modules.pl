@@ -7,11 +7,12 @@ user:file_search_path(ag_modules, library(ag_modules)).
 :- use_module(ag_modules(snowball_match)).
 :- use_module(ag_modules(isub_match)).
 
-% Alignment filters/selecters 
-:- use_module(ag_modules(select1_1)).  % I think we should deprecate this, is really select N-1
-:- use_module(ag_modules(arity_select)).
+% Alignment filters/selecters
+:- use_module(ag_modules(select_1_1)).
+:- use_module(ag_modules(select_1_n)).
+:- use_module(ag_modules(select_n_1)).
 
-% Vocubalry filters/selecters 
+% Vocubalry filters/selecters
 :- use_module(ag_modules(voc_exclude)).
 %
 % Mergers
