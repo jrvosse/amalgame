@@ -49,3 +49,8 @@ amalgame:MapMerger
     rdfs:label "mapping merger"@en ;
     skos:definition "Merge two or more mappings into one new mapping. This can, for example, to collect the good mappings made by different processes."@en ;
     rdfs:subClassOf amalgame:Merger .
+
+amalgame:VocExclude
+    rdfs:label "vocabulary excluder"@en ;
+    skos:definition "Exclude a sources or targets from a given mapping from being mapped in a subsequent step."@en ;
+    rdfs:subClassOf amalgame:VocabSelecter .
