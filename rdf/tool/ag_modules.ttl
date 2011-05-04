@@ -22,12 +22,21 @@ amalgame:SnowballFilter
     rdfs:subClassOf amalgame:MatchFilter .
 
 amalgame:IsubMatcher        
-	rdfs:label "isub string matcher"@en ;
-	skos:definition "An isub string similarity matcher based on the metric described by 'A string metric for ontology alignment' by Giorgos Stoilos, 2005."@en ;
-	rdfs:subClassOf amalgame:Matcher .
+    rdfs:label "isub string matcher"@en ;
+    skos:definition "An isub string similarity matcher based on the metric described by 'A string metric for ontology alignment' by Giorgos Stoilos, 2005."@en ;
+    rdfs:subClassOf amalgame:Matcher .
 amalgame:IsubFilter
     rdfs:label "Isub filter"@en ;
     skos:definition "A filter of mappings based on string similarity metric described by 'A string metric for ontology alignment' by Giorgos Stoilos, 2005."@en ;
+    rdfs:subClassOf amalgame:MatchFilter .
+
+amalgame:AncestorMatcher
+    rdfs:label "ancestor matcher"@en ;
+    skos:definition "Matcher looking for 1 or more ancestors that have already been mapped."@en ;
+    rdfs:subClassOf amalgame:Matcher .
+amalgame:AncestorFilter
+    rdfs:label "ancestor filter"@en ;
+    skos:definition "Filter all correspondences with 1 or more ancestors that have already been mapped."@en ;
     rdfs:subClassOf amalgame:MatchFilter .
 
 amalgame:SelectN1
