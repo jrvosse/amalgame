@@ -23,11 +23,20 @@
 		# <align.rdfs> .
 		<align.owl> .
 
+<ag_modules>
+	a lib:Ontology ;
+	a lib:Virtual ;
+	dcterms:title "Schema for the amalgame modules"@en ;
+	lib:source amalgame:modules ;
+	owl:imports
+		<ag_modules.ttl> .
+
 <amalgame>
 	a lib:Ontology ;
 	a lib:Virtual ;
 	dcterms:title "Schema for the Amalgame RDF vocabulary"@en ;
 	lib:source amalgame: ;
 	owl:imports
+		<ag_modules> ,
 		<alignmentschema> ,
 		<amalgame.ttl> .
