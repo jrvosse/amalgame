@@ -12,7 +12,7 @@ This module is a ClioPatria plugin that extends the ClioPatria menu.
 %	Provide the Amalgame extensions to the Cliopatria menu.
 
 cliopatria:menu_popup_order(amalgame, 120).
-cliopatria:menu_item(100=amalgame/eq, 'Amalgame').
+cliopatria:menu_item(100=amalgame/http_eq, 'Amalgame').
 
 cliopatria:menu_popup_order(vocabularies, 320).
 cliopatria:menu_item(100=vocabularies/http_concept_finder, 'Browse (deprecated)').
