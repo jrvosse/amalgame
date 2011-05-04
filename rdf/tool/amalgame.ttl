@@ -1,9 +1,10 @@
-@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix    align: <http://knowledgeweb.semanticweb.org/heterogeneity/alignment#> .
 @prefix amalgame: <http://purl.org/vocabularies/amalgame#> .
-@prefix align: <http://knowledgeweb.semanticweb.org/heterogeneity/alignment#> .
-@prefix opmv: <http://purl.org/net/opmv/ns#> .
+@prefix     opmv: <http://purl.org/net/opmv/ns#> .
+@prefix      owl: http://www.w3.org/2002/07/owl#> .
+@prefix      rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix     rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix     skos: <http://www.w3.org/2004/02/skos/core#> .
 
 amalgame:Process 
     rdfs:label "process"@en ;
