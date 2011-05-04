@@ -14,17 +14,20 @@ amalgame_module(amalgame:'Select1N').
 %	concept is mapped to only one source.
 
 selecter(Mapping, Sel, Dis, [], _Options) :-
- 	select_(Mapping, Sel, Dis).
+	predsort(ag_map:compare_align(targetplus), Mapping, TargetSorted),
+ 	select_(TargetSorted, Sel0, Dis0),
+	sort(Sel0, Sel),
+	sort(Dis0, Dis).
 
 
 select_([], [], []).
 select_([align(S,T,P)|As], A1, A2) :-
  	same_target(As, T, Same, Rest),
 	(   Same = []
-	->  A2 = [align(S,T,P)|A2Rest],
-	    A1 = A1Rest
-	;   append([align(S,T,P)|Same], A1Rest, A1),
+	->  A1 = [align(S,T,P)|A1Rest],
 	    A2 = A2Rest
+	;   append([align(S,T,P)|Same], A2Rest, A2),
+	    A1 = A1Rest
 	),
 	select_(Rest, A1Rest, A2Rest).
 

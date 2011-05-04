@@ -14,14 +14,11 @@ amalgame_module(amalgame:'Select11').
 %	a source and target concept.
 
 selecter(Mapping, Sel, Dis, [], Options) :-
- 	predsort(ag_map:compare_align(targetplus), Mapping, TargetSorted),
+	select_n_1:selecter(Mapping, Source1, SourceN, _, Options),
+	select_1_n:selecter(Mapping, Target1, TargetN, _, Options),
 
-	select_1_n:selecter(Mapping, Source1, SourceN, _, Options),
-	select_n_1:selecter(TargetSorted, Target1, TargetN, _, Options),
+	sort(Source1, S1), sort(SourceN, SN),
+	sort(Target1, T1), sort(TargetN, TN),
 
-	% I don't think we need to sort, as the output is sorted
-	%sort(Source1, S1), sort(SourceN, SN),
-	%sort(Target1, T1), sort(TargetN, TN),
-
-	ord_intersection(Source1, Target1, Sel),
-	ord_union(SourceN, TargetN, Dis).
+	ord_intersection(S1, T1, Sel),
+	ord_union(SN, TN, Dis).
