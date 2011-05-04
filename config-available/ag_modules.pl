@@ -10,6 +10,7 @@
 :- use_module(library(ag_modules/select_1_1)).
 :- use_module(library(ag_modules/select_1_n)).
 :- use_module(library(ag_modules/select_n_1)).
+:- use_module(library(ag_modules/best_numeric)).
 
 % Vocubalry filters/selecters
 :- use_module(library(ag_modules/voc_exclude)).

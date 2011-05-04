@@ -45,6 +45,11 @@ amalgame:Select11
     skos:definition "Select correspondences that have only 1 source and 1 target concept."@en ;
     rdfs:subClassOf amalgame:MappingSelecter .
     
+amalgame:BestNumeric
+    rdfs:label "best numeric"@en ;
+    skos:definition "Select correspondences that have the best score considering some numerical ranking."@en ;
+    rdfs:subClassOf amalgame:MappingSelecter .
+
 amalgame:MapMerger
     rdfs:label "mapping merger"@en ;
     skos:definition "Merge two or more mappings into one new mapping. This can, for example, to collect the good mappings made by different processes."@en ;

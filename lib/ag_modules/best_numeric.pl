@@ -2,34 +2,31 @@
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
-:- use_module(library(amalgame/alignment_graph)).
+:- use_module(library(amalgame/map)).
 
-:- public partition/3.
-:- multifile amalgame:component/2.
+:- public amalgame_module/1.
+:- public selecter/5.
+:- public parameter/4.
 
-amalgame:component(partition, best_numeric(alignment_graph, [selected(alignment_graph),
-							   discarded(alignment_graph),
-							   undecided(alignment_graph)
-							  ], [])).
+parameter(type,
+	  oneof(source,target), source,
+	  'Select best sources or best targets').
 
-%%	partition(+Input, -Output, +Options)
+
+amalgame_module(amalgame:'BestNumeric').
+
+
+%%      selecter(+Source, -Selected, -Discarded, -Undecided, +Options)
 %
-%	Output a list of graphs where the first element contains
-%	all ambiguous alignments and the second the unambiguous
-%	ones.
-%       Input is a sorted list of alignment terms.
+%
 
-partition(AlignmentGraph, ListOfGraphs, Options) :-
-	ListOfGraphs = [selected(S),
-			discarded(D),
-			undecided(U)
-		      ],
+selecter(AlignmentGraph, Sel, Disc, Und, Options) :-
 	option(disamb(SourceOrTarget), Options, source),
 	(   SourceOrTarget = target
-	->  predsort(compare_align(sourceplus), AlignmentGraph, SortedAlignmentGraph)
-	;   predsort(compare_align(targetplus), AlignmentGraph, SortedAlignmentGraph)
+	->  predsort(ag_map:compare_align(sourceplus), AlignmentGraph, SortedAlignmentGraph)
+	;   predsort(ag_map:compare_align(targetplus), AlignmentGraph, SortedAlignmentGraph)
 	),
-	partition_(SourceOrTarget, SortedAlignmentGraph, S, D, U).
+	partition_(SourceOrTarget, SortedAlignmentGraph, Sel, Disc, Und).
 
 partition_(_, [], [], [], []) :- !.
 partition_(SourceOrTarget, [align(S,T,P)|As], Sel, Dis, Und) :-
