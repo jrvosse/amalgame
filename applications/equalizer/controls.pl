@@ -3,33 +3,60 @@
 	  ]).
 
 :- use_module(library(http/html_write)).
-:- use_module(library(semweb/rdf_db)).
-:- use_module(library(semweb/rdfs)).
-:- use_module(library(semweb/rdf_label)).
 :- use_module(library(amalgame/amalgame_modules)).
 
+current_modules_of_input_type(Types, Modules) :-
+	findall(URI-Module,
+		( current_amalgame_module(URI, Module),
+		  amalgame_module_property(URI, input_type(Type)),
+		  member(Type, Types)
+		),
+		Modules).
 
 html_controls -->
-	{ findall(URI-M, current_amalgame_module(URI, M), Modules)
-	},
- 	html([div(id(infobox), []),
-	      div([id(input), class('control vocab')],
-		  \html_align_select),
-	      div([class('yui3-accordion')],
-		  \html_modules(Modules))
-	     ]).
+	{ current_modules_of_input_type([mapping,vocab], InputModules),
+	  current_modules_of_input_type([sourcetarget], MatchModules)
+ 	},
+	html(div(id(controls),
+		 [div([id(select), class('control-set')],
+		      [ div(class(hd), 'Select'),
+		        div(class('bd hidden'),
+			    [ div([id(info), class(c)],
+				  \html_node_props),
+			      div([id(properties), class(c)], []),
+			      \html_modules(InputModules)
+			    ])
+		      ]),
+		  div([id(align), class('control-set')],
+		      [ div(class(hd), 'Align'),
+			div(class(bd),
+			    [ div(class(c), \html_align_select),
+			      \html_modules(MatchModules)
+			    ])
+		      ])
+		 ])).
 
+html_node_props -->
+	html(table([tr([td(id(type), []),
+			td(id(uri), []),
+			td(input([type(button), id(delete), value(delete)]))
+		       ]),
+		    tr([td(label),
+			td(input([type(text), id(label), size(30)])),
+			td(input([type(button), id(updateLabel), value(change)]))
+		       ])
+		   ])).
 
 html_align_select -->
 	html(table([tr([td(input([type(button), id(sourcebtn), value('set as source')])),
 			td([input([type(text), id(sourceLabel), size(40), autocomplete(off)]),
 			    input([type(hidden), id(source), name(source)])
-			   ])
+				  ])
 		       ]),
 		    tr([td(input([type(button), id(targetbtn), value('set as target')])),
 			td([input([type(text), id(targetLabel), size(40), autocomplete(off)]),
 			    input([type(hidden), id(target), name(target)])
-			   ])
+				  ])
 		       ])
 		   ])).
 
@@ -40,62 +67,57 @@ html_align_select -->
 %
 %	@TBD
 
-html_modules([]) --> !.
-html_modules([URI-Module|Ms]) -->
-	html_module(URI, Module),
-	html_modules(Ms).
+html_modules(Modules) -->
+	html(div([class('yui3-accordion module-list')],
+		 \html_module_items(Modules))).
 
-html_module(URI, Module) -->
+
+html_module_items([]) --> !.
+html_module_items([URI-Module|Ms]) -->
 	{  amalgame_module_parameters(Module, Params),
-	   module_inputs(URI, Inputs),
-	   concat_atom(Inputs, ' ', Classes)
+	   amalgame_module_property(URI, input_type(InputType))
 	},
- 	html(div([id(Module), class('yui3-accordion-item control '+Classes)],
+	html_accordion_item('control '+InputType,
+			    \module_label(URI),
+			    [ \module_desc(URI),
+			      \module_form(URI, Params)
+			    ]),
+ 	html_module_items(Ms).
+
+module_form(URI, Params) -->
+	html(form([input([type(hidden), name(process), value(URI)]),
+		   table(tbody(\html_parameter_form(Params))),
+		   div(class('control-buttons'),
+		       input([type(button), class('control-submit'), value('Go')]))
+		  ])).
+
+module_label(URI) -->
+	{ amalgame_module_property(URI, label(L))
+	},
+	html(L).
+
+module_desc(URI) -->
+	{ amalgame_module_property(URI, desc(D))
+	},
+	!,
+	html(div(class(desc), D)).
+module_desc(_) --> !.
+
+
+%%	html_accordion_item(+CSSClass, +Header, +Body)
+%
+%	Emit HTML markup for an YUI3 accordion item.
+
+html_accordion_item(Class, Header, Body) -->
+	html(div([class('yui3-accordion-item '+Class)],
 		 [ div(class('yui3-accordion-item-hd'),
 		       a([href('javascript:void(0)'),
 			  class('yui3-accordion-item-trigger')],
-			 \module_label(URI))),
+			 Header)),
 		   div(class('yui3-accordion-item-bd'),
-		       [ div(class(desc),
-			     \module_desc(URI)),
-			 form(id(URI),
-			      [ table(tbody(\html_parameter_form(Params))),
-				div(class('control-buttons'),
-				    input([type(button), class('control-submit'), value('Go')]))
-			      ])
-		       ])
+		       Body)
 		 ])).
 
-module_inputs(M, [mapping, vocab]) :-
-	rdfs_subclass_of(M,amalgame:'Matcher'),
-	!.
-module_inputs(M, [mapping]) :-
-	rdfs_subclass_of(M,amalgame:'Selecter'),
-	!.
-module_inputs(M, [vocab]) :-
-	rdfs_subclass_of(M,amalgame:'Voc_Exclude'),
-	!.
-module_inputs(_, [mapping, vocab]).
-
-
-module_label(M) -->
-	{ rdf_label(M, Lit),
-	  !,
-	  literal_text(Lit, Label)
-	},
-	html(Label).
-module_label(M) -->
-	{ rdf_global_id(_:Label, M)
-	},
-	html(Label).
-
-module_desc(M) -->
-	{ rdf_has(M, skos:definition, Lit),
-	  !,
-	  literal_text(Lit, Txt)
-	},
-	html(Txt).
-module_desc(_) --> !.
 
 %%	html_module_parameters(+ParameterList)
 %

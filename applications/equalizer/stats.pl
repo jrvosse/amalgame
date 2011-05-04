@@ -72,8 +72,8 @@ html_cell_list([V|Vs]) -->
 
 amalgame_stats(URL, ['total mappings'-Total,
 		     'mapped source concepts'-SN,
-		     'mapped target concepts'-TN
-		     %'browse' - a(href(HREF), URL)
+		     'mapped target concepts'-TN,
+		     'browse' - a(href(HREF), URL)
 		    ]) :-
 	rdfs_individual_of(URL, amalgame:'Mapping'),
 	!,
@@ -84,19 +84,17 @@ amalgame_stats(URL, ['total mappings'-Total,
 	sort(Ts0, Ts),
 	length(Mapping, Total),
 	length(Ss, SN),
-	length(Ts, TN).
-	%resource_link(URL, HREF).
-
+	length(Ts, TN),
+	resource_link(URL, HREF).
 amalgame_stats(Scheme,
-	    ['Total concepts'-Total
-	     %'browse' - a(href(HREF), Scheme)
+	    ['Total concepts'-Total,
+	     'browse' - a(href(HREF), Scheme)
 	    ]) :-
 	rdfs_individual_of(Scheme, skos:'ConceptScheme'),
 	!,
  	findall(C,rdf(C,skos:inScheme,Scheme), Cs),
-	length(Cs, Total).
-	%resource_link(Scheme,HREF).
-
+	length(Cs, Total),
+	resource_link(Scheme,HREF).
 amalgame_stats(URL,
 	       ['type'   - \(cp_label:rdf_link(Type)),
 		'about'   - Definition,
@@ -109,9 +107,9 @@ amalgame_stats(URL,
 	->  true
 	;   Definition = '-'
 	).
+amalgame_stats(_URL, ['browse' - a(href(HREF), URL)]) :-
+	resource_link(URL,HREF).
 
-amalgame_stats(_URL, []).%['browse' - a(href(HREF), URL)]) :-
-	%resource_link(URL,HREF).
 %:-
 %	phrase(rdf_link(URL), Tokens),
 %	with_output_to(atom(Link), print_html(Tokens)).
@@ -152,8 +150,15 @@ ag_prov(Process, parameters, set(Params)) :-
 	maplist(param_to_prov, Ps, Params).
 
 param_to_prov(P, Key-Value) :-
- 	concat_atom([Key,Value], '=', P).
+ 	concat_atom([Key,EncValue], '=', P),
+	www_form_encode(Value0, EncValue),
+	param_value(Value0, Value).
 
+param_value(URI, Short) :-
+	rdf_global_id(NS:Local, URI),
+	!,
+	concat_atom([NS,Local],':',Short).
+param_value(V, V).
 
 /*ag_prov(Mapping, Key, Value) :-
 	rdfs_individual_of(Mapping, amalgame:'Mapping'),

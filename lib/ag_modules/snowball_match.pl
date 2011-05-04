@@ -14,6 +14,7 @@
 :- public matcher/4.
 
 amalgame_module(amalgame:'SnowballMatcher').
+amalgame_module(amalgame:'SnowballFilter').
 
 parameter(sourcelabel, uri, P,
 	  'Property to get label of the source by') :-

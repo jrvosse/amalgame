@@ -61,8 +61,7 @@ html_page(Alignment) :-
 				    [ div([class('yui3-u'), id(opm)],
 					  []),
 				      div([class('yui3-u'), id(right)],
-					  [div(id(controls),
-					       \html_controls)
+					  [\html_controls
 					  ])
 				    ])
 			      ]),

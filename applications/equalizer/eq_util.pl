@@ -91,6 +91,10 @@ js_alignment_nodes(Alignment, Nodes) :-
 graph_resource(Graph, R) :-
 	rdf(R,rdf:type,_,Graph).
 graph_resource(Graph, R) :-
+	rdf(_,amalgame:source,R,Graph).
+graph_resource(Graph, R) :-
+	rdf(_,amalgame:target,R,Graph).
+graph_resource(Graph, R) :-
 	rdf(Graph, amalgame:includes, R).
 
 node_data(R, R=json([type=Type, label=Label])) :-

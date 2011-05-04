@@ -3,6 +3,14 @@ YUI.add('infobox', function(Y) {
 	var Lang = Y.Lang,
 		Node = Y.Node;
 	
+	var NODE_INFO = Y.one("#nodeInfo"),
+		NODE_PROPS = Y.one("#properties"),
+		NODE_DELETE = Y.one("#delete"),
+		NODE_CHANGE = Y.one("#updateLabel"),
+		NODE_TYPE = Y.one("#type"),
+		NODE_URI = Y.one("#uri"),
+		NODE_LABEL = Y.one("#label");
+	
 	function InfoBox(config) {
 		InfoBox.superclass.constructor.apply(this, arguments);
 	}
@@ -17,9 +25,6 @@ YUI.add('infobox', function(Y) {
 				return Lang.isBoolean(val);
 			}
 		},
-		content: {
-			value: ""
-		},
 		datasource: {
 			value: null
 		},
@@ -31,34 +36,24 @@ YUI.add('infobox', function(Y) {
 	Y.extend(InfoBox, Y.Base, {
 		
 		initializer : function(config) {
-			var bd = this.get("srcNode");
+			var content = this.get("srcNode");
 			var selected = this.get("selected"),
+				uri = selected ? selected.uri : "",
 				label = selected ? selected.label : "",
 				type = selected ? selected.type : "input";
 			
-			this.typeNode = bd.appendChild(Node.create(
-				'<div class="hd">'+type+'</div>'
-			));
-
-			var labelBox = bd.appendChild(Node.create(
-				'<div class="labelbox hidden"></div>'
-			));
-			labelBox.appendChild("<label>label: <label>");
-			this.labelNode = labelBox.appendChild(Node.create(
-				'<input type="text" name="label" class="label" size="40" value="'+label+'">'
-			));
-			var update = labelBox.appendChild(Node.create(
-				'<input type="button" value="change">'
-			));
-			update.on("click", this._updateLabel, this);
+			this.bd = content.one('.bd');
+			this.bd.addClass("hidden");
 			
-			this.contentNode = bd.appendChild(Node.create(
-				'<div class="bd">'+this.get("content")+'</div>'
+			this.emptyNode = content.appendChild(Node.create(
+				'<div class="empty">select a node</div>'
 			));
-			this.loading = bd.appendChild(Node.create(
+			this.loadingNode = content.appendChild(Node.create(
 				'<div class="loading hidden"></div>'
 			));
-			this.labelBox = labelBox;
+			
+			NODE_DELETE.on("click", this._deleteNode, this);
+			NODE_CHANGE.on("click", this._updateLabel, this);
 			this.after('waitingChange', this.toggleLoading, this);
 			this.after('selectedChange', this._update, this);
 		},
@@ -70,50 +65,50 @@ YUI.add('infobox', function(Y) {
 				label = selected ? selected.label : "",
 				type = selected ? selected.type : "",
 				datasource = this.get("datasource"),
-				bd = this.get("srcNode"),
-				content = this.contentNode;
-
+				bd = this.get("srcNode");
+				
 			if(selected) {
-				this.labelBox.removeClass("hidden");
-				this.labelNode.set("value", label);
-				this.typeNode.setContent(type);
-			} else {
-				this.labelBox.addClass("hidden");
-			}
-			
-			if(uri) {
+				this.emptyNode.addClass("hidden");
 				this.set("waiting", true);
+				NODE_LABEL.set("value", label);
+				NODE_TYPE.setContent(type);
+				NODE_URI.setContent(uri);
+				
 				datasource.sendRequest({
 					request:'?url='+uri,
 					callback:{success:function(o) {
 						var HTML = o.response.results[0].responseText;
-						content.setContent(HTML);
-						// make sure the content will fit
-						if(bd.get("clientHeight") > 0) {
-							bd.setStyle("height", "inherit");
-						}
+						NODE_PROPS.setContent(HTML);
 						instance.set("waiting", false);
 					}}
 				})
-			}	
+			} else {
+				this.emptyNode.removeClass("hidden");
+			}
 		},
 		
 		_updateLabel : function() {
 			var oldLabel = this.get("selected").label,
 				uri = this.get("selected").uri,
-				newLabel = this.labelNode.get("value");
+				newLabel = NODE_LABEL.get("value");
 			if(newLabel!==oldLabel) {
 				this.fire("labelChange", {uri:uri, oldVal:oldLabel, newVal:newLabel});
 			}
 		},
 		
+		_deleteNode : function() {
+			var uri = this.get("selected").uri;
+			Y.log("delete: "+uri);
+			this.fire("deleteNode", {uri:uri});
+		},
+		
 		toggleLoading : function () {
 			if(this.get("waiting")) {
-				this.contentNode.addClass("hidden");
-				this.loading.removeClass("hidden");
+				this.bd.addClass("hidden");
+				this.loadingNode.removeClass("hidden");
 			} else {
-				this.loading.addClass("hidden");
-				this.contentNode.removeClass("hidden");
+				this.loadingNode.addClass("hidden");
+				this.bd.removeClass("hidden");
 			}
 		}
 		

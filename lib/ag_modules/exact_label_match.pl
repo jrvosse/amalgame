@@ -10,6 +10,7 @@
 :- public parameter/4.
 
 amalgame_module(amalgame:'ExactLabelMatcher').
+amalgame_module(amalgame:'ExactLabelFilter').
 
 parameter(sourcelabel, uri, P,
 	  'Property to get label of the source by') :-

@@ -22,10 +22,10 @@
 :- use_module(applications(vocabularies/vocabularies)).
 :- use_module(library(amalgame/overlap)).
 :- use_module(library(amalgame/alignment)).
-:- use_module(library(amalgame/alignment_graph)).
 :- use_module(library(amalgame/edoal)).
 :- use_module(library(amalgame/map)).
 :- use_module(library(amalgame/opm)).
+:- use_module(library(amalgame/expand_graph)).
 
 :- http_handler(amalgame(clear_alignments),   http_delete_alignment_graphs, []).
 :- http_handler(amalgame(clear_alignstats),   http_clear_alignstats,    []).
@@ -144,7 +144,7 @@ http_compute_overlaps(Request) :-
 http_materialize_graph(Request) :-
 	http_parameters(Request, [graph(Graph, []), target(Target, [])]),
 	expand_mapping(Graph, Mappings),
-	materialize_alignment_graph(Mappings, [graph(Target)]),
+	materialize_mapping_graph(Mappings, [graph(Target)]),
 	align_clear_stats(graph(Target)),
 	align_ensure_stats(all(Target)),
 	reply_html_page(cliopatria(default),
