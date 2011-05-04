@@ -53,4 +53,4 @@ amalgame:MapMerger
 amalgame:VocExclude
     rdfs:label "vocabulary excluder"@en ;
     skos:definition "Exclude a sources or targets from a given mapping from being mapped in a subsequent step."@en ;
-    rdfs:subClassOf amalgame:VocabSelecter .
+    rdfs:subClassOf amalgame:VocSelecter .
