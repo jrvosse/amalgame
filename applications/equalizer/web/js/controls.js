@@ -104,7 +104,6 @@ YUI.add('controls', function(Y) {
 		_toggleControls : function() {
 			var selected = this.get("selected"),
 				type = selected ? selected.type : "";
-			console.log(type, NODE_INPUT_CONTROLS);
 			// We only show the controls for the active type
 			NODE_INPUT_CONTROLS.each(function(node) {
 				if(type&&node.hasClass(type)) {
