@@ -5,7 +5,7 @@ YUI.add('controls', function(Y) {
 		Widget = Y.Widget;
 	
 	var NODE_CONTROLS = Y.all(".control"),
-		NODE_INPUT_CONTROLS = Y.all("#node .control"),
+		NODE_INPUT_CONTROLS = Y.all("#select .control"),
 		NODE_SOURCE = Y.one("#source"),
 		NODE_TARGET = Y.one("#target"),
 		NODE_SOURCE_BTN = Y.one("#sourcebtn"),
@@ -104,7 +104,7 @@ YUI.add('controls', function(Y) {
 		_toggleControls : function() {
 			var selected = this.get("selected"),
 				type = selected ? selected.type : "";
-				
+			console.log(type, NODE_INPUT_CONTROLS);
 			// We only show the controls for the active type
 			NODE_INPUT_CONTROLS.each(function(node) {
 				if(type&&node.hasClass(type)) {
