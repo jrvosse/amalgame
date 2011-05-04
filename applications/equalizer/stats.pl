@@ -158,7 +158,9 @@ param_to_prov(P, Key-Value) :-
 
 param_value(URI, Short) :-
 	rdf_global_id(NS:Local, URI),
+	!,
 	concat_atom([NS,Local],':',Short).
+param_value(V, V).
 
 /*ag_prov(Mapping, Key, Value) :-
 	rdfs_individual_of(Mapping, amalgame:'Mapping'),
