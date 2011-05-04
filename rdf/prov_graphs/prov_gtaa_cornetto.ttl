@@ -12,36 +12,62 @@
 @prefix sparql:    <http://purl.org/net/opmv/types/sparql#> .
 @prefix :    <http://purl.org/vocabularies/amalgame#> .
 
-<<<<<<< HEAD:lib/amalgame/gtaa_cornetto.ttl
-<>  a :Alignment ;
-    rdfs:label "GTAA-Cornetto" ;
-    :includes <http://data.beeldengeluid.nl/gtaa/Onderwerpen> ;
-    :includes <http://purl.org/vocabularies/cornetto/NounSynset> .
-=======
 <>  a :Workflow ;
     rdfs:label "GTAA-Cornetto" .
->>>>>>> 8b9e19f40302593cc7adacd03a725fef735cbff9:rdf/prov_graphs/prov_gtaa_cornetto.ttl
 
+<http://purl.org/vocabularies/cornetto> rdfs:label "Cornetto".
+<http://data.beeldengeluid.nl/gtaa/Onderwerpen> rdfs:label "GTAA onderwerpen".
+	
+_:cornetto_split
+	a :Voc_Exclude ;
+	rdfs:label "Split on type" ;
+    :input	<http://purl.org/vocabularies/cornetto>  ;
+    :parameters "property=type" ;
+	opmv:wasPerformedBy :Amalgame .
+
+_:cornouns
+    a :Mapping ;
+    rdfs:label "Cornetto nouns" ;
+    :selectedBy _:cornetto_split .
+
+_:corverbs
+    a :Mapping;
+    rdfs:label "Cornetto verbs" ;
+    :discardedBy _:cornetto_split .
+	
 _:noun_mapping
     a :Mapping ;
     rdfs:label "label match (stemming)" ;
     opmv:wasGeneratedBy [
         a :Snowball_Matcher ;
         rdfs:label "Noun mapping" ;
-        :source <http://data.beeldengeluid.nl/gtaa/Onderwerpen> ;
-        :target <http://purl.org/vocabularies/cornetto/NounSynset> ;
+        :source _:cornouns ;
+        :target <http://data.beeldengeluid.nl/gtaa/Onderwerpen>;
         :parameters "snowball_language=dutch" ;
         opmv:wasPerformedBy :Amalgame ;
     ] .
 
-_:noun_exact_mapping
+	
+_:gtaa_subj_unmatched
+	a :Voc_Exclude ;
+	rdfs:label "Filter matched" ;
+    :input	_:noun_mapping  ;
+	opmv:wasPerformedBy :Amalgame .
+	
+_:gtaa_subj_unmatched_result
+    a :Mapping ;
+    rdfs:label "unmatched subjects" ;
+    :input _:gtaa_subj_unmatched ;
+    opmv:wasPerformedBy :Amalgame .	
+	
+_:cornetto_verb_mapping
     a :Mapping ;
     rdfs:label "label match (exact)" ;
     opmv:wasGeneratedBy [
         a :Exact_Label_Matcher ;
-        rdfs:label "Noun mapping" ;
-        :source <http://data.beeldengeluid.nl/gtaa/Onderwerpen> ;
-        :target <http://purl.org/vocabularies/cornetto/NounSynset> ;
+        rdfs:label "Verb mapping" ;
+        :source _:corverbs ;
+        :target _:gtaa_subj_unmatched_result ;
         opmv:wasPerformedBy :Amalgame ;
     ] .
 
@@ -63,6 +89,60 @@ _:select1N
 
 
 
+_:filter_generic
+    a :Select1_1 ;
+    rdfs:label "Filter most generic" ;
+    :input _:select1N ;
+    opmv:wasPerformedBy :Amalgame .
+
+_:filter_genS
+    a :Mapping ;
+    rdfs:label "Most Generic selected" ;
+    :selectedBy _:filter_generic .
+
+_:filter_genNS
+    a :Mapping ;
+    rdfs:label "undecided nouns" ;
+    :discardedBy _:filter_generic .
+
+
+	
+	
+_:tars
+    a :Select1_1 ;
+    rdfs:label "Filter target siblings" ;
+    :input _:filter_genNS ;
+    opmv:wasPerformedBy :Amalgame .
+
+_:tarsS
+    a :Mapping ;
+    rdfs:label "Selected noun siblings" ;
+    :selectedBy _:tars .
+
+_:tarsNS
+    a :Mapping ;
+    rdfs:label "undecided nouns" ;
+    :discardedBy _:tars .
+
+	
+	
+_:hiersim
+    a :Select1_1 ;
+    rdfs:label "Filter hierarchy similarity" ;
+    :input _:tarsNS ;
+    opmv:wasPerformedBy :Amalgame .
+
+_:hiersimS
+    a :Mapping ;
+    rdfs:label "Selected noun hierarchy similarity" ;
+    :selectedBy _:hiersim .
+
+_:hiersimNS
+    a :Mapping ;
+    rdfs:label "Undecided nouns" ;
+    :discardedBy _:hiersim .	
+	
+	
 
 
 
