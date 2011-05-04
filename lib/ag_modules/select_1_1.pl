@@ -8,23 +8,20 @@
 
 amalgame_module(amalgame:'Select11').
 
-%%	selecter(+Source, -Selected, -Discarded, -Undecided, +Options)
+%%	selecter(+Mapping, -Selected, -Discarded, -Undecided, +Options)
 %
+%	Selected contains only the unique correspondences between
+%	a source and target concept.
 
-selecter(AlignmentGraph, Sel, Dis, [], Options) :-
-	predsort(ag_map:compare_align(sourceplus), AlignmentGraph, SourceSorted),
-	predsort(ag_map:compare_align(targetplus), AlignmentGraph, TargetSorted),
+selecter(Mapping, Sel, Dis, [], Options) :-
+ 	predsort(ag_map:compare_align(targetplus), Mapping, TargetSorted),
 
-	target_ambiguity:partition(SourceSorted, Lsource, Options),
-	source_ambiguity:partition(TargetSorted, Ltarget, Options),
+	select_1_n:selecter(Mapping, Source1, SourceN, _, Options),
+	select_n_1:selecter(TargetSorted, Target1, TargetN, _, Options),
 
-	memberchk(unambiguous(Source1), Lsource),
-	memberchk(  ambiguous(SourceN),	Lsource),
-	memberchk(unambiguous(Target1), Ltarget),
-	memberchk(  ambiguous(TargetN),	Ltarget),
+	% I don't think we need to sort, as the output is sorted
+	%sort(Source1, S1), sort(SourceN, SN),
+	%sort(Target1, T1), sort(TargetN, TN),
 
-	sort(Source1, S1), sort(SourceN, SN),
-	sort(Target1, T1), sort(TargetN, TN),
-
-	ord_intersection(S1, T1, Sel),
-	ord_union(SN, TN, Dis).
+	ord_intersection(Source1, Target1, Sel),
+	ord_union(SourceN, TargetN, Dis).

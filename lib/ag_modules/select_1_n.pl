@@ -8,13 +8,13 @@
 amalgame_module(amalgame:'Select1N').
 
 
-%%	selecter(+Source, -Selected, -Discarded, -Undecided, +Options)
+%%	selecter(+Mapping, -Selected, -Discarded, -Undecided, +Options)
 %
-%	Selected contains only the correspondance where each target
+%	Selected contains only the correspondance where a target
 %	concept is mapped to only one source.
 
-selecter(AlignmentGraph, Sel, Dis, [], _Options) :-
- 	select_(AlignmentGraph, Sel, Dis).
+selecter(Mapping, Sel, Dis, [], _Options) :-
+ 	select_(Mapping, Sel, Dis).
 
 
 select_([], [], []).
