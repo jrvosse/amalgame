@@ -30,16 +30,22 @@ amalgame:IsubFilter
     skos:definition "A filter of mappings based on string similarity metric described by 'A string metric for ontology alignment' by Giorgos Stoilos, 2005."@en ;
     rdfs:subClassOf amalgame:MatchFilter .
 
+amalgame:SelectN1
+    rdfs:label "select unique target (n-1);"@en ;
+    skos:definition "Select correspondences for which each source is mapped to only 1 target concept."@en ;
+    rdfs:subClassOf amalgame:MappingSelecter .
+
+amalgame:Select1N
+    rdfs:label "select unique source (1-n);"@en ;
+    skos:definition "Select correspondences for which each source is mapped to only 1 target concept."@en ;
+    rdfs:subClassOf amalgame:MappingSelecter .
+
 amalgame:Select11
     rdfs:label "select 1-1"@en ;
     skos:definition "Select correspondences that have only 1 source and 1 target concept."@en ;
     rdfs:subClassOf amalgame:MappingSelecter .
-
-amalgame:AritySelect
-    rdfs:label "arity select"@en ;
-    rdfs:subClassOf amalgame:MappingSelecter .
     
 amalgame:MapMerger
     rdfs:label "mapping merger"@en ;
-    skos:definition: "Merge two or more mappings into one new mapping. This can, for example, to collect the good mappings made by different processes."@en ;
+    skos:definition "Merge two or more mappings into one new mapping. This can, for example, to collect the good mappings made by different processes."@en ;
     rdfs:subClassOf amalgame:Merger .
