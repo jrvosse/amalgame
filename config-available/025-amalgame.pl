@@ -12,10 +12,13 @@ http:location(amalgame, cliopatria(amalgame), []).
 :- rdf_attach_library(amalgame(rdf)).
 :- rdf_load_library(amalgame).
 
-:- use_module([ % applications(align_stats),
-		% applications(alignment/alignment),
-		% applications(vocabularies/vocabularies),
-		% applications(concept_finder/concept_finder),
-		% applications(evaluator/evaluator),
+:- use_module([  
+	% Deprecated:
+		applications(align_stats),
+		applications(alignment/alignment),
+		applications(vocabularies/vocabularies),
+		applications(concept_finder/concept_finder),
+		applications(evaluator/evaluator),
+	% New UI:
 		applications(equalizer/eq)
 	      ]).
