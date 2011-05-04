@@ -55,22 +55,18 @@ expand_process(Process, Result) :-
 	expand_cache(Process, Result),
 	!,
 	debug(ag_expand, 'Output of process ~p taken from cache', [Process]).
- expand_process(Process, Result) :-
+expand_process(Process, Result) :-
 	rdf(Process, rdf:type, Type),
 	amalgame_module_id(Type, Module),
 	process_options(Process, Module, Options),
-	thread_self(Me),
-        thread_statistics(Me, cputime, T0),
-	exec_amalgame_process(Type, Process, Module, Result, Options),
-	thread_statistics(Me, cputime, T1),
-        Time is T1 - T0,
+ 	exec_amalgame_process(Type, Process, Module, Result, Time, Options),
 	cache_expand_result(Time, Process, Result),
 	debug(ag_expand, 'Output of process ~p (~p) computed in ~Ws',
 	      [Process,Type,Time]).
 
 cache_expand_result(ExecTime, Process, Result) :-
 	setting(cache_time, CacheTime),
-	ExecTime > CacheTime,
+ 	ExecTime > CacheTime,
 	!,
 	assert(expand_cache(Process, Result)).
 cache_expand_result(_, _, _).
@@ -92,43 +88,42 @@ flush_expand_cache(Id) :-
 %
 %	@error existence_error(mapping_process)
 
-exec_amalgame_process(Type, Process, Module, Mapping, Options) :-
+exec_amalgame_process(Type, Process, Module, Mapping, Time, Options) :-
 	rdfs_subclass_of(Type, amalgame:'Matcher'),
 	!,
  	rdf(Process, amalgame:source, SourceId),
 	rdf(Process, amalgame:target, TargetId),
 	expand_vocab(SourceId, Source),
 	expand_vocab(TargetId, Target),
-	call(Module:matcher, Source, Target, Mapping0, Options),
+	timed_call(Module:matcher(Source, Target, Mapping0, Options), Time),
  	merge_provenance(Mapping0, Mapping).
-exec_amalgame_process(Type, Process, Module, Mapping, Options) :-
+exec_amalgame_process(Type, Process, Module, Mapping, Time, Options) :-
 	rdfs_subclass_of(Type, amalgame:'MatchFilter'),
 	!,
 	rdf(Process, amalgame:input, InputId),
 	expand_mapping(InputId, MappingIn),
-	call(Module:filter, MappingIn, Mapping0, Options),
+	timed_call(Module:filter(MappingIn, Mapping0, Options), Time),
 	merge_provenance(Mapping0, Mapping).
-exec_amalgame_process(Class, Process, Module, Result, Options) :-
+exec_amalgame_process(Class, Process, Module, Result, Time, Options) :-
 	rdfs_subclass_of(Class, amalgame:'MappingSelecter'),
 	!,
 	Result = select(Selected, Discarded, Undecided),
  	rdf(Process, amalgame:input, InputId),
 	expand_mapping(InputId, MappingIn),
-  	call(Module:selecter, MappingIn, Selected, Discarded, Undecided, Options).
-exec_amalgame_process(Class, Process, Module, VocabOut, Options) :-
+  	timed_call(Module:selecter(MappingIn, Selected, Discarded, Undecided, Options), Time).
+exec_amalgame_process(Class, Process, Module, VocabOut, -1, Options) :-
 	rdfs_subclass_of(Class, amalgame:'VocabSelecter'),
 	!,
   	rdf(Process, amalgame:input, InputId),
 	expand_vocab(InputId, VocabIn),
-  	call(Module:source_select, VocabIn, VocabOut, Options).
-exec_amalgame_process(Class, Process, Module, Result, Options) :-
+  	call(Module:source_select(VocabIn, VocabOut, Options)).
+exec_amalgame_process(Class, Process, Module, Result, Time, Options) :-
 	rdfs_subclass_of(Class, amalgame:'Merger'),
 	!,
-
 	findall(Input, rdf(Process, amalgame:input, Input), Inputs),
 	maplist(expand_mapping, Inputs, Expanded),
-	call(Module:merger, Expanded, Result, Options).
-exec_amalgame_process(Class, Process, Module, Result, Options) :-
+	timed_call(Module:merger(Expanded, Result, Options), Time).
+exec_amalgame_process(Class, Process, Module, Result, -1, Options) :-
 	rdfs_subclass_of(Class, amalgame:'VocSelecter'),
         !,
         option(type(SourceOrTarget), Options, source),
@@ -147,8 +142,15 @@ exec_amalgame_process(Class, Process, Module, Result, Options) :-
         ),
         expand_mapping(ExcludeId, Exclude),
 	call(Module:concept_selecter(Input, Result, [ExcludeOption,TargetOption])).
-exec_amalgame_process(Class, Process, _, _, _) :-
+exec_amalgame_process(Class, Process, _, _, _, _) :-
 	throw(error(existence_error(mapping_process, [Class, Process]), _)).
+
+timed_call(Goal, Time) :-
+	thread_self(Me),
+        thread_statistics(Me, cputime, T0),
+	call(Goal),
+	thread_statistics(Me, cputime, T1),
+        Time is T1 - T0.
 
 
 %%	select_result_mapping(+ProcessResult, +OutputType, -Mapping)
