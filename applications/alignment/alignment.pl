@@ -21,7 +21,6 @@ pages and services.
 :- use_module(applications(vocabularies/components)).
 :- use_module(applications(align_stats)).
 
-:- use_module(library(amalgame/matchers/skosmatcher)).
 :- use_module(library(amalgame/alignment)).
 :- use_module(library(amalgame/opm)).
 :- use_module(library(amalgame/edoal)).

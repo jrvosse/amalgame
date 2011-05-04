@@ -1,5 +1,6 @@
 :- module(ag_map,
 	  [
+	   materialize_mapping_graph/2, % +Id, +Options
 	   merge_provenance/2,     % +List, -Merged
 	   compare_align/4,        % +Type, ?Order, A1, A2
 	   map_iterator/1,	   % -Map
@@ -23,6 +24,9 @@ from the underlying formats.
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
+
+:- use_module(library(amalgame/edoal)).
+:- use_module(library(amalgame/alignment)).
 
 :- rdf_meta
 	mapping_props(t),
@@ -241,4 +245,38 @@ group_provenance(As, S, T, P, [align(S, T, Psorted)|Gs]) :-
         sort(P, Psorted),
         merge_provenance(As, Gs).
 
+
+%%      materialize_alignment_graph(+Alignments, +Options)
+%
+%       Assert Alignments as triples in the store.
+
+materialize_mapping_graph(Input, Options) :-
+        rdf_bnode(ProcessBnode),
+        option(graph(Graph), Options, test),
+        option(opmv_graph(OpmGraph), Options, opm),
+        (   option(process(Process), Options)
+        ->  option(matcher(Matcher), Process),
+            option(was_derived_from(DerivedFrom), Process),
+            rdf_assert(ProcessBnode, amalgame:matcher, Matcher, OpmGraph)
+        ;   DerivedFrom = []
+        ),
+        (   rdf_graph(Graph)
+        ->  rdf_unload(Graph)
+        ;   true
+        ),
+        (   memberchk(align(_,_,_), Input)
+        ->
+            rdf_assert(Graph, rdf:type, amalgame:'AmalgameAlignment', Graph),
+            % opm_was_generated_by(ProcessBnode, Graph, OpmGraph, [was_derived_from(DerivedFrom)|Options]),
+            mat_alignment_graph(Input, Options)
+        ;   true
+        ),
+        align_ensure_stats(all(Graph)).
+
+mat_alignment_graph([], _).
+mat_alignment_graph([align(S,T, P)|As], Options) :-
+        assert_cell(S, T, [prov(P)|Options]),
+        % option(graph(Graph), Options, test),
+        % rdf_assert(S, skos:exactMatch, T, Graph),
+        mat_alignment_graph(As, Options).
 
