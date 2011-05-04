@@ -7,22 +7,35 @@ amalgame:Exact_Label_Matcher
     rdfs:label "exact label matcher"@en ;
     skos:definition "A basic label matcher"@en ;
     rdfs:subClassOf amalgame:Matcher .
+amalgame:Exact_Label_Filter
+    rdfs:label "exact label filter"@en ;
+    skos:definition "A filter of mappings based on exact matching labels of source and target concepts"@en ;
+    rdfs:subClassOf amalgame:MatchFilter .
+
 
 amalgame:Snowball_Matcher
     rdfs:label "snowball matcher"@en ;
     skos:definition "A label matcher with similarity based on stemming."@en ;
     rdfs:subClassOf amalgame:Matcher .
+amalgame:Snowball_Filter
+    rdfs:label "snowball filter"@en ;
+    skos:definition "A filter of mappings based on the labels of source and target concept that match by stem"@en ;
+    rdfs:subClassOf amalgame:MatchFilter .
 
 amalgame:Isub_Matcher        
 	rdfs:label "isub string matcher"@en ;
 	skos:definition "An isub string similarity matcher based on the metric described by 'A string metric for ontology alignment' by Giorgos Stoilos, 2005."@en ;
 	rdfs:subClassOf amalgame:Matcher .
+amalgame:Isub_Filter
+    rdfs:label "Isub filter"@en ;
+    skos:definition "A filter of mappings based on string similarity metric described by 'A string metric for ontology alignment' by Giorgos Stoilos, 2005."@en ;
+    rdfs:subClassOf amalgame:MatchFilter .
 
-amalgame:Select_1_1
+amalgame:Select1_1
     rdfs:label "select 1-1"@en ;
     skos:definition "Select correspondences that have only 1 source and 1 target concept." ;
-    rdfs:subClassOf amalgame:Selecter .
+    rdfs:subClassOf amalgame:MappingSelecter .
 
 amalgame:Arity_select
     rdfs:label "arity select"@en ;
-    rdfs:subClassOf amalgame:Selecter .
+    rdfs:subClassOf amalgame:MappingSelecter .
