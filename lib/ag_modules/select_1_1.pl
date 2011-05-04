@@ -2,6 +2,8 @@
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(amalgame/map)).
+:- use_module(select_1_n).
+:- use_module(select_n_1).
 
 :- public amalgame_module/1.
 :- public selecter/5.
