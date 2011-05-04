@@ -121,20 +121,14 @@ exec_amalgame_process(Class, Process, Module, VocabOut, Options) :-
   	rdf(Process, amalgame:input, InputId),
 	expand_vocab(InputId, VocabIn),
   	call(Module:source_select, VocabIn, VocabOut, Options).
-exec_amalgame_process(Class, Process, _, _, _) :-
-	throw(error(existence_error(mapping_process, [Class, Process]), _)).
-	
-/* Jacco's changes
-
-exec_mapping_process(Class, Process, Module, Result, Options) :-
+exec_amalgame_process(Class, Process, Module, Result, Options) :-
 	rdfs_subclass_of(Class, amalgame:'Merger'),
 	!,
 
 	findall(Input, rdf(Process, amalgame:input, Input), Inputs),
 	maplist(expand_mapping, Inputs, Expanded),
 	call(Module:merger, Expanded, Result, Options).
-
-exec_mapping_process(Class, Process, Module, Result, Options) :-
+exec_amalgame_process(Class, Process, Module, Result, Options) :-
 	rdfs_subclass_of(Class, amalgame:'VocSelecter'),
         !,
         option(type(SourceOrTarget), Options, source),
@@ -153,8 +147,8 @@ exec_mapping_process(Class, Process, Module, Result, Options) :-
         ),
         expand_mapping(ExcludeId, Exclude),
 	call(Module:concept_selecter(Input, Result, [ExcludeOption,TargetOption])).
-*/
-
+exec_amalgame_process(Class, Process, _, _, _) :-
+	throw(error(existence_error(mapping_process, [Class, Process]), _)).
 
 
 %%	select_result_mapping(+ProcessResult, +OutputType, -Mapping)
@@ -216,25 +210,6 @@ module_options(Module, Options, Parameters) :-
 		),
 		Pairs),
 	pairs_keys_values(Pairs, Options, Parameters).
-
-
-%%	merge_provenance(+AlignIn, -AlignOut)
-%
-%	Collects all provenance for similar source target pairs.
-%	AlignIn is a sorted list of align/3 terms.
-
-merge_provenance([], []).
-merge_provenance([align(S, T, P)|As], Gs) :-
-	group_provenance(As, S, T, P, Gs).
-
-group_provenance([align(S,T,P)|As], S, T, P0, Gs) :-
-	!,
-	append(P, P0, P1),
-	group_provenance(As, S, T, P1, Gs).
-group_provenance(As, S, T, P, [align(S, T, Psorted)|Gs]) :-
-	sort(P, Psorted),
-	merge_provenance(As, Gs).
-
 
 
 debug_mapping_expand(Process, Id, Mapping) :-
