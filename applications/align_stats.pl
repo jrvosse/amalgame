@@ -22,7 +22,6 @@
 :- use_module(applications(vocabularies/vocabularies)).
 :- use_module(library(amalgame/overlap)).
 :- use_module(library(amalgame/alignment)).
-:- use_module(library(amalgame/alignment_graph)).
 :- use_module(library(amalgame/edoal)).
 :- use_module(library(amalgame/map)).
 :- use_module(library(amalgame/opm)).
