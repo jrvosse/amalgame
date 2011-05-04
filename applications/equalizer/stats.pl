@@ -152,8 +152,13 @@ ag_prov(Process, parameters, set(Params)) :-
 	maplist(param_to_prov, Ps, Params).
 
 param_to_prov(P, Key-Value) :-
- 	concat_atom([Key,Value], '=', P).
+ 	concat_atom([Key,EncValue], '=', P),
+	www_form_encode(Value0, EncValue),
+	param_value(Value0, Value).
 
+param_value(URI, Short) :-
+	rdf_global_id(NS:Local, URI),
+	concat_atom([NS,Local],':',Short).
 
 /*ag_prov(Mapping, Key, Value) :-
 	rdfs_individual_of(Mapping, amalgame:'Mapping'),
