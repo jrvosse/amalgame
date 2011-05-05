@@ -12,7 +12,7 @@
 	padding-left: 360px;
 }
 #controls {
-	position: absolute;
+	position: fixed;
 	left: 10px;
 	top: 35px;
 	width: 350px;
@@ -26,7 +26,7 @@
 	line-height: 1.4;
 }
 #controls .yui3-accordion-item-bd {
-	background-color: white;
+	background-color: #FAFAFA;
 }
 #controls .yui3-accordion-item-active .yui3-accordion-item-trigger {
 	background-position: 105% -398px;
