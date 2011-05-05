@@ -124,11 +124,12 @@ dyn_perc_round(P0, P, N) :-
 	;   P is P1/(N/100)
 	).
 
-%%	concept_concept(+Scheme, -Count)
+%%	concept_count(+Vocab, -Count)
 %
-%	Count is the number of concepts in Scheme
+%	Count is the number of concepts in Vocab
 
-concept_count(Scheme, Count) :-
+concept_count(Vocab, Count) :-
+	expand_vocab(Vocab, Scheme),
 	findall(C, vocab_member(C, Scheme), Cs),
 	length(Cs, Count).
 
