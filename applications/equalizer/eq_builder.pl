@@ -104,6 +104,8 @@ js_path(addprocess, Path) :-
 	http_location_by_id(http_add_process, Path).
 js_path(updatelabel, Path) :-
 	http_location_by_id(http_update_label, Path).
+js_path(deletenode, Path) :-
+	http_location_by_id(http_delete_node, Path).
 
 %%	js_module(+Key, +Module_Conf)
 %

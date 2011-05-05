@@ -33,7 +33,7 @@ YUI.add('controls', function(Y) {
 			Y.all(".yui3-accordion").plug(Y.Plugin.NodeAccordion, { 
 				//anim: true, 
 				//speed:0.1,
-				multiple:false
+				//multiple:false
 			});
 
 			NODE_CONTROLS.each( function(node) {

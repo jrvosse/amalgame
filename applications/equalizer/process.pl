@@ -16,6 +16,7 @@
 
 :- http_handler(amalgame(data/addprocess), http_add_process, []).
 :- http_handler(amalgame(date/updatelabel), http_update_label, []).
+:- http_handler(amalgame(date/deletenode), http_delete_node, []).
 
 :- rdf_meta
 	new_mapping_output(r,r,+).
@@ -100,7 +101,10 @@ process_label(P, Lit) :-
 
 
 
-
+%%	http_update_label(+Request)
+%
+%	Change the label of a URI in Alignment and return the new
+%	nodes in Alignment.
 
 http_update_label(Request) :-
 	authorized(write(default, _)),
@@ -120,3 +124,41 @@ http_update_label(Request) :-
 			)),
  	js_alignment_nodes(Alignment, Nodes),
 	reply_json(json([nodes=json(Nodes)])).
+
+%%	http_delete_node(+Request)
+%
+%	delete URI in Alignment and all that are connected to it and
+%	return the new nodes in Alignment.
+
+http_delete_node(Request) :-
+	authorized(write(default, _)),
+	http_parameters(Request,
+			[ alignment(Alignment,
+				    [uri,
+				     description('URI of alignment')
+				    ]),
+			  uri(URI,
+				[uri,
+ 				 description('URI of input resource')])
+  			]),
+ 	rdf_transaction((process_retract(URI, Alignment),
+			 node_retract(URI, Alignment)
+			)),
+   	js_alignment_nodes(Alignment, Nodes),
+	reply_json(json([nodes=json(Nodes)])).
+
+node_retract(URI, Alignment) :-
+	rdf_retractall(URI, _, _, Alignment),
+ 	forall(rdf(S,_,URI,Alignment),
+	       node_retract(S, Alignment)).
+
+process_retract(URI, Alignment) :-
+	rdf_has(URI, opmv:wasGeneratedBy, P),
+	findall(S, rdf_has(S, opmv:wasGeneratedBy, P), [URI]),
+	!,
+	rdf_retractall(P, _, _, Alignment).
+process_retract(_, _).
+
+
+
+

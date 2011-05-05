@@ -22,9 +22,11 @@ YUI.add('builder', function(Y) {
 		paths:{
 			value:{
 				opmgraph:'/amalgame/opmviz',
-				addprocess:'/amalgame/addprocess',
+				addprocess:'/amalgame/data/addprocess',
 				nodeinfo:'/amalgame/private/nodeinfo',
-				info:'/amalgame/private/info'
+				info:'/amalgame/private/info',
+				updatelabel:'/amalgame/data/updatelabel',
+				deletenode:'/amalgame/data/deletenode'
 			},
 			validator: function(val) {
 				return Lang.isObject(val)
@@ -56,6 +58,7 @@ YUI.add('builder', function(Y) {
 			this.opmviz.on("nodeSelect", this._onNodeSelect, this);
 			this.controls.on("submit", this._onControlSubmit, this);
 			this.infobox.after("labelChange", this._onLabelChange, this);
+			this.infobox.after("deleteNode", this._onDelete, this);
 			
 			// Let's get some stuff
 			this._fetchGraph();
@@ -140,6 +143,23 @@ YUI.add('builder', function(Y) {
 				};
 			
 			Y.io(paths.updatelabel, {
+				data:data,
+				on:{success:function(e,o) {
+					oSelf.set("nodes", Y.JSON.parse(o.responseText).nodes);
+					oSelf._fetchGraph();
+				}}
+			})
+		},
+		
+		_onDelete : function(o) {
+			var oSelf = this,
+				paths = this.get("paths"),
+				data = {
+					alignment:this.get("alignment"),
+					uri:o.uri
+				};
+			
+			Y.io(paths.deletenode, {
 				data:data,
 				on:{success:function(e,o) {
 					oSelf.set("nodes", Y.JSON.parse(o.responseText).nodes);
