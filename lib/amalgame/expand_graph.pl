@@ -92,19 +92,16 @@ flush_expand_cache(Id) :-
 exec_amalgame_process(Type, Process, Module, Mapping, Time, Options) :-
 	rdfs_subclass_of(Type, amalgame:'Matcher'),
 	!,
- 	rdf(Process, amalgame:source, SourceId),
-	rdf(Process, amalgame:target, TargetId),
-	expand_vocab(SourceId, Source),
-	expand_vocab(TargetId, Target),
-	timed_call(Module:matcher(Source, Target, Mapping0, Options), Time),
+ 	(   rdf(Process, amalgame:source, SourceId),
+	    rdf(Process, amalgame:target, TargetId)
+	->  expand_vocab(SourceId, Source),
+	    expand_vocab(TargetId, Target),
+	    timed_call(Module:matcher(Source, Target, Mapping0, Options), Time)
+	;   rdf(Process, amalgame:input, InputId),
+	    expand_mapping(InputId, MappingIn),
+	    timed_call(Module:filter(MappingIn, Mapping0, Options), Time)
+	),
  	merge_provenance(Mapping0, Mapping).
-exec_amalgame_process(Type, Process, Module, Mapping, Time, Options) :-
-	rdfs_subclass_of(Type, amalgame:'MatchFilter'),
-	!,
-	rdf(Process, amalgame:input, InputId),
-	expand_mapping(InputId, MappingIn),
-	timed_call(Module:filter(MappingIn, Mapping0, Options), Time),
-	merge_provenance(Mapping0, Mapping).
 exec_amalgame_process(Class, Process, Module, Result, Time, Options) :-
 	rdfs_subclass_of(Class, amalgame:'MappingSelecter'),
 	!,

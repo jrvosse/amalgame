@@ -6,6 +6,7 @@ YUI.add('builder', function(Y) {
 	
 	var	NODE_OPM 			= Y.one("#opm"),
 		NODE_CONTROLS 		= Y.one("#controls"),
+		NODE_INFO	 		= Y.one("#info"),
 		NODE_SELECT 		= Y.one("#select");
 	
 	function Builder(config) {
@@ -82,7 +83,7 @@ YUI.add('builder', function(Y) {
 			})
 			.plug({fn:Y.Plugin.DataSourceCache, cfg:{max:10}});
 			this.infobox = new Y.InfoBox({
-				srcNode: NODE_SELECT,
+				srcNode: NODE_INFO,
 				datasource: DS
 			});
 		},

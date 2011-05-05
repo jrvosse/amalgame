@@ -12,7 +12,7 @@
 	padding-left: 360px;
 }
 #controls {
-	position: fixed;
+	position: absolute;
 	left: 10px;
 	top: 35px;
 	width: 350px;
@@ -46,6 +46,11 @@
 	margin: 0 10px;
 	padding: 5px 0;
 }
+#controls .i {
+	border-top: 1px solid #CCC;
+	padding: 10px 0;
+}
+
 .control table {
 	width: 100%;
 }
@@ -59,35 +64,37 @@
 	border-width: 1px 1px 0;
 	border-style: solid;
 	border-color: #808080;
+	margin-bottom: 20px;
 }
 .control-set .hd {
 	background: url("http://yui.yahooapis.com/3.0.0/build/assets/skins/sam/sprite.png") repeat-x scroll 0 0 transparent;
     padding: 5px 10px;
 }
 
-/* select */
-#select {
-	margin-bottom: 20px;
+/* infobox */
+#info {
+	border-bottom: 1px solid #808080;
 }
-#select .loading {
+#info .loading {
 	padding: 20px 0;
 	background: url("loading.gif") no-repeat 50% 50%;
 }
-#select .empty {
-	padding: 10px;
-	border-bottom: 1px solid #808080;
-}
-#select .hidden {
+#info .hidden {
 	display: none;
 }
-#select td {
+#info td {
 	padding: 0 10px 5px 0;
 }
-#select th {
+#info th {
 	font-weight: bold;
 }
-#info {
-	border-bottom: 1px solid #CCC;
+#properties {
+	border-top: 1px solid #CCC;
+}
+
+/* select */
+#select li {
+	list-style: disc inside;
 }
 
 /* align */

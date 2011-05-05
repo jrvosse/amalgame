@@ -2,37 +2,34 @@
 	  [ html_controls//0
 	  ]).
 
+:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdfs)).
 :- use_module(library(http/html_write)).
 :- use_module(library(amalgame/amalgame_modules)).
 
-current_modules_of_input_type(Types, Modules) :-
-	findall(URI-Module,
-		( current_amalgame_module(URI, Module),
-		  amalgame_module_property(URI, input_type(Type)),
-		  member(Type, Types)
-		),
-		Modules).
-
 html_controls -->
-	{ current_modules_of_input_type([mapping,vocab], InputModules),
-	  current_modules_of_input_type([sourcetarget], MatchModules)
+	{ amalgame_modules_of_type(amalgame:'Selecter', Selecters),
+	  amalgame_modules_of_type(amalgame:'Matcher', Matchers)
  	},
-	html([div([id(select), class('control-set')],
-		  [ div(class(hd), 'Select'),
-		    div(class('bd hidden'),
-			[ div([id(info), class(c)],
-			      \html_node_props),
-			      div([id(properties), class(c)], []),
-			  \html_modules(InputModules)
-			])
-		  ]),
-	      div([id(align), class('control-set')],
-		  [ div(class(hd), 'Align'),
-		    div(class(bd),
-			[ div(class(c), \html_align_select),
-			      \html_modules(MatchModules)
-			])
-		  ])
+	html([div([id(info), class('control-set')],
+		  \html_info_control),
+	      div([id(select), class('control-set')],
+		  \html_select_control(Selecters)),
+	      div([id(match), class('control-set')],
+		  \html_match_control(Matchers))
+	     ]).
+
+html_info_control -->
+	html([ div(class(hd), 'Node'),
+	       div(class('bd hidden'),
+		   [ div([id(details), class(c)],
+			 \html_node_props),
+		     div([id(properties), class(c)],
+			  [])
+		   ]),
+	       div([class('empty c')],
+		   ['select a node in the graph']),
+	       div([class('loading c hidden')], [])
 	     ]).
 
 html_node_props -->
@@ -46,7 +43,43 @@ html_node_props -->
 		       ])
 		   ])).
 
-html_align_select -->
+html_select_control(Modules) -->
+	html([div(class(hd), 'Selecters'),
+	      div(class('bd'),
+		  [ div(class(c),
+			ul([li('select a set of correspondences from a mapping'),
+			    li('select a set of concepts from a vocabulary')
+			   ])),
+		    \html_modules(Modules)
+		  ])
+	     ]).
+
+html_match_control(Modules) -->
+	html([div(class(hd), 'Matchers'),
+	      div(class(bd),
+		  [ div(class(c),
+			\html_align_input),
+		    \html_modules(Modules)
+		  ])
+	     ]).
+
+html_align_input -->
+	html([h4('Choose input'),
+	      div(class(i),
+		  \html_mapping_select),
+	      div(class(i),
+		  \html_source_target_select)
+	     ]).
+
+html_mapping_select -->
+	html(table([tr([td(input([type(button), id(inputbtn), value('set as input')])),
+			td([input([type(text), id(inputLabel), size(35), autocomplete(off)]),
+			    input([type(hidden), id(input), name(input)])
+			   ])
+		       ])
+		   ])).
+
+html_source_target_select -->
 	html(table([tr([td(input([type(button), id(sourcebtn), value('set as source')])),
 			td([input([type(text), id(sourceLabel), size(35), autocomplete(off)]),
 			    input([type(hidden), id(source), name(source)])
@@ -74,14 +107,25 @@ html_modules(Modules) -->
 html_module_items([]) --> !.
 html_module_items([URI-Module|Ms]) -->
 	{  amalgame_module_parameters(Module, Params),
-	   amalgame_module_property(URI, input_type(InputType))
+	   module_css_class(URI, CssClass)
 	},
-	html_accordion_item('control '+InputType,
+	html_accordion_item('control '+CssClass,
 			    \module_label(URI),
 			    [ \module_desc(URI),
 			      \module_form(URI, Params)
 			    ]),
  	html_module_items(Ms).
+
+module_css_class(M, mapping) :-
+	rdfs_subclass_of(M, amalgame:'MappingSelecter'),
+	!.
+module_css_class(M, vocab) :-
+	rdfs_subclass_of(M, amalgame:'VocabSelecter'),
+	!.
+module_css_class(M, match) :-
+	rdfs_subclass_of(M, amalgame:'Matcher'),
+	!.
+module_css_class(_, '').
 
 module_form(URI, Params) -->
 	html(form([input([type(hidden), name(process), value(URI)]),

@@ -3,8 +3,7 @@ YUI.add('infobox', function(Y) {
 	var Lang = Y.Lang,
 		Node = Y.Node;
 	
-	var NODE_INFO = Y.one("#nodeInfo"),
-		NODE_PROPS = Y.one("#properties"),
+	var NODE_PROPS = Y.one("#properties"),
 		NODE_DELETE = Y.one("#delete"),
 		NODE_CHANGE = Y.one("#updateLabel"),
 		NODE_TYPE = Y.one("#type"),
@@ -36,22 +35,17 @@ YUI.add('infobox', function(Y) {
 	Y.extend(InfoBox, Y.Base, {
 		
 		initializer : function(config) {
-			var content = this.get("srcNode");
-			var selected = this.get("selected"),
+			var content = this.get("srcNode"),
+				selected = this.get("selected"),
 				uri = selected ? selected.uri : "",
 				label = selected ? selected.label : "",
 				type = selected ? selected.type : "input";
 			
 			this.bd = content.one('.bd');
+			this.loadingNode = content.one('.loading');
+			this.emptyNode = content.one('.empty');
 			this.bd.addClass("hidden");
-			
-			this.emptyNode = content.appendChild(Node.create(
-				'<div class="empty">select a node</div>'
-			));
-			this.loadingNode = content.appendChild(Node.create(
-				'<div class="loading hidden"></div>'
-			));
-			
+						
 			NODE_DELETE.on("click", this._deleteNode, this);
 			NODE_CHANGE.on("click", this._updateLabel, this);
 			this.after('waitingChange', this.toggleLoading, this);
@@ -66,7 +60,7 @@ YUI.add('infobox', function(Y) {
 				label = selected ? selected.label : "",
 				type = selected ? selected.type : "",
 				datasource = this.get("datasource"),
-				bd = this.get("srcNode");
+				content = this.get("srcNode");
 				
 			if(selected) {
 				this.emptyNode.addClass("hidden");

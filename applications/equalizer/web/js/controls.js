@@ -6,8 +6,10 @@ YUI.add('controls', function(Y) {
 	
 	var NODE_CONTROLS = Y.all(".control"),
 		NODE_INPUT_CONTROLS = Y.all("#select .control"),
+		NODE_INPUT = Y.one("#input"),
 		NODE_SOURCE = Y.one("#source"),
 		NODE_TARGET = Y.one("#target"),
+		NODE_INPUT_BTN = Y.one("#inputbtn"),
 		NODE_SOURCE_BTN = Y.one("#sourcebtn"),
 		NODE_TARGET_BTN = Y.one("#targetbtn");
 	
@@ -42,8 +44,9 @@ YUI.add('controls', function(Y) {
 			
 			this._toggleControls();
 			
-			// the alignment control has two additional buttons
+			// the match control has two additional buttons
 			// to set the source and target
+			Y.on("click", this._valueSet, NODE_INPUT_BTN, this, "input");
 			Y.on("click", this._valueSet, NODE_SOURCE_BTN, this, "source");
 	      	Y.on("click", this._valueSet, NODE_TARGET_BTN, this, "target");
 			
@@ -53,6 +56,7 @@ YUI.add('controls', function(Y) {
 				
 		_onControlSubmit : function(e, node) {
 			var content = this.get("srcNode"),
+				input = NODE_INPUT.get("value"),
 				source = NODE_SOURCE.get("value"),
 				target = NODE_TARGET.get("value"),
 				selected = this.get("selected"),
@@ -60,12 +64,15 @@ YUI.add('controls', function(Y) {
 			
 			// The input is selected base on the type of the control
 			// which is stored as a CSS class
-			if(node.hasClass("sourcetarget")) {
-				if(source&&target) {
+			if(node.hasClass("match")) {
+				if(input) {
+					data.input = input;
+				}
+				else if(source&&target) {
 					data.source = source;
 					data.target = target;
 				} else {
-					return "no source and target known";
+					return "no input available";
 				}
 			}
 			else if(selected) {
@@ -114,19 +121,22 @@ YUI.add('controls', function(Y) {
 			});
 			
 			// enable input select when a vocabulary is selected
+			NODE_INPUT_BTN.setAttribute("disabled", true);
+			NODE_SOURCE_BTN.setAttribute("disabled", true);
+			NODE_TARGET_BTN.setAttribute("disabled", true);
 			if(type=="vocab") {
 				NODE_SOURCE_BTN.removeAttribute("disabled");
 				NODE_TARGET_BTN.removeAttribute("disabled");
-			} else {
-				NODE_SOURCE_BTN.setAttribute("disabled", true);
-				NODE_TARGET_BTN.setAttribute("disabled", true);
+			} else if(type=="mapping") {
+				NODE_INPUT_BTN.removeAttribute("disabled");
 			}
 			
 			// enable matcher submit when both source and target have a value
-			if(NODE_SOURCE.get("value")&&NODE_TARGET.get("value")) {
-				Y.all("#align .control-submit").removeAttribute("disabled");
+			if(NODE_INPUT.get("value")||
+				(NODE_SOURCE.get("value")&&NODE_TARGET.get("value"))) {
+				Y.all("#match .control-submit").removeAttribute("disabled");
 			} else {
-				Y.all("#align .control-submit").setAttribute("disabled", true);
+				Y.all("#match .control-submit").setAttribute("disabled", true);
 			}
 		},
 		
@@ -137,6 +147,15 @@ YUI.add('controls', function(Y) {
 				Y.one("#"+which).set("value", selected.uri);
 				this._toggleControls();
      		}
+			if(which=="input") {
+				Y.one("#sourceLabel").set("value", "");
+				Y.one("#source").set("value", "");
+				Y.one("#targetLabel").set("value", "");
+				Y.one("#target").set("value", "");
+			} else {
+				Y.one("#inputLabel").set("value", "");
+				Y.one("#input").set("value", "");
+			}
 		}
 		
 	});

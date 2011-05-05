@@ -23,18 +23,21 @@ amalgame:MatchFilter
     rdfs:domain amalgame:Mapping ;
     rdfs:range amalgame:Mapping ;
     rdfs:subClassOf amalgame:Process .
+amalgame:Selecter
+    rdfs:label "selecter"@en ;
+    rdfs:subClassOf amalgame:Process .
 amalgame:MappingSelecter
     rdfs:label "selecter"@en ;
     skos:definition "Component that creates a new mapping by selecting a number of correspondences from an existing mapping"@en ;
     rdfs:domain amalgame:Mapping ;
     rdfs:range amalgame:Mapping ;
-    rdfs:subClassOf amalgame:Process .
+    rdfs:subClassOf amalgame:Selecter .
 amalgame:VocabSelecter
     rdfs:label "selecter"@en ;
     skos:definition "Component that creates a new conceptScheme by selecting a number of concepts from an existing concept scheme"@en ;
     rdfs:domain skos:ConceptScheme ;
     rdfs:range skos:ConceptScheme ;
-    rdfs:subClassOf amalgame:Process .
+    rdfs:subClassOf amalgame:Selecter .
 amalgame:Merger 
     rdfs:label "merger"@en ;
     skos:definition "Component that creates a mapping by combining the correspondences from a number of mappings"@en ;
