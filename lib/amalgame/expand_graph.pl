@@ -182,7 +182,7 @@ select_result_mapping(Mapping, P, Mapping) :-
 
 process_options(Process, Module, Options) :-
 	rdf(Process, amalgame:parameters, literal(ParamString)),
-	!,
+ 	!,
 	module_options(Module, Options, Parameters),
 	parse_url_search(ParamString, Search),
 	Request = [search(Search)] ,
@@ -203,6 +203,7 @@ process_options(_, _, []).
 %	system.
 
 module_options(Module, Options, Parameters) :-
+	current_predicate(Module:parameter/4),
 	findall(O-P,
 		( call(Module:parameter, Name, Type, Default, _Description),
 		  O =.. [Name, Value],
@@ -210,3 +211,4 @@ module_options(Module, Options, Parameters) :-
 		),
 		Pairs),
 	pairs_keys_values(Pairs, Options, Parameters).
+module_options(_, _, []).
