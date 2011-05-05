@@ -97,8 +97,10 @@ yui_script(Alignment) -->
 
 js_path(opmgraph, Path) :-
 	http_link_to_id(http_opmviz, [format(svg)], Path).
-js_path(statistics, Path) :-
-	http_location_by_id(http_eq_stats, Path).
+js_path(nodeinfo, Path) :-
+	http_location_by_id(http_eq_nodeinfo, Path).
+js_path(info, Path) :-
+	http_location_by_id(http_eq_info, Path).
 js_path(addprocess, Path) :-
 	http_location_by_id(http_add_process, Path).
 js_path(updatelabel, Path) :-
@@ -118,7 +120,8 @@ js_module(builder, json([fullpath(Path),
 			  ])) :-
 	http_absolute_location(js('builder.js'), Path, []).
 js_module(opmviz, json([fullpath(Path),
-			requires([node,event,widget,io])
+			requires([node,event,widget,io,
+				 'gallery-svg'])
 		       ])) :-
 	http_absolute_location(js('opmviz.js'), Path, []).
 js_module(infobox, json([fullpath(Path),

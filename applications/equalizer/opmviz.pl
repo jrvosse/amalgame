@@ -22,12 +22,10 @@
 
 
 opmviz_options([edge_links(false),
-		wrap_url(opm_url),
-		shape_hook(opm_shape),
+ 		shape_hook(opm_shape),
 		graph_attributes([])
 	       ]).
 
-is_meta(wrap_url).
 is_meta(shape_hook).
 
 
@@ -113,18 +111,6 @@ is_opm_property(P) :-
 is_opm_property(P) :-
 	rdfs_subproperty_of(P, opmv:wasTriggeredBy),
 	!.
-
-%%	opm_url(+Resource, -URL)
-%
-%	URL becomes a javascript link.
-
-opm_url(R, R).
-opm_url(R, HREF) :-
-	(   rdf_label(R, L0)
-	->  literal_text(L0, L)
-	;   L = R
-	),
-	format(atom(HREF), 'javascript:nodeSelect("~w", "~w")', [R, L]).
 
 %%	opm_shape(+Resource, -Shape)
 %

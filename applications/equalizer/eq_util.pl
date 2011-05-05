@@ -14,6 +14,7 @@
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_label)).
 :- use_module(user(user_db)).
+:- use_module(cliopatria(components/label)).
 
 :- multifile
 	eq:menu_item/2.
@@ -97,13 +98,14 @@ graph_resource(Graph, R) :-
 graph_resource(Graph, R) :-
 	rdf(Graph, amalgame:includes, R).
 
-node_data(R, R=json([type=Type, label=Label])) :-
+node_data(R, R=json([type=Type, label=Label, link=Link])) :-
 	rdf_display_label(R, Lit),
 	literal_text(Lit, Label),
 	(   node_type(R, T)
 	->  Type = T
 	;   Type = vocab
-	).
+	),
+	resource_link(R, Link).
 
 node_type(R, Type) :-
 	rdf(R, rdf:type, Class),

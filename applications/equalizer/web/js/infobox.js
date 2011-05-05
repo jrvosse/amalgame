@@ -62,6 +62,7 @@ YUI.add('infobox', function(Y) {
 			var instance = this,
 				selected = this.get("selected"),
 				uri = selected.uri,
+				link = selected.link ? selected.link : "",
 				label = selected ? selected.label : "",
 				type = selected ? selected.type : "",
 				datasource = this.get("datasource"),
@@ -72,7 +73,7 @@ YUI.add('infobox', function(Y) {
 				this.set("waiting", true);
 				NODE_LABEL.set("value", label);
 				NODE_TYPE.setContent(type);
-				NODE_URI.setContent(uri);
+				NODE_URI.setContent('<a href="'+link+'">'+uri+'</a>');
 				
 				datasource.sendRequest({
 					request:'?url='+uri,

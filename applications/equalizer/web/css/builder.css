@@ -99,6 +99,9 @@
 .yui3-opmviz .selected text {
 	font-weight: bold;
 }
+.yui3-opmviz .selected text.info {
+	font-weight: normal;
+}
 .yui3-opmviz .selected ellipse,
 .yui3-opmviz .selected polygon {
 	fill: #DBEAFF;

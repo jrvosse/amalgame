@@ -6,25 +6,46 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
+:- use_module(library(semweb/rdf_label)).
 :- use_module(library(amalgame/expand_graph)).
-
+:- use_module(library(amalgame/vocabulary)).
 :- use_module(cliopatria(components/label)).
 
 % http handlers for this applications
 
-:- http_handler(amalgame(data/stats), http_eq_stats, []).
+:- http_handler(amalgame(private/nodeinfo), http_eq_nodeinfo, []).
+:- http_handler(amalgame(private/info), http_eq_info, []).
 
-%%	http_eq_stats(+Request)
+
+%%	http_eq_nodeinfo(+Request)
 %
 %	Emit HTML snippet with statistics for an amalgame URI
 
-http_eq_stats(Request) :-
+http_eq_nodeinfo(Request) :-
+ 	http_parameters(Request,
+			[ url(URL,
+			      [description('URL of mapping graph')])
+ 		       ]),
+ 	html_current_option(content_type(Type)),
+	format('Content-type: ~w~n~n', [Type]),
+	(   rdfs_individual_of(URL, amalgame:'Mapping')
+	->  mapping_counts(URL, _MN, _SN, _TN, SPerc, TPerc),
+	    format('s:~w\% t:~w\%',
+		   [SPerc,TPerc])
+	;   true
+	).
+
+%%	http_eq_info(+Request)
+%
+%	Emit HTML snippet with information about an amalgame URI
+
+http_eq_info(Request) :-
  	http_parameters(Request,
 			[ url(URL,
 			      [description('URL of mapping graph')])
  		       ]),
 	amalgame_provenance(URL, Prov),
-	amalgame_stats(URL, Stats),
+	amalgame_info(URL, Stats),
 	append(Prov, Stats, Info),
 	html_current_option(content_type(Type)),
 	phrase(html_table(Info), HTML),
@@ -66,55 +87,99 @@ html_cell_list([V|Vs]) -->
 	html_cell_list(Vs).
 
 
-%%	amalgame_stats(+Mapping, -Stats)
+%%	mapping_counts(+MappingURI, -MappingN, -SourceN, -TargetN)
 %
-%	Stats of a resourcemapping
-
-amalgame_stats(URL, ['total mappings'-Total,
-		     'mapped source concepts'-SN,
-		     'mapped target concepts'-TN,
-		     'browse' - a(href(HREF), URL)
-		    ]) :-
-	rdfs_individual_of(URL, amalgame:'Mapping'),
-	!,
+%	Counts for the mappings in MappingURI.
+%
+%       @param MappingN is the number of total correspondences
+%       @param SourceN is the number of source concepts mapped
+%       @param TargetN is the number of target concepts mapped
+%
+mapping_counts(URL, MN, SN, TN, SPerc, TPerc) :-
 	expand_mapping(URL, Mapping),
+	mapping_sources(URL, InputS, InputT),
+	concept_count(InputS, SourceN),
+	concept_count(InputT, TargetN),
+
  	maplist(align_source, Mapping, Ss0),
 	maplist(align_target, Mapping, Ts0),
 	sort(Ss0, Ss),
 	sort(Ts0, Ts),
-	length(Mapping, Total),
+	length(Mapping, MN),
 	length(Ss, SN),
 	length(Ts, TN),
-	resource_link(URL, HREF).
-amalgame_stats(Scheme,
-	    ['Total concepts'-Total,
-	     'browse' - a(href(HREF), Scheme)
-	    ]) :-
+
+	rounded_perc(SourceN, SN, SPerc),
+	rounded_perc(TargetN, TN, TPerc).
+
+rounded_perc(Total, V, Perc) :-
+	Perc0 is V/Total,
+	dyn_perc_round(Perc0, Perc, 100).
+
+dyn_perc_round(P0, P, N) :-
+	P1 is round(P0*N),
+	(   P1 == 0
+	->  N1 is N*10,
+	    dyn_perc_round(P0, P, N1)
+	;   P is P1/(N/100)
+	).
+
+%%	concept_concept(+Scheme, -Count)
+%
+%	Count is the number of concepts in Scheme
+
+concept_count(Scheme, Count) :-
+	findall(C, vocab_member(C, Scheme), Cs),
+	length(Cs, Count).
+
+mapping_sources(URL, S, T) :-
+	rdf_has(URL, opmv:wasGeneratedBy, Process),
+	(   rdf(Process, amalgame:source, S0),
+	    rdf(Process, amalgame:target, T0)
+	->  vocab_source(S0, S),
+	    vocab_source(T0, T)
+	;   rdf(Process, amalgame:input, Input)
+	->  mapping_sources(Input, S, T)
+	).
+
+vocab_source(V, S) :-
+	rdf_has(V, opmv:wasGeneratedBy, Process),
+	rdf_has(Process, amalgame:input, Input),
+	!,
+	vocab_source(Input, S).
+vocab_source(V, V).
+
+
+%%	amalgame_info(+Mapping, -Info)
+%
+%	Stats of a resourcemapping
+
+amalgame_info(URL, ['total mappings'-MN,
+		     'mapped source concepts'-SN,
+		     'mapped target concepts'-TN
+ 		    ]) :-
+	rdfs_individual_of(URL, amalgame:'Mapping'),
+	!,
+	mapping_counts(URL, MN, SN0, TN0, SPerc, TPerc),
+	concat_atom([SN0, ' (',SPerc,'%)'], SN),
+	concat_atom([TN0, ' (',TPerc,'%)'], TN).
+amalgame_info(Scheme,
+	    ['Total concepts'-Total
+ 	    ]) :-
 	rdfs_individual_of(Scheme, skos:'ConceptScheme'),
 	!,
- 	findall(C,rdf(C,skos:inScheme,Scheme), Cs),
-	length(Cs, Total),
-	resource_link(Scheme,HREF).
-amalgame_stats(URL,
+	concept_count(Scheme, Total).
+amalgame_info(URL,
 	       ['type'   - \(cp_label:rdf_link(Type)),
-		'about'   - Definition,
-		'browse' - a(href(Href), URL)
-	       ]) :-
-	resource_link(URL,  Href),
-	rdfs_individual_of(URL, amalgame:'Process'),
+		'about'   - Definition
+ 	       ]) :-
+ 	rdfs_individual_of(URL, amalgame:'Process'),
 	rdf(URL, rdf:type, Type),
 	(   rdf_has(Type, skos:definition, literal(Definition))
 	->  true
 	;   Definition = '-'
 	).
-amalgame_stats(_URL, ['browse' - a(href(HREF), URL)]) :-
-	resource_link(URL,HREF).
-
-%:-
-%	phrase(rdf_link(URL), Tokens),
-%	with_output_to(atom(Link), print_html(Tokens)).
-
-
+amalgame_info(_URL, []).
 
 
 %%	amalgame_provenance(+R, -Provenance:[key-value])
@@ -123,9 +188,6 @@ amalgame_stats(_URL, ['browse' - a(href(HREF), URL)]) :-
 
 amalgame_provenance(R, Provenance) :-
 	findall(Key-Value, ag_prov(R, Key, Value), Provenance).
-
-
-
 
 ag_prov(R, 'created by', V) :-
 	rdf(R, dc:creator, V).

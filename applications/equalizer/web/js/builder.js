@@ -23,7 +23,8 @@ YUI.add('builder', function(Y) {
 			value:{
 				opmgraph:'/amalgame/opmviz',
 				addprocess:'/amalgame/addprocess',
-				statistics:'/amalgame/statisctis'
+				nodeinfo:'/amalgame/private/nodeinfo',
+				info:'/amalgame/private/info'
 			},
 			validator: function(val) {
 				return Lang.isObject(val)
@@ -61,16 +62,20 @@ YUI.add('builder', function(Y) {
 		},
 		
 		_initGraph : function() {
-			this.opmviz = new Y.OPMViz().render(NODE_OPM);
+			var DS = new Y.DataSource.IO({
+				source: this.get("paths").nodeinfo
+			})
+			.plug({fn:Y.Plugin.DataSourceCache, cfg:{max:10}});
+			this.opmviz = new Y.OPMViz({
+				datasource: DS
+			}).render(NODE_OPM);
 		},
 		
 		_initInfo : function() {
-			var paths = this.get("paths");
-			
 			// The infobox is part of the controls,
 			// but has some additional routines
 			var DS = new Y.DataSource.IO({
-				source: paths.statistics
+				source: this.get("paths").info
 			})
 			.plug({fn:Y.Plugin.DataSourceCache, cfg:{max:10}});
 			this.infobox = new Y.InfoBox({
