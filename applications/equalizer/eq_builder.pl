@@ -112,7 +112,7 @@ js_path(updatelabel, Path) :-
 
 js_module(gallery, 'gallery-2011.02.23-19-01').
 js_module(builder, json([fullpath(Path),
-			   requires([node,event,anim,
+			   requires([node,event,
 				     'json-parse',
 				     'datasource-io','datasource-cache',
 				     'querystring-stringify-simple',
@@ -129,7 +129,7 @@ js_module(infobox, json([fullpath(Path),
 			])) :-
 	http_absolute_location(js('infobox.js'), Path, []).
 js_module(controls, json([fullpath(Path),
-			  requires([node,event,
+			  requires([node,event,anim,
 				    'gallery-node-accordion'])
 			])) :-
 	http_absolute_location(js('controls.js'), Path, []).

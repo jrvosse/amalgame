@@ -31,8 +31,8 @@ YUI.add('controls', function(Y) {
 			
 			// The controls are accordion nodes
 			Y.all(".yui3-accordion").plug(Y.Plugin.NodeAccordion, { 
-   				anim: true, 
-				speed:0.1,
+				//anim: true, 
+				//speed:0.1,
 				multiple:false
 			});
 
@@ -143,4 +143,4 @@ YUI.add('controls', function(Y) {
 	
 	Y.Controls = Controls;
 	
-}, '0.0.1', { requires: ['node,event','gallery-node-accordion']});
+}, '0.0.1', { requires: ['node,event','anim','gallery-node-accordion']});
