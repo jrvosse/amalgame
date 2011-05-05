@@ -73,7 +73,7 @@ assert_process(Process, Type, Graph, Params) :-
 	rdf_assert(Process, amalgame:parameters, literal(Search), Graph).
 
 assert_output(Process, Type, Graph) :-
-	rdfs_subclass_of(Type, amalgame:'Select'),
+	rdfs_subclass_of(Type, amalgame:'MappingSelecter'),
 	!,
 	new_mapping_output(Process, amalgame:selectedBy, Graph),
 	new_mapping_output(Process, amalgame:discardedBy, Graph),
