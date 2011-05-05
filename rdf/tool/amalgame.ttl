@@ -14,13 +14,6 @@ amalgame:Process
 amalgame:Matcher 
     rdfs:label "matcher"@en ;
     skos:definition "Component that creates a mapping given a source and target vocabulary"@en ;
-    rdfs:domain skos:ConceptScheme ;
-    rdfs:range amalgame:Mapping ;
-    rdfs:subClassOf amalgame:Process .
-amalgame:MatchFilter
-    rdfs:label "filter"@en ;
-    skos:definition "Component that filters a mapping by running an additional matcher"@en ;
-    rdfs:domain amalgame:Mapping ;
     rdfs:range amalgame:Mapping ;
     rdfs:subClassOf amalgame:Process .
 amalgame:Selecter
@@ -38,6 +31,12 @@ amalgame:VocabSelecter
     rdfs:domain skos:ConceptScheme ;
     rdfs:range skos:ConceptScheme ;
     rdfs:subClassOf amalgame:Selecter .
+amalgame:Subtracter
+    rdfs:label "subtracter"@en ;
+    skos:definition "Component that creates a new conceptScheme by subtracting a number of concepts that occur in another source"@en ;
+    rdfs:domain skos:ConceptScheme ;
+    rdfs:range skos:ConceptScheme ;
+    rdfs:subClassOf amalgame:Process .
 amalgame:Merger 
     rdfs:label "merger"@en ;
     skos:definition "Component that creates a mapping by combining the correspondences from a number of mappings"@en ;
@@ -56,7 +55,7 @@ amalgame:input
 amalgame:exclude
 	rdfs:domain opmv:Process ;
 	rdfs:range  amalgame:Alignment ;
-	rdfs:subPropertyOf opmv:used.
+	rdfs:subPropertyOf opmv:used .
 
 amalgame:selectedBy
 	rdfs:domain  amalgame:Alignment ;

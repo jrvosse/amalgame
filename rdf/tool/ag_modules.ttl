@@ -27,21 +27,6 @@ amalgame:AritySelect
     rdfs:label "arity"@en ;
     skos:definition "Select correspondence with a specific arity between source and target:\n 11 = unique source and target,\n N1 = unique target for a source,\n 1N = unique source for a target"@en ;
     rdfs:subClassOf amalgame:MappingSelecter .
-
-#amalgame:SelectN1
-#    rdfs:label "unique target (n-1);"@en ;
-#    skos:definition "Select correspondences for which each source is mapped to only 1 target concept."@en ;
-#    rdfs:subClassOf amalgame:MappingSelecter .
-#
-#amalgame:Select1N
-#    rdfs:label "unique source (1-n);"@en ;
-#    skos:definition "Select correspondences for which each source is mapped to only 1 target concept."@en ;
-#    rdfs:subClassOf amalgame:MappingSelecter .
-#
-#amalgame:Select11
-#    rdfs:label "unique source-target (1-1)"@en ;
-#    skos:definition "Select correspondences that have only 1 source and 1 target concept."@en ;
-#    rdfs:subClassOf amalgame:MappingSelecter .
     
 amalgame:BestNumeric
     rdfs:label "best numeric"@en ;
@@ -56,4 +41,4 @@ amalgame:MapMerger
 amalgame:VocExclude
     rdfs:label "vocabulary excluder"@en ;
     skos:definition "Exclude a sources or targets from a given mapping from being mapped in a subsequent step."@en ;
-    rdfs:subClassOf amalgame:VocabSelecter .
+    rdfs:subClassOf amalgame:Subtracter .

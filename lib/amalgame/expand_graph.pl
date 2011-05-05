@@ -108,6 +108,19 @@ exec_amalgame_process(Type, Process, Module, Mapping, Time, Options) :-
 	),
  	merge_provenance(Mapping0, Mapping).
 exec_amalgame_process(Class, Process, Module, Result, Time, Options) :-
+	rdfs_subclass_of(Class, amalgame:'MappingSelecter'),
+	!,
+	Result = select(Selected, Discarded, Undecided),
+ 	rdf(Process, amalgame:input, InputId),
+	expand_mapping(InputId, MappingIn),
+  	timed_call(Module:selecter(MappingIn, Selected, Discarded, Undecided, Options), Time).
+exec_amalgame_process(Class, Process, Module, Result, Time, Options) :-
+	rdfs_subclass_of(Class, amalgame:'VocabSelecter'),
+	!,
+  	rdf(Process, amalgame:input, Input),
+	expand_vocab(Input, Vocab),
+  	timed_call(Module:selecter(Vocab, Result, Options), Time).
+exec_amalgame_process(Class, Process, Module, Result, Time, Options) :-
 	rdfs_subclass_of(Class, amalgame:'VocExclude'),
 	!,
   	rdf(Process, amalgame:input, Input),
@@ -116,48 +129,12 @@ exec_amalgame_process(Class, Process, Module, Result, Time, Options) :-
 	maplist(expand_mapping, Ss, Expanded),
 	append(Expanded, Mapping),
   	timed_call(Module:exclude(Vocab, Mapping, Result, Options), Time).
-
-exec_amalgame_process(Class, Process, Module, Result, Time, Options) :-
-	rdfs_subclass_of(Class, amalgame:'Selecter'),
-	!,
-	Result = select(Selected, Discarded, Undecided),
- 	rdf(Process, amalgame:input, InputId),
-	expand_mapping(InputId, MappingIn),
-  	timed_call(Module:selecter(MappingIn, Selected, Discarded, Undecided, Options), Time).
-
-exec_amalgame_process(Class, Process, Module, Result, Time, Options) :-
-	rdfs_subclass_of(Class, amalgame:'VocabSelecter'),
-	!,
-  	rdf(Process, amalgame:input, Input),
-	expand_vocab(Input, Vocab),
-  	timed_call(Module:selecter(Vocab, Result, Options), Time).
 exec_amalgame_process(Class, Process, Module, Result, Time, Options) :-
 	rdfs_subclass_of(Class, amalgame:'Merger'),
 	!,
 	findall(Input, rdf(Process, amalgame:input, Input), Inputs),
 	maplist(expand_mapping, Inputs, Expanded),
 	timed_call(Module:merger(Expanded, Result, Options), Time).
-/*
-exec_amalgame_process(Class, Process, Module, Result, -1, Options) :-
-	rdfs_subclass_of(Class, amalgame:'VocSelecter'),
-        !,
-        option(type(SourceOrTarget), Options, source),
-        (   SourceOrTarget = source
-        ->  ExcludeOption = exclude_sources(Exclude)
-        ;   ExcludeOption = exclude_targets(Exclude)
-        ),
-        rdf(Process, amalgame:exclude, ExcludeId),
-        (   rdf(Process, amalgame:source, SourceId)
-        ->  Input = scheme(SourceId),
-            rdf(Process, amalgame:target, TargetId),
-            TargetOption=targetvoc(TargetId)
-        ;   rdf(Process, amalgame:input, InputId),
-            expand_mapping(InputId, Input),
-            TargetOption=noop(none)
-        ),
-        expand_mapping(ExcludeId, Exclude),
-	call(Module:concept_selecter(Input, Result, [ExcludeOption,TargetOption])).
-*/
 exec_amalgame_process(Class, Process, _, _, _, _) :-
 	throw(error(existence_error(mapping_process, [Class, Process]), _)).
 
