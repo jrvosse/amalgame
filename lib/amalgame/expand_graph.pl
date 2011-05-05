@@ -19,13 +19,14 @@
 
 %%	expand_mapping(+Id, -Mapping:[align(s,t,prov)]) is det.
 %
-%	Generate the Mapping.
+%	Generate the Mapping. We use a mutex so that the next thread
+%	will use the cached version.
 %
 %	@param Id is a URI of Mapping
 
 expand_mapping(Id, Mapping) :-
 	rdf_has(Id, opmv:wasGeneratedBy, Process, OutputType),
-	expand_process(Process, Result),
+	with_mutex(Id, expand_process(Process, Result)),
     	select_result_mapping(Result, OutputType, Mapping),
 	length(Mapping, Count),
 	debug(ag_expand, 'Found ~w mappings for ~p', [Count, Id]).
@@ -39,7 +40,7 @@ expand_mapping(Id, Mapping) :-
 expand_vocab(Id, Vocab) :-
 	rdf_has(Id, opmv:wasGeneratedBy, Process),
 	!,
- 	expand_process(Process, Vocab).
+ 	with_mutex(Id, expand_process(Process, Vocab)).
 expand_vocab(Vocab, Vocab) :-
 	rdf(Vocab, rdf:type, skos:'ConceptScheme').
 
