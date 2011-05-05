@@ -139,7 +139,7 @@ opm_shape(_R, [shape(box),
  	       fontsize(10)]).
 
 process_color(R, '#FFCC99') :-
-	rdfs_individual_of(R, amalgame:'VocExclude'),
+	rdfs_individual_of(R, amalgame:'Subtracter'),
 	!.
 process_color(R, '#99CCFF') :-
 	rdfs_individual_of(R, amalgame:'Selecter'),
