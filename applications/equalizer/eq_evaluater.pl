@@ -119,7 +119,7 @@ yui_script(Alignment) -->
 %	Path to the server used in javascript.
 
 js_path(statistics, Path) :-
-	http_location_by_id(http_eq_stats, Path).
+	http_location_by_id(http_eq_info, Path).
 js_path(mapping, Path) :-
 	http_location_by_id(http_data_mapping, Path).
 %js_path(info, Path) :-
