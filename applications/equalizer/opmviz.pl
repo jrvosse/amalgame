@@ -118,11 +118,12 @@ is_opm_property(P) :-
 
 opm_shape(R, [shape(octagon),
  	      style(filled),
-	      fillcolor('#DDDDDD'),
+	      fillcolor(Color),
 	      fontsize(10)]) :-
 	atom(R),
 	rdfs_individual_of(R, opmv:'Process'),
-	!.
+	!,
+	process_color(R, Color).
 opm_shape(R, [shape(ellipse),
 	      fontsize(10)]) :-
 	atom(R),
@@ -136,3 +137,16 @@ opm_shape(_R, [shape(box),
  	       fontsize(10)]).
 
 
+process_color(R, '#99CCFF') :-
+	rdfs_individual_of(R, amalgame:'MappingSelecter'),
+	!.
+process_color(R, '#99CCFF') :-
+	rdfs_individual_of(R, amalgame:'VocabSelecter'),
+	!.
+process_color(R, '#CC99FF') :-
+	rdfs_individual_of(R, amalgame:'Matcher'),
+	!.
+process_color(R, '#CC99FF') :-
+	rdfs_individual_of(R, amalgame:'MatchFilter'),
+	!.
+process_color(_, '#DDDDDD').
