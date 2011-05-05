@@ -6,7 +6,8 @@ body {
 /* header */
 #header {
 	border-bottom: 1px solid #CCCCCC;
-    margin: 5px 10px;
+    padding: 5px 10px;
+	height: 19px;
 }
 #header .title {
     font-size: 120%;

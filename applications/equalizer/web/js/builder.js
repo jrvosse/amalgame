@@ -51,14 +51,7 @@ YUI.add('builder', function(Y) {
 			this._initGraph();
 			this._initInfo();
 			this._initControls();			
-			
-			/*
-			NODE_OPM.setStyle("height", NODE_OPM.get('winHeight')-35);
-			Y.on("resize", function() {
-				var height = NODE_OPM.get('winHeight')-35;
-				NODE_OPM.setStyle("height", height);
-			}, window, this);
-			*/
+
 			// bind the modules together
 			this.opmviz.on("nodeSelect", this._onNodeSelect, this);
 			this.controls.on("submit", this._onControlSubmit, this);

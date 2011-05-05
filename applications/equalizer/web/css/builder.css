@@ -1,21 +1,24 @@
 /* main layout */
+#header {
+	position: fixed;
+	width: 100%;
+	background-color: white;
+}
 #main {
 	margin: 0 10px;
-	padding-right: 400px;
+	padding-top: 30px;
 }
 #opm {
-	width: 100%;
+	padding-left: 360px;
 }
-#right {
-	width: 400px;
-	margin-right: -400px;
-}
-
-/* controls */
 #controls {
 	position: fixed;
-	margin-right: 10px;
+	left: 10px;
+	top: 35px;
+	width: 350px;
+	background-color: white;
 }
+/* controls */
 #controls .yui3-accordion {
 	border-width: 1px 0 0;
 }

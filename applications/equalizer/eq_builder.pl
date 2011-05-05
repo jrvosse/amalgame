@@ -57,12 +57,11 @@ html_page(Alignment) :-
 			  \html_requires('http://yui.yahooapis.com/combo?3.3.0/build/cssreset/reset-min.css&3.3.0/build/cssgrids/grids-min.css&3.3.0/build/cssfonts/fonts-min.css&gallery-2011.02.23-19-01/build/gallery-node-accordion/assets/skins/sam/gallery-node-accordion.css'),
   			  div(class('yui3-skin-sam yui-skin-sam'),
 			      [ \html_eq_header(http_eq_build, Alignment),
-				div([id(main), class('yui3-g')],
-				    [ div([class('yui3-u'), id(opm)],
+				div([id(main)],
+				    [ div([id(opm)],
 					  []),
-				      div([class('yui3-u'), id(right)],
-					  [\html_controls
-					  ])
+				      div([id(controls)],
+					  \html_controls)
 				    ])
 			      ]),
 			  script(type('text/javascript'),

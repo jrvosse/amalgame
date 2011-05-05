@@ -17,24 +17,23 @@ html_controls -->
 	{ current_modules_of_input_type([mapping,vocab], InputModules),
 	  current_modules_of_input_type([sourcetarget], MatchModules)
  	},
-	html(div(id(controls),
-		 [div([id(select), class('control-set')],
-		      [ div(class(hd), 'Select'),
-		        div(class('bd hidden'),
-			    [ div([id(info), class(c)],
-				  \html_node_props),
+	html([div([id(select), class('control-set')],
+		  [ div(class(hd), 'Select'),
+		    div(class('bd hidden'),
+			[ div([id(info), class(c)],
+			      \html_node_props),
 			      div([id(properties), class(c)], []),
-			      \html_modules(InputModules)
-			    ])
-		      ]),
-		  div([id(align), class('control-set')],
-		      [ div(class(hd), 'Align'),
-			div(class(bd),
-			    [ div(class(c), \html_align_select),
+			  \html_modules(InputModules)
+			])
+		  ]),
+	      div([id(align), class('control-set')],
+		  [ div(class(hd), 'Align'),
+		    div(class(bd),
+			[ div(class(c), \html_align_select),
 			      \html_modules(MatchModules)
-			    ])
-		      ])
-		 ])).
+			])
+		  ])
+	     ]).
 
 html_node_props -->
 	html(table([tr([td(id(type), []),
@@ -49,12 +48,12 @@ html_node_props -->
 
 html_align_select -->
 	html(table([tr([td(input([type(button), id(sourcebtn), value('set as source')])),
-			td([input([type(text), id(sourceLabel), size(40), autocomplete(off)]),
+			td([input([type(text), id(sourceLabel), size(35), autocomplete(off)]),
 			    input([type(hidden), id(source), name(source)])
 				  ])
 		       ]),
 		    tr([td(input([type(button), id(targetbtn), value('set as target')])),
-			td([input([type(text), id(targetLabel), size(40), autocomplete(off)]),
+			td([input([type(text), id(targetLabel), size(35), autocomplete(off)]),
 			    input([type(hidden), id(target), name(target)])
 				  ])
 		       ])
@@ -154,12 +153,16 @@ builtin_input_item(between(L,U), Value, Name) --> !,
 		   ])).
 builtin_input_item(oneof(List), Value, Name) --> !,
 	html(select([name(Name)], \oneof(List, Value))).
+builtin_input_item(uri, Value, Name) --> !,
+	{ rdf_global_id(NS:Local, Value)
+	},
+	html(input([name(Name), size(35), value(NS+':'+Local)])).
 builtin_input_item(atom, Value, Name) --> !,
-	html(input([name(Name), size(40), value(Value)])).
+	html(input([name(Name), size(35), value(Value)])).
 builtin_input_item(_, Value, Name) -->
 	{ format(string(S), '~q', [Value])
 	},
-	html(input([name(Name), size(40), value(S)])).
+	html(input([name(Name), size(35), value(S)])).
 
 oneof([], _) -->
 	[].
