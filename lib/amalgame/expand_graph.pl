@@ -14,7 +14,7 @@
 :- dynamic
 	expand_cache/2.
 
-:- setting(cache_time, integer, 3,
+:- setting(cache_time, integer, 1,
 	   'Minimum execution time to cache results').
 
 %%	expand_mapping(+Id, -Result) is det.
