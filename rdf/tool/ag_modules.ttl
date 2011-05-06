@@ -4,13 +4,13 @@
 @prefix amalgame: <http://purl.org/vocabularies/amalgame#> .
 
 amalgame:ExactLabelMatcher
-    rdfs:label "string/exact label"@en ;
+    rdfs:label "string/label (exact)"@en ;
     skos:definition "A basic label matcher based on exact matching labels of source and target concepts"@en ;
     rdfs:subClassOf amalgame:Matcher .
 
 amalgame:SnowballMatcher
-    rdfs:label "string/stemmed label"@en ;
-    skos:definition "A label matcher with similarity based on stemming."@en ;
+    rdfs:label "string/label(stemmed)"@en ;
+    skos:definition "A label matcher with similarity based on (snowball) stemming."@en ;
     rdfs:subClassOf amalgame:Matcher .
 
 amalgame:IsubMatcher        
