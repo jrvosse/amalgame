@@ -18,21 +18,13 @@ vocab_member(E, scheme(Scheme)) :-
 vocab_member(E, type(Class)) :-
 	!,
 	rdfs_individual_of(E, Class).
-vocab_member(E, Tree) :-
-	is_rbtree(Tree),
-	!,
-	(   var(E)
-	->  rb_visit(Tree,Pairs),
-	    member(E-_, Pairs)
-	;   rb_in(E, _, Tree)
-	).
 vocab_member(E, Scheme) :-
-	rdfs_individual_of(Scheme, skos:'ConceptScheme'),
+	rdf(Scheme, rdf:type, skos:'ConceptScheme'),
 	!,
-	vocab_member(E, scheme(Scheme)).
+	rdf_has(E, skos:inScheme, Scheme).
 vocab_member(E, Class) :-
 	rdfs_individual_of(Class, rdfs:'Class'),
 	!,
-	vocab_member(E, type(Class)).
+	rdfs_individual_of(E, Class).
 
 
