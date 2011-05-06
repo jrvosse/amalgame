@@ -251,23 +251,14 @@ group_provenance(As, S, T, P, [align(S, T, Psorted)|Gs]) :-
 %       Assert Alignments as triples in the store.
 
 materialize_mapping_graph(Input, Options) :-
-        rdf_bnode(ProcessBnode),
         option(graph(Graph), Options, test),
-        option(opmv_graph(OpmGraph), Options, opm),
-        (   option(process(Process), Options)
-        ->  option(matcher(Matcher), Process),
-            option(was_derived_from(DerivedFrom), Process),
-            rdf_assert(ProcessBnode, amalgame:matcher, Matcher, OpmGraph)
-        ;   DerivedFrom = []
-        ),
+
         (   rdf_graph(Graph)
         ->  rdf_unload(Graph)
         ;   true
         ),
         (   memberchk(align(_,_,_), Input)
         ->
-            rdf_assert(Graph, rdf:type, amalgame:'AmalgameAlignment', Graph),
-            % opm_was_generated_by(ProcessBnode, Graph, OpmGraph, [was_derived_from(DerivedFrom)|Options]),
             mat_alignment_graph(Input, Options)
         ;   true
         ),
