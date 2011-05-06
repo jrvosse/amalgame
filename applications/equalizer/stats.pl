@@ -116,6 +116,7 @@ rounded_perc(Total, V, Perc) :-
 	Perc0 is V/Total,
 	dyn_perc_round(Perc0, Perc, 100).
 
+dyn_perc_round(_, 0, 0) :- !.
 dyn_perc_round(P0, P, N) :-
 	P1 is round(P0*N),
 	(   P1 == 0
