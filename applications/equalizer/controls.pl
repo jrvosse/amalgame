@@ -20,7 +20,7 @@ html_controls -->
 	     ]).
 
 html_info_control -->
-	html([ div(class(hd), 'Node'),
+	html([ div(class(hd), 'Current node'),
 	       div(class('bd hidden'),
 		   [ div([id(details), class(c)],
 			 \html_node_props),
