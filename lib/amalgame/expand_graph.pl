@@ -69,7 +69,7 @@ expand_process(Process, Result) :-
 	process_options(Process, Module, Options),
  	exec_amalgame_process(Type, Process, Module, Result, Time, Options),
 	cache_expand_result(Time, Process, Result),
-	debug(ag_expand, 'Output of process ~p (~p) computed in ~Ws',
+	debug(ag_expand, 'Output of process ~p (~p) computed in ~ws',
 	      [Process,Type,Time]).
 
 cache_expand_result(ExecTime, Process, Result) :-
