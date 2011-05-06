@@ -4,32 +4,32 @@
 @prefix amalgame: <http://purl.org/vocabularies/amalgame#> .
 
 amalgame:ExactLabelMatcher
-    rdfs:label "exact label"@en ;
+    rdfs:label "string/exact label"@en ;
     skos:definition "A basic label matcher based on exact matching labels of source and target concepts"@en ;
     rdfs:subClassOf amalgame:Matcher .
 
 amalgame:SnowballMatcher
-    rdfs:label "stemmed label"@en ;
+    rdfs:label "string/stemmed label"@en ;
     skos:definition "A label matcher with similarity based on stemming."@en ;
     rdfs:subClassOf amalgame:Matcher .
 
 amalgame:IsubMatcher        
-    rdfs:label "isub string"@en ;
-    skos:definition "An isub string similarity matcher based on the metric described by 'A string metric for ontology alignment' by Giorgos Stoilos, 2005."@en ;
+    rdfs:label "string/smilarity"@en ;
+    skos:definition "An string similarity matcher based on the 'isub' metric introduced in 'A string metric for ontology alignment' by Giorgos Stoilos, 2005."@en ;
     rdfs:subClassOf amalgame:Matcher .
 
 amalgame:AncestorMatcher
-    rdfs:label "ancestor"@en ;
+    rdfs:label "structure/ancestor"@en ;
     skos:definition "Matcher looking for 1 or more ancestors that have already been mapped."@en ;
     rdfs:subClassOf amalgame:Matcher .
 
 amalgame:DescendentMatcher
-    rdfs:label "descendent"@en ;
+    rdfs:label "structure/descendent"@en ;
     skos:definition "Matcher looking for 1 or more descendents that have already been mapped."@en ;
     rdfs:subClassOf amalgame:Matcher .
 
 amalgame:RelatedMatcher
-    rdfs:label "related"@en ;
+    rdfs:label "structure/related"@en ;
     skos:definition "Matcher looking for 1 or more related concepts that have already been mapped."@en ;
     rdfs:subClassOf amalgame:Matcher .
 
