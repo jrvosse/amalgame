@@ -13,7 +13,9 @@
 amalgame_module(amalgame:'DescendentMatcher').
 amalgame_module(amalgame:'DescendentFilter').
 
-parameter(graph, atom, 'DEFAULT_GRAPH', 'named graph to query for descendents, defaults to full repository').
+parameter(graph, atom, 'DEFAULT_GRAPH',
+	  'named graph to query for descendents, defaults to full repository').
+parameter(steps, integer, 1, 'depth of search, defaults to 1, e.g. direct children only').
 
 %%	filter(+MappingsIn, -MappingsOut, +Options)
 %
@@ -52,23 +54,23 @@ match(align(S, T, Prov0), align(S, T, [Prov|Prov0]), Options) :-
 	->  true
 	;   Graph = _
 	),
-
-	descendent(S, DescS, R1),
-	descendent(T, DescT, R2),
+	option(steps(MaxSteps), Options),
+	descendent(S, MaxSteps, DescS, R1, Steps),
+	descendent(T, MaxSteps, DescT, R2, Steps),
 	has_map([DescS, DescT],_, O, Graph),
 	memberchk(relation(R), O),
 	memberchk(provenance(P), O),
 	rdf_equal(PM, amalgame:descendent_match),
 	Prov = [method(descendent_match),
-		graph([R1,R2,rdf(P,PM,R)])
+		graph([R1,R2,rdf(P,PM,R),rdf(P,amalgame:steps, literal(Steps))])
 	       ].
 
-descendent(R, Child, rdf_reachable(R, Prop, Child)) :-
+descendent(R, MaxSteps, Child, rdf_reachable(R, Prop, Child), Steps) :-
 	rdf_equal(skos:narrower, Prop),
-	rdf_reachable(R, Prop, Child),
+	rdf_reachable(R, Prop, Child, MaxSteps, Steps),
 	\+ R == Child.
-descendent(R, Child, rdf_reachable(Child, Prop, R)) :-
+descendent(R, MaxSteps, Child, rdf_reachable(Child, Prop, R), Steps) :-
 	rdf_equal(skos:broader, Prop),
-	rdf_reachable(Child, Prop, R),
+	rdf_reachable(Child, Prop, R, MaxSteps, Steps),
 	\+ R == Child,
 	\+ rdf_reachable(R, skos:narrower, Child).

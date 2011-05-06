@@ -6,6 +6,8 @@
 :- use_module(library(ag_modules/snowball_match)).
 :- use_module(library(ag_modules/isub_match)).
 :- use_module(library(ag_modules/ancestor_match)).
+:- use_module(library(ag_modules/descendent_match)).
+:- use_module(library(ag_modules/related_match)).
 
 % Alignment filters/selecters
 %:- use_module(library(ag_modules/select_1_1)).
