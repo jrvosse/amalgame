@@ -131,10 +131,13 @@ opm_shape(R, [shape(box),
 	atom(R),
 	rdf(R, rdf:type, skos:'ConceptScheme').
 opm_shape(R, [shape(ellipse),
-	      fontsize(10)]) :-
+	      fillcolor(Color),
+	      style(filled),
+              fontsize(10)]) :-
 	atom(R),
 	rdfs_individual_of(R, opmv:'Artifact'),
-	!.
+	!,
+	artifact_color(R, Color).
 opm_shape(_R, [shape(box),
  	       fontsize(10)]).
 
@@ -148,3 +151,8 @@ process_color(R, '#CC99FF') :-
 	rdfs_individual_of(R, amalgame:'Matcher'),
 	!.
 process_color(_, '#DDDDDD').
+
+artifact_color(R, '#CCFF99') :-
+	rdf(R, amalgame:status, amalgame:final),
+	!.
+artifact_color(_R, '#FFFFFF').
