@@ -58,10 +58,12 @@ expand_vocab(Vocab, Vocab) :-
 %	then setting(cache_time).
 
 expand_process(Process, Result) :-
+	ground(Process),
 	expand_cache(Process, Result),
 	!,
 	debug(ag_expand, 'Output of process ~p taken from cache', [Process]).
 expand_process(Process, Result) :-
+	!,
 	rdf(Process, rdf:type, Type),
 	amalgame_module_id(Type, Module),
 	process_options(Process, Module, Options),
