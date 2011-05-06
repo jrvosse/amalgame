@@ -114,7 +114,6 @@ mapping_counts(URL, MN, SN, TN, SPerc, TPerc) :-
 
 rounded_perc(0, _, 0.0) :- !.
 rounded_perc(_, 0, 0.0) :- !.
-
 rounded_perc(Total, V, Perc) :-
 	Perc0 is V/Total,
 	dyn_perc_round(Perc0, Perc, 100).
