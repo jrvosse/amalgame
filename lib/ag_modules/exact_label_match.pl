@@ -67,7 +67,7 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 	option(language(Lang), Options, ''),
 
 	(   Lang == ''
-	->  true
+	->  var(SourceLang)
 	;   SourceLang = Lang
 	),
 
