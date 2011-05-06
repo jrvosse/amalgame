@@ -33,7 +33,8 @@ expand_mapping(Id, Mapping) :-
 	with_mutex(Id, expand_process(Process, Result)),
     	select_result_mapping(Result, OutputType, Mapping),
 	length(Mapping, Count),
-	debug(ag_expand, 'Found ~w mappings for ~p', [Count, Id]).
+	debug(ag_expand, 'Found ~w mappings for ~p', [Count, Id]),
+	materialize_if_needed(Id, Mapping).
 
 %%	expand_vocab(+Id, -Concepts) is det.
 %
@@ -216,4 +217,14 @@ param_options(Type, Default, Options) :-
 	;   Options = [default(Default), Type]
 	).
 
+%%	materialize_if_needed(+Id, Mapping) is det.
+%
+%	materialize result in Mapping in named graph Id if this graph
+%	this graph does not exist yet and if the resource with the same
+%	Id has the amalgame:status amalgame:final.
 
+materialize_if_needed(Id, Mapping) :-
+	(   \+ rdf_graph(Id), rdf_has(Id, amalgame:status, amalgame:final)
+	->  materialize_mapping_graph(Mapping, [graph(Id)])
+	;   true
+	).
