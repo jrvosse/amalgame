@@ -43,12 +43,14 @@ amalgame_module_id(URI, Module) :-
 %	Modules are loaded amalgame modules of type Class.
 
 amalgame_modules_of_type(Class, Modules) :-
-	findall(URI-Module,
+	findall(Label-[URI,Module],
 		( current_amalgame_module(URI, Module),
-		  rdfs_subclass_of(URI, Class)
+		  rdfs_subclass_of(URI, Class),
+		  rdf_display_label(URI, Label)
  		),
-		Modules).
-
+		LabeledModules),
+	sort(LabeledModules, Sorted),
+	pairs_values(Sorted, Modules).
 
 %%	amalgame_module_parameters(+Module,-Parameters)
 %

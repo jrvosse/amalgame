@@ -105,7 +105,7 @@ html_modules(Modules) -->
 
 
 html_module_items([]) --> !.
-html_module_items([URI-Module|Ms]) -->
+html_module_items([[URI,Module]|Ms]) -->
 	{  amalgame_module_parameters(Module, Params),
 	   module_css_class(URI, CssClass)
 	},
