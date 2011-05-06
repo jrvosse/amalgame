@@ -23,6 +23,16 @@ amalgame:AncestorMatcher
     skos:definition "Matcher looking for 1 or more ancestors that have already been mapped."@en ;
     rdfs:subClassOf amalgame:Matcher .
 
+amalgame:DescendentMatcher
+    rdfs:label "descendent"@en ;
+    skos:definition "Matcher looking for 1 or more descendents that have already been mapped."@en ;
+    rdfs:subClassOf amalgame:Matcher .
+
+amalgame:RelatedMatcher
+    rdfs:label "related"@en ;
+    skos:definition "Matcher looking for 1 or more related concepts that have already been mapped."@en ;
+    rdfs:subClassOf amalgame:Matcher .
+
 amalgame:AritySelect
     rdfs:label "arity"@en ;
     skos:definition "Select correspondence with a specific arity between source and target:\n 11 = unique source and target,\n N1 = unique target for a source,\n 1N = unique source for a target"@en ;
