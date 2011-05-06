@@ -1,6 +1,6 @@
 :- module(ag_map,
 	  [
-	   materialize_mapping_graph/2, % +Id, +Options
+	   materialize_mapping_graph/2, % +List, +Options
 	   merge_provenance/2,     % +List, -Merged
 	   compare_align/4,        % +Type, ?Order, A1, A2
 	   map_iterator/1,	   % -Map
