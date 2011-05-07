@@ -27,7 +27,7 @@
 	line-height: 1.4em;
 }
 #controls .module-list .yui3-accordion-item {
-	border-top: 1px solid #808090;
+	border-top: 1px dotted #808080;
 	border-bottom: 0;
 }
 #controls .yui3-accordion-item-active .yui3-accordion-item-trigger {
