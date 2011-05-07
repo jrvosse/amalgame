@@ -61,6 +61,9 @@ YUI.add('builder', function(Y) {
 			this.infobox.after("labelChange", this._onLabelChange, this);
 			this.infobox.after("deleteNode", this._onDelete, this);
 			
+			this.after('nodesChange', function(o) {
+				this.controls.set("nodes", o.newVal);
+			}, this);
 			// Let's get some stuff
 			this._fetchGraph();
 		},
