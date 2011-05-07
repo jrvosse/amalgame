@@ -16,8 +16,9 @@
 :- use_module(library(ag_modules/arity_select)).
 :- use_module(library(ag_modules/best_numeric)).
 
-% Vocubalry filters/selecters
+% Vocabulary filters/selecters
 :- use_module(library(ag_modules/voc_exclude)).
+:- use_module(library(ag_modules/type_select)).
 
 % Mergers
 :- use_module(library(ag_modules/map_merger)).

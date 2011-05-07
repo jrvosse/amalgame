@@ -49,7 +49,12 @@ amalgame:MapMerger
     rdfs:subClassOf amalgame:Merger .
 
 amalgame:VocExclude
-    rdfs:label "vocabulary excluder"@en ;
-    skos:definition "Exclude a sources or targets from a given mapping from being mapped in a subsequent step."@en ;
+    rdfs:label "subtract mappings"@en ;
+    skos:definition "Subtract from a vocabulary the sources or targets from a given mapping to create a vocabulary with the unmapped concepts."@en ;
     rdfs:subClassOf amalgame:Subtracter ;
+    rdfs:subClassOf amalgame:VocabSelecter .
+
+amalgame:TypeSelect
+    rdfs:label "type"@en ;
+    skos:definition "Select from a vocabulary the concepts of a specific type."@en ;
     rdfs:subClassOf amalgame:VocabSelecter .
