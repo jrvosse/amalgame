@@ -31,11 +31,15 @@ YUI.add('controls', function(Y) {
 			var instance = this,
 				content = this.get("srcNode");
 			
-			// The controls are accordion nodes
-			Y.all(".yui3-accordion").plug(Y.Plugin.NodeAccordion, { 
-				//anim: true, 
-				//speed:0.1,
-				//multiple:false
+			// the control sets can be toggled
+			Y.all(".control-set .hd").on("click", function(e) {
+				console.log(e);
+				e.currentTarget.get("parentNode").toggleClass("active");
+			});
+			
+			// The list of amalgame modules make an accordion
+			Y.all(".module-list").plug(Y.Plugin.NodeAccordion, { 
+				multiple:false
 			});
 
 			NODE_CONTROLS.each( function(node) {

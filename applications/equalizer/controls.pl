@@ -11,26 +11,44 @@ html_controls -->
 	{ amalgame_modules_of_type(amalgame:'Selecter', Selecters),
 	  amalgame_modules_of_type(amalgame:'Matcher', Matchers)
  	},
-	html([div([id(info), class('control-set')],
-		  \html_info_control),
-	      div([id(select), class('control-set')],
-		  \html_select_control(Selecters)),
-	      div([id(match), class('control-set')],
-		  \html_match_control(Matchers))
+	html([\html_control_set(true,
+				'Current node',
+				\html_info_control),
+	      \html_control_set(false,
+				'Selecters',
+				\html_select_control(Selecters)),
+	      \html_control_set(false,
+				'Matchers',
+				\html_match_control(Matchers))
 	     ]).
 
+html_control_set(Active, Header, Body) -->
+        { active_class(Active, Class)
+	},
+	html(div([class('control-set '+Class)],
+		 [ div(class('hd'),
+		       a([href('javascript:void(0)'),
+			  class('trigger')],
+			 Header)),
+		   div(class('bd'),
+		       Body)
+		 ])).
+
+active_class(true, active).
+active_class(false, '').
+
 html_info_control -->
-	html([ div(class(hd), 'Current node'),
-	       div(class('bd hidden'),
-		   [ div([id(details), class(c)],
-			 \html_node_props),
-		     div([id(properties), class(c)],
-			  [])
-		   ]),
-	       div([class('empty c')],
-		   ['select a node in the graph']),
-	       div([class('loading c hidden')], [])
-	     ]).
+	html(div(id(info),
+		 [div(class('bd hidden'),
+		      [ div([id(details), class(c)],
+			    \html_node_props),
+			div([id(properties), class(c)],
+			    [])
+		      ]),
+		  div([class('empty c')],
+		      ['select a node in the graph']),
+		  div([class('loading c hidden')], [])
+		 ])).
 
 html_node_props -->
 	html(table([tr([td(id(type), []),
@@ -44,24 +62,20 @@ html_node_props -->
 		   ])).
 
 html_select_control(Modules) -->
-	html([div(class(hd), 'Selecters'),
-	      div(class('bd'),
-		  [ div(class(c),
-			ul([li('select a set of correspondences from a mapping'),
-			    li('select a set of concepts from a vocabulary')
-			   ])),
-		    \html_modules(Modules)
-		  ])
-	     ]).
+	html(div(id(select),
+		 [ div(class(c),
+		       ul([li('select a set of correspondences from a mapping'),
+			   li('select a set of concepts from a vocabulary')
+			  ])),
+		   \html_modules(Modules)
+		 ])).
 
 html_match_control(Modules) -->
-	html([div(class(hd), 'Matchers'),
-	      div(class(bd),
-		  [ div(class(c),
-			\html_align_input),
-		    \html_modules(Modules)
-		  ])
-	     ]).
+	html(div(id(match),
+		 [ div(class(c),
+		       \html_align_input),
+		   \html_modules(Modules)
+		 ])).
 
 html_align_input -->
 	html([h4('Choose input'),
