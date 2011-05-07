@@ -9,8 +9,8 @@
 
 html_controls -->
 	{ amalgame_modules_of_type(amalgame:'Selecter', Selecters),
-	  amalgame_modules_of_type(amalgame:'Matcher', Matchers)
- 	},
+ 	  amalgame_modules_of_type(amalgame:'Matcher', Matchers)
+  	},
 	html([\html_control_set(true,
 				'Current node',
 				\html_info_control),
@@ -121,25 +121,15 @@ html_modules(Modules) -->
 html_module_items([]) --> !.
 html_module_items([[URI,Module]|Ms]) -->
 	{  amalgame_module_parameters(Module, Params),
-	   module_css_class(URI, CssClass)
+	   module_input_type(URI, InputType),
+	   module_special_type(URI, SpecialType)
 	},
-	html_accordion_item('control '+CssClass,
+	html_accordion_item('control '+SpecialType+' '+InputType,
 			    \module_label(URI),
 			    [ \module_desc(URI),
 			      \module_form(URI, Params)
 			    ]),
  	html_module_items(Ms).
-
-module_css_class(M, mapping) :-
-	rdfs_subclass_of(M, amalgame:'MappingSelecter'),
-	!.
-module_css_class(M, vocab) :-
-	rdfs_subclass_of(M, amalgame:'VocabSelecter'),
-	!.
-module_css_class(M, match) :-
-	rdfs_subclass_of(M, amalgame:'Matcher'),
-	!.
-module_css_class(_, '').
 
 module_form(URI, Params) -->
 	html(form([input([type(hidden), name(process), value(URI)]),
@@ -231,3 +221,29 @@ oneof([H|T], Value) -->
 	),
 	oneof(T, Value).
 
+
+%%	module_input_type(+ModuleURI, -InputType)
+%
+%	InpuType defines for which type of input the module can be
+%	used.
+
+module_input_type(M, mapping) :-
+	rdfs_subclass_of(M, amalgame:'MappingSelecter'),
+	!.
+module_input_type(M, vocab) :-
+	rdfs_subclass_of(M, amalgame:'VocabSelecter'),
+	!.
+module_input_type(_, '').
+
+%%	module_special_type(+ModuleURI, -Type).
+%
+%	Type is set for modules that require additional javascript
+%	control in the UI.
+
+module_special_type(M, subtract) :-
+	rdfs_subclass_of(M, amalgame:'Subtracter'),
+	!.
+module_special_type(M, merger) :-
+	rdfs_subclass_of(M, amalgame:'Merger'),
+	!.
+module_special_type(_, '').

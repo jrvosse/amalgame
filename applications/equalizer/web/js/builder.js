@@ -90,7 +90,9 @@ YUI.add('builder', function(Y) {
 		
 		_initControls : function() {			
 			this.controls = new Y.Controls({
-				srcNode: NODE_CONTROLS
+				srcNode: NODE_CONTROLS,
+				selected: this.get("selected"),
+				nodes: this.get("nodes")
 			});
 		},
 		

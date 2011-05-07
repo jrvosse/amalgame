@@ -36,6 +36,10 @@ http_add_process(Request) :-
 				 [uri,
 				  optional(true),
 				  description('URI of the target')]),
+			  exclude(Excludes,
+				  [uri,
+				   zero_or_more,
+				   description('List of mappings to exclude')]),
 			  process(ProcessType,
 				  [uri,
 				   description('URI of the process class')]),
@@ -51,7 +55,8 @@ http_add_process(Request) :-
 			     assert_process(Process, ProcessType, Alignment, Params),
 			     assert_user_provenance(Process, Alignment),
 			     assert_input(Process, Alignment, Source, Target, Input),
-			     assert_output(Process, ProcessType, Alignment)))
+			     assert_output(Process, ProcessType, Alignment),
+			     assert_excludes(Excludes, Process, Alignment)))
 	),
 	js_alignment_nodes(Alignment, Nodes),
 	reply_json(json([nodes=json(Nodes)])).
@@ -64,6 +69,11 @@ assert_input(Process, Graph, Source, Target, _Input) :-
 	rdf_assert(Process, amalgame:target, Target, Graph).
 assert_input(Process, Graph, _Source, _Target, Input) :-
  	rdf_assert(Process, amalgame:input, Input, Graph).
+
+assert_excludes([], _, _).
+assert_excludes([URI|URIs], Process, Graph) :-
+	rdf_assert(Process, amalgame:exclude, URI, Graph),
+	assert_excludes(URIs, Process, Graph).
 
 assert_process(Process, Type, Graph, Params) :-
 	process_label(Type, Label),

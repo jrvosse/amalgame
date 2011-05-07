@@ -23,6 +23,9 @@ YUI.add('controls', function(Y) {
 		},
 		selected: {
 			value: null
+		},
+		nodes: {
+			value: []
 		}
 	};
 	
@@ -31,9 +34,8 @@ YUI.add('controls', function(Y) {
 			var instance = this,
 				content = this.get("srcNode");
 			
-			// the control sets can be toggled
+			// the display of the control sets can be toggled
 			Y.all(".control-set .hd").on("click", function(e) {
-				console.log(e);
 				e.currentTarget.get("parentNode").toggleClass("active");
 			});
 			
@@ -42,11 +44,10 @@ YUI.add('controls', function(Y) {
 				multiple:false
 			});
 
+			// The control all have submit button that we bind here
 			NODE_CONTROLS.each( function(node) {
 				node.one(".control-submit").on("click", this._onControlSubmit, this, node);
 			}, this);
-			
-			this._toggleControls();
 			
 			// the match control has two additional buttons
 			// to set the source and target
@@ -54,8 +55,37 @@ YUI.add('controls', function(Y) {
 			Y.on("click", this._valueSet, NODE_SOURCE_BTN, this, "source");
 	      	Y.on("click", this._valueSet, NODE_TARGET_BTN, this, "target");
 			
+			// subtract modules need additional control to allow the mappings for exclusion
+			this.after('nodesChange', this._setMappingSelecter, this);
+			this._setMappingSelecter();
+			
 			// toggle the controls when selected is changed
 			this.after('selectedChange', this._toggleControls, this);
+			this._toggleControls();
+		},
+		
+		_setMappingSelecter : function() {
+			var nodes = this.get("nodes");
+			Y.all(".subtract form").each( function(form) {
+				var selecter = form.one('.mappingselect');
+				if(!selecter) {
+					selecter = Node.create('<div class="mappingselect"></div>');
+					form.prepend(selecter);
+				}
+				selecter.setContent(this.formatMappingList(nodes));
+			}, this);
+		},
+		
+		formatMappingList : function(nodes) {
+			var HTML = "";
+			for (var uri in nodes) {
+				var m = nodes[uri];
+				if(m.type == "mapping") {
+					HTML += '<div><input type="checkbox" name="exclude" value="'+uri+'">'
+					+'<span>'+m.label+'</span></div>';
+				}
+			}
+			return HTML;
 		},
 				
 		_onControlSubmit : function(e, node) {
@@ -95,7 +125,16 @@ YUI.add('controls', function(Y) {
 			form.all("input").each(function(input) {
 				var name = input.get("name"),
 					value = input.get("value");
-				if(name&&value&&input.get("type")!=="button") {
+				if(input.get("type")=="checkbox") {
+					if(input.get("checked")) {
+						if(data[name]) {
+							data[name].push(value);
+						} else {
+							data[name] = [value];
+						}
+					}
+				}
+				else if(input.get("type")!=="button"&&name&&value) {
 					data[name] = value;
 				}
 			});
