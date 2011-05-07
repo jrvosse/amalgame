@@ -246,4 +246,7 @@ module_special_type(M, subtract) :-
 module_special_type(M, merger) :-
 	rdfs_subclass_of(M, amalgame:'Merger'),
 	!.
+module_special_type(M, match) :-
+	rdfs_subclass_of(M, amalgame:'Matcher'),
+	!.
 module_special_type(_, '').

@@ -19,7 +19,8 @@
 :- http_handler(amalgame(date/deletenode), http_delete_node, []).
 
 :- rdf_meta
-	new_mapping_output(r,r,+).
+	new_output(r, r,r,r),
+	output_type(r,r).
 
 http_add_process(Request) :-
 	authorized(write(default, _)),
@@ -50,7 +51,7 @@ http_add_process(Request) :-
 			[form_data(Params0)]),
 	(   ((nonvar(Source), nonvar(Target)) ; nonvar(Input))
 	->  rdf_bnode(Process),
-	    subtract(Params0, [input=_,source=_,target=_,process=_], Params),
+	    subtract(Params0, [input=_,source=_,target=_,process=_,alignment=_,exclude=_], Params),
 	    rdf_transaction((
 			     assert_process(Process, ProcessType, Alignment, Params),
 			     assert_user_provenance(Process, Alignment),
@@ -85,15 +86,17 @@ assert_process(Process, Type, Graph, Params) :-
 assert_output(Process, Type, Graph) :-
 	rdfs_subclass_of(Type, amalgame:'MappingSelecter'),
 	!,
-	new_mapping_output(Process, amalgame:selectedBy, Graph),
-	new_mapping_output(Process, amalgame:discardedBy, Graph),
-	new_mapping_output(Process, amalgame:undecidedBy, Graph).
-assert_output(Process, _Type, Graph) :-
-	new_mapping_output(Process, opmv:wasGeneratedBy, Graph).
+	rdf_equal(amalgame:'Mapping', OutputClass),
+	new_output(OutputClass, Process, amalgame:selectedBy, Graph),
+	new_output(OutputClass, Process, amalgame:discardedBy, Graph),
+	new_output(OutputClass, Process, amalgame:undecidedBy, Graph).
+assert_output(Process, Type, Graph) :-
+	output_type(Type, OutputClass),
+	new_output(OutputClass, Process, opmv:wasGeneratedBy, Graph).
 
-new_mapping_output(Process, P, Graph) :-
+new_output(Type, Process, P, Graph) :-
 	rdf_bnode(OutputURI),
-	rdf_assert(OutputURI, rdf:type, amalgame:'Mapping', Graph),
+	rdf_assert(OutputURI, rdf:type, Type, Graph),
         rdf_assert(OutputURI, P, Process, Graph),
 	(   setting(precompute_mapping, true)
 	->  debug(eq, 'precompute ~w', [OutputURI]),
@@ -101,6 +104,12 @@ new_mapping_output(Process, P, Graph) :-
 			  [ detached(true) ])
 	;   true
 	).
+
+output_type(ProcessType, skos:'ConceptScheme') :-
+	rdfs_subclass_of(ProcessType, amalgame:'VocabSelecter'),
+	!.
+output_type(_ProcessType, amalgame:'Mapping').
+
 
 process_label(P, Lit) :-
 	(   rdf_label(P, L)

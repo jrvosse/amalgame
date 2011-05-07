@@ -58,6 +58,11 @@
 .control-buttons {
 	text-align: right;
 }
+.mappingselect {
+	border-bottom: 1px solid #CCCCCC;
+	padding-bottom: 5px;
+    margin-bottom: 5px;
+}
 
 /* control set */
 .control-set {
