@@ -1,5 +1,7 @@
 :- module(eq_controls,
-	  [ html_controls//0
+	  [ html_controls//0,
+	    module_input_type/2,
+	    module_special_type/2
 	  ]).
 
 :- use_module(library(semweb/rdf_db)).
