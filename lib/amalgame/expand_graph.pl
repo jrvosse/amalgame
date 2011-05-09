@@ -2,7 +2,8 @@
 	  [ expand_mapping/2,
 	    expand_vocab/2,
  	    flush_expand_cache/0,
-	    flush_expand_cache/1     % +Id
+	    flush_expand_cache/1,     % +Id
+	    process_options/3
 	  ]).
 
 :- use_module(library(semweb/rdf_db)).
