@@ -198,13 +198,21 @@ amalgame_info(_URL, []).
 amalgame_provenance(R, Provenance) :-
 	findall(Key-Value, ag_prov(R, Key, Value), Provenance).
 
-amalgame_form(Process, eq_controls:module_form(Process,Params)) :-
+amalgame_form(Process, Form) :-
 	rdfs_individual_of(Process, amalgame:'Process'),
 	rdf(Process, rdf:type, Type),
 	amalgame_module_id(Type, Module),
 	amalgame_module_parameters(Module, DefaultParams),
 	process_options(Process, Module, CurrentValues),
-	override_options(DefaultParams, CurrentValues, Params).
+	override_options(DefaultParams, CurrentValues, Params),
+	module_input_type(URI, InputType),
+	module_special_type(URI, SpecialType),
+%	Form =eq_controls:module_form(URI, Params).
+	Form =	eq_controls:html_accordion_item('control '+ SpecialType+' '+InputType,
+			    eq_controls: \module_label(URI),
+			    [ eq_controls: \module_desc(URI),
+			      eq_controls: \module_form(URI, Params)
+			    ]).
 
 amalgame_form(_, html(div('no form available'))).
 
