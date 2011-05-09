@@ -231,12 +231,12 @@ ag_prov(Graph, contributors, Vs) :-
 	Vs0 \== [],
 	!,
 	sort(Vs0, Vs).
-ag_prov(Process, parameters, set(Params)) :-
-	rdfs_individual_of(Process, opmv:'Process'),
-	!,
-	rdf(Process, amalgame:parameters, literal(SearchString)),
-	concat_atom(Ps, '&', SearchString),
-	maplist(param_to_prov, Ps, Params).
+%ag_prov(Process, parameters, set(Params)) :-
+%	rdfs_individual_of(Process, opmv:'Process'),
+%	!,
+%	rdf(Process, amalgame:parameters, literal(SearchString)),
+%	concat_atom(Ps, '&', SearchString),
+%	maplist(param_to_prov, Ps, Params).
 
 param_to_prov(P, Key-Value) :-
  	concat_atom([Key,EncValue], '=', P),
