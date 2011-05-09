@@ -7,9 +7,12 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_label)).
+:- use_module(library(amalgame/amalgame_modules)).
 :- use_module(library(amalgame/expand_graph)).
 :- use_module(library(amalgame/vocabulary)).
 :- use_module(cliopatria(components/label)).
+
+:- use_module(controls).
 
 % http handlers for this applications
 
@@ -46,9 +49,12 @@ http_eq_info(Request) :-
  		       ]),
 	amalgame_provenance(URL, Prov),
 	amalgame_info(URL, Stats),
-	append(Prov, Stats, Info),
+	amalgame_form(URL, FormTerm),
+	append([Prov, Stats], Info),
+	phrase(html_table(Info), Table),
+	phrase(FormTerm, Form),
+	append([Table, Form], HTML),
 	html_current_option(content_type(Type)),
-	phrase(html_table(Info), HTML),
 	format('Content-type: ~w~n~n', [Type]),
 	print_html(HTML).
 
@@ -191,6 +197,24 @@ amalgame_info(_URL, []).
 
 amalgame_provenance(R, Provenance) :-
 	findall(Key-Value, ag_prov(R, Key, Value), Provenance).
+
+amalgame_form(Process, eq_controls:module_form(Process,Params)) :-
+	rdfs_individual_of(Process, amalgame:'Process'),
+	rdf(Process, rdf:type, Type),
+	amalgame_module_id(Type, Module),
+	amalgame_module_parameters(Module, DefaultParams),
+	process_options(Process, Module, CurrentValues),
+	override_options(DefaultParams, CurrentValues, Params).
+
+amalgame_form(_, html(div('no form available'))).
+
+override_options([], _, []).
+override_options([H|T], Current, [V|Results]) :-
+	override_options(T, Current, Results),
+	H=parameter(Id, Type, Default, Desc),
+	V=parameter(Id, Type, Value,   Desc),
+	Opt =.. [Id, Value],
+	option(Opt, Current, Default).
 
 ag_prov(R, 'created by', V) :-
 	rdf(R, dc:creator, V).
