@@ -62,6 +62,8 @@
 	border-bottom: 1px solid #CCCCCC;
 	padding-bottom: 5px;
     margin-bottom: 5px;
+	max-height: 150px;
+    overflow: auto;
 }
 
 /* control set */
