@@ -31,6 +31,7 @@
 
 expand_mapping(Id, Mapping) :-
 	rdf_has(Id, opmv:wasGeneratedBy, Process, OutputType),
+	!,
 	with_mutex(Id, expand_process(Process, Result)),
     	select_result_mapping(Result, OutputType, Mapping),
 	length(Mapping, Count),
@@ -163,7 +164,7 @@ select_result_mapping(select(Selected, Discarded, Undecided), OutputType, Mappin
 	->  Mapping = Selected
 	;   rdf_equal(amalgame:discardedBy, OutputType)
 	->  Mapping = Discarded
-	;   rdf_equal(amalgame:untouchedBy, OutputType)
+	;   rdf_equal(amalgame:undecidedBy, OutputType)
 	->  Mapping = Undecided
 	;   throw(error(existence_error(mapping_selector, OutputType), _))
 	).

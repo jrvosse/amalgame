@@ -67,7 +67,7 @@ amalgame:discardedBy
 	rdfs:range opmv:Process ;
 	rdfs:subPropertyOf opmv:wasGeneratedBy.
 
-amalgame:untouchedBy
+amalgame:undecidedBy
 	rdfs:domain  amalgame:Alignment ;
 	rdfs:range opmv:Process ;
 	rdfs:subPropertyOf opmv:wasGeneratedBy.
