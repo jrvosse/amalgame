@@ -23,10 +23,14 @@ amalgame_module(amalgame:'BestNumeric').
 selecter(AlignmentGraph, Sel, Disc, Und, Options) :-
 	option(disamb(SourceOrTarget), Options, source),
 	(   SourceOrTarget = target
-	->  predsort(ag_map:compare_align(sourceplus), AlignmentGraph, SortedAlignmentGraph)
-	;   predsort(ag_map:compare_align(targetplus), AlignmentGraph, SortedAlignmentGraph)
-	),
-	partition_(SourceOrTarget, SortedAlignmentGraph, Sel, Disc, Und).
+	->  partition_(SourceOrTarget, SortedAlignmentGraph, Sel, Disc, Und)
+	;   predsort(ag_map:compare_align(targetplus), AlignmentGraph, SortedAlignmentGraph),
+	    partition_(SourceOrTarget, SortedAlignmentGraph, Sel0, Disc0, Und0),
+	    predsort(ag_map:compare_align(sourceplus), Sel0,  Sel),
+	    predsort(ag_map:compare_align(sourceplus), Disc0, Disc),
+	    predsort(ag_map:compare_align(sourceplus), Und0,  Und)
+	).
+
 
 partition_(_, [], [], [], []) :- !.
 partition_(SourceOrTarget, [align(S,T,P)|As], Sel, Dis, Und) :-
