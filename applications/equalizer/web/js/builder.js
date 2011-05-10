@@ -72,7 +72,7 @@ YUI.add('builder', function(Y) {
 			var DS = new Y.DataSource.IO({
 				source: this.get("paths").nodeinfo
 			})
-			.plug({fn:Y.Plugin.DataSourceCache, cfg:{max:10}});
+			//.plug({fn:Y.Plugin.DataSourceCache, cfg:{max:10}});
 			this.opmviz = new Y.OPMViz({
 				datasource: DS
 			}).render(NODE_OPM);
@@ -84,7 +84,7 @@ YUI.add('builder', function(Y) {
 			var DS = new Y.DataSource.IO({
 				source: this.get("paths").info
 			})
-			.plug({fn:Y.Plugin.DataSourceCache, cfg:{max:10}});
+			//.plug({fn:Y.Plugin.DataSourceCache, cfg:{max:10}});
 			this.infobox = new Y.InfoBox({
 				srcNode: NODE_INFO,
 				datasource: DS
