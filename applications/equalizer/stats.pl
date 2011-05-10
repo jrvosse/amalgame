@@ -205,14 +205,7 @@ amalgame_form(Process, Form) :-
 	amalgame_module_parameters(Module, DefaultParams),
 	process_options(Process, Module, CurrentValues),
 	override_options(DefaultParams, CurrentValues, Params),
-	module_input_type(URI, InputType),
-	module_special_type(URI, SpecialType),
-%	Form =eq_controls:module_form(URI, Params).
-	Form =	eq_controls:html_accordion_item('control '+ SpecialType+' '+InputType,
-			    eq_controls: \module_label(URI),
-			    [ eq_controls: \module_desc(URI),
-			      eq_controls: \module_form(URI, Params)
-			    ]).
+	Form =	eq_controls:html_parameter_form(Params).
 
 amalgame_form(_, html(div('no form available'))).
 
