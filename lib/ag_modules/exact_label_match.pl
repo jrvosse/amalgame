@@ -72,8 +72,8 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 	),
 
 	(   CaseSensitive
-	->  CaseString=cs, SearchTarget=literal(lang(TargetLang, TargetLabel))
-	;   CaseString=ci, SearchTarget=literal(exact(SourceLabel), lang(TargetLang, TargetLabel))
+	->  SearchTarget=literal(lang(TargetLang, TargetLabel))
+	;   SearchTarget=literal(exact(SourceLabel), lang(TargetLang, TargetLabel))
 	),
 
         % If we cannot match across languages, set target language to source language
@@ -82,7 +82,7 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 	;   true
 	),
 
-	Prov = [method(exact_label/CaseString),
+	Prov = [method(exact_label),
 		graph([rdf(Source, SourceProp, literal(lang(SourceLang, SourceLabel))),
 		       rdf(Target, TargetProp, literal(lang(TargetLang, TargetLabel)))])
 	       ],
