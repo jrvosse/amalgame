@@ -41,26 +41,58 @@ http_add_process(Request) :-
 				  [uri,
 				   zero_or_more,
 				   description('List of mappings to exclude')]),
-			  process(ProcessType,
+			  process(Process,
 				  [uri,
-				   description('URI of the process class')]),
+				   description('URI of the process')]),
 			  alignment(Alignment,
 				    [uri,
-				     description('URI of the alignment graph to which the process is added')])
+				     description('URI of the alignment graph to which the process is added')]),
+			  update(Update,
+				 [boolean, default(false),
+				  descrption('When set to true process is updated with new parameters')])
 			],
 			[form_data(Params0)]),
-	(   ((nonvar(Source), nonvar(Target)) ; nonvar(Input))
-	->  rdf_bnode(Process),
-	    subtract(Params0, [input=_,source=_,target=_,process=_,alignment=_,exclude=_], Params),
-	    rdf_transaction((
-			     assert_process(Process, ProcessType, Alignment, Params),
-			     assert_user_provenance(Process, Alignment),
-			     assert_input(Process, Alignment, Source, Target, Input),
-			     assert_output(Process, ProcessType, Alignment),
-			     assert_excludes(Excludes, Process, Alignment)))
+	subtract(Params0, [input=_,source=_,target=_,process=_,alignment=_,exclude=_,update=_], Params),
+	(   Update == true
+	->  update_process(Process, Alignment, Params)
+	;   ((nonvar(Source), nonvar(Target)) ; nonvar(Input))
+	->  new_process(Process, Alignment, Source, Target, Input, Excludes, Params)
+	;   true
 	),
-	js_alignment_nodes(Alignment, Nodes),
+ 	js_alignment_nodes(Alignment, Nodes),
 	reply_json(json([nodes=json(Nodes)])).
+
+
+%%	update_process(+Process, +Alignment, +Params)
+%
+%	Update the parameters of Process.
+%
+%	@TBD only removed cached results that depend on Process.
+
+update_process(Process, Graph, Params) :-
+	clean_dependent_cache(Process),
+	uri_query_components(Search, Params),
+	rdf_transaction((rdf_retractall(Process, amalgame:parameters, _),
+			 rdf_assert(Process, amalgame:parameters, literal(Search), Graph)
+			)).
+
+clean_dependent_cache(_Process) :-
+	flush_expand_cache.
+
+%%	new_process(Process, +Alignment, ?Source, ?Target, ?Input,
+%%	?Excludes, +Params)
+%
+%	Create new amalgame process.
+
+new_process(Process, Alignment, Source, Target, Input, Excludes, Params) :-
+	rdf_bnode(URI),
+	rdf_transaction((
+			 assert_process(URI, Process, Alignment, Params),
+			 assert_user_provenance(URI, Alignment),
+			 assert_input(URI, Alignment, Source, Target, Input),
+			 assert_output(URI, Process, Alignment),
+			 assert_excludes(Excludes, URI, Alignment)
+			)).
 
 assert_input(Process, Graph, Source, Target, _Input) :-
  	nonvar(Source),

@@ -1,5 +1,6 @@
 :- module(eq_controls,
 	  [ html_controls//0,
+	    html_parameter_form//1,
 	    module_input_type/2,
 	    module_special_type/2
 	  ]).
@@ -44,7 +45,8 @@ html_info_control -->
 		 [div(class('bd hidden'),
 		      [ div([id(details), class(c)],
 			    \html_node_props),
- 			form([div([id(properties), class(c)], []),
+ 			form(class('control c'),
+			     [div([id(properties)], []),
 			      div(class('control-buttons'),
 				  input([type(button), class('control-submit'), value('Go')]))
 			     ])

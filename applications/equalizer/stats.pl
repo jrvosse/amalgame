@@ -27,7 +27,7 @@
 http_eq_nodeinfo(Request) :-
  	http_parameters(Request,
 			[ url(URL,
-			      [description('URL of mapping graph')])
+			      [description('URL of a node (mapping,vocab,process)')])
  		       ]),
  	html_current_option(content_type(Type)),
 	format('Content-type: ~w~n~n', [Type]),
@@ -45,21 +45,26 @@ http_eq_nodeinfo(Request) :-
 http_eq_info(Request) :-
  	http_parameters(Request,
 			[ url(URL,
-			      [description('URL of mapping graph')])
+			      [description('URL of a node (mapping,vocab,process)')])
  		       ]),
 	amalgame_provenance(URL, Prov),
 	amalgame_info(URL, Stats),
-	amalgame_form(URL, FormTerm),
-	append([Prov, Stats], Info),
-	phrase(html_table(Info), Table),
-	phrase(FormTerm, Form),
-	append([Table, Form], HTML),
+	amalgame_parameters(URL, Params),
+ 	phrase(html([\html_prop_table(Prov),
+		     \html_prop_table(Stats),
+		     \html_form(Params, URL)
+		    ]),
+	       HTML),
 	html_current_option(content_type(Type)),
 	format('Content-type: ~w~n~n', [Type]),
 	print_html(HTML).
 
-html_table(Stats) -->
- 	html(table(tbody(\html_rows(Stats)))).
+%%	html_prop_table(+Pairs)
+%
+%	Emit an HTML table with key-value pairs.
+
+html_prop_table(Pairs) -->
+ 	html(table(tbody(\html_rows(Pairs)))).
 
 html_rows([]) --> !.
 html_rows([Key-Value|Ss]) -->
@@ -91,6 +96,18 @@ html_cell_list([V|Vs]) -->
 	html_cell(V),
 	html(', '),
 	html_cell_list(Vs).
+
+
+%%	html_form(+Parameters, +URI)
+%
+%	Emit HTML with parameter form.
+
+html_form([], _) --> !.
+html_form(Params, URI) -->
+	html(table([input([type(hidden), name(process), value(URI)]),
+		    input([type(hidden), name(update), value(true)]),
+		    \html_parameter_form(Params)
+		   ])).
 
 
 %%	mapping_counts(+MappingURI, -MappingN, -SourceN, -TargetN)
@@ -198,25 +215,6 @@ amalgame_info(_URL, []).
 amalgame_provenance(R, Provenance) :-
 	findall(Key-Value, ag_prov(R, Key, Value), Provenance).
 
-amalgame_form(Process, Form) :-
-	rdfs_individual_of(Process, amalgame:'Process'),
-	rdf(Process, rdf:type, Type),
-	amalgame_module_id(Type, Module),
-	amalgame_module_parameters(Module, DefaultParams),
-	process_options(Process, Module, CurrentValues),
-	override_options(DefaultParams, CurrentValues, Params),
-	Form =	html(table(eq_controls: \html_parameter_form(Params))).
-
-amalgame_form(_, html(div('no form available'))).
-
-override_options([], _, []).
-override_options([H|T], Current, [V|Results]) :-
-	override_options(T, Current, Results),
-	H=parameter(Id, Type, Default, Desc),
-	V=parameter(Id, Type, Value,   Desc),
-	Opt =.. [Id, Value],
-	option(Opt, Current, Default).
-
 ag_prov(R, 'created by', V) :-
 	rdf(R, dc:creator, V).
 ag_prov(R, 'created at', V) :-
@@ -232,23 +230,6 @@ ag_prov(Graph, contributors, Vs) :-
 	Vs0 \== [],
 	!,
 	sort(Vs0, Vs).
-%ag_prov(Process, parameters, set(Params)) :-
-%	rdfs_individual_of(Process, opmv:'Process'),
-%	!,
-%	rdf(Process, amalgame:parameters, literal(SearchString)),
-%	concat_atom(Ps, '&', SearchString),
-%	maplist(param_to_prov, Ps, Params).
-
-param_to_prov(P, Key-Value) :-
- 	concat_atom([Key,EncValue], '=', P),
-	www_form_encode(Value0, EncValue),
-	param_value(Value0, Value).
-
-param_value(URI, Short) :-
-	rdf_global_id(NS:Local, URI),
-	!,
-	concat_atom([NS,Local],':',Short).
-param_value(V, V).
 
 /*ag_prov(Mapping, Key, Value) :-
 	rdfs_individual_of(Mapping, amalgame:'Mapping'),
@@ -256,6 +237,32 @@ param_value(V, V).
 	rdf_has(Mapping, opmv:wasGeneratedBy, Process),
 	ag_prov(Process, Key, Value).
 */
+
+%%      html_process_form(+Process)
+%
+%	Emit HTML with the parameters of a process.
+
+%%	amalgame_parameters(+URI, -Parmas)
+%
+%	Params is a list of parameters for URI.
+
+amalgame_parameters(Process, Params) :-
+	rdfs_individual_of(Process, amalgame:'Process'),
+	!,
+	rdf(Process, rdf:type, Type),
+	amalgame_module_id(Type, Module),
+	amalgame_module_parameters(Module, DefaultParams),
+	process_options(Process, Module, CurrentValues),
+	override_options(DefaultParams, CurrentValues, Params).
+amalgame_parameters(_, []).
+
+override_options([], _, []).
+override_options([H|T], Current, [V|Results]) :-
+	override_options(T, Current, Results),
+	H=parameter(Id, Type, Default, Desc),
+	V=parameter(Id, Type, Value,   Desc),
+	Opt =.. [Id, Value],
+	option(Opt, Current, Default).
 
 align_source(align(S,_,_), S).
 align_target(align(_,T,_), T).

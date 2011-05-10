@@ -95,7 +95,7 @@ YUI.add('controls', function(Y) {
 				target = NODE_TARGET.get("value"),
 				selected = this.get("selected"),
 				data = this._getFormData(node);
-
+ 
 			// The input is selected base on the type of the control
 			// which is stored as a CSS class
 			if(node.hasClass("match")) {
