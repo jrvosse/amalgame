@@ -57,14 +57,12 @@ match(align(S, T, Prov0), align(S, T, [Prov|Prov0]), Options) :-
 	),
 	option(steps(MaxSteps), Options),
 
-	ancestor(S, MaxSteps, AncS, R1, Steps),
-	ancestor(T, MaxSteps, AncT, R2, Steps),
-	has_map([AncS, AncT],_, O, Graph),
-	memberchk(relation(R), O),
-	memberchk(provenance(P), O),
-	rdf_equal(PM, amalgame:ancestor_match),
+	ancestor(S, MaxSteps, AncS, R1, _Steps1),
+	ancestor(T, MaxSteps, AncT, R2, _Steps2),
+	has_map([AncS, AncT],_,O, Graph),
+	memberchk(relation(AncMapRel), O),
 	Prov = [method(ancestor_match),
-		graph([R1,R2,rdf(P,PM,R), rdf(P,amalgame:steps, literal(Steps))])
+		graph([R1,R2, rdf(AncS, AncMapRel, AncT)])
 	       ].
 
 ancestor(R, MaxSteps, Parent, rdf_reachable(R, Prop, Parent), Steps) :-
