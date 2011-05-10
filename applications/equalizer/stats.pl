@@ -205,7 +205,7 @@ amalgame_form(Process, Form) :-
 	amalgame_module_parameters(Module, DefaultParams),
 	process_options(Process, Module, CurrentValues),
 	override_options(DefaultParams, CurrentValues, Params),
-	Form =	eq_controls:html_parameter_form(Params).
+	Form =	html(table(eq_controls: \html_parameter_form(Params))).
 
 amalgame_form(_, html(div('no form available'))).
 
