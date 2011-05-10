@@ -55,14 +55,12 @@ match(align(S, T, Prov0), align(S, T, [Prov|Prov0]), Options) :-
 	;   Graph = _
 	),
 	option(steps(MaxSteps), Options),
-	descendent(S, MaxSteps, DescS, R1, Steps),
-	descendent(T, MaxSteps, DescT, R2, Steps),
+	descendent(S, MaxSteps, DescS, R1, _Steps1),
+	descendent(T, MaxSteps, DescT, R2, _Steps2),
 	has_map([DescS, DescT],_, O, Graph),
 	memberchk(relation(R), O),
-	memberchk(provenance(P), O),
-	rdf_equal(PM, amalgame:descendent_match),
 	Prov = [method(descendent_match),
-		graph([R1,R2,rdf(P,PM,R),rdf(P,amalgame:steps, literal(Steps))])
+		graph([R1,R2,rdf(DescS, R, DescT)])
 	       ].
 
 descendent(R, MaxSteps, Child, rdf_reachable(R, Prop, Child), Steps) :-
