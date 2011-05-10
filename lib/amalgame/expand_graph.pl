@@ -48,10 +48,7 @@ expand_vocab(Id, Vocab) :-
 	rdf_has(Id, opmv:wasGeneratedBy, Process),
 	!,
  	expand_process(Process, Vocab).
-expand_vocab(Vocab, Vocab) :-
-	rdf(Vocab, rdf:type, skos:'ConceptScheme'),
-	!.
-
+expand_vocab(Vocab, Vocab).
 
 %%	expand_process(+Process, -Result)
 %

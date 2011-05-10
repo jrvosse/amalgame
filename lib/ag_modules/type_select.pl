@@ -14,5 +14,5 @@ parameter(class, atom, '',
 % a bit naive at the moment: we simply change the query that should be
 % done.
 
-selecter(_Scheme, type(Class), Options) :-
+selecter(Scheme, and((Scheme), type(Class)), Options) :-
    	option(class(Class), Options).

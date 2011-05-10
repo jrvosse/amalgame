@@ -12,6 +12,9 @@
 %	@param VocabDef is a URI of a skos:ConceptScheme or a definition
 %	of a subset thereof.
 
+vocab_member(E, and(G1,G2)) :-
+	vocab_member(E,G1),
+	vocab_member(E,G2).
 vocab_member(E, scheme(Scheme)) :-
 	!,
 	rdf_has(E, skos:inScheme, Scheme).
