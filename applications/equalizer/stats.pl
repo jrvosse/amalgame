@@ -238,9 +238,6 @@ ag_prov(Graph, contributors, Vs) :-
 	ag_prov(Process, Key, Value).
 */
 
-%%      html_process_form(+Process)
-%
-%	Emit HTML with the parameters of a process.
 
 %%	amalgame_parameters(+URI, -Parmas)
 %
@@ -263,6 +260,8 @@ override_options([H|T], Current, [V|Results]) :-
 	V=parameter(Id, Type, Value,   Desc),
 	Opt =.. [Id, Value],
 	option(Opt, Current, Default).
+
+
 
 align_source(align(S,_,_), S).
 align_target(align(_,T,_), T).
