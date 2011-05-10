@@ -44,8 +44,10 @@ html_info_control -->
 		 [div(class('bd hidden'),
 		      [ div([id(details), class(c)],
 			    \html_node_props),
-			div([id(properties), class(c)],
-			    [])
+ 			form([div([id(properties), class(c)], []),
+			      div(class('control-buttons'),
+				  input([type(button), class('control-submit'), value('Go')]))
+			     ])
 		      ]),
 		  div([class('empty c')],
 		      ['select a node in the graph']),
