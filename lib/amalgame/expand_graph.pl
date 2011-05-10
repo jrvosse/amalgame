@@ -65,9 +65,9 @@ expand_process(Process, Result) :-
 	expand_cache(Process, Result),
 	!,
 	debug(ag_expand, 'Output of process ~p taken from cache', [Process]).
-expand_process(Process, Result) :-
-	!,
+expand_process(Process, Result) :-	!,
 	rdf(Process, rdf:type, Type),
+	!,
 	amalgame_module_id(Type, Module),
 	process_options(Process, Module, Options),
  	exec_amalgame_process(Type, Process, Module, Result, Time, Options),
@@ -115,7 +115,7 @@ exec_amalgame_process(Type, Process, Module, Mapping, Time, Options) :-
 exec_amalgame_process(Class, Process, Module, Result, Time, Options) :-
 	rdfs_subclass_of(Class, amalgame:'VocExclude'),
 	!,
-  	rdf(Process, amalgame:input, Input),
+  	once(rdf(Process, amalgame:input, Input)),
 	expand_vocab(Input, Vocab),
 	findall(S, rdf(Process, amalgame:exclude, S), Ss),
 	maplist(expand_mapping, Ss, Expanded),
@@ -125,13 +125,13 @@ exec_amalgame_process(Class, Process, Module, Result, Time, Options) :-
 	rdfs_subclass_of(Class, amalgame:'MappingSelecter'),
 	!,
 	Result = select(Selected, Discarded, Undecided),
- 	rdf(Process, amalgame:input, InputId),
+ 	once(rdf(Process, amalgame:input, InputId)),
 	expand_mapping(InputId, MappingIn),
   	timed_call(Module:selecter(MappingIn, Selected, Discarded, Undecided, Options), Time).
 exec_amalgame_process(Class, Process, Module, Result, Time, Options) :-
 	rdfs_subclass_of(Class, amalgame:'VocabSelecter'),
 	!,
-  	rdf(Process, amalgame:input, Input),
+  	once(rdf(Process, amalgame:input, Input)),
 	expand_vocab(Input, Vocab),
   	timed_call(Module:selecter(Vocab, Result, Options), Time).
 exec_amalgame_process(Class, Process, Module, Result, Time, Options) :-
