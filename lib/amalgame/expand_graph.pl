@@ -62,7 +62,7 @@ expand_process(Process, Result) :-
 	expand_cache(Process, Result),
 	!,
 	debug(ag_expand, 'Output of process ~p taken from cache', [Process]).
-expand_process(Process, Result) :-	!,
+expand_process(Process, Result) :-
 	rdf(Process, rdf:type, Type),
 	!,
 	amalgame_module_id(Type, Module),
@@ -104,8 +104,8 @@ exec_amalgame_process(Type, Process, Module, Mapping, Time, Options) :-
 	->  expand_vocab(SourceId, Source),
 	    expand_vocab(TargetId, Target),
 	    timed_call(Module:matcher(Source, Target, Mapping0, Options), Time)
-	;   rdf(Process, amalgame:input, InputId),
-	    expand_mapping(InputId, MappingIn),
+	;   rdf(Process, amalgame:input, InputId)
+	->  expand_mapping(InputId, MappingIn),
 	    timed_call(Module:filter(MappingIn, Mapping0, Options), Time)
 	),
  	merge_provenance(Mapping0, Mapping).
