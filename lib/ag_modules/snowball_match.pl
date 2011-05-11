@@ -52,7 +52,8 @@ filter([_|Cs], Mappings, Options) :-
 %	Target.
 
 matcher(Source, Target, Mappings, Options) :-
-	findall(A, align(Source, Target, A, Options), Mappings).
+	findall(A, align(Source, Target, A, Options), Mappings0),
+	sort(Mappings0, Mappings).
 
 align(Source, Target, Match, Options) :-
 	option(prefix(0), Options),
