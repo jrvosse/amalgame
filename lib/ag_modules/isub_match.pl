@@ -4,9 +4,7 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(isub)).
-
 :- use_module(library(amalgame/vocabulary)).
-
 
 :- public filter/3.
 :- public matcher/4.
@@ -56,12 +54,13 @@ filter([_|Cs], Mappings, Options) :-
 %       Target.
 
 matcher(Source, Target, Mappings, Options) :-
-        findall(M, align(Source, Target, M, Options), Mappings).
+        findall(M, align(Source, Target, M, Options), Mappings0),
+	sort(Mappings0, Mappings).
 
 align(Source, Target, Match, Options) :-
         vocab_member(S, Source),
-        match(align(S,T,[]), Match, Options),
-        vocab_member(T, Target).
+        vocab_member(T, Target),
+        match(align(S,T,[]), Match, Options).
 
 
 match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options) :-

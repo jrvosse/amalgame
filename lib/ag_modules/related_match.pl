@@ -42,12 +42,13 @@ filter([_|Cs], Mappings, Options) :-
 %	Target.
 
 matcher(Source, Target, Mappings, Options) :-
-	findall(M, align(Source, Target, M, Options), Mappings).
+	findall(M, align(Source, Target, M, Options), Mappings0),
+	sort(Mappings0, Mappings).
 
 align(Source, Target, Match, Options) :-
 	vocab_member(S, Source),
-	match(align(S,T,[]), Match, Options),
-	vocab_member(T, Target).
+	vocab_member(T, Target),
+	match(align(S,T,[]), Match, Options).
 
 
 match(align(S, T, Prov0), align(S, T, [Prov|Prov0]), Options) :-
