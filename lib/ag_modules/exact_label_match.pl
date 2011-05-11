@@ -45,11 +45,12 @@ filter([_|Cs], Mappings, Options) :-
 
 %%	matcher(+Source, +Target, -Mappings, +Options)
 %
-%	Mappings is a list of matches between instances of Source and
-%	Target.
+%	Mappings is a sorted list of matches between instances of Source
+%	and Target.
 
 matcher(Source, Target, Mappings, Options) :-
-	findall(M, align(Source, Target, M, Options), Mappings).
+	findall(M, align(Source, Target, M, Options), Mappings0),
+	sort(Mappings0, Mappings).
 
 align(Source, Target, Match, Options) :-
 	vocab_member(S, Source),
