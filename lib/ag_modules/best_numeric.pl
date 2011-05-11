@@ -21,9 +21,9 @@ amalgame_module(amalgame:'BestNumeric').
 %
 
 selecter(AlignmentGraph, Sel, Disc, Und, Options) :-
-	option(disamb(SourceOrTarget), Options, source),
+	option(type(SourceOrTarget), Options, source),
 	(   SourceOrTarget = target
-	->  partition_(SourceOrTarget, SortedAlignmentGraph, Sel, Disc, Und)
+	->  partition_(SourceOrTarget, AlignmentGraph, Sel, Disc, Und)
 	;   predsort(ag_map:compare_align(targetplus), AlignmentGraph, SortedAlignmentGraph),
 	    partition_(SourceOrTarget, SortedAlignmentGraph, Sel0, Disc0, Und0),
 	    predsort(ag_map:compare_align(sourceplus), Sel0,  Sel),
