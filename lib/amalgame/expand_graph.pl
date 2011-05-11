@@ -223,6 +223,10 @@ param_options(Type, Default, Options) :-
 %	Id has the amalgame:status amalgame:final.
 
 materialize_if_needed(Id, Mapping) :-
+	(   sort(Mapping, Mapping)
+	->  debug(ag_expand, 'Sorting of ~p is OK', [Id])
+	;   debug(ag_expand, 'ERROR: wrong sorting of ~p!', [Id])
+	),
 	(   \+ rdf_graph(Id), rdf_has(Id, amalgame:status, amalgame:final)
 	->  materialize_mapping_graph(Mapping, [graph(Id)])
 	;   true
