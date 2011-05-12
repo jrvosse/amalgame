@@ -207,10 +207,12 @@ builtin_input_item(between(L,U), Value, Name) --> !,
 		   ])).
 builtin_input_item(oneof(List), Value, Name) --> !,
 	html(select([name(Name)], \oneof(List, Value))).
-builtin_input_item(uri, Value, Name) --> !,
-	{ rdf_global_id(NS:Local, Value)
+builtin_input_item(uri, Value, Name) -->
+	{ rdf_global_id(NS:Local, Value),!
 	},
 	html(input([name(Name), size(35), value(NS+':'+Local)])).
+builtin_input_item(uri, Value, Name) -->
+	html(input([name(Name), size(35), value(Value)])).
 builtin_input_item(atom, Value, Name) --> !,
 	html(input([name(Name), size(35), value(Value)])).
 builtin_input_item(_, Value, Name) -->
