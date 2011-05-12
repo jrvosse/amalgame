@@ -8,7 +8,7 @@
 
 amalgame_module(amalgame:'TypeSelect').
 
-parameter(class, atom, '',
+parameter(class, uri, '',
 	  'rdfs:Class from which to select the concepts').
 
 % a bit naive at the moment: we simply change the query that should be
