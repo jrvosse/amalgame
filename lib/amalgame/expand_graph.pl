@@ -84,14 +84,15 @@ cache_expand_result(_, _, _).
 %	Retract all cached mappings.
 
 flush_expand_cache :-
-	forall(expand_cache(Id, _), flush_expand_cache(Id)),
 	findall(Id, rdf(Id, amalgame:status, amalgame:final), Finals),
-	forall(member(F, Finals), rdf_unload(F)).
+	forall(member(F, Finals), rdf_unload(F)),
+	forall(expand_cache(Id, _), flush_expand_cache(Id)).
+
 
 flush_expand_cache(Id) :-
-	expand_cache(Id, _),
-	rdf_unload(Id),
+	expand_cache(Id, _), % make sure Id is bounded to something in the cache
 	retractall(expand_cache(Id, _)),
+	catch(rdf_unload(Id), _, true),
 	debug(ag_expand, 'flush cache and unloading graph for ~p', [Id]).
 
 
