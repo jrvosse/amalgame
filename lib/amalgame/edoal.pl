@@ -102,7 +102,7 @@ assert_cell(C1, C2, Options) :-
 	;   rdf_assert(Graph, align:map, Cell, Graph)
 	),
 	% Disable for now, gives weird results ...
-	(   option(xxx_prov(Prov), Options)
+	(   option(prov(Prov), Options)
 	->  assert_provlist(Cell, Prov, Graph)
 	;   true
 	).
@@ -113,14 +113,13 @@ assert_provlist(Cell, [P|ProvList], Graph) :-
 	rdf_assert(Cell, amalgame:provenance, B, Graph),
 	forall(member(ProvElem, P),
 	       (   ProvElem =.. [Key, Value],
-		   debug(ag_expand, 'prov ~w ~w', [Key, Value]),
 		   assert_prov_elem(Key, Value, B, Graph)
 	       )
 	      ),
 	assert_provlist(Cell, ProvList, Graph).
 assert_provlist(Cell, _, Graph) :-
 	format('Aserting provenance failed for cell ~p in graph ~p', [Cell, Graph]),
-	halt.
+	fail.
 
 assert_prov_elem(graph, _Value, Subject, Graph) :-
 	rdf_assert(Subject, amalgame:graph, literal('tbd'), Graph).
