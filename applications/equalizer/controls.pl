@@ -76,7 +76,7 @@ html_node_props -->
 			td(input([type(text), id(label)]))
 		       ]),
 		    tr([td(comment),
-			td(textarea([rows(2), id(comment)], []))
+			td(textarea([rows(1), id(comment)], []))
 		       ]),
 		    tr([td(status),
 			td(select([id(status), autocomplete(off)],
