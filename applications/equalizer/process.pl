@@ -10,6 +10,7 @@
 :- use_module(user(user_db)).
 :- use_module(library(amalgame/expand_graph)).
 :- use_module(eq_util).
+:- use_module(stats).
 
 :- setting(precompute_mapping, boolean, true,
 	   'When true mappings are computed in the background').
@@ -77,7 +78,7 @@ update_process(Process, Graph, Params) :-
 			)).
 
 clean_dependent_cache(_Process) :-
-	flush_expand_cache.
+	flush_mapping_stats_cache.
 
 %%	new_process(Process, +Alignment, ?Source, ?Target, ?Input,
 %%	?Excludes, +Params)
