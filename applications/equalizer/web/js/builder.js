@@ -26,7 +26,7 @@ YUI.add('builder', function(Y) {
 				addprocess:'/amalgame/data/addprocess',
 				nodeinfo:'/amalgame/private/nodeinfo',
 				info:'/amalgame/private/info',
-				updatelabel:'/amalgame/data/updatelabel',
+				updatenode:'/amalgame/data/updatenode',
 				deletenode:'/amalgame/data/deletenode'
 			},
 			validator: function(val) {
@@ -58,8 +58,8 @@ YUI.add('builder', function(Y) {
 			// bind the modules together
 			this.opmviz.on("nodeSelect", this._onNodeSelect, this);
 			this.controls.on("submit", this._onControlSubmit, this);
-			this.infobox.after("labelChange", this._onLabelChange, this);
-			this.infobox.after("deleteNode", this._onDelete, this);
+			this.infobox.after("nodeChange", this._onNodeChange, this);
+			this.infobox.after("deleteNode", this._onNodeDelete, this);
 			
 			this.after('nodesChange', function(o) {
 				this.controls.set("nodes", o.newVal);
@@ -139,16 +139,13 @@ YUI.add('builder', function(Y) {
 			})
 		},
 		
-		_onLabelChange : function(o) {
+		_onNodeChange : function(o) {
 			var oSelf = this,
 				paths = this.get("paths"),
-				data = {
-					alignment:this.get("alignment"),
-					uri:o.uri,
-					label:o.newVal
-				};
+				data = o.update;
+			data.alignment = this.get("alignment");
 			
-			Y.io(paths.updatelabel, {
+			Y.io(paths.updatenode, {
 				data:data,
 				on:{success:function(e,o) {
 					oSelf.set("nodes", Y.JSON.parse(o.responseText).nodes);
@@ -157,7 +154,7 @@ YUI.add('builder', function(Y) {
 			})
 		},
 		
-		_onDelete : function(o) {
+		_onNodeDelete : function(o) {
 			var oSelf = this,
 				paths = this.get("paths"),
 				data = {

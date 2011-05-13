@@ -7,8 +7,12 @@
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
+:- use_module(library(semweb/rdf_label)).
 :- use_module(library(http/html_write)).
 :- use_module(library(amalgame/amalgame_modules)).
+
+:- rdf_meta
+	status_option(r).
 
 html_controls -->
 	{ amalgame_modules_of_type(amalgame:'Selecter', Selecters),
@@ -44,8 +48,13 @@ html_info_control -->
 	html(div(id(info),
 		 [div(class('bd hidden'),
 		      [ div([id(details), class(c)],
-			    \html_node_props),
- 			form(class('control c'),
+			    [\html_node_props,
+			     div(class('control-buttons'),
+				 [ input([type(button), id(delete), value(delete)]),
+				   input([type(button), id(update), value(update)])
+				 ])
+			    ]),
+ 			form([id(infocontent), class('control c')],
 			     [div([id(properties)], []),
 			      div(class('control-buttons'),
 				  input([type(button), class('control-submit'), value('Go')]))
@@ -57,15 +66,28 @@ html_info_control -->
 		 ])).
 
 html_node_props -->
+	{ findall(R, status_option(R), Rs)
+	},
 	html(table([tr([td(id(type), []),
-			td(id(uri), []),
-			td(input([type(button), id(delete), value(delete)]))
+			td(id(uri), [])
 		       ]),
 		    tr([td(label),
-			td(input([type(text), id(label), size(30)])),
-			td(input([type(button), id(updateLabel), value(change)]))
-		       ])
+			td(input([type(text), id(label), size(30)]))
+ 		       ]),
+		    tr([td(status),
+			td(select([id(status), autocomplete(off)],
+				 [ option(value('')),
+				   \html_options(Rs)
+				 ]))
+  		       ])
 		   ])).
+
+html_options([]) --> !.
+html_options([R|Rs]) -->
+	{ rdf_display_label(R, Label)
+	},
+	html(option(value(R), Label)),
+	html_options(Rs).
 
 html_select_control(Modules) -->
 	html(div(id(select),
@@ -258,3 +280,11 @@ module_special_type(M, match) :-
 	rdfs_subclass_of(M, amalgame:'Matcher'),
 	!.
 module_special_type(_, '').
+
+%%	status_option(-Status)
+%
+%	List of status types.
+
+status_option(amalgame:final).
+status_option(amalgame:intermediate).
+status_option(amalgame:discarded).

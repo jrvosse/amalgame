@@ -5,10 +5,11 @@ YUI.add('infobox', function(Y) {
 	
 	var NODE_PROPS = Y.one("#properties"),
 		NODE_DELETE = Y.one("#delete"),
-		NODE_CHANGE = Y.one("#updateLabel"),
+		NODE_UPDATE = Y.one("#update"),
 		NODE_TYPE = Y.one("#type"),
 		NODE_URI = Y.one("#uri"),
-		NODE_LABEL = Y.one("#label");
+		NODE_LABEL = Y.one("#label"),
+		NODE_STATUS = Y.one("#status");
 	
 	function InfoBox(config) {
 		InfoBox.superclass.constructor.apply(this, arguments);
@@ -47,28 +48,35 @@ YUI.add('infobox', function(Y) {
 			this.bd.addClass("hidden");
 						
 			NODE_DELETE.on("click", this._deleteNode, this);
-			NODE_CHANGE.on("click", this._updateLabel, this);
+			NODE_UPDATE.on("click", this._updateNode, this);
 			this.after('waitingChange', this.toggleLoading, this);
-			this.after('selectedChange', this._update, this);
+			this.after('selectedChange', this.syncUI, this);
 		},
 		
-		_update : function() {
+		syncUI : function() {
 			var instance = this,
 				selected = this.get("selected"),
-				uri = selected.uri,
-				link = selected.link ? selected.link : "",
-				label = selected ? selected.label : "",
-				type = selected ? selected.type : "",
 				datasource = this.get("datasource"),
 				content = this.get("srcNode");
 				
 			if(selected) {
+				var uri = selected.uri,
+					link = selected.link,
+					label = selected.label,
+					type = selected.type,
+					status = selected.status;
+				
 				this.emptyNode.addClass("hidden");
 				this.set("waiting", true);
 				NODE_LABEL.set("value", label);
 				NODE_TYPE.setContent(type);
 				NODE_URI.setContent('<a href="'+link+'">'+uri+'</a>');
 				
+				// there is a bug in set('selectedIndex', n)
+				// so we set index of the HTML node
+				Node.getDOMNode(NODE_STATUS).selectedIndex = NODE_STATUS.get('options')
+					.indexOf(NODE_STATUS.one("option[value="+status+"]"));
+								
 				datasource.sendRequest({
 					request:'?url='+uri,
 					callback:{success:function(o) {
@@ -82,13 +90,28 @@ YUI.add('infobox', function(Y) {
 			}
 		},
 		
-		_updateLabel : function() {
-			var oldLabel = this.get("selected").label,
-				uri = this.get("selected").uri,
-				newLabel = NODE_LABEL.get("value");
+		_updateNode : function() {
+			var sel = this.get("selected"),
+				uri = sel.uri,
+				oldLabel = sel.label,
+				newLabel = NODE_LABEL.get("value"),
+				oldStatus = sel.status,
+				newStatus = NODE_STATUS.get("options")
+					.item(NODE_STATUS.get("selectedIndex")).get("value");
+				
+			var data = {}	
 			if(newLabel!==oldLabel) {
-				this.fire("labelChange", {uri:uri, oldVal:oldLabel, newVal:newLabel});
+				data.label = newLabel;
+				Y.log('update label for '+uri+' from '+oldLabel+' to '+newLabel);	
 			}
+			if(newStatus!==oldStatus) {
+				data.status = newStatus;
+				Y.log('change status for '+uri+' from '+oldStatus+' to '+newStatus);
+			}
+			if(data) {
+				data.uri = uri;
+				this.fire("nodeChange", {update:data});
+			}			
 		},
 		
 		_deleteNode : function() {

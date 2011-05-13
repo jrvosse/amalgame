@@ -98,13 +98,11 @@ graph_resource(Graph, R) :-
 graph_resource(Graph, R) :-
 	rdf(Graph, amalgame:includes, R).
 
-node_data(R, R=json([type=Type, label=Label, link=Link])) :-
+node_data(R, R=json([type=Type, label=Label, link=Link, status=Status])) :-
 	rdf_display_label(R, Lit),
 	literal_text(Lit, Label),
-	(   node_type(R, T)
-	->  Type = T
-	;   Type = vocab
-	),
+	node_type(R, Type),
+ 	node_status(R, Status),
 	resource_link(R, Link).
 
 node_type(R, Type) :-
@@ -115,6 +113,13 @@ node_type(R, Type) :-
 	->  Type = mapping
 	;   rdfs_subclass_of(Class, opmv:'Process')
 	->  Type = process
+	;   Type = vocab
+	).
+
+node_status(R, Status) :-
+	(   rdf(R, amalgame:status, Status)
+	->  true
+	;   Status = ''
 	).
 
 
