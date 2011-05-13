@@ -60,7 +60,7 @@ http_add_process(Request) :-
 	->  new_process(Process, Alignment, Source, Target, Input, Excludes, Params)
 	;   true
 	),
- 	js_alignment_nodes(Alignment, Nodes),
+	js_alignment_nodes(Alignment, Nodes),
 	reply_json(json([nodes=json(Nodes)])).
 
 
@@ -78,7 +78,7 @@ update_process(Process, Graph, Params) :-
 			)).
 
 clean_dependent_cache(_Process) :-
-	flush_mapping_stats_cache.
+	flush_stats_cache.
 
 %%	new_process(Process, +Alignment, ?Source, ?Target, ?Input,
 %%	?Excludes, +Params)
@@ -96,13 +96,13 @@ new_process(Process, Alignment, Source, Target, Input, Excludes, Params) :-
 			)).
 
 assert_input(Process, Graph, Source, Target, _Input) :-
- 	nonvar(Source),
+	nonvar(Source),
 	nonvar(Target),
 	!,
 	rdf_assert(Process, amalgame:source, Source, Graph),
 	rdf_assert(Process, amalgame:target, Target, Graph).
 assert_input(Process, Graph, _Source, _Target, Input) :-
- 	rdf_assert(Process, amalgame:input, Input, Graph).
+	rdf_assert(Process, amalgame:input, Input, Graph).
 
 assert_excludes([], _, _).
 assert_excludes([URI|URIs], Process, Graph) :-
@@ -112,7 +112,7 @@ assert_excludes([URI|URIs], Process, Graph) :-
 assert_process(Process, Type, Graph, Params) :-
 	process_label(Type, Label),
 	uri_query_components(Search, Params),
- 	rdf_assert(Process, rdf:type, Type, Graph),
+	rdf_assert(Process, rdf:type, Type, Graph),
 	rdf_assert(Process, rdfs:label, Label, Graph),
 	rdf_assert(Process, amalgame:parameters, literal(Search), Graph).
 
@@ -167,14 +167,14 @@ http_update_node(Request) :-
 				    ]),
 			  uri(URI,
 				[uri,
- 				 description('URI of input resource')]),
+				 description('URI of input resource')]),
 			  label(Label,
 				 [optional(true), description('New label')]),
 			  status(Status,
 				 [uri, optional(true), description('New status')])
- 			]),
+			]),
 	rdf_transaction(update_node_props([label=Label, status=Status], URI, Alignment)),
-  	js_alignment_nodes(Alignment, Nodes),
+	js_alignment_nodes(Alignment, Nodes),
 	reply_json(json([nodes=json(Nodes)])).
 
 update_node_props([], _, _).
@@ -207,17 +207,17 @@ http_delete_node(Request) :-
 				    ]),
 			  uri(URI,
 				[uri,
- 				 description('URI of input resource')])
-  			]),
- 	rdf_transaction((process_retract(URI, Alignment),
+				 description('URI of input resource')])
+			]),
+	rdf_transaction((process_retract(URI, Alignment),
 			 node_retract(URI, Alignment)
 			)),
-   	js_alignment_nodes(Alignment, Nodes),
+	js_alignment_nodes(Alignment, Nodes),
 	reply_json(json([nodes=json(Nodes)])).
 
 node_retract(URI, Alignment) :-
 	rdf_retractall(URI, _, _, Alignment),
- 	forall(rdf(S,_,URI,Alignment),
+	forall(rdf(S,_,URI,Alignment),
 	       node_retract(S, Alignment)).
 
 process_retract(URI, Alignment) :-

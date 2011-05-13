@@ -1,5 +1,5 @@
 :- module(eq_stats,
-	  [ flush_mapping_stats_cache/0
+	  [ flush_stats_cache/0
 	  ]).
 
 :- use_module(library(http/http_dispatch)).
@@ -21,10 +21,10 @@
 :- http_handler(amalgame(private/info), http_eq_info, []).
 
 :- dynamic
-	mapping_stats_cache/2.
+	stats_cache/2.
 
-flush_mapping_stats_cache :-
-	retractall(mapping_stats_cache(_,_)),
+flush_stats_cache :-
+	retractall(stats_cache(_,_)),
 	flush_expand_cache.
 
 %%	http_eq_nodeinfo(+Request)
@@ -39,7 +39,7 @@ http_eq_nodeinfo(Request) :-
 	html_current_option(content_type(Type)),
 	format('Content-type: ~w~n~n', [Type]),
 	(   rdfs_individual_of(URL, amalgame:'Mapping')
-	->  mapping_counts(URL, _MN, _SN, _TN, SPerc, TPerc),
+	->  with_mutex(URL, mapping_counts(URL, _MN, _SN, _TN, SPerc, TPerc)),
 	    format('s:~w\% t:~w\%',
 		   [SPerc,TPerc])
 	;   true
@@ -124,7 +124,10 @@ html_form(Params, URI) -->
 %       @param MappingN is the number of total correspondences
 %       @param SourceN is the number of source concepts mapped
 %       @param TargetN is the number of target concepts mapped
-%
+
+mapping_counts(URL, MN, SN, TN, SPerc, TPerc) :-
+	stats_cache(URL, stats(MN, SN, TN, SPerc, TPerc)),
+	!.
 mapping_counts(URL, MN, SN, TN, SPerc, TPerc) :-
 	expand_mapping(URL, Mapping),
 	mapping_sources(URL, InputS, InputT),
@@ -140,7 +143,9 @@ mapping_counts(URL, MN, SN, TN, SPerc, TPerc) :-
 	length(Ts, TN),
 
 	rounded_perc(SourceN, SN, SPerc),
-	rounded_perc(TargetN, TN, TPerc).
+	rounded_perc(TargetN, TN, TPerc),
+	retractall(stats_cache(_,_)),
+	assert(stats_cache(URL, stats(MN, SN, TN, SPerc, TPerc))).
 
 rounded_perc(0, _, 0.0) :- !.
 rounded_perc(_, 0, 0.0) :- !.
@@ -161,9 +166,20 @@ dyn_perc_round(P0, P, N) :-
 %	Count is the number of concepts in Vocab
 
 concept_count(Vocab, Count) :-
+	stats_cache(Vocab, stats(Count)),
+	!.
+concept_count(Vocab, Count) :-
 	expand_vocab(Vocab, Scheme),
 	findall(C, vocab_member(C, Scheme), Cs),
-	length(Cs, Count).
+	length(Cs, Count),
+	retractall(stats_cache(_,_)),
+	assert(stats_cache(Vocab, stats(Count))).
+
+
+%%	mapping_sources(+MappingURI, -Source, -Target)
+%
+%	Source and Target are the recursive source and target
+%	vocabularies of Mapping.
 
 mapping_sources(URL, S, T) :-
 	rdf_has(URL, opmv:wasGeneratedBy, Process),
@@ -188,20 +204,15 @@ vocab_source(V, V).
 %	Stats of a resourcemapping
 
 amalgame_info(URL, Stats) :-
-	mapping_stats_cache(URL, Stats),
-	!.
-
-amalgame_info(URL, Stats) :-
 	rdfs_individual_of(URL, amalgame:'Mapping'),
 	!,
 	Stats = ['total mappings'-MN,
 		 'mapped source concepts'-SN,
 		 'mapped target concepts'-TN
 		],
-	mapping_counts(URL, MN, SN0, TN0, SPerc, TPerc),
+	with_mutex(URL, mapping_counts(URL, MN, SN0, TN0, SPerc, TPerc)),
 	concat_atom([SN0, ' (',SPerc,'%)'], SN),
-	concat_atom([TN0, ' (',TPerc,'%)'], TN),
-	assert(mapping_stats_cache(URL, Stats)).
+	concat_atom([TN0, ' (',TPerc,'%)'], TN).
 amalgame_info(Scheme,
 	    ['Total concepts'-Total
 	    ]) :-

@@ -1,7 +1,7 @@
 :- module(expand_graph,
 	  [ expand_mapping/2,
 	    expand_vocab/2,
- 	    flush_expand_cache/0,
+	    flush_expand_cache/0,
 	    flush_expand_cache/1,     % +Id
 	    process_options/3
 	  ]).
@@ -32,8 +32,8 @@
 expand_mapping(Id, Mapping) :-
 	rdf_has(Id, opmv:wasGeneratedBy, Process, OutputType),
 	!,
-	with_mutex(Id, expand_process(Process, Result)),
-    	select_result_mapping(Result, OutputType, Mapping),
+	with_mutex(Process, expand_process(Process, Result)),
+	select_result_mapping(Result, OutputType, Mapping),
 	length(Mapping, Count),
 	debug(ag_expand, 'Found ~w mappings for ~p', [Count, Id]),
 	materialize_if_needed(Id, Mapping).
@@ -47,7 +47,7 @@ expand_mapping(Id, Mapping) :-
 expand_vocab(Id, Vocab) :-
 	rdf_has(Id, opmv:wasGeneratedBy, Process),
 	!,
- 	expand_process(Process, Vocab).
+	with_mutex(Process, expand_process(Process, Vocab)).
 expand_vocab(Vocab, Vocab).
 
 %%	expand_process(+Process, -Result)
@@ -67,14 +67,14 @@ expand_process(Process, Result) :-
 	!,
 	amalgame_module_id(Type, Module),
 	process_options(Process, Module, Options),
- 	exec_amalgame_process(Type, Process, Module, Result, Time, Options),
+	exec_amalgame_process(Type, Process, Module, Result, Time, Options),
 	cache_expand_result(Time, Process, Result),
 	debug(ag_expand, 'Output of process ~p (~p) computed in ~ws',
 	      [Process,Type,Time]).
 
 cache_expand_result(ExecTime, Process, Result) :-
 	setting(cache_time, CacheTime),
- 	ExecTime > CacheTime,
+	ExecTime > CacheTime,
 	!,
 	assert(expand_cache(Process, Result)).
 cache_expand_result(_, _, _).
@@ -106,7 +106,7 @@ flush_expand_cache(Id) :-
 exec_amalgame_process(Type, Process, Module, Mapping, Time, Options) :-
 	rdfs_subclass_of(Type, amalgame:'Matcher'),
 	!,
- 	(   rdf(Process, amalgame:source, SourceId),
+	(   rdf(Process, amalgame:source, SourceId),
 	    rdf(Process, amalgame:target, TargetId)
 	->  expand_vocab(SourceId, Source),
 	    expand_vocab(TargetId, Target),
@@ -115,29 +115,29 @@ exec_amalgame_process(Type, Process, Module, Mapping, Time, Options) :-
 	->  expand_mapping(InputId, MappingIn),
 	    timed_call(Module:filter(MappingIn, Mapping0, Options), Time)
 	),
- 	merge_provenance(Mapping0, Mapping).
+	merge_provenance(Mapping0, Mapping).
 exec_amalgame_process(Class, Process, Module, Result, Time, Options) :-
 	rdfs_subclass_of(Class, amalgame:'VocExclude'),
 	!,
-  	once(rdf(Process, amalgame:input, Input)),
+	once(rdf(Process, amalgame:input, Input)),
 	expand_vocab(Input, Vocab),
 	findall(S, rdf(Process, amalgame:exclude, S), Ss),
 	maplist(expand_mapping, Ss, Expanded),
 	append(Expanded, Mapping),
-  	timed_call(Module:exclude(Vocab, Mapping, Result, Options), Time).
+	timed_call(Module:exclude(Vocab, Mapping, Result, Options), Time).
 exec_amalgame_process(Class, Process, Module, Result, Time, Options) :-
 	rdfs_subclass_of(Class, amalgame:'MappingSelecter'),
 	!,
 	Result = select(Selected, Discarded, Undecided),
- 	once(rdf(Process, amalgame:input, InputId)),
+	once(rdf(Process, amalgame:input, InputId)),
 	expand_mapping(InputId, MappingIn),
-  	timed_call(Module:selecter(MappingIn, Selected, Discarded, Undecided, Options), Time).
+	timed_call(Module:selecter(MappingIn, Selected, Discarded, Undecided, Options), Time).
 exec_amalgame_process(Class, Process, Module, Result, Time, Options) :-
 	rdfs_subclass_of(Class, amalgame:'VocabSelecter'),
 	!,
-  	once(rdf(Process, amalgame:input, Input)),
+	once(rdf(Process, amalgame:input, Input)),
 	expand_vocab(Input, Vocab),
-  	timed_call(Module:selecter(Vocab, Result, Options), Time).
+	timed_call(Module:selecter(Vocab, Result, Options), Time).
 exec_amalgame_process(Class, Process, Module, Result, Time, Options) :-
 	rdfs_subclass_of(Class, amalgame:'Merger'),
 	!,
@@ -183,7 +183,7 @@ select_result_mapping(Mapping, P, Mapping) :-
 
 process_options(Process, Module, Options) :-
 	rdf(Process, amalgame:parameters, literal(ParamString)),
- 	!,
+	!,
 	module_options(Module, Options, Parameters),
 	parse_url_search(ParamString, Search),
 	Request = [search(Search)] ,
