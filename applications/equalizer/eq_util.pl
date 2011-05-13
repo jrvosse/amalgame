@@ -98,19 +98,13 @@ graph_resource(Graph, R) :-
 graph_resource(Graph, R) :-
 	rdf(Graph, amalgame:includes, R).
 
-node_data(R, R=json([type=Type,
-		     label=Label,
-		     comment=Comment,
-		     link=Link,
-		     status=Status])) :-
-	rdf_display_label(R, Lit),
-	literal_text(Lit, Label),
-	node_type(R, Type),
-	node_status(R, Status),
-	node_comment(R, Comment),
-	resource_link(R, Link).
+node_data(R, R=json(Props)) :-
+	findall(Type=Value, node_prop(R, Type, Value), Props).
 
-node_type(R, Type) :-
+node_prop(R, label, Label) :-
+	rdf_display_label(R, Lit),
+	literal_text(Lit, Label).
+node_prop(R, type, Type) :-
 	rdf(R, rdf:type, Class),
 	(   rdf_equal(Class, amalgame:'Alignment')
 	->  Type = alignment
@@ -120,18 +114,13 @@ node_type(R, Type) :-
 	->  Type = process
 	;   Type = vocab
 	).
-
-node_status(R, Status) :-
-	(   rdf(R, amalgame:status, Status)
-	->  true
-	;   Status = ''
-	).
-
-node_comment(R, Comment) :-
-	(   rdf(R, rdfs:comment, Lit)
-	->  literal_text(Lit, Comment)
-	;   Comment = ''
-	).
+node_prop(R, status, Status) :-
+	rdf(R, amalgame:status, Status).
+node_prop(R, comment, Comment) :-
+	rdf(R, rdfs:comment, literal(Lit)),
+	literal_text(Lit, Comment).
+node_prop(R, link, Link) :-
+	resource_link(R, Link).
 
 %%	http:convert_parameter(+Type, +In, -URI) is semidet.
 %

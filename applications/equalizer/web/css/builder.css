@@ -72,7 +72,7 @@
 }
 #controls input,
 #controls textarea {
-	width: 100%;
+	width: 97%;
 }
 
 /* control set */
@@ -150,6 +150,6 @@
 }
 .yui3-opmviz .selected ellipse,
 .yui3-opmviz .selected polygon {
-	fill: #DBEAFF;
-	stroke-width: 2px;
+	/*fill: #DBEAFF;*/
+	stroke-width: 3px;
 }

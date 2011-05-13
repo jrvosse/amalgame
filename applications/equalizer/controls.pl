@@ -78,7 +78,8 @@ html_node_props -->
 		    tr([td(comment),
 			td(textarea([rows(1), id(comment)], []))
 		       ]),
-		    tr([td(status),
+		    tr(id(statusrow),
+		       [td(status),
 			td(select([id(status), autocomplete(off)],
 				 [ option(value('')),
 				   \html_options(Rs)

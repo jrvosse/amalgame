@@ -186,13 +186,22 @@ update_node_props([_|Ts], URI, Alignment) :-
 
 update_node_prop(label=Label, URI, Alignment) :-
 	rdf_retractall(URI, rdfs:label, _),
-	rdf_assert(URI, rdfs:label, literal(Label), Alignment).
+	(   Label == ''
+	->  true
+	;   rdf_assert(URI, rdfs:label, literal(Label), Alignment)
+	).
 update_node_prop(comment=Comment, URI, Alignment) :-
 	rdf_retractall(URI, rdfs:comment, _),
-	rdf_assert(URI, rdfs:comment, literal(Comment), Alignment).
+	(   Comment == ''
+	->  true
+	;   rdf_assert(URI, rdfs:comment, literal(Comment), Alignment)
+	).
 update_node_prop(status=Status, URI, Alignment) :-
 	rdf_retractall(URI, amalgame:status, _),
-	rdf_assert(URI, amalgame:status, Status, Alignment).
+	(   Status == ''
+	->  true
+	;   rdf_assert(URI, amalgame:status, Status, Alignment)
+	).
 
 
 %%	http_delete_node(+Request)

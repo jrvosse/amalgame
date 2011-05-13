@@ -10,6 +10,7 @@ YUI.add('infobox', function(Y) {
 		NODE_URI = Y.one("#uri"),
 		NODE_LABEL = Y.one("#label"),
 		NODE_COMMENT = Y.one("#comment"),
+		NODE_STATUS_ROW = Y.one("#statusrow");
 		NODE_STATUS = Y.one("#status");
 	
 	function InfoBox(config) {
@@ -62,10 +63,10 @@ YUI.add('infobox', function(Y) {
 				
 			if(selected) {
 				var uri = selected.uri,
-					link = selected.link,
-					label = selected.label,
-					type = selected.type,
-					comment = selected.comment,
+					link = selected.link||uri,
+					label = selected.label||uri,
+					type = selected.type||"",
+					comment = selected.comment||"",
 					status = selected.status;
 				
 				this.emptyNode.addClass("hidden");
@@ -75,10 +76,14 @@ YUI.add('infobox', function(Y) {
 				NODE_TYPE.setContent(type);
 				NODE_URI.setContent('<a href="'+link+'">'+uri+'</a>');
 				
-				// there is a bug in set('selectedIndex', n)
-				// so we set index of the HTML node
-				Node.getDOMNode(NODE_STATUS).selectedIndex = NODE_STATUS.get('options')
-					.indexOf(NODE_STATUS.one("option[value="+status+"]"));
+				// the status row is only shown for mappings
+				if(type=="mapping") {
+					NODE_STATUS_ROW.removeClass("hidden")
+					Node.getDOMNode(NODE_STATUS).selectedIndex = NODE_STATUS.get('options')
+						.indexOf(NODE_STATUS.one("option[value="+status+"]"));
+				} else {
+					NODE_STATUS_ROW.addClass("hidden")
+				}
 				
 				// hide the parameter form submit button in case we are not a process
 				if(type==="process") {
@@ -108,23 +113,13 @@ YUI.add('infobox', function(Y) {
 				status = NODE_STATUS.get("options")
 					.item(NODE_STATUS.get("selectedIndex")).get("value");
 				
-			var data = {}	
-			if(label!==sel.label) {
-				data.label = label;
-				Y.log('update label for '+uri+' to '+label);	
+			var data = {
+				uri:uri,
+				label:label,
+				status:status,
+				comment:comment
 			}
-			if(status!==sel.status) {
-				data.status = status;
-				Y.log('change status for '+uri+' to '+status);
-			}
-			if(comment!==sel.comment) {
-				data.comment = comment;
-				Y.log('change comment for '+uri+' to '+comment);
-			}
-			if(data) {
-				data.uri = uri;
-				this.fire("nodeChange", {update:data});
-			}			
+			this.fire("nodeChange", {update:data});			
 		},
 		
 		_deleteNode : function() {

@@ -85,7 +85,7 @@ cache_expand_result(_, _, _).
 
 flush_expand_cache :-
 	findall(Id, rdf(Id, amalgame:status, amalgame:final), Finals),
-	forall(member(F, Finals), rdf_unload(F)),
+	forall(member(F, Finals), catch(rdf_unload(F), _, true)),
 	forall(expand_cache(Id, _), flush_expand_cache(Id)).
 
 
