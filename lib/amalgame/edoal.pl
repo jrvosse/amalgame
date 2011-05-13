@@ -1,5 +1,5 @@
 :-module(edoal, [
-		 assert_alignment/2, 	% +URI, +OptionList
+		 assert_alignment/2,	% +URI, +OptionList
 		 assert_cell/3,	        % +E1, +E2, +OptionList
 		 edoal_to_triples/4,	% +Request, +EdoalGraph, +Options, +TargetGraph
 		 edoal_select/5	        % +Request, +EdoalGraph, +Options, +TargetGraph, +TargetRestGraph
@@ -101,7 +101,8 @@ assert_cell(C1, C2, Options) :-
 	->  rdf_assert(A, align:map, Cell, Graph)
 	;   rdf_assert(Graph, align:map, Cell, Graph)
 	),
-	(   option(prov(Prov), Options)
+	% Disable for now, gives weird results ...
+	(   option(xxx_prov(Prov), Options)
 	->  assert_provlist(Cell, Prov, Graph)
 	;   true
 	).
@@ -112,10 +113,14 @@ assert_provlist(Cell, [P|ProvList], Graph) :-
 	rdf_assert(Cell, amalgame:provenance, B, Graph),
 	forall(member(ProvElem, P),
 	       (   ProvElem =.. [Key, Value],
+		   debug(ag_expand, 'prov ~w ~w', [Key, Value]),
 		   assert_prov_elem(Key, Value, B, Graph)
 	       )
 	      ),
 	assert_provlist(Cell, ProvList, Graph).
+assert_provlist(Cell, _, Graph) :-
+	format('Aserting provenance failed for cell ~p in graph ~p', [Cell, Graph]),
+	halt.
 
 assert_prov_elem(graph, _Value, Subject, Graph) :-
 	rdf_assert(Subject, amalgame:graph, literal('tbd'), Graph).
