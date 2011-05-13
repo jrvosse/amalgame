@@ -39,7 +39,7 @@ http_eq_nodeinfo(Request) :-
 	html_current_option(content_type(Type)),
 	format('Content-type: ~w~n~n', [Type]),
 	(   rdfs_individual_of(URL, amalgame:'Mapping')
-	->  mapping_counts(URL, _MN, _SN, _TN, SPerc, TPerc),
+	->  with_mutex(URL, mapping_counts(URL, _MN, _SN, _TN, SPerc, TPerc)),
 	    format('s:~w\% t:~w\%',
 		   [SPerc,TPerc])
 	;   true
@@ -144,7 +144,7 @@ mapping_counts(URL, MN, SN, TN, SPerc, TPerc) :-
 
 	rounded_perc(SourceN, SN, SPerc),
 	rounded_perc(TargetN, TN, TPerc),
-
+	retractall(stats_cache(_,_)),
 	assert(stats_cache(URL, stats(MN, SN, TN, SPerc, TPerc))).
 
 rounded_perc(0, _, 0.0) :- !.
@@ -172,6 +172,7 @@ concept_count(Vocab, Count) :-
 	expand_vocab(Vocab, Scheme),
 	findall(C, vocab_member(C, Scheme), Cs),
 	length(Cs, Count),
+	retractall(stats_cache(_,_)),
 	assert(stats_cache(Vocab, stats(Count))).
 
 
@@ -209,7 +210,7 @@ amalgame_info(URL, Stats) :-
 		 'mapped source concepts'-SN,
 		 'mapped target concepts'-TN
 		],
-	mapping_counts(URL, MN, SN0, TN0, SPerc, TPerc),
+	with_mutex(URL, mapping_counts(URL, MN, SN0, TN0, SPerc, TPerc)),
 	concat_atom([SN0, ' (',SPerc,'%)'], SN),
 	concat_atom([TN0, ' (',TPerc,'%)'], TN).
 amalgame_info(Scheme,
