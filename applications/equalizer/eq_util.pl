@@ -3,7 +3,7 @@
 	    assert_user_provenance/2,
 	    amalgame_alignment/2,
 	    js_mappings/2,
- 	    js_alignment_nodes/2,
+	    js_alignment_nodes/2,
 	    now_xsd/1,
 	    xsd_timestamp/2
 	  ]).
@@ -45,7 +45,7 @@ html_menu_item(Handler, Label, Active, _Alignment) -->
 	html(li(class(selected), span(Label))).
 html_menu_item(Handler, Label, _Active, Alignment) -->
 	{ http_link_to_id(Handler, [alignment(Alignment)], Link)
- 	},
+	},
 	html(li(a(href(Link), Label))).
 
 %%	assert_user_provenance(+Resource, -NamedGraph)
@@ -87,7 +87,7 @@ mapping(Alignment, URI, Label) :-
 js_alignment_nodes(Alignment, Nodes) :-
 	findall(S, graph_resource(Alignment, S), Nodes0),
 	sort(Nodes0, Nodes1),
- 	maplist(node_data, Nodes1, Nodes).
+	maplist(node_data, Nodes1, Nodes).
 
 graph_resource(Graph, R) :-
 	rdf(R,rdf:type,_,Graph).
@@ -98,11 +98,16 @@ graph_resource(Graph, R) :-
 graph_resource(Graph, R) :-
 	rdf(Graph, amalgame:includes, R).
 
-node_data(R, R=json([type=Type, label=Label, link=Link, status=Status])) :-
+node_data(R, R=json([type=Type,
+		     label=Label,
+		     comment=Comment,
+		     link=Link,
+		     status=Status])) :-
 	rdf_display_label(R, Lit),
 	literal_text(Lit, Label),
 	node_type(R, Type),
- 	node_status(R, Status),
+	node_status(R, Status),
+	node_comment(R, Comment),
 	resource_link(R, Link).
 
 node_type(R, Type) :-
@@ -122,6 +127,11 @@ node_status(R, Status) :-
 	;   Status = ''
 	).
 
+node_comment(R, Comment) :-
+	(   rdf(R, rdfs:comment, Lit)
+	->  literal_text(Lit, Comment)
+	;   Comment = ''
+	).
 
 %%	http:convert_parameter(+Type, +In, -URI) is semidet.
 %

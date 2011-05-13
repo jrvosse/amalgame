@@ -6,6 +6,7 @@ YUI.add('evaluater', function(Y) {
 	
 	var	NODE_MAPPING_LIST = Y.one("#mappinglist"),
 		NODE_MAPPING_TABLE = Y.one("#mappingtable"),
+		NODE_INFO = Y.one("#mappinginfo"),
 		NODE_CONCEPTS = Y.one("#concepts"),
 		NODE_NEXT = Y.one("#next"),
 		NODE_PREV = Y.one("#prev"),
@@ -25,6 +26,7 @@ YUI.add('evaluater', function(Y) {
 		paths:{
 			value:{
 				mapping:"/amalgame/mapping",
+				mappinginfo:'/amalgame/private/info',
 				info:"/amalgame/private/resourcecontext",
 				relation:"/amalgame/updaterelation"
 				
@@ -57,17 +59,25 @@ YUI.add('evaluater', function(Y) {
 		
 		initializer: function(args) {
 			this._selected = {};
+			this._initInfo();
 			this._initList();
 			this._initTable();
 			this._initDetail();
 			// bind the modules
 			this.mappinglist.on("mappingSelect", function(o) {
 				this.set("selected", o);
+				this._fetchInfo(o.uri);
 				this.mappingtable.set("mapping", o.uri);
 			}, this);
 			
 			this.mappingtable.on("rowSelect", this._onRowSelect, this);
 			//Y.delegate("click", this._onRelationSelect, NODE_RELATIONS, "input", this);
+		},
+		
+		_initInfo : function() {
+			this.infoDS = new Y.DataSource.IO({
+				source: this.get("paths").mappinginfo
+			})
 		},
 		
 		_initList : function() {
@@ -145,6 +155,16 @@ YUI.add('evaluater', function(Y) {
 					comment:comment
 				}
 			});
+		},
+		
+		_fetchInfo : function(uri) {
+			this.infoDS.sendRequest({
+				request:'?url='+uri,
+				callback:{success:function(o) {
+					var HTML = o.response.results[0].responseText;
+					NODE_INFO.setContent(HTML);
+				}}
+			})
 		}
 				
 /*

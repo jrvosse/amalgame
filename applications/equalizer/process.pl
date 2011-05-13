@@ -167,28 +167,30 @@ http_update_node(Request) :-
 				    ]),
 			  uri(URI,
 				[uri,
-				 description('URI of input resource')]),
-			  label(Label,
-				 [optional(true), description('New label')]),
-			  status(Status,
-				 [uri, optional(true), description('New status')])
+				 description('URI of input resource')])
+			],
+			[form_data(Params)
 			]),
-	rdf_transaction(update_node_props([label=Label, status=Status], URI, Alignment)),
+	rdf_transaction(update_node_props(Params, URI, Alignment)),
 	js_alignment_nodes(Alignment, Nodes),
 	reply_json(json([nodes=json(Nodes)])).
 
 update_node_props([], _, _).
-update_node_props([Type=Value|Ts], URI, Alignment) :-
-	(   nonvar(Value)
-	->  update_node_prop(Type, Value, URI, Alignment)
-	;   true
-	),
+update_node_props([T|Ts], URI, Alignment) :-
+	update_node_prop(T, URI, Alignment),
+	!,
+	update_node_props(Ts, URI, Alignment).
+update_node_props([_|Ts], URI, Alignment) :-
 	update_node_props(Ts, URI, Alignment).
 
-update_node_prop(label, Label, URI, Alignment) :-
+
+update_node_prop(label=Label, URI, Alignment) :-
 	rdf_retractall(URI, rdfs:label, _),
 	rdf_assert(URI, rdfs:label, literal(Label), Alignment).
-update_node_prop(status, Status, URI, Alignment) :-
+update_node_prop(comment=Comment, URI, Alignment) :-
+	rdf_retractall(URI, rdfs:comment, _),
+	rdf_assert(URI, rdfs:comment, literal(Comment), Alignment).
+update_node_prop(status=Status, URI, Alignment) :-
 	rdf_retractall(URI, amalgame:status, _),
 	rdf_assert(URI, amalgame:status, Status, Alignment).
 

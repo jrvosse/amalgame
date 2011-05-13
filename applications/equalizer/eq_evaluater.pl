@@ -42,7 +42,7 @@ http_eq_evaluate(Request) :-
 
 html_page(Alignment) :-
 	html_set_options([dialect(html)]),
-  	reply_html_page(equalizer(main),
+	reply_html_page(equalizer(main),
 			[ title(['Align vocabularies'])
 			],
 			[ \html_requires(css('eq.css')),
@@ -50,10 +50,10 @@ html_page(Alignment) :-
 			  \html_requires('http://yui.yahooapis.com/combo?3.3.0/build/cssreset/reset-min.css&3.3.0/build/cssgrids/grids-min.css&3.3.0/build/cssfonts/fonts-min.css&gallery-2011.02.23-19-01/build/gallery-node-accordion/assets/skins/sam/gallery-node-accordion.css'),
 			  \html_requires(css('gallery-paginator.css')),
 			   \html_eq_header(http_eq_evaluate, Alignment),
-   			  div(class('yui3-skin-sam yui-skin-sam'),
+			  div(class('yui3-skin-sam yui-skin-sam'),
 			      [ div([id(content), class('yui3-g')],
 				    [ div([class('yui3-u'), id(left)],
-					  div(id(mappinglist), [])),
+					  \html_sidebar),
 				      div([class('yui3-u'), id(main)],
 					  div([id(mappingtable)], []))
 				    ]),
@@ -65,10 +65,21 @@ html_page(Alignment) :-
 				 ])
 			]).
 
+html_sidebar -->
+	html([ div(class(box),
+		   [div(class(hd), 'Mappings'),
+		    div([id(mappinglist), class(bd)], [])
+		   ]),
+	       div(class(box),
+		   [div(class(hd), 'Info'),
+		    div([id(mappinginfo), class(bd)], [])
+		   ])
+	     ]).
+
 html_overlay -->
- 	html(form([div(class('yui3-widget-hd'),
+	html(form([div(class('yui3-widget-hd'),
 		      [  'Correspondance'
- 		      ]),
+		      ]),
 		   div(class('yui3-widget-bd'),
 		       [div(class(controls),
 			    [ 'include all correspondences with the same:',
@@ -102,13 +113,13 @@ yui_script(Alignment) -->
 	  findall(json([uri=R,label=L]),
 		  mapping_relation(L,R),
 		  Relations)
- 	},
- 	yui3([json([modules(json(Modules))])
+	},
+	yui3([json([modules(json(Modules))])
 	     ],
 	     Includes,
 	     [ \yui3_new(eq, 'Y.Evaluater',
 			 json([alignment(Alignment),
-  			       paths(json(Paths)),
+			       paths(json(Paths)),
 			       mappings(Mappings),
 			       relations(Relations)
 			      ]))
@@ -122,6 +133,8 @@ js_path(statistics, Path) :-
 	http_location_by_id(http_eq_info, Path).
 js_path(mapping, Path) :-
 	http_location_by_id(http_data_mapping, Path).
+js_path(mappinginfo, Path) :-
+	http_location_by_id(http_eq_info, Path).
 %js_path(info, Path) :-
 %	http_location_by_id(http_correspondence, Path).
 

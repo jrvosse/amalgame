@@ -56,9 +56,9 @@ http_eq_info(Request) :-
 		       ]),
 	amalgame_provenance(URL, Prov),
 	amalgame_info(URL, Stats),
+	append(Prov, Stats, Info),
 	amalgame_parameters(URL, Params),
-	phrase(html([\html_prop_table(Prov),
-		     \html_prop_table(Stats),
+	phrase(html([\html_prop_table(Info),
 		     \html_form(Params, URL)
 		    ]),
 	       HTML),
@@ -84,8 +84,8 @@ html_row(Key, set(Values)) -->
 		 ])),
 	 html_rows(Values).
 html_row(Key, Value) -->
-	 html(tr([td(Key),
-		 td(\html_cell(Value))
+	 html(tr([th(Key),
+		  td(\html_cell(Value))
 		])).
 
 html_cell([]) --> !.
@@ -111,10 +111,11 @@ html_cell_list([V|Vs]) -->
 
 html_form([], _) --> !.
 html_form(Params, URI) -->
-	html(table([input([type(hidden), name(process), value(URI)]),
-		    input([type(hidden), name(update), value(true)]),
-		    \html_parameter_form(Params)
-		   ])).
+	html(div(class(parameters),
+		 table([input([type(hidden), name(process), value(URI)]),
+			input([type(hidden), name(update), value(true)]),
+			\html_parameter_form(Params)
+		       ]))).
 
 
 %%	mapping_counts(+MappingURI, -MappingN, -SourceN, -TargetN)

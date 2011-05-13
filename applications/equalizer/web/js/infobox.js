@@ -9,6 +9,7 @@ YUI.add('infobox', function(Y) {
 		NODE_TYPE = Y.one("#type"),
 		NODE_URI = Y.one("#uri"),
 		NODE_LABEL = Y.one("#label"),
+		NODE_COMMENT = Y.one("#comment"),
 		NODE_STATUS = Y.one("#status");
 	
 	function InfoBox(config) {
@@ -64,11 +65,13 @@ YUI.add('infobox', function(Y) {
 					link = selected.link,
 					label = selected.label,
 					type = selected.type,
+					comment = selected.comment,
 					status = selected.status;
 				
 				this.emptyNode.addClass("hidden");
 				this.set("waiting", true);
 				NODE_LABEL.set("value", label);
+				NODE_COMMENT.set("value", comment);
 				NODE_TYPE.setContent(type);
 				NODE_URI.setContent('<a href="'+link+'">'+uri+'</a>');
 				
@@ -76,6 +79,13 @@ YUI.add('infobox', function(Y) {
 				// so we set index of the HTML node
 				Node.getDOMNode(NODE_STATUS).selectedIndex = NODE_STATUS.get('options')
 					.indexOf(NODE_STATUS.one("option[value="+status+"]"));
+				
+				// hide the parameter form submit button in case we are not a process
+				if(type==="process") {
+					content.one('.control-submit').removeClass("hidden");
+				} else {
+					content.one('.control-submit').addClass("hidden");
+				}
 								
 				datasource.sendRequest({
 					request:'?url='+uri,
@@ -93,20 +103,23 @@ YUI.add('infobox', function(Y) {
 		_updateNode : function() {
 			var sel = this.get("selected"),
 				uri = sel.uri,
-				oldLabel = sel.label,
-				newLabel = NODE_LABEL.get("value"),
-				oldStatus = sel.status,
-				newStatus = NODE_STATUS.get("options")
+				label = NODE_LABEL.get("value"),
+				comment = NODE_COMMENT.get("value"),
+				status = NODE_STATUS.get("options")
 					.item(NODE_STATUS.get("selectedIndex")).get("value");
 				
 			var data = {}	
-			if(newLabel!==oldLabel) {
-				data.label = newLabel;
-				Y.log('update label for '+uri+' from '+oldLabel+' to '+newLabel);	
+			if(label!==sel.label) {
+				data.label = label;
+				Y.log('update label for '+uri+' to '+label);	
 			}
-			if(newStatus!==oldStatus) {
-				data.status = newStatus;
-				Y.log('change status for '+uri+' from '+oldStatus+' to '+newStatus);
+			if(status!==sel.status) {
+				data.status = status;
+				Y.log('change status for '+uri+' to '+status);
+			}
+			if(comment!==sel.comment) {
+				data.comment = comment;
+				Y.log('change comment for '+uri+' to '+comment);
 			}
 			if(data) {
 				data.uri = uri;

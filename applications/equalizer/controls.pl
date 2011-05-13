@@ -1,5 +1,6 @@
 :- module(eq_controls,
 	  [ html_controls//0,
+	    html_info_control//0,
 	    html_parameter_form//1,
 	    module_input_type/2,
 	    module_special_type/2
@@ -16,8 +17,8 @@
 
 html_controls -->
 	{ amalgame_modules_of_type(amalgame:'Selecter', Selecters),
- 	  amalgame_modules_of_type(amalgame:'Matcher', Matchers)
-  	},
+	  amalgame_modules_of_type(amalgame:'Matcher', Matchers)
+	},
 	html([\html_control_set(true,
 				'Current node',
 				\html_info_control),
@@ -50,14 +51,14 @@ html_info_control -->
 		      [ div([id(details), class(c)],
 			    [\html_node_props,
 			     div(class('control-buttons'),
-				 [ input([type(button), id(delete), value(delete)]),
-				   input([type(button), id(update), value(update)])
+				 [ button(id(delete), delete),
+				   button(id(update), update)
 				 ])
 			    ]),
- 			form([id(infocontent), class('control c')],
+			form([id(infocontent), class('control c')],
 			     [div([id(properties)], []),
 			      div(class('control-buttons'),
-				  input([type(button), class('control-submit'), value('Go')]))
+				  button(class('control-submit'), 'Update'))
 			     ])
 		      ]),
 		  div([class('empty c')],
@@ -72,14 +73,17 @@ html_node_props -->
 			td(id(uri), [])
 		       ]),
 		    tr([td(label),
-			td(input([type(text), id(label), size(30)]))
- 		       ]),
+			td(input([type(text), id(label)]))
+		       ]),
+		    tr([td(comment),
+			td(textarea([rows(2), id(comment)], []))
+		       ]),
 		    tr([td(status),
 			td(select([id(status), autocomplete(off)],
 				 [ option(value('')),
 				   \html_options(Rs)
 				 ]))
-  		       ])
+		       ])
 		   ])).
 
 html_options([]) --> !.
@@ -114,21 +118,21 @@ html_align_input -->
 	     ]).
 
 html_mapping_select -->
-	html(table([tr([td(input([type(button), id(inputbtn), value('set as input')])),
-			td([input([type(text), id(inputLabel), size(35), autocomplete(off)]),
+	html(table([tr([td(button(id(inputbtn), 'set as input')),
+			td([input([type(text), id(inputLabel), autocomplete(off)]),
 			    input([type(hidden), id(input), name(input)])
 			   ])
 		       ])
 		   ])).
 
 html_source_target_select -->
-	html(table([tr([td(input([type(button), id(sourcebtn), value('set as source')])),
-			td([input([type(text), id(sourceLabel), size(35), autocomplete(off)]),
+	html(table([tr([td(button(id(sourcebtn), 'set as source')),
+			td([input([type(text), id(sourceLabel), autocomplete(off)]),
 			    input([type(hidden), id(source), name(source)])
 				  ])
 		       ]),
-		    tr([td(input([type(button), id(targetbtn), value('set as target')])),
-			td([input([type(text), id(targetLabel), size(35), autocomplete(off)]),
+		    tr([td(button(id(targetbtn), 'set as target')),
+			td([input([type(text), id(targetLabel), autocomplete(off)]),
 			    input([type(hidden), id(target), name(target)])
 				  ])
 		       ])
@@ -157,13 +161,13 @@ html_module_items([[URI,Module]|Ms]) -->
 			    [ \module_desc(URI),
 			      \module_form(URI, Params)
 			    ]),
- 	html_module_items(Ms).
+	html_module_items(Ms).
 
 module_form(URI, Params) -->
 	html(form([input([type(hidden), name(process), value(URI)]),
 		   table(tbody(\html_parameter_form(Params))),
 		   div(class('control-buttons'),
-		       input([type(button), class('control-submit'), value('Go')]))
+		       button(class('control-submit'), 'Go'))
 		  ])).
 
 module_label(URI) -->
@@ -200,7 +204,7 @@ html_accordion_item(Class, Header, Body) -->
 
 html_parameter_form([]) --> !.
 html_parameter_form([parameter(Name, Type, Default, Desc)|Ps]) -->
- 	html(tr(title(Desc),
+	html(tr(title(Desc),
 		 [td(label(Name)),
 		  td(\input_value(Type, Default, Name))
 		  ])),
@@ -215,7 +219,7 @@ html_parameter_form([parameter(Name, Type, Default, Desc)|Ps]) -->
 	input_item/5.	       % input_item(+Type, +Value, +Name)//
 
 input_value(Type, Value, Name) -->
- 	(   input_item(Type, Value, Name)
+	(   input_item(Type, Value, Name)
 	->  []
 	;   builtin_input_item(Type, Value, Name)
 	).
@@ -225,22 +229,22 @@ builtin_input_item(boolean, Value, Name) --> !,
 builtin_input_item(between(L,U), Value, Name) --> !,
 	html(input([ type(range),
 		     name(Name),
- 		     min(L), max(U), value(Value)
+		     min(L), max(U), value(Value)
 		   ])).
 builtin_input_item(oneof(List), Value, Name) --> !,
 	html(select([name(Name)], \oneof(List, Value))).
 builtin_input_item(uri, Value, Name) -->
 	{ rdf_global_id(NS:Local, Value),!
 	},
-	html(input([name(Name), size(35), value(NS+':'+Local)])).
+	html(input([name(Name), value(NS+':'+Local)])).
 builtin_input_item(uri, Value, Name) -->
-	html(input([name(Name), size(35), value(Value)])).
+	html(input([name(Name), value(Value)])).
 builtin_input_item(atom, Value, Name) --> !,
-	html(input([name(Name), size(35), value(Value)])).
+	html(input([name(Name), value(Value)])).
 builtin_input_item(_, Value, Name) -->
 	{ format(string(S), '~q', [Value])
 	},
-	html(input([name(Name), size(35), value(S)])).
+	html(input([name(Name), value(S)])).
 
 oneof([], _) -->
 	[].

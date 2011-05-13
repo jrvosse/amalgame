@@ -83,7 +83,7 @@ YUI.add('builder', function(Y) {
 			// but has some additional routines
 			var DS = new Y.DataSource.IO({
 				source: this.get("paths").info
-			})
+			});
 			//.plug({fn:Y.Plugin.DataSourceCache, cfg:{max:10}});
 			this.infobox = new Y.InfoBox({
 				srcNode: NODE_INFO,
@@ -129,7 +129,6 @@ YUI.add('builder', function(Y) {
 			// data only contains the process parameters
 			// we need to add the context
 			data.alignment = this.get("alignment");
-			
 			Y.io(paths.addprocess, {
 				data:data,
 				on:{success:function(e,o) {

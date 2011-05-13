@@ -89,6 +89,8 @@ YUI.add('controls', function(Y) {
 		},
 				
 		_onControlSubmit : function(e, node) {
+			e.preventDefault();
+			
 			var content = this.get("srcNode"),
 				input = NODE_INPUT.get("value"),
 				source = NODE_SOURCE.get("value"),
@@ -96,7 +98,7 @@ YUI.add('controls', function(Y) {
 				selected = this.get("selected"),
 				data = this._getFormData(node);
  
-			// The input is selected base on the type of the control
+			// The input is selected based on the type of the control
 			// which is stored as a CSS class
 			if(node.hasClass("match")) {
 				if(input) {
@@ -105,14 +107,10 @@ YUI.add('controls', function(Y) {
 				else if(source&&target) {
 					data.source = source;
 					data.target = target;
-				} else {
-					return "no input available";
 				}
 			}
 			else if(selected) {
 				data.input = selected.uri;
-			} else {
-				return "no input";
 			}
 			
 			this.fire("submit", {data:data});
