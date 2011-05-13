@@ -63,8 +63,8 @@ align(Source, Target, Match, Options) :-
 
 match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options) :-
 	rdf_equal(rdfs:label, RdfsLabel),
- 	option(sourcelabel(MatchProp1), Options, RdfsLabel),
- 	option(targetlabel(MatchProp2), Options, RdfsLabel),
+	option(sourcelabel(MatchProp1), Options, RdfsLabel),
+	option(targetlabel(MatchProp2), Options, RdfsLabel),
 	option(matchacross_lang(MatchAcross), Options, true),
 	option(matchacross_type(IgnoreType),  Options, true),
 	option(case_sensitive(CaseSensitive), Options, false),
@@ -76,7 +76,7 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 	),
 
 	(   CaseSensitive
-	->  SearchTarget=literal(lang(TargetLang, TargetLabel))
+	->  SearchTarget=literal(lang(TargetLang, SourceLabel))
 	;   SearchTarget=literal(exact(SourceLabel), lang(TargetLang, TargetLabel))
 	),
 
