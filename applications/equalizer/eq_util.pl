@@ -163,4 +163,4 @@ xsd_timestamp(Time, Atom) :-
                     Date, posix).
 
 is_edm_collection(EDM) :-
-	rdf(_,edm:country, _, EDM:_).
+	once(rdf(_,edm:country, _, EDM:_)).
