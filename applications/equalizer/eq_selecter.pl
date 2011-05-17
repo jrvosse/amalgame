@@ -34,7 +34,7 @@ http_eq(_Request) :-
 
 find_schemes(Schemes) :-
 	findall(C, rdf(C, rdf:type, skos:'ConceptScheme'), Cs),
-	findall(G, rdf(_, 'http://www.europeana.eu/schemas/edm/country', _, G:_), Gs),
+	findall(G, is_edm_collection(G), Gs),
 	append(Cs, Gs, All),
 	sort(All, Schemes).
 

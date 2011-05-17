@@ -5,7 +5,8 @@
 	    js_mappings/2,
 	    js_alignment_nodes/2,
 	    now_xsd/1,
-	    xsd_timestamp/2
+	    xsd_timestamp/2,
+	    is_edm_collection/1
 	  ]).
 
 :- use_module(library(http/html_write)).
@@ -114,7 +115,8 @@ node_prop(R, type, Type) :-
 	->  Type = process
 	;   Type = vocab
 	).
-node_prop(EDM, type, vocab) :- rdf_graph(EDM).
+node_prop(EDM, type, vocab) :-
+	is_edm_collection(EDM).
 
 node_prop(R, status, Status) :-
 	rdf(R, amalgame:status, Status).
@@ -159,3 +161,6 @@ xsd_timestamp(Time, Atom) :-
         format_time(atom(Atom),
                     '%FT%T%:z',
                     Date, posix).
+
+is_edm_collection(EDM) :-
+	rdf(_,edm:country, _, EDM:_).
