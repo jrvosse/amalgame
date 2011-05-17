@@ -114,6 +114,8 @@ node_prop(R, type, Type) :-
 	->  Type = process
 	;   Type = vocab
 	).
+node_prop(EDM, type, vocab) :- rdf_graph(EDM).
+
 node_prop(R, status, Status) :-
 	rdf(R, amalgame:status, Status).
 node_prop(R, comment, Comment) :-

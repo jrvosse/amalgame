@@ -26,6 +26,10 @@ vocab_member(E, Scheme) :-
 	rdf(Scheme, rdf:type, skos:'ConceptScheme'),
 	!,
 	rdf_has(E, skos:inScheme, Scheme).
+vocab_member(I, EDMGraph) :-
+	rdf(_, 'http://www.europeana.eu/schemas/edm/country',_, EDMGraph),
+	!,
+	rdf(I, 'http://www.europeana.eu/schemas/edm/country', _, EDMGraph).
 vocab_member(E, Class) :-
 	rdfs_individual_of(Class, rdfs:'Class'),
 	!,

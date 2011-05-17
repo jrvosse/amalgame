@@ -32,22 +32,27 @@ http_eq(_Request) :-
 	authorized(write(default, _)),
 	html_page.
 
-html_page :-
+find_schemes(Schemes) :-
 	findall(C, rdf(C, rdf:type, skos:'ConceptScheme'), Cs),
- 	findall(A-S, amalgame_alignment(A, S), Alignments),
-	sort(Cs, ConceptSchemes),
-   	reply_html_page(equalizer(start),
+	findall(G, rdf(_, 'http://www.europeana.eu/schemas/edm/country', _, G:_), Gs),
+	append(Cs, Gs, All),
+	sort(All, Schemes).
+
+html_page :-
+	findall(A-S, amalgame_alignment(A, S), Alignments),
+	find_schemes(ConceptSchemes),
+	reply_html_page(equalizer(start),
 			[ title(['Amalgame - projects'])
- 			],
+			],
 			[ \html_requires(css('selecter.css')),
- 			  \html_requires('http://yui.yahooapis.com/combo?3.3.0/build/cssreset/reset-min.css&3.3.0/build/cssgrids/grids-min.css&3.3.0/build/cssfonts/fonts-min.css&gallery-2011.02.23-19-01/build/gallery-node-accordion/assets/skins/sam/gallery-node-accordion.css'),
- 			  div(class('yui-skin-sam yui3-skin-sam'),
+			  \html_requires('http://yui.yahooapis.com/combo?3.3.0/build/cssreset/reset-min.css&3.3.0/build/cssgrids/grids-min.css&3.3.0/build/cssfonts/fonts-min.css&gallery-2011.02.23-19-01/build/gallery-node-accordion/assets/skins/sam/gallery-node-accordion.css'),
+			  div(class('yui-skin-sam yui3-skin-sam'),
 			      [ div(id(header), []),
 				div(id(main),
 				    [ h1('AMALGAME'),
 				      div([id(content), class('yui3-accordion')],
 					  [ \html_new(ConceptSchemes),
- 					    \html_open(Alignments),
+					    \html_open(Alignments),
 					    \html_import
 					  ])
 				    ]),
@@ -78,19 +83,19 @@ html_vocab_table(Vs) -->
 
 html_vocab_head -->
 	html([th([]),
- 	      th(name),
+	      th(name),
 	      th('# concepts (estimate)')
- 	     ]).
+	     ]).
 
 html_vocab_rows([]) --> !.
 html_vocab_rows([Scheme|Vs]) -->
 	{ rdf_estimate_complexity(_, skos:inScheme, Scheme, Count)
 	},
- 	html(tr([td(input([type(checkbox), autocomplete(off), class(option),
+	html(tr([td(input([type(checkbox), autocomplete(off), class(option),
 			   name(scheme), value(Scheme)])),
- 		 td(\html_graph_name(Scheme)),
+		 td(\html_graph_name(Scheme)),
 		 td(class(count), Count)
-  		])),
+		])),
 	html_vocab_rows(Vs).
 
 
@@ -102,7 +107,7 @@ html_open(Alignments) -->
 	html_acc_item(open, 'open alignment',
 		      [ form(action(location_by_id(http_eq_build)),
 			     [ \html_alignment_table(Alignments),
- 			       \html_submit('Start')
+			       \html_submit('Start')
 			     ])
 		      ]).
 html_alignment_table(Alignments) -->
@@ -114,14 +119,14 @@ html_alignment_head -->
 	html([th([]),
 	      th(name),
 	      th(includes)
-  	     ]).
+	     ]).
 
 html_alignment_rows([]) --> !.
 html_alignment_rows([URI-Schemes|Gs]) -->
- 	html(tr([td(input([type(radio), autocomplete(off), class(option), name(alignment), value(URI)])),
+	html(tr([td(input([type(radio), autocomplete(off), class(option), name(alignment), value(URI)])),
 		 td(\html_graph_name(URI)),
 		 td(\html_scheme_labels(Schemes))
- 		])),
+		])),
 	html_alignment_rows(Gs).
 
 html_scheme_labels([]) --> !.
@@ -201,12 +206,12 @@ html_acc_item(Id, Label, Body) -->
 yui_script -->
 	{ findall(M-C, js_module(M,C), Modules),
 	  pairs_keys(Modules, Includes)
- 	},
- 	yui3([json([modules(json(Modules))])
+	},
+	yui3([json([modules(json(Modules))])
 	     ],
 	     Includes,
 	     [ \yui3_new(eq, 'Y.Selecter', [])
- 	     ]).
+	     ]).
 
 
 %%	js_module(+Key, +Module_Conf)
@@ -216,7 +221,7 @@ yui_script -->
 js_module(gallery, 'gallery-2011.02.23-19-01').
 js_module(selecter, json([fullpath(Path),
 				    requires([node,base,event,anim,
- 					      'gallery-node-accordion'])
+					      'gallery-node-accordion'])
 			  ])) :-
 	http_absolute_location(js('selecter.js'), Path, []).
 
@@ -267,9 +272,9 @@ http_eq_upload_data(Request) :-
 			[ data(Data,
 			       [ description('RDF data to be loaded')
 			       ])
- 			]),
+			]),
 	rdf_bnode(Graph),
- 	atom_to_memory_file(Data, MemFile),
+	atom_to_memory_file(Data, MemFile),
 	setup_call_cleanup(open_memory_file(MemFile, read, Stream),
 			   rdf_guess_format_and_load(Stream, [graph(Graph)]),
 			   ( close(Stream),
@@ -281,7 +286,7 @@ http_eq_upload_url(Request) :-
 	authorized(write(default, _)),
 	http_parameters(Request,
 			[ url(URL, [])
- 			]),
+			]),
 	rdf_bnode(Graph),
 	rdf_load(URL, [graph(Graph)]),
 	build_redirect(Request, Graph).

@@ -220,6 +220,17 @@ amalgame_info(Scheme,
 	rdfs_individual_of(Scheme, skos:'ConceptScheme'),
 	!,
 	concept_count(Scheme, Total).
+
+amalgame_info(EDMGraph,
+	    ['Total concepts'-Total
+	    ]) :-
+	P='http://www.europeana.eu/schemas/edm/country',
+	rdf(_, P, _, EDMGraph),
+	!,
+	findall(I,rdf(I,P,_,EDMGraph),Is),
+	sort(Is, Sorted),
+	length(Sorted, Total).
+
 amalgame_info(URL,
 	       ['type'   - \(cp_label:rdf_link(Type)),
 		'about'   - Definition
@@ -230,6 +241,7 @@ amalgame_info(URL,
 	->  true
 	;   Definition = '-'
 	).
+
 amalgame_info(_URL, []).
 
 
