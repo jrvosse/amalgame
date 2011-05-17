@@ -78,26 +78,31 @@ html_sidebar -->
 
 html_overlay -->
 	html(form([div(class('yui3-widget-hd'),
-		      [  'Correspondance'
+		      [ div(class(controls),
+			    [])%\html_options)
 		      ]),
 		   div(class('yui3-widget-bd'),
-		       [div(class(controls),
-			    [ 'include all correspondences with the same:',
-			      input([type(checkbox), id(msources), autocomplete(off)]),
-			      label(source),
-			      input([type(checkbox), id(msources), autocomplete(off)]),
-			      label(target)
-			    ]),
-			div([class(concepts), id(concepts)], [])
+		       [ div([class(concepts), id(concepts)], [])
 		       ]),
-		       div(class('yui3-widget-ft'),
-			   [ div(class(controls), \html_controls)
-			   ])
-	     ])).
+		   div(class('yui3-widget-ft'),
+		       [ div(class(controls),
+			     \html_buttons)
+		       ])
+		  ])).
 
-html_controls -->
-	html([ input([type(button), value(prev)]),
-	       input([type(submit), value(next)])
+html_options -->
+	html([ 'include all correspondences with the same: ',
+	       input([type(checkbox), id(msources), autocomplete(off)]),
+	       label(source),
+	       input([type(checkbox), id(mtargets), autocomplete(off)]),
+	       label(target)
+	     ]).
+
+html_buttons -->
+	html([ %button([id(prev)], prev),
+	       %button([id(next)], next)
+		button(id(cancel), cancel),
+		button(id(submit), submit)
 	     ]).
 
 
@@ -109,10 +114,7 @@ yui_script(Alignment) -->
 	{ findall(K-V, js_path(K, V), Paths),
 	  findall(M-C, js_module(M,C), Modules),
 	  pairs_keys(Modules, Includes),
-	  js_mappings(Alignment, Mappings),
-	  findall(json([uri=R,label=L]),
-		  mapping_relation(L,R),
-		  Relations)
+	  js_mappings(Alignment, Mappings)
 	},
 	yui3([json([modules(json(Modules))])
 	     ],
@@ -120,8 +122,7 @@ yui_script(Alignment) -->
 	     [ \yui3_new(eq, 'Y.Evaluater',
 			 json([alignment(Alignment),
 			       paths(json(Paths)),
-			       mappings(Mappings),
-			       relations(Relations)
+			       mappings(Mappings)
 			      ]))
 	     ]).
 
@@ -129,14 +130,14 @@ yui_script(Alignment) -->
 %
 %	Path to the server used in javascript.
 
-js_path(statistics, Path) :-
-	http_location_by_id(http_eq_info, Path).
 js_path(mapping, Path) :-
 	http_location_by_id(http_data_mapping, Path).
+js_path(evaluate, Path) :-
+	http_location_by_id(http_data_evaluate, Path).
 js_path(mappinginfo, Path) :-
 	http_location_by_id(http_eq_info, Path).
-%js_path(info, Path) :-
-%	http_location_by_id(http_correspondence, Path).
+js_path(info, Path) :-
+	http_location_by_id(http_correspondence, Path).
 
 %%	js_module(+Key, +Module_Conf)
 %
@@ -144,7 +145,7 @@ js_path(mappinginfo, Path) :-
 
 js_module(gallery, 'gallery-2011.02.23-19-01').
 js_module(evaluater, json([fullpath(Path),
-			   requires([node, event,anim,
+			   requires([node,event,anim,
 				     'overlay','json-parse','io-base',
 				     'datasource-io','datasource-jsonschema','datasource-cache',
 				     'querystring-stringify-simple',

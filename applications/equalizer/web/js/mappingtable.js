@@ -40,7 +40,7 @@ YUI.add('mappingtable', function(Y) {
 					       sortable:true
 					      },
 					      {key:"relation",
-					       formatter:this.formatResource,
+					       formatter:this.formatRelation,
 					       sortable:true
 					      },
 					      {key:"target",
@@ -108,23 +108,39 @@ YUI.add('mappingtable', function(Y) {
 			var label = o.value ? o.value.label : "";
      		return "<div class=resource>"+label+"</div>";
 		},
+		formatRelation : function(o) {
+			var label = o.value ? o.value.label : "";
+     		return "<div class=relation>"+label+"</div>";
+		},
 		
 		_onRowSelect : function(e) {
 			var row = e.currentTarget.get("parentNode"),
-         		records = this.table.get("recordset"),
-         		current = records.getRecord( row.get("id")),
+				records = this.table.get("recordset"),
+				current = records.getRecord( row.get("id")),
 				data = {
+					row:row,
 	 				sourceConcept: current.getValue("source"),
 		 			targetConcept: current.getValue("target"),
 					relation:current.getValue("relation")
 				};
-			if(!add) {
+			//if(!add) {
 				Y.all(".yui3-datatable tr").removeClass("yui3-datatable-selected");
-			}
+			//}
 			row.addClass("yui3-datatable-selected");
 			this.fire("rowSelect", data)
-		}
+		},
 		
+		nextRow : function(row) {
+			var rows = row.get("parentNode").all("tr"),
+				i = rows.indexOf(row),
+				next = rows.item(i++);
+			
+			var records = this.table.get("recordset"),
+				record = records.getRecord( next.get("id"));
+
+			return record;
+		}
+ 		
 		
 	});
 	
