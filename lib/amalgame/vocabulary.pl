@@ -22,6 +22,9 @@ vocab_member(E, scheme(Scheme)) :-
 vocab_member(E, type(Class)) :-
 	!,
 	rdfs_individual_of(E, Class).
+vocab_member(F, 'http://sws.geonames.org/') :-
+	!,
+	rdfs_individual_of(F, 'http://www.geonames.org/ontology#Feature').
 vocab_member(E, Scheme) :-
 	rdf(Scheme, rdf:type, skos:'ConceptScheme'),
 	!,
