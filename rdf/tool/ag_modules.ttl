@@ -4,38 +4,62 @@
 @prefix amalgame: <http://purl.org/vocabularies/amalgame#> .
 
 amalgame:ExactLabelMatcher
-    rdfs:label "exact label matcher"@en ;
-    skos:definition "A basic label matcher"@en ;
+    rdfs:label "string/label (exact)"@en ;
+    skos:definition "A basic label matcher based on exact matching labels of source and target concepts"@en ;
     rdfs:subClassOf amalgame:Matcher .
-amalgame:ExactLabelFilter
-    rdfs:label "exact label filter"@en ;
-    skos:definition "A filter of mappings based on exact matching labels of source and target concepts"@en ;
-    rdfs:subClassOf amalgame:MatchFilter .
-
 
 amalgame:SnowballMatcher
-    rdfs:label "snowball matcher"@en ;
-    skos:definition "A label matcher with similarity based on stemming."@en ;
+    rdfs:label "string/label(stemmed)"@en ;
+    skos:definition "A label matcher with similarity based on (snowball) stemming."@en ;
     rdfs:subClassOf amalgame:Matcher .
-amalgame:SnowballFilter
-    rdfs:label "snowball filter"@en ;
-    skos:definition "A filter of mappings based on the labels of source and target concept that match by stem"@en ;
-    rdfs:subClassOf amalgame:MatchFilter .
 
 amalgame:IsubMatcher        
-	rdfs:label "isub string matcher"@en ;
-	skos:definition "An isub string similarity matcher based on the metric described by 'A string metric for ontology alignment' by Giorgos Stoilos, 2005."@en ;
-	rdfs:subClassOf amalgame:Matcher .
-amalgame:IsubFilter
-    rdfs:label "Isub filter"@en ;
-    skos:definition "A filter of mappings based on string similarity metric described by 'A string metric for ontology alignment' by Giorgos Stoilos, 2005."@en ;
-    rdfs:subClassOf amalgame:MatchFilter .
+    rdfs:label "string/smilarity"@en ;
+    skos:definition "An string similarity matcher based on the 'isub' metric introduced in 'A string metric for ontology alignment' by Giorgos Stoilos, 2005."@en ;
+    rdfs:subClassOf amalgame:Matcher .
 
-amalgame:Select11
-    rdfs:label "select 1-1"@en ;
-    skos:definition "Select correspondences that have only 1 source and 1 target concept." ;
-    rdfs:subClassOf amalgame:MappingSelecter .
+amalgame:AncestorMatcher
+    rdfs:label "structure/ancestor"@en ;
+    skos:definition "Matcher looking for 1 or more ancestors that have already been mapped."@en ;
+    rdfs:subClassOf amalgame:Matcher .
+
+amalgame:DescendentMatcher
+    rdfs:label "structure/descendent"@en ;
+    skos:definition "Matcher looking for 1 or more descendents that have already been mapped."@en ;
+    rdfs:subClassOf amalgame:Matcher .
+
+amalgame:RelatedMatcher
+    rdfs:label "structure/related"@en ;
+    skos:definition "Matcher looking for 1 or more related concepts that have already been mapped."@en ;
+    rdfs:subClassOf amalgame:Matcher .
 
 amalgame:AritySelect
-    rdfs:label "arity select"@en ;
+    rdfs:label "arity"@en ;
+    skos:definition "Select correspondence with a specific arity between source and target:\n 11 = unique source and target,\n N1 = unique target for a source,\n 1N = unique source for a target"@en ;
     rdfs:subClassOf amalgame:MappingSelecter .
+    
+amalgame:BestNumeric
+    rdfs:label "best numeric"@en ;
+    skos:definition "Select correspondences that have the best score considering some numerical ranking."@en ;
+    rdfs:subClassOf amalgame:MappingSelecter .
+
+amalgame:MostMethods
+    rdfs:label "most methods"@en ;
+    skos:definition "Select correspondences that have been matched by the most methods (according to their provenance data.)"@en ;
+    rdfs:subClassOf amalgame:MappingSelecter .
+
+amalgame:MapMerger
+    rdfs:label "mapping merger"@en ;
+    skos:definition "Merge two or more mappings into one new mapping. This can, for example, to collect the good mappings made by different processes."@en ;
+    rdfs:subClassOf amalgame:Merger .
+
+amalgame:VocExclude
+    rdfs:label "subtract mappings"@en ;
+    skos:definition "Subtract from a vocabulary the sources or targets from a given mapping to create a vocabulary with the unmapped concepts."@en ;
+    rdfs:subClassOf amalgame:Subtracter ;
+    rdfs:subClassOf amalgame:VocabSelecter .
+
+amalgame:TypeSelect
+    rdfs:label "type"@en ;
+    skos:definition "Select from a vocabulary the concepts of a specific type."@en ;
+    rdfs:subClassOf amalgame:VocabSelecter .

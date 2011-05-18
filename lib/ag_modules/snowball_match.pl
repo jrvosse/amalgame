@@ -26,12 +26,13 @@ parameter(language, atom, '',
 	  'Language of source label').
 parameter(matchacross_lang, boolean, true,
 	  'Allow labels from different language to be matched').
-parameter(case_senstitive, boolean, false,
-	  'When true the case of labels must be equal').
 parameter(snowball_language, atom, dutch,
 	  'Language to use for stemmer').
+parameter(prefix, integer, 4,
+	  'Optmise performence by first generating candidates by matching the prefix.Input is an integer for the prefix length.').
 parameter(edit_distance, integer, 0,
 	  'When >0 allow additional differences between labels').
+
 
 %%	filter(+MappingsIn, -MappingsOut, +Options)
 %
@@ -51,7 +52,8 @@ filter([_|Cs], Mappings, Options) :-
 %	Target.
 
 matcher(Source, Target, Mappings, Options) :-
-	findall(A, align(Source, Target, A, Options), Mappings).
+	findall(A, align(Source, Target, A, Options), Mappings0),
+	sort(Mappings0, Mappings).
 
 align(Source, Target, Match, Options) :-
 	option(prefix(0), Options),
@@ -70,16 +72,21 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
  	option(sourcelabel(MatchProp1), Options, DefaultP),
 	option(targetlabel(MatchProp2), Options, DefaultP),
 	option(matchacross_lang(MatchAcross), Options, true),
-	option(language(SourceLang),Options, _),
+	option(language(Lang),Options, _),
 	option(edit_distance(Edit_Distance), Options, 0),
 
-	rdf_has(Source, MatchProp1, literal(lang(SourceLang, SourceLabel)), SourceProp),
-
-        % If we can't match across languages, set target language to source language
+	(   Lang == ''
+	->  var(SourceLang)
+	;   SourceLang = Lang
+	),
+	% If we can't match across languages, set target language to source language
 	(   MatchAcross == false
 	->  TargetLang = SourceLang
 	;   true
 	),
+
+	rdf_has(Source, MatchProp1, literal(lang(SourceLang, SourceLabel)), SourceProp),
+
 	\+ Source == Target,
 	snowball(Snowball_Language, SourceLabel, SourceStem0),
 	downcase_atom(SourceStem0, SourceStem),

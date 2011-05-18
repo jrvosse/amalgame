@@ -1,26 +1,31 @@
 /* main layout */
 #content {
-	margin: 0 10px;
-	padding-left: 210px;
+	margin: 10px;
+	padding-left: 275px;
 }
 #left {
-	width: 200px;
-	margin-right: 10px;
-	margin-left: -210px;
+	width: 250px;
+	margin-left: -275px;
+	margin-right: 25px;
 }
 #main {
 	width: 100%;
 	
 }
 
-/* mapping list */
-.yui3-mappinglist-content {
+/* sidebar box */
+.box {
 	border: 1px solid #808080;
+	margin-bottom: 15px;
 }
-.yui3-mappinglist .hd {
+.box .hd {
 	background: url("http://yui.yahooapis.com/3.0.0/build/assets/skins/sam/sprite.png") repeat-x scroll 0 0 transparent;
     padding: 5px;
 }
+.box .bd {
+}
+
+/* mapping list */
 .yui3-mappinglist li {
 	padding: 2px 4px;
 }
@@ -33,6 +38,14 @@
 }
 .yui3-mappinglist li.selected a {
 	color: white;
+}
+
+/* mapping info */
+#mappinginfo {
+	padding: 5px;
+}
+#mappinginfo td {
+	padding: 2px;
 }
 
 /* mapping table */
@@ -68,10 +81,11 @@
 }
 
 /* resource info*/
-/* resource info */
-.resource-info-content {
-	padding: 6px 12px;
-	margin-bottom: 6px;
+.resource-info {
+	background-color: white;
+	border: 1px solid #AAA;
+    margin: 5px;
+    padding: 5px;
 }
 .resource-info .label {
 	font-size: 130%;
@@ -123,32 +137,34 @@
 
 /* overlay */
 #detail {
-	border: 2px solid #CCCCCC;
-	background-color: #FFF;
+	border: 1px solid #808080;
+	background-color: #D8D8DA;
 }
 #detail .yui3-widget-hd {
-	border-bottom: 1px solid #CCC;
+	background: url("http://yui.yahooapis.com/3.0.0/build/assets/skins/sam/sprite.png") repeat-x scroll 0 0 transparent;
+	border-bottom: 1px solid #AAA;
     padding: 5px 10px;
 	text-align: center;
-	opacity: 1;
 }
 #detail .yui3-widget-bd {
-	
-	padding: 5px 10px;
+	padding: 5px;
 }
 #detail .yui3-widget-ft {
-	border-bottom: 1px solid #CCC;
+	border-top: 1px solid #AAA;
     padding: 5px 10px;
 	text-align: right;
-	opacity: 1;
 }
-#relations li {
-	list-style: none;
-	display: inline;
+
+#detail .relations {
+	text-align: center;
+	background-color: white;
+	border: 1px solid #AAA;
+	padding: 5px;
+	margin: 0 5px 10px;
+}
+#detail .relation {
 	padding: 0 5px;
 }
-#relations label {
+#detail .relation label {
 	padding-left: 2px;
-}
-.controls {
 }

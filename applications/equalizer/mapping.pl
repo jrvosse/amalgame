@@ -26,8 +26,8 @@
 % http handlers for this applications
 
 :- http_handler(amalgame(data/mapping), http_data_mapping, []).
-:- http_handler(amalgame(data/mappingevaluate), http_data_mapping_evaluate, []).
-:- http_handler(amalgame(private/resourcecontext), http_resource_context, []).
+:- http_handler(amalgame(data/evaluate), http_data_evaluate, []).
+:- http_handler(amalgame(private/correspondence), http_correspondence, []).
 
 %%	mapping_relation(+Id, +URI)
 %
@@ -61,18 +61,18 @@ http_data_mapping(Request) :-
 				 [default(0), number,
 				  description('first result that is returned')])
 		       ]),
- 	expand_mapping(URL, Mapping0),
+	expand_mapping(URL, Mapping0),
 	length(Mapping0, Count),
- 	maplist(mapping_label, Mapping0, Mapping1),
+	maplist(mapping_label, Mapping0, Mapping1),
 	sort_key(SortBy, SortKey),
 	sort_by_arg(Mapping1, SortKey, MSorted),
- 	list_offset(MSorted, Offset, MOffset),
+	list_offset(MSorted, Offset, MOffset),
 	list_limit(MOffset, Limit, MLimit, _),
 	mapping_data(MLimit, Mapping),
- 	reply_json(json([url=URL,
- 			 limit=Limit,
+	reply_json(json([url=URL,
+			 limit=Limit,
 			 offset=Offset,
- 			 mapping=Mapping,
+			 mapping=Mapping,
 			 total=Count])).
 
 sort_key(source, 2).
@@ -88,35 +88,32 @@ mapping_data([Align|As], [json(Data)|Os]) :-
 	Data0 = [source=json([uri=Source, label=SLabel]),
 		 target=json([uri=Target, label=TLabel])
 		],
- 	(   has_map([Source, Target], _, Properties, test), %@TBD check in right graph
-	    memberchk(relation(R), Properties)
-	->  relation_label(R, RLabel),
-	    Data = [relation=json([uri=R, label=RLabel])|Data0]
+	(   current_relation(Source, Target, Rel)
+	->  relation_label(Rel, RLabel),
+	    Data = [relation=json([uri=Rel, label=RLabel])|Data0]
 	;   Data = Data0
 	),
- 	mapping_data(As, Os).
+	mapping_data(As, Os).
 
 relation_label(R, Label) :-
 	mapping_relation(Label, R), !.
 relation_label(R, R).
 
 
-%%	http_data_mapping_evaluate(+Request)
+%%	http_data_evaluate(+Request)
 %
 %	Accept/reject a mapping.
 
-http_data_mapping_evaluate(Request) :-
+http_data_evaluate(Request) :-
 	logged_on(User0, anonymous),
 	user_property(User0, url(User)),
-	rdf_equal(skos:closeMatch, CloseMatch),
 	http_parameters(Request,
 			[  source(Source,
 				  [description('Source of mapping')]),
 			   target(Target,
 				  [descript('Target of mapping')]),
- 			   relation(Relation,
-				     [default(CloseMatch),
-				      description('Relation between source and target')]),
+			   relation(Relation,
+				     [description('Relation between source and target')]),
 			   graph(Graph,
 				 [description('Graph to store user actions')]),
 			   comment(Comment,
@@ -128,46 +125,94 @@ http_data_mapping_evaluate(Request) :-
 		   graph(Graph),
 		   comment(Comment)
 		  ],
+	rdf_display_label(Source, SLabel),
+	rdf_display_label(Target, TLabel),
+	mapping_relation(RLabel, Relation),
 	assert_cell(Source, Target, Options),
- 	reply_json(json([source=Source,
-			 target=Target,
- 			 relation=Relation])).
+	reply_json(json([source=json([uri=Source, label=SLabel]),
+			 target=json([uri=Target, label=TLabel]),
+			 relation=json([uri=Relation, label=RLabel])
+			])).
 
 
-%%	http_resource_context(+Request)
+%%	http_correspondence(+Request)
 %
 %	Returns	HTML with the Context in which the resource occurs
 
-http_resource_context(Request) :-
+http_correspondence(Request) :-
 	http_parameters(Request,
-			[ uri(URI,
-				 [description('URI from which we request the context')])
- 			]),
-	resource_label_text(URI, Label),
-	resource_alternative_labels(URI, Label, Alt),
-	resource_definition(URI, Def),
-	resource_scope(URI, Scope),
-	resource_tree(URI, Tree),
-	related_resources(URI, Related),
+			[ source(Source,
+				 [description('URI of the source concept')]),
+			  target(Target,
+				 [description('URI of the target concept')])/*,
+			  allsource(_AllSource,
+				 [boolean, description('Include all sources')]),
+			  alltarget(_AllTarget,
+				 [boolean, description('Include all target')])*/
+			]),
+	findall(R-L, mapping_relation(L, R), Relations),
+	current_relation(Source, Target, Relation),
 	html_current_option(content_type(Type)),
-	phrase(html_resource_context(URI, Label, Alt, Def, Scope, Tree, Related), HTML),
+	phrase(html([div(class('yui3-g'),
+			 [ div(class('yui3-u-1-2'),
+			       \html_resource_context(Source)),
+			   div(class('yui3-u-1-2'),
+			       \html_resource_context(Target))
+			 ]),
+		     div(class(relations),
+			 [ input([type(hidden), name(source), value(Source)]),
+			   input([type(hidden), name(target), value(Target)]),
+			   \html_relations(Relations, Relation),
+			   div(['because: ',
+				input([type(text), name(comment), size(40)])
+			       ])
+			 ])
+		    ]), HTML),
 	format('Content-type: ~w~n~n', [Type]),
 	print_html(HTML).
 
-resource_definition(R, Def) :-
-	(   rdf_has(R, skos:definition, Lit)
-	->  literal_text(Lit, Def)
-	;   Def = []
-	).
-resource_scope(R, Scope) :-
-	(   rdf_has(R, skos:scopeNote, Lit)
-	->  literal_text(Lit, Scope)
-	;   Scope = []
-	).
+current_relation(S, T, R) :-
+	rdf(Cell, align:entity1, S),
+	rdf(Cell, align:entity2, T),
+	rdf(Cell, align:relation, R),
+	!.
+current_relation(_, _, '').
+
+html_resource_context(URI) -->
+	{ resource_label_text(URI, Label),
+	  resource_alternative_labels(URI, Label, Alt),
+	  resource_tree(URI, Tree),
+	  related_resources(URI, Related)
+	},
+	html(div(class('resource-info'),
+		 [div(class(label), Label),
+		  div(class(alt), \html_alt_labels(Alt)),
+		  div(class(uri),
+		      \rdf_link(URI, [resource_format(plain)])),
+		  \html_definition(URI),
+		  \html_scope(URI),
+		  \html_resource_tree(Tree),
+		  \html_related_list(Related)
+		 ])).
+
+html_relations([], _) --> !.
+html_relations([Rel-Label|Rs], Active) -->
+	{ (   Rel == Active
+	  ->  Checked = checked
+	  ;   Checked = ''
+	  )
+	},
+	html(span(class(relation),
+		 [input([type(radio), name(relation), value(Rel), Checked]),
+		  label(Label)
+		 ])),
+	html_relations(Rs, Active).
+
+
 resource_alternative_labels(R, Label, Alt) :-
 	findall(L, resource_label_text(R, L), Ls),
 	delete(Ls, Label, Alt1),
- 	sort(Alt1, Alt).
+	sort(Alt1, Alt).
 
 resource_label_text(R, L) :-
 	rdf_label(R, Lit),
@@ -221,22 +266,6 @@ has_child(R, Rel, true) :-
 has_child(_, _, false).
 
 
-%%	html_resource_context(+Resource, +Label, +AlternativeLabels,
-%%	+Definition, +Scope, +Tree, +Related).
-%
-%	Emit html with info about a resource.
-
-html_resource_context(R, Label, Alt, Def, Scope, Tree, Related) -->
-	html(div(class('resource-info-content'),
-		 [div(class(label), Label),
-		  div(class(alt), \html_alt_labels(Alt)),
-		  div(class(uri),
-		      \rdf_link(R, [resource_format(plain)])),
-		  \html_desc(Def, definition),
-		  \html_desc(Scope, scope),
-		  \html_resource_tree(Tree),
-		  \html_related_list(Related)
-		 ])).
 
 html_alt_labels([]) --> !.
 html_alt_labels(Alt) -->
@@ -248,18 +277,31 @@ html_label_list([L|Ls]) -->
 	html([L, ', ']),
 	html_label_list(Ls).
 
-html_desc([], _) --> !.
-html_desc(Txt, Name) -->
-	html([div(class(hd), Name),
-	      div(class('bd '+Name), Txt)
-	     ]).
+html_definition(URI) -->
+	{ rdf_has(URI, skos:definition, Lit),
+	  literal_text(Lit, Txt)
+	},
+	!,
+	html_item(definition, Txt).
+html_definition(_) --> !.
+
+html_scope(URI) -->
+	{ rdf_has(URI, skos:scopeNote, Lit),
+	  literal_text(Lit, Txt)
+	},
+	!,
+	html_item(scope, Txt).
 
 html_related_list([]) --> !.
 html_related_list(Rs) -->
-	html([div(class(hd), related),
-	      div(class(bd),
-		  ul(\html_resource_list(Rs, 3)))
-	     ]).
+	html_item(related,
+		  \html_resource_list(Rs, 3)).
+
+html_item(Type, Body) -->
+	html(div(class(Type),
+		 [ div(class(hd), Type),
+		   div(class(bd), Body)
+		 ])).
 
 
 %%	html_resource_list(+Resources, +Max)

@@ -2,18 +2,45 @@
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(amalgame/map)).
+:- use_module(library(amalgame/expand_graph)).
 :- use_module(library(amalgame/vocabulary)).
 
 :- public amalgame_module/1.
 :- public parameter/4.
-:- public concept_selecter/3.
+:- public exclude/4.
 
 amalgame_module(amalgame:'VocExclude').
 
-parameter(type,
-	  oneof(source,target), source,
+parameter(type, oneof([source,target]), source,
 	  'Property to exclude matching sources or targets').
 
+exclude(Vocab, Mapping, scheme(NewScheme), Options) :-
+	rdf_bnode(NewScheme),
+	%rdf_assert(NewScheme, rdf:type, skos:'ConceptScheme', tmp),
+ 	option(type(Type), Options),
+ 	findall(C, vocab_member(C, Vocab), Concepts0),
+  	mapping_concepts(Type, Mapping, Exclude0),
+	sort(Concepts0, Concepts),
+	sort(Exclude0, Exclude),
+	ord_subtract(Concepts, Exclude, Rest),
+	rdf_transaction(forall(member(R,Rest),
+			       add_to_scheme(R, NewScheme))).
+
+add_to_scheme(R, Scheme) :-
+	rdf(R, skos:inScheme, Scheme),
+	!.
+add_to_scheme(R, Scheme) :-
+	rdf_assert(R, skos:inScheme, Scheme, tmp).
+
+%	pairs_keys(Pairs, Rest),
+% 	ord_list_to_rbtree(Pairs, RestAssoc).
+
+mapping_concepts(source, Mapping, Concepts) :-
+	maplist(arg(1), Mapping, Concepts).
+mapping_concepts(target, Mapping, Concepts) :-
+	maplist(arg(2), Mapping, Concepts).
+
+/*
 
 concept_selecter(scheme(SourceVoc), Result, Options) :-
 	option(exclude_sources(Exc), Options),!,
@@ -57,3 +84,4 @@ align_source(TargetVoc, align(S,scheme(TargetVoc),[]), S).
 
 align_source(align(S1,_,P), S2) :- (nonvar(S2) -> P=[]; true), S1=S2.
 % align_target(align(_,T1,P), T2) :- (nonvar(T2) -> P=[]; true), T1=T2.
+*/

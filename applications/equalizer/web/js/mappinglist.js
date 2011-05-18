@@ -21,9 +21,7 @@ YUI.add('mappinglist', function(Y) {
 		destructor : function() {},
 		renderUI : function() {
 			var content = this.get("contentBox");
-			var hd = content.appendChild("<div class='hd'>Mappings</div>");
-			var bd = content.appendChild("<div class='bd'></div>");
-			this.listNode = bd.appendChild(Node.create("<ul></ul>"));
+			this.listNode = content.appendChild(Node.create("<ul></ul>"));
 		},
 		
 		bindUI : function() {

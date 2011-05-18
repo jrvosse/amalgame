@@ -5,9 +5,11 @@ YUI.add('controls', function(Y) {
 		Widget = Y.Widget;
 	
 	var NODE_CONTROLS = Y.all(".control"),
-		NODE_INPUT_CONTROLS = Y.all("#node .control"),
+		NODE_INPUT_CONTROLS = Y.all("#select .control"),
+		NODE_INPUT = Y.one("#input"),
 		NODE_SOURCE = Y.one("#source"),
 		NODE_TARGET = Y.one("#target"),
+		NODE_INPUT_BTN = Y.one("#inputbtn"),
 		NODE_SOURCE_BTN = Y.one("#sourcebtn"),
 		NODE_TARGET_BTN = Y.one("#targetbtn");
 	
@@ -21,6 +23,9 @@ YUI.add('controls', function(Y) {
 		},
 		selected: {
 			value: null
+		},
+		nodes: {
+			value: []
 		}
 	};
 	
@@ -29,49 +34,83 @@ YUI.add('controls', function(Y) {
 			var instance = this,
 				content = this.get("srcNode");
 			
-			// The controls are accordion nodes
-			Y.all(".yui3-accordion").plug(Y.Plugin.NodeAccordion, { 
-   				anim: true, 
-				speed:0.1,
+			// the display of the control sets can be toggled
+			Y.all(".control-set .hd").on("click", function(e) {
+				e.currentTarget.get("parentNode").toggleClass("active");
+			});
+			
+			// The list of amalgame modules make an accordion
+			Y.all(".module-list").plug(Y.Plugin.NodeAccordion, { 
 				multiple:false
 			});
 
+			// The control all have submit button that we bind here
 			NODE_CONTROLS.each( function(node) {
 				node.one(".control-submit").on("click", this._onControlSubmit, this, node);
 			}, this);
 			
-			this._toggleControls();
-			
-			// the alignment control has two additional buttons
+			// the match control has two additional buttons
 			// to set the source and target
+			Y.on("click", this._valueSet, NODE_INPUT_BTN, this, "input");
 			Y.on("click", this._valueSet, NODE_SOURCE_BTN, this, "source");
 	      	Y.on("click", this._valueSet, NODE_TARGET_BTN, this, "target");
 			
+			// subtract modules need additional control to allow the mappings for exclusion
+			this.after('nodesChange', this._setMappingSelecter, this);
+			this._setMappingSelecter();
+			
 			// toggle the controls when selected is changed
 			this.after('selectedChange', this._toggleControls, this);
+			this._toggleControls();
+		},
+		
+		_setMappingSelecter : function() {
+			var nodes = this.get("nodes");
+			Y.all(".subtract form").each( function(form) {
+				var selecter = form.one('.mappingselect');
+				if(!selecter) {
+					selecter = Node.create('<div class="mappingselect"></div>');
+					form.prepend(selecter);
+				}
+				selecter.setContent(this.formatMappingList(nodes));
+			}, this);
+		},
+		
+		formatMappingList : function(nodes) {
+			var HTML = "";
+			for (var uri in nodes) {
+				var m = nodes[uri];
+				if(m.type == "mapping") {
+					HTML += '<div><input type="checkbox" name="exclude" value="'+uri+'">'
+					+' <span>'+m.label+'</span></div>';
+				}
+			}
+			return HTML;
 		},
 				
 		_onControlSubmit : function(e, node) {
+			e.preventDefault();
+			
 			var content = this.get("srcNode"),
+				input = NODE_INPUT.get("value"),
 				source = NODE_SOURCE.get("value"),
 				target = NODE_TARGET.get("value"),
 				selected = this.get("selected"),
 				data = this._getFormData(node);
-			
-			// The input is selected base on the type of the control
+ 
+			// The input is selected based on the type of the control
 			// which is stored as a CSS class
-			if(node.hasClass("sourcetarget")) {
-				if(source&&target) {
+			if(node.hasClass("match")) {
+				if(input) {
+					data.input = input;
+				}
+				else if(source&&target) {
 					data.source = source;
 					data.target = target;
-				} else {
-					return "no source and target known";
 				}
 			}
 			else if(selected) {
 				data.input = selected.uri;
-			} else {
-				return "no input";
 			}
 			
 			this.fire("submit", {data:data});
@@ -84,7 +123,16 @@ YUI.add('controls', function(Y) {
 			form.all("input").each(function(input) {
 				var name = input.get("name"),
 					value = input.get("value");
-				if(name&&value&&input.get("type")!=="button") {
+				if(input.get("type")=="checkbox") {
+					if(input.get("checked")) {
+						if(data[name]) {
+							data[name].push(value);
+						} else {
+							data[name] = [value];
+						}
+					}
+				}
+				else if(input.get("type")!=="button"&&name&&value) {
 					data[name] = value;
 				}
 			});
@@ -104,7 +152,6 @@ YUI.add('controls', function(Y) {
 		_toggleControls : function() {
 			var selected = this.get("selected"),
 				type = selected ? selected.type : "";
-				
 			// We only show the controls for the active type
 			NODE_INPUT_CONTROLS.each(function(node) {
 				if(type&&node.hasClass(type)) {
@@ -115,19 +162,22 @@ YUI.add('controls', function(Y) {
 			});
 			
 			// enable input select when a vocabulary is selected
+			NODE_INPUT_BTN.setAttribute("disabled", true);
+			NODE_SOURCE_BTN.setAttribute("disabled", true);
+			NODE_TARGET_BTN.setAttribute("disabled", true);
 			if(type=="vocab") {
 				NODE_SOURCE_BTN.removeAttribute("disabled");
 				NODE_TARGET_BTN.removeAttribute("disabled");
-			} else {
-				NODE_SOURCE_BTN.setAttribute("disabled", true);
-				NODE_TARGET_BTN.setAttribute("disabled", true);
+			} else if(type=="mapping") {
+				NODE_INPUT_BTN.removeAttribute("disabled");
 			}
 			
 			// enable matcher submit when both source and target have a value
-			if(NODE_SOURCE.get("value")&&NODE_TARGET.get("value")) {
-				Y.all("#align .control-submit").removeAttribute("disabled");
+			if(NODE_INPUT.get("value")||
+				(NODE_SOURCE.get("value")&&NODE_TARGET.get("value"))) {
+				Y.all("#match .control-submit").removeAttribute("disabled");
 			} else {
-				Y.all("#align .control-submit").setAttribute("disabled", true);
+				Y.all("#match .control-submit").setAttribute("disabled", true);
 			}
 		},
 		
@@ -138,10 +188,19 @@ YUI.add('controls', function(Y) {
 				Y.one("#"+which).set("value", selected.uri);
 				this._toggleControls();
      		}
+			if(which=="input") {
+				Y.one("#sourceLabel").set("value", "");
+				Y.one("#source").set("value", "");
+				Y.one("#targetLabel").set("value", "");
+				Y.one("#target").set("value", "");
+			} else {
+				Y.one("#inputLabel").set("value", "");
+				Y.one("#input").set("value", "");
+			}
 		}
 		
 	});
 	
 	Y.Controls = Controls;
 	
-}, '0.0.1', { requires: ['node,event','gallery-node-accordion']});
+}, '0.0.1', { requires: ['node,event','anim','gallery-node-accordion']});

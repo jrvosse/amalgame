@@ -4,6 +4,8 @@ YUI.add('opmviz', function(Y) {
 		Node = Y.Node,
 		Widget = Y.Widget;
 	
+	var svgNS = "http://www.w3.org/2000/svg";
+	
 	function OPMViz(config) {
 		OPMViz.superclass.constructor.apply(this, arguments);
 	}
@@ -11,6 +13,9 @@ YUI.add('opmviz', function(Y) {
 	OPMViz.ATTRS = {
 		active: {
 			value:null
+		},
+		datasource: {
+			value: null
 		}
 	};
 	
@@ -27,16 +32,7 @@ YUI.add('opmviz', function(Y) {
 
 			if(contentBox.one("svg")) {
 				Y.Event.purgeElement(contentBox, true);
-				Y.delegate("click", function(e) {
-					e.preventDefault();
-					var target = e.currentTarget,
-						uri = target.getAttribute("xlink:href");
-					this.set("active", uri);
-					Y.log("selected: "+uri);
-					Y.all("svg a").removeAttribute("class", "selected");
-					target.setAttribute("class", "selected");
-					this.fire("nodeSelect", {target:target, uri:uri});
-				}, "svg", "a", this);
+				Y.delegate("click", this._onNodeSelect, "svg", "a", this);
 			}
 		},
 		
@@ -56,6 +52,47 @@ YUI.add('opmviz', function(Y) {
 			this.get("contentBox").setContent(graph);
 			this.syncUI();
 			this.bindUI();
+		},
+		
+		_onNodeSelect : function(e) {
+			e.preventDefault();
+			var target = e.currentTarget,
+				uri = target.getAttribute("xlink:href");
+				
+			this.set("active", uri);
+			Y.log("selected: "+uri);
+			Y.all("svg a").removeAttribute("class", "selected");
+			target.setAttribute("class", "selected");
+			this._fetchNodeStats(uri, target);
+			this.fire("nodeSelect", {target:target, uri:uri});
+		},
+		
+		
+		_fetchNodeStats : function(uri, target) {
+			var datasource = this.get("datasource");
+			datasource.sendRequest({
+				request:'?url='+uri,
+				callback:{success:function(o) {
+						var HTML = o.response.results[0].responseText;
+						if(HTML&&!target.one(".info")) {
+							var textNode = target.one("text"),
+								x = textNode.getAttribute("x"),
+								y = parseInt(textNode.getAttribute("y")),
+								infoNode = document.createElementNS(svgNS,"text");
+							
+							infoNode.appendChild(document.createTextNode(HTML));	
+							infoNode.setAttribute("class", "info");
+							infoNode.setAttribute("text-anchor", "middle");
+							infoNode.setAttribute("y",y+8);
+							infoNode.setAttribute("x",x);
+							infoNode.setAttribute("font-family","Times,serif");
+							infoNode.setAttribute("font-size", 10);
+							textNode.setAttribute("y",y-4)
+							target.appendChild(infoNode);
+						}
+					}
+				}
+			})
 		}
 	});
 	

@@ -1,60 +1,139 @@
 :- module(eq_controls,
-	  [ html_controls//0
+	  [ html_controls//0,
+	    html_info_control//0,
+	    html_parameter_form//1,
+	    module_input_type/2,
+	    module_special_type/2
 	  ]).
 
+:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdfs)).
+:- use_module(library(semweb/rdf_label)).
 :- use_module(library(http/html_write)).
 :- use_module(library(amalgame/amalgame_modules)).
 
-current_modules_of_input_type(Types, Modules) :-
-	findall(URI-Module,
-		( current_amalgame_module(URI, Module),
-		  amalgame_module_property(URI, input_type(Type)),
-		  member(Type, Types)
-		),
-		Modules).
+:- rdf_meta
+	status_option(r).
 
 html_controls -->
-	{ current_modules_of_input_type([mapping,vocab], InputModules),
-	  current_modules_of_input_type([sourcetarget], MatchModules)
- 	},
-	html(div(id(controls),
-		 [div([id(select), class('control-set')],
-		      [ div(class(hd), 'Select'),
-		        div(class('bd hidden'),
-			    [ div([id(info), class(c)],
-				  \html_node_props),
-			      div([id(properties), class(c)], []),
-			      \html_modules(InputModules)
-			    ])
+	{ amalgame_modules_of_type(amalgame:'Selecter', Selecters),
+	  amalgame_modules_of_type(amalgame:'Matcher', Matchers)
+	},
+	html([\html_control_set(true,
+				'Current node',
+				\html_info_control),
+	      \html_control_set(false,
+				'Selecters',
+				\html_select_control(Selecters)),
+	      \html_control_set(false,
+				'Matchers',
+				\html_match_control(Matchers))
+	     ]).
+
+html_control_set(Active, Header, Body) -->
+        { active_class(Active, Class)
+	},
+	html(div([class('control-set '+Class)],
+		 [ div(class('hd'),
+		       a([href('javascript:void(0)'),
+			  class('trigger')],
+			 Header)),
+		   div(class('bd'),
+		       Body)
+		 ])).
+
+active_class(true, active).
+active_class(false, '').
+
+html_info_control -->
+	html(div(id(info),
+		 [div(class('bd hidden'),
+		      [ div([id(details), class(c)],
+			    [\html_node_props,
+			     div(class('control-buttons'),
+				 [ button(id(delete), delete),
+				   button(id(update), update)
+				 ])
+			    ]),
+			form([id(infocontent), class('control c')],
+			     [div([id(properties)], []),
+			      div(class('control-buttons'),
+				  button(class('control-submit'), 'Update'))
+			     ])
 		      ]),
-		  div([id(align), class('control-set')],
-		      [ div(class(hd), 'Align'),
-			div(class(bd),
-			    [ div(class(c), \html_align_select),
-			      \html_modules(MatchModules)
-			    ])
-		      ])
+		  div([class('empty c')],
+		      ['select a node in the graph']),
+		  div([class('loading c hidden')], [])
 		 ])).
 
 html_node_props -->
+	{ findall(R, status_option(R), Rs)
+	},
 	html(table([tr([td(id(type), []),
-			td(id(uri), []),
-			td(input([type(button), id(delete), value(delete)]))
+			td(id(uri), [])
 		       ]),
 		    tr([td(label),
-			td(input([type(text), id(label), size(30)])),
-			td(input([type(button), id(updateLabel), value(change)]))
+			td(input([type(text), id(label)]))
+		       ]),
+		    tr([td(comment),
+			td(textarea([rows(1), id(comment)], []))
+		       ]),
+		    tr(id(statusrow),
+		       [td(status),
+			td(select([id(status), autocomplete(off)],
+				 [ option(value('')),
+				   \html_options(Rs)
+				 ]))
 		       ])
 		   ])).
 
-html_align_select -->
-	html(table([tr([td(input([type(button), id(sourcebtn), value('set as source')])),
-			td([input([type(text), id(sourceLabel), size(40), autocomplete(off)]),
+html_options([]) --> !.
+html_options([R|Rs]) -->
+	{ rdf_display_label(R, Label)
+	},
+	html(option(value(R), Label)),
+	html_options(Rs).
+
+html_select_control(Modules) -->
+	html(div(id(select),
+		 [ div(class(c),
+		       ul([li('select a set of correspondences from a mapping'),
+			   li('select a set of concepts from a vocabulary')
+			  ])),
+		   \html_modules(Modules)
+		 ])).
+
+html_match_control(Modules) -->
+	html(div(id(match),
+		 [ div(class(c),
+		       \html_align_input),
+		   \html_modules(Modules)
+		 ])).
+
+html_align_input -->
+	html([h4('Choose input'),
+	      div(class(i),
+		  \html_mapping_select),
+	      div(class(i),
+		  \html_source_target_select)
+	     ]).
+
+html_mapping_select -->
+	html(table([tr([td(button(id(inputbtn), 'set as input')),
+			td([input([type(text), id(inputLabel), autocomplete(off)]),
+			    input([type(hidden), id(input), name(input)])
+			   ])
+		       ])
+		   ])).
+
+html_source_target_select -->
+	html(table([tr([td(button(id(sourcebtn), 'set as source')),
+			td([input([type(text), id(sourceLabel), autocomplete(off)]),
 			    input([type(hidden), id(source), name(source)])
 				  ])
 		       ]),
-		    tr([td(input([type(button), id(targetbtn), value('set as target')])),
-			td([input([type(text), id(targetLabel), size(40), autocomplete(off)]),
+		    tr([td(button(id(targetbtn), 'set as target')),
+			td([input([type(text), id(targetLabel), autocomplete(off)]),
 			    input([type(hidden), id(target), name(target)])
 				  ])
 		       ])
@@ -73,22 +152,23 @@ html_modules(Modules) -->
 
 
 html_module_items([]) --> !.
-html_module_items([URI-Module|Ms]) -->
+html_module_items([[URI,Module]|Ms]) -->
 	{  amalgame_module_parameters(Module, Params),
-	   amalgame_module_property(URI, input_type(InputType))
+	   module_input_type(URI, InputType),
+	   module_special_type(URI, SpecialType)
 	},
-	html_accordion_item('control '+InputType,
+	html_accordion_item('control '+SpecialType+' '+InputType,
 			    \module_label(URI),
 			    [ \module_desc(URI),
 			      \module_form(URI, Params)
 			    ]),
- 	html_module_items(Ms).
+	html_module_items(Ms).
 
 module_form(URI, Params) -->
 	html(form([input([type(hidden), name(process), value(URI)]),
 		   table(tbody(\html_parameter_form(Params))),
 		   div(class('control-buttons'),
-		       input([type(button), class('control-submit'), value('Go')]))
+		       button(class('control-submit'), 'Go'))
 		  ])).
 
 module_label(URI) -->
@@ -125,7 +205,7 @@ html_accordion_item(Class, Header, Body) -->
 
 html_parameter_form([]) --> !.
 html_parameter_form([parameter(Name, Type, Default, Desc)|Ps]) -->
- 	html(tr(title(Desc),
+	html(tr(title(Desc),
 		 [td(label(Name)),
 		  td(\input_value(Type, Default, Name))
 		  ])),
@@ -140,7 +220,7 @@ html_parameter_form([parameter(Name, Type, Default, Desc)|Ps]) -->
 	input_item/5.	       % input_item(+Type, +Value, +Name)//
 
 input_value(Type, Value, Name) -->
- 	(   input_item(Type, Value, Name)
+	(   input_item(Type, Value, Name)
 	->  []
 	;   builtin_input_item(Type, Value, Name)
 	).
@@ -150,16 +230,22 @@ builtin_input_item(boolean, Value, Name) --> !,
 builtin_input_item(between(L,U), Value, Name) --> !,
 	html(input([ type(range),
 		     name(Name),
- 		     min(L), max(U), value(Value)
+		     min(L), max(U), value(Value)
 		   ])).
 builtin_input_item(oneof(List), Value, Name) --> !,
 	html(select([name(Name)], \oneof(List, Value))).
+builtin_input_item(uri, Value, Name) -->
+	{ rdf_global_id(NS:Local, Value),!
+	},
+	html(input([name(Name), value(NS+':'+Local)])).
+builtin_input_item(uri, Value, Name) -->
+	html(input([name(Name), value(Value)])).
 builtin_input_item(atom, Value, Name) --> !,
-	html(input([name(Name), size(40), value(Value)])).
+	html(input([name(Name), value(Value)])).
 builtin_input_item(_, Value, Name) -->
 	{ format(string(S), '~q', [Value])
 	},
-	html(input([name(Name), size(40), value(S)])).
+	html(input([name(Name), value(S)])).
 
 oneof([], _) -->
 	[].
@@ -170,3 +256,40 @@ oneof([H|T], Value) -->
 	),
 	oneof(T, Value).
 
+
+%%	module_input_type(+ModuleURI, -InputType)
+%
+%	InpuType defines for which type of input the module can be
+%	used.
+
+module_input_type(M, mapping) :-
+	rdfs_subclass_of(M, amalgame:'MappingSelecter'),
+	!.
+module_input_type(M, vocab) :-
+	rdfs_subclass_of(M, amalgame:'VocabSelecter'),
+	!.
+module_input_type(_, '').
+
+%%	module_special_type(+ModuleURI, -Type).
+%
+%	Type is set for modules that require additional javascript
+%	control in the UI.
+
+module_special_type(M, subtract) :-
+	rdfs_subclass_of(M, amalgame:'Subtracter'),
+	!.
+module_special_type(M, merger) :-
+	rdfs_subclass_of(M, amalgame:'Merger'),
+	!.
+module_special_type(M, match) :-
+	rdfs_subclass_of(M, amalgame:'Matcher'),
+	!.
+module_special_type(_, '').
+
+%%	status_option(-Status)
+%
+%	List of status types.
+
+status_option(amalgame:final).
+status_option(amalgame:intermediate).
+status_option(amalgame:discarded).

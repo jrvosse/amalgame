@@ -1,6 +1,7 @@
 :- module(amalgame_modules,
 	  [ current_amalgame_module/2,    % ?URI, ?Module
-	    amalgame_module_id/2,         % +Class, +Type, -Module
+	    amalgame_module_id/2,         % +URI, -Module
+	    amalgame_modules_of_type/2,   % +Class, -Modules
  	    amalgame_module_parameters/2, % +Module, -Parameters
 	    amalgame_module_property/2	  % +URI, ?Term
  	  ]).
@@ -11,7 +12,8 @@
 
 :- rdf_meta
 	amalgame_module_property(r,?),
-	module_input_type(r,?).
+	amalgame_module_id(r,-),
+	amalgame_modules_of_type(r,-).
 
 %%	current_amalgame_module(?URI, ?ModuleName)
 %
@@ -36,6 +38,20 @@ amalgame_module_id(URI, Module) :-
 	;   throw(error(existence_error(amalgame_module, [URI]), _))
 	).
 
+%%	amalgame_modules_of_type(+Class, -Modules)
+%
+%	Modules are loaded amalgame modules of type Class.
+
+amalgame_modules_of_type(Class, Modules) :-
+	findall(Label-[URI,Module],
+		( current_amalgame_module(URI, Module),
+		  rdfs_subclass_of(URI, Class),
+		  rdf_display_label(URI, Label)
+ 		),
+		LabeledModules),
+	sort(LabeledModules, Sorted),
+	pairs_values(Sorted, Modules).
+
 %%	amalgame_module_parameters(+Module,-Parameters)
 %
 %       Parameters is a list of parameters for Module.
@@ -58,14 +74,7 @@ amalgame_module_parameters(_, []).
 %
 %	 desc(Desc)
 %	 a description of the module
-%
-%	 input_type(InputType)
-%	 a constant defining the type of input required
 
-amalgame_module_property(URI, input_type(Type)) :-
-	!,
-	rdfs_subclass_of(URI, Class),
-	module_input_type(Class, Type).
 amalgame_module_property(URI, label(Label)) :-
 	!,
 	(   rdf_label(URI, Lit)
@@ -76,10 +85,4 @@ amalgame_module_property(URI, desc(Desc)) :-
 	!,
 	rdf_has(URI, skos:definition, Lit),
 	literal_text(Lit, Desc).
-
-module_input_type(amalgame:'Matcher', sourcetarget).
-module_input_type(amalgame:'MatchFilter', mapping).
-module_input_type(amalgame:'MappingSelecter', mapping).
-module_input_type(amalgame:'VocabSelecter', vocab).
-module_input_type(amalgame:'Merger', mappings).
 

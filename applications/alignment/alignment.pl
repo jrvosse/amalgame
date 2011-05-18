@@ -21,10 +21,12 @@ pages and services.
 :- use_module(applications(vocabularies/components)).
 :- use_module(applications(align_stats)).
 
-:- use_module(library(amalgame/matchers/skosmatcher)).
 :- use_module(library(amalgame/alignment)).
 :- use_module(library(amalgame/opm)).
 :- use_module(library(amalgame/edoal)).
+:- use_module(library(amalgame/map)).
+
+:- use_module(library(ag_modules/exact_label_match)).
 
 
 :- http_handler(amalgame(align_form),       http_align_form,     []).
@@ -209,35 +211,9 @@ li_align(Source, Target) -->
 	       )
 	    ).
 
-alignx(Source, Target, Options) :-
-	findall(SourceConcept, rdf(SourceConcept, skos:inScheme, Source), SourceConcepts),
-	forall(member(SourceConcept, SourceConcepts),
-	       rdf_transaction(skos_find_candidates(SourceConcept, Source,
-                                                    Target,
-						    [candidate_matchers([labelmatch])|Options]))
-              ),
-	option(graph(Graph), Options, align),
-	rdf_bnode(Process),
-	rdf_assert(Graph, rdf:type, amalgame:'AmalgameAlignment', Graph),
-	rdf_assert(Graph, amalgame:source, Source, Graph),
-	rdf_assert(Graph, amalgame:target, Target, Graph),
-
-	rdf_assert(Process, rdfs:label, literal('amalgame skos:matcher:skos_find_candidates/3'), Graph),
-	opm_was_generated_by(Process, Graph, Graph, [was_derived_from([Source, Target])|Options]).
-
-align(SourceScheme, TargetScheme, Options) :-
-	findall([Source,Target],
-		candidate_generator(_Alignment, SourceScheme, TargetScheme, Source, Target, [labelmatch], Options),
-		CandidatesDoubles),
-	sort(CandidatesDoubles, Candidates),
-	findall(Source-Target-MatchUsed-MethodUsed,
-		(   member([Source, Target], Candidates),
-		    matcher(Source, Target, labelmatch, MatchUsed, MethodUsed, Options)
-		), Cells
-	       ),
-	forall(member(Source-Target-MatchUsed-MethodUsed, Cells),
-	       assert_cell(Source, Target, [method(MethodUsed), match(MatchUsed) | Options ])
-	      ),
+align(Source, Target, Options) :-
+	exact_label_match:matcher(Source, Target, Mappings, Options),
+	materialize_mapping_graph(Mappings, Options),
 	option(graph(Graph), Options, align),
 	rdf_bnode(Process),
 	rdf_assert(Graph, rdf:type, amalgame:'AmalgameAlignment', Graph),

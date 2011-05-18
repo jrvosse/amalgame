@@ -1,5 +1,5 @@
 :-module(edoal, [
-		 assert_alignment/2, 	% +URI, +OptionList
+		 assert_alignment/2,	% +URI, +OptionList
 		 assert_cell/3,	        % +E1, +E2, +OptionList
 		 edoal_to_triples/4,	% +Request, +EdoalGraph, +Options, +TargetGraph
 		 edoal_select/5	        % +Request, +EdoalGraph, +Options, +TargetGraph, +TargetRestGraph
@@ -101,41 +101,28 @@ assert_cell(C1, C2, Options) :-
 	->  rdf_assert(A, align:map, Cell, Graph)
 	;   rdf_assert(Graph, align:map, Cell, Graph)
 	),
-	(   option(comment(Comment), Options), Comment \= ''
-	->  rdf_assert(Cell, rdfs:comment, literal(Comment), Graph)
-	;   true
-	),
-	(   option(source(Source), Options)
-	->  term_to_atom(Source, SourceAtom),
-	    rdf_assert(Cell, amalgame:source, literal(SourceAtom), Graph)
-	;   true
-	),
-	(   option(method(Methods), Options)
-	->  (   is_list(Methods)
-	    ->	forall(member(Method, Methods),
-		       (   term_to_atom(Method, MethodAtom),
-			   rdf_assert(Cell, amalgame:method, literal(MethodAtom), Graph)
-		       ))
-	    ;	term_to_atom(Methods, MethodAtom),
-		rdf_assert(Cell, amalgame:method, literal(MethodAtom), Graph)
-	    )
-	;   true
-	),
-	(   option(match(Matches), Options)
-	->  (   is_list(Matches)
-	    ->	forall(member(Match, Matches),
-		       (   term_to_atom(Match, MatchAtom),
-			   rdf_assert(Cell, amalgame:match, literal(MatchAtom), Graph)
-		       ))
-	    ;	term_to_atom(Matches, MatchAtom),
-		rdf_assert(Cell, amalgame:match, literal(MatchAtom), Graph)
-	    )
-	;   true
-	),
-	(   option(user(Agent), Options)
-	->  rdf_assert(Cell, amalgame:agent, Agent, Graph)
+	% Disable for now, gives weird results ...
+	(   option(prov(Prov), Options)
+	->  assert_provlist(Prov, Cell, Graph)
 	;   true
 	).
+
+assert_provlist([], _, _).
+assert_provlist([P|ProvList], Cell, Graph) :-
+	rdf_bnode(B),
+	rdf_assert(Cell, amalgame:provenance, B, Graph),
+	forall(member(ProvElem, P),
+	       (   ProvElem =.. [Key, Value],
+		   assert_prov_elem(Key, Value, B, Graph)
+	       )
+	      ),
+	assert_provlist(ProvList, Cell, Graph).
+
+assert_prov_elem(graph, _Value, Subject, Graph) :- !,
+	rdf_assert(Subject, amalgame:graph, literal('tbd'), Graph).
+assert_prov_elem(Key, Value, Subject, Graph) :-
+	rdf_global_id(amalgame:Key, Property),
+	rdf_assert(Subject, Property, literal(Value), Graph).
 
 
 %%	edoal_to_triples(+Request, +EdoalGraph, +SkosGraph, +Options) is

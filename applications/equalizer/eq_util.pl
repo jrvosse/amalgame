@@ -3,9 +3,10 @@
 	    assert_user_provenance/2,
 	    amalgame_alignment/2,
 	    js_mappings/2,
- 	    js_alignment_nodes/2,
+	    js_alignment_nodes/2,
 	    now_xsd/1,
-	    xsd_timestamp/2
+	    xsd_timestamp/2,
+	    is_edm_collection/1
 	  ]).
 
 :- use_module(library(http/html_write)).
@@ -14,6 +15,7 @@
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_label)).
 :- use_module(user(user_db)).
+:- use_module(cliopatria(components/label)).
 
 :- multifile
 	eq:menu_item/2.
@@ -44,7 +46,7 @@ html_menu_item(Handler, Label, Active, _Alignment) -->
 	html(li(class(selected), span(Label))).
 html_menu_item(Handler, Label, _Active, Alignment) -->
 	{ http_link_to_id(Handler, [alignment(Alignment)], Link)
- 	},
+	},
 	html(li(a(href(Link), Label))).
 
 %%	assert_user_provenance(+Resource, -NamedGraph)
@@ -86,7 +88,7 @@ mapping(Alignment, URI, Label) :-
 js_alignment_nodes(Alignment, Nodes) :-
 	findall(S, graph_resource(Alignment, S), Nodes0),
 	sort(Nodes0, Nodes1),
- 	maplist(node_data, Nodes1, Nodes).
+	maplist(node_data, Nodes1, Nodes).
 
 graph_resource(Graph, R) :-
 	rdf(R,rdf:type,_,Graph).
@@ -97,15 +99,13 @@ graph_resource(Graph, R) :-
 graph_resource(Graph, R) :-
 	rdf(Graph, amalgame:includes, R).
 
-node_data(R, R=json([type=Type, label=Label])) :-
-	rdf_display_label(R, Lit),
-	literal_text(Lit, Label),
-	(   node_type(R, T)
-	->  Type = T
-	;   Type = vocab
-	).
+node_data(R, R=json(Props)) :-
+	findall(Type=Value, node_prop(R, Type, Value), Props).
 
-node_type(R, Type) :-
+node_prop(R, label, Label) :-
+	rdf_display_label(R, Lit),
+	literal_text(Lit, Label).
+node_prop(R, type, Type) :-
 	rdf(R, rdf:type, Class),
 	(   rdf_equal(Class, amalgame:'Alignment')
 	->  Type = alignment
@@ -113,8 +113,18 @@ node_type(R, Type) :-
 	->  Type = mapping
 	;   rdfs_subclass_of(Class, opmv:'Process')
 	->  Type = process
+	;   Type = vocab
 	).
+node_prop(EDM, type, vocab) :-
+	is_edm_collection(EDM).
 
+node_prop(R, status, Status) :-
+	rdf(R, amalgame:status, Status).
+node_prop(R, comment, Comment) :-
+	rdf(R, rdfs:comment, literal(Lit)),
+	literal_text(Lit, Comment).
+node_prop(R, link, Link) :-
+	resource_link(R, Link).
 
 %%	http:convert_parameter(+Type, +In, -URI) is semidet.
 %
@@ -151,3 +161,6 @@ xsd_timestamp(Time, Atom) :-
         format_time(atom(Atom),
                     '%FT%T%:z',
                     Date, posix).
+
+is_edm_collection(EDM) :-
+	once(rdf(_,edm:country, _, EDM:_)).

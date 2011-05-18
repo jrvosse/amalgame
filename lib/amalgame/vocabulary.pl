@@ -12,19 +12,30 @@
 %	@param VocabDef is a URI of a skos:ConceptScheme or a definition
 %	of a subset thereof.
 
+vocab_member(E, and(G1,G2)) :-
+	!,
+	vocab_member(E,G1),
+	vocab_member(E,G2).
 vocab_member(E, scheme(Scheme)) :-
 	!,
 	rdf_has(E, skos:inScheme, Scheme).
 vocab_member(E, type(Class)) :-
 	!,
 	rdfs_individual_of(E, Class).
-vocab_member(E, Scheme) :-
-	rdfs_individual_of(Scheme, skos:'ConceptScheme'),
+vocab_member(F, 'http://sws.geonames.org/') :-
 	!,
-	vocab_member(E, scheme(Scheme)).
+	rdfs_individual_of(F, 'http://www.geonames.org/ontology#Feature').
+vocab_member(E, Scheme) :-
+	rdf(Scheme, rdf:type, skos:'ConceptScheme'),
+	!,
+	rdf_has(E, skos:inScheme, Scheme).
+vocab_member(I, EDMGraph) :-
+	rdf(_, 'http://www.europeana.eu/schemas/edm/country',_, EDMGraph),
+	!,
+	rdf(I, 'http://www.europeana.eu/schemas/edm/country', _, EDMGraph).
 vocab_member(E, Class) :-
 	rdfs_individual_of(Class, rdfs:'Class'),
 	!,
-	vocab_member(E, type(Class)).
+	rdfs_individual_of(E, Class).
 
 

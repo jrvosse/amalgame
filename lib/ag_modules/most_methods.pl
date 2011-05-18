@@ -2,27 +2,19 @@
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
+:- use_module(library(amalgame/map)).
 
-:- public partition/3.
-:- multifile amalgame:component/2.
+:- public amalgame_module/1.
+:- public selecter/5.
 
-amalgame:component(partition, most_methods(alignment_graph, [selected(alignment_graph),
-							     discarded(alignment_graph),
-							     undecided(alignment_graph)
-							    ], [])).
+amalgame_module(amalgame:'MostMethods').
 
-%%	partition(+Input, -Output, +Options)
+%%	selecter(+Source, -Selected, -Discarded, -Undecided, +Options)
 %
-%	Output a list of graphs where the first element contains
-%	all ambiguous alignments and the second the unambiguous
-%	ones.
-%       Input is a sorted list of alignment terms.
+%       Source is a sorted list of alignment terms.
+%       TODO: add source/target option
 
-partition(AlignmentGraph, ListOfGraphs, _Options) :-
-	ListOfGraphs = [selected(S),
-			discarded(D),
-			undecided(U)
-		      ],
+selecter(AlignmentGraph, S, D, U, _Options) :-
 	partition_(AlignmentGraph, S, D, U).
 
 partition_([], [], [], []).

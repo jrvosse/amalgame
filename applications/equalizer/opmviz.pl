@@ -22,12 +22,10 @@
 
 
 opmviz_options([edge_links(false),
-		wrap_url(opm_url),
-		shape_hook(opm_shape),
+ 		shape_hook(opm_shape),
 		graph_attributes([])
 	       ]).
 
-is_meta(wrap_url).
 is_meta(shape_hook).
 
 
@@ -114,39 +112,47 @@ is_opm_property(P) :-
 	rdfs_subproperty_of(P, opmv:wasTriggeredBy),
 	!.
 
-%%	opm_url(+Resource, -URL)
-%
-%	URL becomes a javascript link.
-
-opm_url(R, R).
-opm_url(R, HREF) :-
-	(   rdf_label(R, L0)
-	->  literal_text(L0, L)
-	;   L = R
-	),
-	format(atom(HREF), 'javascript:nodeSelect("~w", "~w")', [R, L]).
-
 %%	opm_shape(+Resource, -Shape)
 %
 %	Defines graph node shape for different types of OPM resources.
 
 opm_shape(R, [shape(octagon),
  	      style(filled),
-	      fillcolor('#DDDDDD'),
+	      fillcolor(Color),
 	      fontsize(10)]) :-
 	atom(R),
 	rdfs_individual_of(R, opmv:'Process'),
-	!.
-opm_shape(R, [shape(ellipse),
+	!,
+	process_color(R, Color).
+opm_shape(R, [shape(box),
+	      style(filled),
+	      fillcolor('#EEEEEE'),
 	      fontsize(10)]) :-
 	atom(R),
+	rdf(R, rdf:type, skos:'ConceptScheme').
+opm_shape(R, [shape(ellipse),
+	      fillcolor(Color),
+	      style(filled),
+              fontsize(10)]) :-
+	atom(R),
 	rdfs_individual_of(R, opmv:'Artifact'),
-	!.
-opm_shape(R, [shape(box),
- 	      fontsize(10)
-	     ]) :-
-	rdfs_individual_of(R, opmv:'Alignment').
+	!,
+	artifact_color(R, Color).
 opm_shape(_R, [shape(box),
  	       fontsize(10)]).
 
+process_color(R, '#FFCC99') :-
+	rdfs_individual_of(R, amalgame:'Subtracter'),
+	!.
+process_color(R, '#99CCFF') :-
+	rdfs_individual_of(R, amalgame:'Selecter'),
+	!.
+process_color(R, '#CC99FF') :-
+	rdfs_individual_of(R, amalgame:'Matcher'),
+	!.
+process_color(_, '#DDDDDD').
 
+artifact_color(R, '#CCFF99') :-
+	rdf(R, amalgame:status, amalgame:final),
+	!.
+artifact_color(_R, '#FFFFFF').

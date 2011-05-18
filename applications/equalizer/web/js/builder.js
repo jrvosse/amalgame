@@ -6,6 +6,7 @@ YUI.add('builder', function(Y) {
 	
 	var	NODE_OPM 			= Y.one("#opm"),
 		NODE_CONTROLS 		= Y.one("#controls"),
+		NODE_INFO	 		= Y.one("#info"),
 		NODE_SELECT 		= Y.one("#select");
 	
 	function Builder(config) {
@@ -22,8 +23,11 @@ YUI.add('builder', function(Y) {
 		paths:{
 			value:{
 				opmgraph:'/amalgame/opmviz',
-				addprocess:'/amalgame/addprocess',
-				statistics:'/amalgame/statisctis'
+				addprocess:'/amalgame/data/addprocess',
+				nodeinfo:'/amalgame/private/nodeinfo',
+				info:'/amalgame/private/info',
+				updatenode:'/amalgame/data/updatenode',
+				deletenode:'/amalgame/data/deletenode'
 			},
 			validator: function(val) {
 				return Lang.isObject(val)
@@ -50,38 +54,48 @@ YUI.add('builder', function(Y) {
 			this._initGraph();
 			this._initInfo();
 			this._initControls();			
-			
+
 			// bind the modules together
 			this.opmviz.on("nodeSelect", this._onNodeSelect, this);
 			this.controls.on("submit", this._onControlSubmit, this);
-			this.infobox.after("labelChange", this._onLabelChange, this);
+			this.infobox.after("nodeChange", this._onNodeChange, this);
+			this.infobox.after("deleteNode", this._onNodeDelete, this);
 			
+			this.after('nodesChange', function(o) {
+				this.controls.set("nodes", o.newVal);
+			}, this);
 			// Let's get some stuff
 			this._fetchGraph();
 		},
 		
 		_initGraph : function() {
-			this.opmviz = new Y.OPMViz().render(NODE_OPM);
+			var DS = new Y.DataSource.IO({
+				source: this.get("paths").nodeinfo
+			})
+			//.plug({fn:Y.Plugin.DataSourceCache, cfg:{max:10}});
+			this.opmviz = new Y.OPMViz({
+				datasource: DS
+			}).render(NODE_OPM);
 		},
 		
 		_initInfo : function() {
-			var paths = this.get("paths");
-			
 			// The infobox is part of the controls,
 			// but has some additional routines
 			var DS = new Y.DataSource.IO({
-				source: paths.statistics
-			})
-			.plug({fn:Y.Plugin.DataSourceCache, cfg:{max:10}});
+				source: this.get("paths").info
+			});
+			//.plug({fn:Y.Plugin.DataSourceCache, cfg:{max:10}});
 			this.infobox = new Y.InfoBox({
-				srcNode: NODE_SELECT,
+				srcNode: NODE_INFO,
 				datasource: DS
 			});
 		},
 		
 		_initControls : function() {			
 			this.controls = new Y.Controls({
-				srcNode: NODE_CONTROLS
+				srcNode: NODE_CONTROLS,
+				selected: this.get("selected"),
+				nodes: this.get("nodes")
 			});
 		},
 		
@@ -115,7 +129,6 @@ YUI.add('builder', function(Y) {
 			// data only contains the process parameters
 			// we need to add the context
 			data.alignment = this.get("alignment");
-			
 			Y.io(paths.addprocess, {
 				data:data,
 				on:{success:function(e,o) {
@@ -125,16 +138,30 @@ YUI.add('builder', function(Y) {
 			})
 		},
 		
-		_onLabelChange : function(o) {
+		_onNodeChange : function(o) {
+			var oSelf = this,
+				paths = this.get("paths"),
+				data = o.update;
+			data.alignment = this.get("alignment");
+			
+			Y.io(paths.updatenode, {
+				data:data,
+				on:{success:function(e,o) {
+					oSelf.set("nodes", Y.JSON.parse(o.responseText).nodes);
+					oSelf._fetchGraph();
+				}}
+			})
+		},
+		
+		_onNodeDelete : function(o) {
 			var oSelf = this,
 				paths = this.get("paths"),
 				data = {
 					alignment:this.get("alignment"),
-					uri:o.uri,
-					label:o.newVal
+					uri:o.uri
 				};
 			
-			Y.io(paths.updatelabel, {
+			Y.io(paths.deletenode, {
 				data:data,
 				on:{success:function(e,o) {
 					oSelf.set("nodes", Y.JSON.parse(o.responseText).nodes);
