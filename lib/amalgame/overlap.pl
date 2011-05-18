@@ -259,7 +259,7 @@ assert_merges([],_,_).
 assert_merges([[E1,E2]|RestOverlaps],Graphs,MergeGraphURI):-
 
 	findall(Method,(
-		        has_map([E1,E2],_Format,Graph),
+		        has_map([E1,E2],_Format,Graph:_),
 			member(Graph,Graphs),
 			rdf(Bnode,align:entity1,E1,Graph),
 			rdf(Bnode,align:entity2,E2,Graph),

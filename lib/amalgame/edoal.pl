@@ -105,7 +105,19 @@ assert_cell(C1, C2, Options) :-
 	(   option(prov(Prov), Options)
 	->  assert_provlist(Prov, Cell, Graph)
 	;   true
+	),
+	% re-instated the method assserter for Anna's stratify needs ...
+	(   option(method(MethodList), Options)
+	->  assert_methodlist(MethodList, Cell, Graph)
+	;   true
 	).
+
+
+assert_methodlist([], _, _).
+assert_methodlist([M|MethodList], Cell, Graph) :-
+	rdf_assert(Cell, amalgame:method, M, Graph),
+	assert_methodlist(MethodList, Cell, Graph).
+
 
 assert_provlist([], _, _).
 assert_provlist([P|ProvList], Cell, Graph) :-
