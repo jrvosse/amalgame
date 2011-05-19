@@ -130,6 +130,7 @@ YUI.add('evaluater', function(Y) {
 		_onMappingSelect : function(e) {
 			var uri = e.uri;
 			this.set("selected", uri);
+			this.detailOverlay.set("visible", false);
 			this._fetchInfo(uri);
 			this.mappingtable.set("mapping", uri);
 		},
@@ -211,13 +212,17 @@ YUI.add('evaluater', function(Y) {
 		},
 		
 		_fetchInfo : function(uri) {
-			this.infoDS.sendRequest({
-				request:'?url='+uri,
-				callback:{success:function(o) {
-					var HTML = o.response.results[0].responseText;
-					NODE_INFO.setContent(HTML);
-				}}
-			})
+			if(uri) {
+				this.infoDS.sendRequest({
+					request:'?url='+uri,
+					callback:{success:function(o) {
+						var HTML = o.response.results[0].responseText;
+						NODE_INFO.setContent(HTML);
+					}}
+				})
+			} else {
+				NODE_INFO.empty();
+			}
 		}
 				
 /*

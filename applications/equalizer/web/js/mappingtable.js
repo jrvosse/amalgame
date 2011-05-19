@@ -101,6 +101,9 @@ YUI.add('mappingtable', function(Y) {
 					request:'?'+Y.QueryString.stringify(conf),
 					callback:callback
 				})
+			} else {
+				paginator.setTotalRecords(0, true);
+				table.set("recordset", []);
 			}	
 		},
 				
