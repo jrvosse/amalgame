@@ -62,44 +62,43 @@ YUI.add('evaluater', function(Y) {
 	Y.extend(Evaluater, Y.Base, {
 		
 		initializer: function(args) {
-			this._selected = {};
 			this._initInfo();
 			this._initList();
 			this._initTable();
 			this._initDetail();
-			// bind the modules
-			this.mappinglist.on("mappingSelect", function(o) {
-				this.set("selected", o);
-				this._fetchInfo(o.uri);
-				this.mappingtable.set("mapping", o.uri);
-			}, this);
 			
+			// bind the modules
+			this.mappinglist.on("mappingSelect", this._onMappingSelect, this);
 			this.mappingtable.on("rowSelect", this._onRowSelect, this);
 			NODE_SUBMIT.on("click", this._onSubmit, this);
 			NODE_CANCEL.on("click", this._onCancel, this);
 			//NODE_NEXT.on("click", this._onNext, this);
 			//NODE_PREV.on("click", this._onPrev, this);
+			
 		},
 		
 		_initInfo : function() {
+			var selected = this.get("selected");
 			this.infoDS = new Y.DataSource.IO({
 				source: this.get("paths").mappinginfo
-			})
+			});
+			if(selected) {
+				this._fetchInfo(selected);
+			}
 		},
 		
 		_initList : function() {
 			this.mappinglist = new Y.MappingList({
-				mappings:this.get("mappings")
+				mappings:this.get("mappings"),
+				selected:this.get("selected")
 			}).render(NODE_MAPPING_LIST);
 		},	
+		
 		_initTable : function() {
-			var paths = this.get("paths"),
-				mapping = this.get("selected");
-			
 			// We define a datasource to simplify 
 			// access to the mappings later and add caching support
 			var DS = new Y.DataSource.IO({
-				source: paths.mapping
+				source: this.get("paths").mapping
 			})
 			.plug(Plugin.DataSourceJSONSchema, {
 				schema: {
@@ -115,7 +114,7 @@ YUI.add('evaluater', function(Y) {
 			this.mappingtable = new Y.MappingTable({
 				srcNode: NODE_MAPPING_TABLE,
 				datasource:DS,
-				mapping:mapping
+				mapping:this.get("selected")
 			});
 		},
 		
@@ -127,6 +126,13 @@ YUI.add('evaluater', function(Y) {
 				constrain:true,
         		width:"90%"
     		}).render();
+		},
+		
+		_onMappingSelect : function(e) {
+			var uri = e.data.uri;
+			this.set("selected", uri);
+			this._fetchInfo(uri);
+			this.mappingtable.set("mapping", uri);
 		},
 		
 		_onRowSelect : function(e) {
@@ -158,10 +164,12 @@ YUI.add('evaluater', function(Y) {
 			this._submitCorrespondence(c, this.row);
 			this.detailOverlay.set("visible", false);
 		},
+		
 		_onCancel : function(e) {
 			e.preventDefault(e);
 			this.detailOverlay.set("visible", false);
 		},
+		
 		_onNext : function(e) {
 			e.preventDefault(e);
 			var cs = this._getSelection();
@@ -170,6 +178,7 @@ YUI.add('evaluater', function(Y) {
 			this._submitCorrespondence(c);
 			//var next = this.mappingtable.nextRow(this.row);
 		},
+		
 		_onPrev : function(e) {
 			e.preventDefault(e);
 		},

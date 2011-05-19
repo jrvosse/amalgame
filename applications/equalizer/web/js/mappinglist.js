@@ -12,7 +12,9 @@ YUI.add('mappinglist', function(Y) {
 		mappings: {
 			value:[]
 		},
-		
+		selected: {
+			value: null
+		}
 	};
 	
 	Y.extend(MappingList, Y.Widget, {
@@ -20,40 +22,60 @@ YUI.add('mappinglist', function(Y) {
 		},
 		destructor : function() {},
 		renderUI : function() {
-			var content = this.get("contentBox");
-			this.listNode = content.appendChild(Node.create("<ul></ul>"));
+			this.listNode = this.get("contentBox").appendChild(Node.create("<ul></ul>"));
 		},
-		
-		bindUI : function() {
-			var mappings = this.get("mappings"),
-				listNode = this.listNode;
-				
-			Y.delegate("click", function(e) {
-				var target = e.currentTarget,
-					index = target.get("parentNode").all("li").indexOf(target),
-					mapping = mappings[index],
-					arg = {
-						li:e.currentTarget, 
-						uri:mapping.uri,
-						label:mapping.label
-					};
-				this.set("selected", mapping);
-				listNode.all("li").removeClass("selected");
-				e.currentTarget.addClass("selected");
-				this.fire("mappingSelect", arg);
-				
-			}, listNode, "li", this)
+		bindUI : function() {	
+			Y.delegate("click", this._onMappingSelect, this.listNode, "li", this)
+			this.after("mappingsChange", this.syncUI, this);
+			this.after("selectedChange", this._toggleSelection, this);
 		},
-		
 		syncUI : function() {
+			this._setMappings();
+			this._toggleSelection();
+		},
+		
+		_onMappingSelect : function(e) {
 			var mappings = this.get("mappings"),
-				listNode = this.listNode;
-				
+				target = e.currentTarget,
+				index = target.get("parentNode").all("li").indexOf(target),
+				mapping = mappings[index],
+				data = {
+					li:target, 
+					uri:mapping.uri,
+					label:mapping.label
+				};	
+			this.set("selected", mapping.uri);
+			this.fire("mappingSelect", {data:data});
+		},
+		
+		_setMappings : function() {
+			var listNode = this.listNode,
+				mappings = this.get("mappings");
+	
 			if(mappings) {
 				for (var i=0; i < mappings.length; i++) {
 					var m = mappings[i];
-					var l = listNode.appendChild(
-						Node.create("<li><a href='javascript:void(0)'>"+m.label+"</a></li>"));
+					listNode.append("<li><a href='javascript:void(0)'>"+m.label+"</a></li>");
+				}
+			}
+		},
+		
+		_toggleSelection : function() {
+			var sel = this.get("selected"),
+				nodes = this.listNode.all("li"),
+				index = this._mappingIndexOf(sel);
+			
+			nodes.removeClass("selected");
+			if(index >= 0) {
+				nodes.item(index).addClass("selected");
+			}
+		},
+		
+		_mappingIndexOf : function(uri) {
+			mappings = this.get("mappings");
+			for (var i = mappings.length - 1; i >= 0; i--){
+				if(mappings[i].uri == uri) {
+					return i;
 				}
 			}
 		}

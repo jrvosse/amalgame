@@ -35,21 +35,25 @@ http_eq_evaluate(Request) :-
 	authorized(write(default, _)),
 	http_parameters(Request,
 			[ alignment(Alignment,
-				    [uri, optional(true),
-				     description('URI of an alignment')])
+				    [uri,
+				     description('URI of an alignment')]),
+			  mapping(Mapping,
+				  [uri, default(''),
+				   description('URI of initially selected mapping')
+				  ])
 			]),
-	html_page(Alignment).
+	html_page(Alignment, Mapping).
 
-html_page(Alignment) :-
+html_page(Alignment, Mapping) :-
 	html_set_options([dialect(html)]),
 	reply_html_page(equalizer(main),
 			[ title(['Align vocabularies'])
 			],
 			[ \html_requires(css('eq.css')),
 			  \html_requires(css('evaluater.css')),
-			  \html_requires('http://yui.yahooapis.com/combo?3.3.0/build/cssreset/reset-min.css&3.3.0/build/cssgrids/grids-min.css&3.3.0/build/cssfonts/fonts-min.css&gallery-2011.02.23-19-01/build/gallery-node-accordion/assets/skins/sam/gallery-node-accordion.css'),
+			  \html_requires('http://yui.yahooapis.com/combo?3.3.0/build/cssreset/reset-min.css&3.3.0/build/cssgrids/grids-min.css&3.3.0/build/cssfonts/fonts-min.css'),
 			  \html_requires(css('gallery-paginator.css')),
-			   \html_eq_header(http_eq_evaluate, Alignment),
+			  \html_eq_header(http_eq_evaluate, Alignment),
 			  div(class('yui3-skin-sam yui-skin-sam'),
 			      [ div([id(content), class('yui3-g')],
 				    [ div([class('yui3-u'), id(left)],
@@ -61,7 +65,7 @@ html_page(Alignment) :-
 				   \html_overlay)
 			      ]),
 			  script(type('text/javascript'),
-				 [ \yui_script(Alignment)
+				 [ \yui_script(Alignment, Mapping)
 				 ])
 			]).
 
@@ -110,7 +114,7 @@ html_buttons -->
 %
 %	Emit YUI object.
 
-yui_script(Alignment) -->
+yui_script(Alignment, Mapping) -->
 	{ findall(K-V, js_path(K, V), Paths),
 	  findall(M-C, js_module(M,C), Modules),
 	  pairs_keys(Modules, Includes),
@@ -122,7 +126,8 @@ yui_script(Alignment) -->
 	     [ \yui3_new(eq, 'Y.Evaluater',
 			 json([alignment(Alignment),
 			       paths(json(Paths)),
-			       mappings(Mappings)
+			       mappings(Mappings),
+			       selected(Mapping)
 			      ]))
 	     ]).
 

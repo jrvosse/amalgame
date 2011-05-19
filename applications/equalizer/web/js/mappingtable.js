@@ -66,15 +66,16 @@ YUI.add('mappingtable', function(Y) {
 			)));
 			this.paginator.on("changeRequest", function(state) {
 				this.setPage(state.page, true);
-				instance.load({offset:state.recordOffset}, true);
+				instance.loadData({offset:state.recordOffset}, true);
 			});
 			
 			// get new data if mapping is changed
-			this.after('mappingChange', this.load, this);
+			this.after('mappingChange', this.loadData, this);
 			this.table.on('tbodyCellClick', this._onRowSelect, this);
+			this.loadData();
 		},
 		
-		load : function(conf, recordsOnly) {
+		loadData : function(conf, recordsOnly) {
 			var mapping = this.get("mapping"),
 				datasource = this.get("datasource"),
 				table = this.table,
