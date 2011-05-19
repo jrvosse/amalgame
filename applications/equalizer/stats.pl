@@ -267,6 +267,8 @@ ag_prov(Graph, contributors, Vs) :-
 	Vs0 \== [],
 	!,
 	sort(Vs0, Vs).
+ag_prov(R, owl:versionInfo, V) :-
+	rdf_has(R,  owl:versionInfo, literal(V)).
 
 /*ag_prov(Mapping, Key, Value) :-
 	rdfs_individual_of(Mapping, amalgame:'Mapping'),
