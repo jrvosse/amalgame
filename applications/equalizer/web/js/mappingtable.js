@@ -70,7 +70,7 @@ YUI.add('mappingtable', function(Y) {
 			});
 			
 			// get new data if mapping is changed
-			this.after('mappingChange', this.loadData, this);
+			this.after('mappingChange', function() {this.loadData()}, this);
 			this.table.on('tbodyCellClick', this._onRowSelect, this);
 			this.loadData();
 		},
@@ -97,7 +97,6 @@ YUI.add('mappingtable', function(Y) {
 			if(mapping) {
 				conf = conf ? conf : {};
 				conf.url = mapping;
-				//infobox.set("waiting", true);
 				datasource.sendRequest({
 					request:'?'+Y.QueryString.stringify(conf),
 					callback:callback
