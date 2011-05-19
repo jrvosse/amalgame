@@ -54,7 +54,7 @@ html_menu_item(Handler, Label, _Active, Alignment) -->
 %	Assert provenance about create process.
 
 assert_user_provenance(R, Graph) :-
-	current_user(User),
+	logged_on(User),
 	now_xsd(Time),
 	rdf_assert(R, dc:creator, User, Graph),
 	rdf_assert(R, dc:date, literal(type(xsd:date, Time)), Graph).
