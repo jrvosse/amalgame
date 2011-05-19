@@ -144,32 +144,54 @@ http_correspondence(Request) :-
 			[ source(Source,
 				 [description('URI of the source concept')]),
 			  target(Target,
-				 [description('URI of the target concept')])/*,
-			  allsource(_AllSource,
-				 [boolean, description('Include all sources')]),
-			  alltarget(_AllTarget,
-				 [boolean, description('Include all target')])*/
+				 [description('URI of the target concept')]),
+			  mapping(Mapping,
+				  [description('URI of the mapping')]),
+			  allsource(AllSource,
+				 [boolean, default(false),
+				  description('Include all sources')]),
+			  alltarget(AllTarget,
+				 [boolean, default(false),
+				  description('Include all target')])
 			]),
 	findall(R-L, mapping_relation(L, R), Relations),
-	current_relation(Source, Target, Relation),
+	expand_mapping(Mapping, Ms),
+	(   AllSource
+	->  A = align(Source,_,_)
+	;   AllTarget
+	->  A = align(_,Target,_)
+	;   A = align(Source,Target,_)
+	),
+	findall(A, member(A, Ms), Cs),
 	html_current_option(content_type(Type)),
-	phrase(html([div(class('yui3-g'),
-			 [ div(class('yui3-u-1-2'),
-			       \html_resource_context(Source)),
-			   div(class('yui3-u-1-2'),
-			       \html_resource_context(Target))
-			 ]),
-		     div(class(relations),
-			 [ input([type(hidden), name(source), value(Source)]),
-			   input([type(hidden), name(target), value(Target)]),
-			   \html_relations(Relations, Relation),
-			   div(['because: ',
-				input([type(text), name(comment), size(40)])
-			       ])
-			 ])
-		    ]), HTML),
+	phrase(html_correspondences(Cs, Relations), HTML),
 	format('Content-type: ~w~n~n', [Type]),
 	print_html(HTML).
+
+html_correspondences([], _) --> !.
+html_correspondences([align(Source,Target,_Prov)|Cs], Relations) -->
+	{ current_relation(Source, Target, Relation)
+	},
+	html_correspondence(Source, Target, Relation, Relations),
+	html_correspondences(Cs, Relations).
+
+html_correspondence(Source, Target, Relation, Relations) -->
+	html([div(class('yui3-g'),
+		  [ div(class('yui3-u-2-5'),
+			\html_resource_context(Source)),
+		    div(class('yui3-u-1-5'),
+			div(class(relations),
+			    [ input([type(hidden), name(source), value(Source)]),
+			      input([type(hidden), name(target), value(Target)]),
+			      ul(\html_relations(Relations, Relation)),
+			      div(['because: ',
+				   textarea([name(comment), rows(2)], [])
+				  ])
+			    ])),
+		    div(class('yui3-u-2-5'),
+			\html_resource_context(Target))
+		  ])
+	     ]).
 
 current_relation(S, T, R) :-
 	rdf(Cell, align:entity1, S),
@@ -178,6 +200,7 @@ current_relation(S, T, R) :-
 	!.
 current_relation(_, _, '').
 
+html_resource_context('') --> !.
 html_resource_context(URI) -->
 	{ resource_label_text(URI, Label),
 	  resource_alternative_labels(URI, Label, Alt),
@@ -202,8 +225,9 @@ html_relations([Rel-Label|Rs], Active) -->
 	  ;   Checked = ''
 	  )
 	},
-	html(span(class(relation),
+	html(li(class(relation),
 		 [input([type(radio), name(relation), value(Rel), Checked]),
+		  ' ',
 		  label(Label)
 		 ])),
 	html_relations(Rs, Active).

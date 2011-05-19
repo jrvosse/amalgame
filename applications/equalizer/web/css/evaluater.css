@@ -82,8 +82,6 @@
 
 /* resource info*/
 .resource-info {
-	background-color: white;
-	border: 1px solid #AAA;
     margin: 5px;
     padding: 5px;
 }
@@ -96,7 +94,6 @@
 }
 .resource-info .hd {
 	padding-top: 8px;
-	border-bottom: 1px solid #E2E2E2;
 }
 .resource-info .bd {
 	padding: 2px 4px;
@@ -138,13 +135,7 @@
 /* overlay */
 #detail {
 	border: 1px solid #808080;
-	background-color: #D8D8DA;
-}
-#detail .yui3-widget-hd {
-	background: url("http://yui.yahooapis.com/3.0.0/build/assets/skins/sam/sprite.png") repeat-x scroll 0 0 transparent;
-	border-bottom: 1px solid #AAA;
-    padding: 5px 10px;
-	text-align: center;
+	background-color: #DDD;
 }
 #detail .yui3-widget-bd {
 	padding: 5px;
@@ -156,15 +147,15 @@
 }
 
 #detail .relations {
-	text-align: center;
-	background-color: white;
-	border: 1px solid #AAA;
 	padding: 5px;
-	margin: 0 5px 10px;
 }
 #detail .relation {
 	padding: 0 5px;
 }
 #detail .relation label {
 	padding-left: 2px;
+}
+#detail .yui3-g {
+	border-top: 1px solid #CCC;
+	margin-bottom: 15px;
 }

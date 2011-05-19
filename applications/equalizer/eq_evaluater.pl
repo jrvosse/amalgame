@@ -81,32 +81,30 @@ html_sidebar -->
 	     ]).
 
 html_overlay -->
-	html(form([div(class('yui3-widget-hd'),
-		      [ div(class(controls),
-			    [])%\html_options)
-		      ]),
-		   div(class('yui3-widget-bd'),
+	html(form([div(class('yui3-widget-bd'),
 		       [ div([class(concepts), id(concepts)], [])
 		       ]),
 		   div(class('yui3-widget-ft'),
 		       [ div(class(controls),
-			     \html_buttons)
+			     [ div(class(options), \html_options),
+			       div(class(buttons), \html_buttons)
+			     ])
 		       ])
 		  ])).
 
 html_options -->
 	html([ 'include all correspondences with the same: ',
-	       input([type(checkbox), id(msources), autocomplete(off)]),
-	       label(source),
-	       input([type(checkbox), id(mtargets), autocomplete(off)]),
-	       label(target)
+	       input([type(checkbox), id(allsources), autocomplete(off)]),
+	       label(' source'),
+	       input([type(checkbox), id(alltargets), autocomplete(off)]),
+	       label(' target')
 	     ]).
 
 html_buttons -->
-	html([ %button([id(prev)], prev),
-	       %button([id(next)], next)
-		button(id(cancel), cancel),
-		button(id(submit), submit)
+	html([ button([class(cancel)], cancel),
+	       button([class(submit)], submit),
+	       button([class(prev)], prev),
+	       button([class(next)], next)
 	     ]).
 
 

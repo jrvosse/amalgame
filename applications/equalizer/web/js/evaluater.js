@@ -8,12 +8,8 @@ YUI.add('evaluater', function(Y) {
 		NODE_MAPPING_TABLE = Y.one("#mappingtable"),
 		NODE_INFO = Y.one("#mappinginfo"),
 		NODE_CONCEPTS = Y.one("#concepts"),
-		NODE_NEXT = Y.one("#next"),
-		NODE_PREV = Y.one("#prev"),
-		NODE_SUBMIT = Y.one("#submit"),
-		NODE_CANCEL = Y.one("#cancel"),
-		//NODE_SOURCE_ALL = Y.one("#msources"),
-		//NODE_TARGET_ALL = Y.one("#mtargets"),
+		NODE_SOURCE_ALL = Y.one("#allsources"),
+		NODE_TARGET_ALL = Y.one("#alltargets"),
 		NODE_DETAIL = Y.one("#detail");
 	
 	function Evaluater(config) {
@@ -51,6 +47,12 @@ YUI.add('evaluater', function(Y) {
 				return Lang.isObject(val)
 			}
 	    },
+		allsources: {
+			value: false
+		},
+		alltargets: {
+			value: false
+		},
 	    strings: {
 	        value: {},
 			validator: function(val) {
@@ -69,11 +71,14 @@ YUI.add('evaluater', function(Y) {
 			
 			// bind the modules
 			this.mappinglist.on("mappingSelect", this._onMappingSelect, this);
-			this.mappingtable.on("rowSelect", this._onRowSelect, this);
-			NODE_SUBMIT.on("click", this._onSubmit, this);
-			NODE_CANCEL.on("click", this._onCancel, this);
-			//NODE_NEXT.on("click", this._onNext, this);
-			//NODE_PREV.on("click", this._onPrev, this);
+			this.mappingtable.on("rowSelect", this._onCorrespondenceSelect, this);
+			NODE_DETAIL.one(".submit").on("click", this._onSubmit, this);
+			NODE_DETAIL.one(".next").on("click", this._onSubmit, this, "next");
+			NODE_DETAIL.one(".prev").on("click", this._onSubmit, this, "prev");
+			NODE_DETAIL.one(".cancel").on("click", this._onCancel, this);
+			
+			NODE_SOURCE_ALL.on("click", this._fetchDetail, this);
+			NODE_TARGET_ALL.on("click", this._fetchDetail, this);
 			
 		},
 		
@@ -121,12 +126,10 @@ YUI.add('evaluater', function(Y) {
 			this.detailOverlay = new Y.Overlay({
         		srcNode:NODE_DETAIL,
         		visible:false,
-				centered:true,
-				constrain:true,
         		width:"90%"
     		}).render();
 		},
-		
+				
 		_onMappingSelect : function(e) {
 			var uri = e.uri;
 			this.set("selected", uri);
@@ -135,61 +138,40 @@ YUI.add('evaluater', function(Y) {
 			this.mappingtable.set("mapping", uri);
 		},
 		
-		_onRowSelect : function(e) {
-			var overlay = this.detailOverlay,
-				server = this.get("paths").info,
-				data = {
-					source: e.sourceConcept.uri,
-					target: e.targetConcept.uri
-					//allsource: NODE_SOURCE_ALL.get("value"),
-					//alltarget: NODE_TARGET_ALL.get("value")
-				};
-				
-			this.row = e.row;	
-			Y.io(server, {
-				data: data,
-				on:{success:function(e,o) {
-						NODE_CONCEPTS.setContent(o.responseText);
-						overlay.set("visible", true);
-					}
-				}
-			});		
+		_onCorrespondenceSelect : function(e) {
+			this._selectedRow = e.row;
+			this._source = e.sourceConcept.uri;
+			this._target = e.targetConcept.uri;
+			this._fetchDetail();
 		},
-		
-		_onSubmit : function(e) {
+			
+		_onSubmit : function(e, nav) {
 			e.preventDefault(e);
 			var cs = this._getSelection();
 			var c = cs[0];
 			c.graph = this.get("alignment");
-			this._submitCorrespondence(c, this.row);
-			this.detailOverlay.set("visible", false);
+			this._submitCorrespondence(c);
+			if(nav=="next") {
+				Y.log("next mapping");
+			} else if(nav=="prev") {
+				Y.log("prev mapping"); 
+			} else {
+				this.detailOverlay.set("visible", false);
+			}
 		},
 		
 		_onCancel : function(e) {
 			e.preventDefault(e);
 			this.detailOverlay.set("visible", false);
 		},
-		
-		_onNext : function(e) {
-			e.preventDefault(e);
-			var cs = this._getSelection();
-			var c = cs[0];
-			c.graph = this.get("alignment");
-			this._submitCorrespondence(c);
-			//var next = this.mappingtable.nextRow(this.row);
-		},
-		
-		_onPrev : function(e) {
-			e.preventDefault(e);
-		},
-		
+				
 		_getSelection : function() {
 			var cs = [];
 			Y.all(".relations").each(function(node) {
 				var source = node.one("input[name=source]").get("value"),
 					target = node.one("input[name=target]").get("value"),
 					relation = node.one("input:checked").get("value"),
-					comment = node.one("input[name=comment]").get("value");
+					comment = node.one("textarea[name=comment]").getContent();
 				cs.push({
 					source:source,
 					target:target,
@@ -200,8 +182,10 @@ YUI.add('evaluater', function(Y) {
 			return cs;
 		},
 		
-		_submitCorrespondence : function(c, row) {	
-			var server = this.get("paths").evaluate;
+		_submitCorrespondence : function(c) {	
+			var server = this.get("paths").evaluate,
+				row = this._selectedRow;
+				
 			Y.io(server, {
 				data:c,
 				on:{success:function(e,o) {
@@ -223,7 +207,38 @@ YUI.add('evaluater', function(Y) {
 			} else {
 				NODE_INFO.empty();
 			}
+		},
+		
+		_fetchDetail : function() {
+			var overlay = this.detailOverlay,
+				node = this._selectedRow,
+				server = this.get("paths").info;
+
+			// position the overlay bellow the currently selected row
+			overlay.set("width", node.get("offsetWidth"));
+			overlay.set("align", {
+    			node:node,
+    			points:[Y.WidgetPositionAlign.TR, Y.WidgetPositionAlign.BR]
+			});	
+			
+			// call the server
+			var data = {
+				mapping:this.get("selected"),
+				source: this._source,
+				target: this._target,
+				allsource: NODE_SOURCE_ALL.get("checked"),
+				alltarget: NODE_TARGET_ALL.get("checked")
+			};
+			Y.io(server, {
+				data: data,
+				on:{success:function(e,o) {
+						NODE_CONCEPTS.setContent(o.responseText);
+						overlay.set("visible", true);
+					}
+				}
+			});		
 		}
+
 				
 /*
 						target.all(".moretoggle").on("click", function(e) {
