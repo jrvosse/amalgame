@@ -19,33 +19,46 @@ YUI.add('mappinglist', function(Y) {
 	
 	Y.extend(MappingList, Y.Widget, {
 		initializer: function(config) {
+			this._history = new Y.History({
+				initialState: {
+					selected:this.get("selected")
+				}
+			});
 		},
 		destructor : function() {},
 		renderUI : function() {
 			this.listNode = this.get("contentBox").appendChild(Node.create("<ul></ul>"));
 		},
-		bindUI : function() {	
+		bindUI : function() {
+			this._history.on('selectedChange', this._onSelectChange, this);	
 			Y.delegate("click", this._onMappingSelect, this.listNode, "li", this)
 			this.after("mappingsChange", this.syncUI, this);
-			this.after("selectedChange", this._toggleSelection, this);
 		},
 		syncUI : function() {
 			this._setMappings();
 			this._toggleSelection();
 		},
 		
+		// on selection of a mapping 
+		// - we only update the selected value in the history manager
+		// - we also update the url of the page
 		_onMappingSelect : function(e) {
-			var mappings = this.get("mappings"),
-				target = e.currentTarget,
-				index = target.get("parentNode").all("li").indexOf(target),
-				mapping = mappings[index],
-				data = {
-					li:target, 
-					uri:mapping.uri,
-					label:mapping.label
-				};	
-			this.set("selected", mapping.uri);
-			this.fire("mappingSelect", {data:data});
+			var index = this.listNode.all("li").indexOf(e.currentTarget),
+				uri = this.get("mappings")[index].uri;	
+			var params = Y.QueryString.parse(window.location.search.substr(1));
+			params.mapping = uri;
+			this._history.addValue("selected", uri, {
+				url: window.location.pathname+'?'+Y.QueryString.stringify(params)
+			});
+		},
+		
+		_onSelectChange : function(e) {
+			var uri = e.newVal;
+			
+			Y.log('mappinglist :: select '+uri);
+			this.set("selected", uri);
+			this._toggleSelection();
+			this.fire("mappingSelect", {uri:uri});
 		},
 		
 		_setMappings : function() {
@@ -84,4 +97,4 @@ YUI.add('mappinglist', function(Y) {
 	
 	Y.MappingList = MappingList;
 	
-}, '0.0.1', { requires: ['node','event','widget']});
+}, '0.0.1', { requires: ['node','event','widget','history','querystring']});

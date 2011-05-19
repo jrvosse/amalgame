@@ -108,8 +108,7 @@ YUI.add('evaluater', function(Y) {
  						totalNumberOfResults:"total"
 					}
 		    	}
-		  	})
-			.plug({fn:Y.Plugin.DataSourceCache, cfg:{max:10}});
+		  	});
 
 			this.mappingtable = new Y.MappingTable({
 				srcNode: NODE_MAPPING_TABLE,
@@ -129,7 +128,7 @@ YUI.add('evaluater', function(Y) {
 		},
 		
 		_onMappingSelect : function(e) {
-			var uri = e.data.uri;
+			var uri = e.uri;
 			this.set("selected", uri);
 			this._fetchInfo(uri);
 			this.mappingtable.set("mapping", uri);
@@ -235,7 +234,7 @@ YUI.add('evaluater', function(Y) {
 	
 }, '0.0.1', { requires: [
 	'node','event','anim','overlay','io-base',
-	'datasource','datasource-jsonschema','datasource-cache',
+	'datasource-io','datasource-jsonschema',
 	'querystring-stringify-simple',
 	'mappinglist','mappingtable'
 	]

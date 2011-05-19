@@ -32,20 +32,24 @@ http_eq_analyse(Request) :-
 	http_parameters(Request,
 			[ alignment(Alignment,
 				    [uri, optional(true),
-				     description('URI of an alignment')])
+				     description('URI of an alignment')]),
+			   mapping(Mapping,
+				  [uri, default(''),
+				   description('URI of initially selected mapping')
+				  ])
 			]),
-	html_page(Alignment).
+	html_page(Alignment, Mapping).
 
-html_page(Alignment) :-
+html_page(Alignment, Mapping) :-
 	html_set_options([dialect(html)]),
-  	reply_html_page(equalizer(main),
+	reply_html_page(equalizer(main),
 			[ title(['Align vocabularies'])
 			],
 			[ \html_requires(css('eq.css')),
 			  \html_requires(css('analyser.css')),
 			  \html_requires('http://yui.yahooapis.com/combo?3.3.0/build/cssreset/reset-min.css&3.3.0/build/cssgrids/grids-min.css&3.3.0/build/cssfonts/fonts-min.css'),
 			   \html_eq_header(http_eq_analyse, Alignment),
-   			  div(class('yui3-skin-sam yui-skin-sam'),
+			  div(class('yui3-skin-sam yui-skin-sam'),
 			      [ div([id(main), class('yui3-g')],
 				    [ div([class('yui3-u'), id(mappings)],
 					  []),
@@ -54,7 +58,7 @@ html_page(Alignment) :-
 				    ])
 			      ]),
 			  script(type('text/javascript'),
-				 [ \yui_script(Alignment)
+				 [ \yui_script(Alignment, Mapping)
 				 ])
 			]).
 
@@ -63,19 +67,20 @@ html_page(Alignment) :-
 %
 %	Emit YUI object.
 
-yui_script(Alignment) -->
+yui_script(Alignment, Mapping) -->
 	{ %findall(K-V, js_path(K, V), Paths),
 	  findall(M-C, js_module(M,C), Modules),
 	  pairs_keys(Modules, Includes),
 	  js_mappings(Alignment, Mappings)
- 	},
- 	yui3([json([modules(json(Modules))])
+	},
+	yui3([json([modules(json(Modules))])
 	     ],
 	     Includes,
 	     [ \yui3_new(eq, 'Y.Analyser',
 			 json([alignment(Alignment),
-  			      % paths(json(Paths)),
-			       mappings(Mappings)
+			      % paths(json(Paths)),
+			       mappings(Mappings),
+			       selected(Mapping)
 			      ]))
 	     ]).
 
@@ -97,7 +102,8 @@ js_module(analyser, json([fullpath(Path),
 			  ])) :-
 	http_absolute_location(js('analyser.js'), Path, []).
 js_module(mappinglist, json([fullpath(Path),
-			requires([node,event,widget])
+			requires([node,event,widget,
+				  history,querystring])
 		       ])) :-
 	http_absolute_location(js('mappinglist.js'), Path, []).
 

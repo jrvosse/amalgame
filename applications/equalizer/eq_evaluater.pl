@@ -152,13 +152,14 @@ js_module(gallery, 'gallery-2011.02.23-19-01').
 js_module(evaluater, json([fullpath(Path),
 			   requires([node,event,anim,
 				     'overlay','json-parse','io-base',
-				     'datasource-io','datasource-jsonschema','datasource-cache',
+				     'datasource-io','datasource-jsonschema',
 				     'querystring-stringify-simple',
 				     mappinglist,mappingtable])
 			  ])) :-
 	http_absolute_location(js('evaluater.js'), Path, []).
 js_module(mappinglist, json([fullpath(Path),
-			requires([node,event,widget])
+			requires([node,event,widget,
+				  history,querystring])
 		       ])) :-
 	http_absolute_location(js('mappinglist.js'), Path, []).
 js_module(mappingtable, json([fullpath(Path),
