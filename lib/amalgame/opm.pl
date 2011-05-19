@@ -1,7 +1,8 @@
 :-module(ag_opm, [
 		  opm_was_generated_by/4,       % +Process (cause), +Artifact (effect), +RDFGraph, +Options
 		  opm_include_dependency/2,     % +SourceGraph, +TargetGraph
-		  opm_clear_process/1           % +Process (bnode)
+		  opm_clear_process/1,           % +Process (bnode)
+		  opm_assert_artefact_version/3
 		 ]).
 
 /* <module> OPM -- simple support for the OPM Provenance Model (OPM)
@@ -172,3 +173,25 @@ get_xml_dateTime(TimeStamp) :-
 	get_time(T),
 	format_time(atom(TimeStamp), '%Y-%m-%dT%H-%M-%S%Oz', T).
 
+%%	opm_assert_artefact_version(+Artifact, +SourceGraph,
+%	+TargetGraph) is semidet.
+%
+%	Assert (git) version information about Artifact into the named
+%	graph TargetGraph. SourceGraph is the main named graph in which
+%	Artifact is defined.
+
+opm_assert_artefact_version(Artifact, SourceGraph, TargetGraph) :-
+	rdf_graph_property(SourceGraph, source(SourceFileURL)),
+	uri_file_name(SourceFileURL, Filename),
+	file_directory_name(Filename, Dirname),
+	register_git_module(Artifact, [directory(Dirname), home_url(Artifact)]),
+	(   git_module_property(Artifact, version(Version))
+	->  format(atom(VersionS),  'GIT version: ~w', [Version]),
+	    rdf_assert(Artifact, owl:versionInfo, literal(VersionS), TargetGraph)
+	;   (rdf_graph_property(SourceGraph, hash(Hash)),
+	     rdf_graph_property(SourceGraph, source_last_modified(LastModified)),
+	     format_time(atom(Mod), 'Last-Modified: %Y-%m-%dT%H-%M-%S%Oz', LastModified),
+	     rdf_assert(Artifact, owl:versionInfo, literal(Mod), TargetGraph),
+	     rdf_assert(Artifact, owl:versionInfo, literal(Hash), TargetGraph)
+	    )
+	).
