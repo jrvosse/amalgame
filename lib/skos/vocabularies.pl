@@ -198,20 +198,7 @@ assert_subvoc_version(Voc, SuperVoc) :-
 
 assert_supervoc_version(Voc) :-
 	rdf(_, skos:inScheme, Voc, SourceGraph:_),!,
-	rdf_graph_property(SourceGraph, source(SourceFileURL)),
-	uri_file_name(SourceFileURL, Filename),
-	file_directory_name(Filename, Dirname),
-	register_git_module(Voc, [directory(Dirname), home_url(Voc)]),
-	(   git_module_property(Voc, version(Version))
-	->  format(atom(VersionS),  'GIT version: ~w', [Version]),
-	    rdf_assert(Voc, owl:versionInfo, literal(VersionS), amalgame_vocs)
-	;   (rdf_graph_property(SourceGraph, hash(Hash)),
-	     rdf_graph_property(SourceGraph, source_last_modified(LastModified)),
-	     format_time(atom(Mod), 'Last-Modified: %Y-%m-%dT%H-%M-%S%Oz', LastModified),
-	     rdf_assert(Voc, owl:versionInfo, literal(Mod), amalgame_vocs),
-	     rdf_assert(Voc, owl:versionInfo, literal(Hash), amalgame_vocs)
-	    )
-	).
+	opm_assert_artefact_version(Voc, SourceGraph, amalgame_vocs).
 
 
 assert_voc_props([]).
@@ -278,7 +265,7 @@ count_altLabels(Voc, Count) :-
 count_mapped_concepts(Voc, Count) :-
 	findall(C,
 		(   rdf(C, skos:inScheme, Voc),
-		    (  	has_map_chk([C,_], _, _)
+		    (	has_map_chk([C,_], _, _)
 		    ;	has_map_chk([_,C], _, _)
 		    )
                 ),
