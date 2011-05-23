@@ -173,8 +173,7 @@ get_xml_dateTime(TimeStamp) :-
 	get_time(T),
 	format_time(atom(TimeStamp), '%Y-%m-%dT%H-%M-%S%Oz', T).
 
-%%	opm_assert_artefact_version(+Artifact, +SourceGraph,
-%	+TargetGraph) is semidet.
+%%	opm_assert_artefact_version(+Artifact,+SourceGraph,+TargetGraph) is semidet.
 %
 %	Assert (git) version information about Artifact into the named
 %	graph TargetGraph. SourceGraph is the main named graph in which
