@@ -44,7 +44,7 @@ YUI.add('selecter', function(Y) {
      		});
 
 			
-			// the start button for the alignment selector is only shown when
+			// the start button for the open alignment selector is only shown when
 			// an alignment is selected
 			Y.all("#open .option").on("click", function(e) {
 	  			e.target.toggleClass("selected");
@@ -53,6 +53,17 @@ YUI.add('selecter', function(Y) {
 	     			Y.one("#open .start").set("disabled", false);
           		} else {
 	     			Y.one("#open .start").set("disabled", true);
+	  			}
+     		});
+			// the start button for the publish alignment selector is only shown when
+			// an alignment is selected
+			Y.all("#publish .option").on("click", function(e) {
+	  			e.target.toggleClass("selected");
+	  			var nodes = Y.Node.all("#publish .selected");
+				if(nodes.size()>0) {
+	     			Y.one("#publish .start").set("disabled", false);
+          		} else {
+	     			Y.one("#publish .start").set("disabled", true);
 	  			}
      		});
 			Y.all("#import input").on("click", function(e) {

@@ -5,6 +5,7 @@
 :- use_module(eq_builder).
 :- use_module(eq_analyser).
 :- use_module(eq_evaluater).
+:- use_module(eq_publisher).
 
 % add local web directories from which static files are served.
 

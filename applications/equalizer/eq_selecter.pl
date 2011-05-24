@@ -53,7 +53,8 @@ html_page :-
 				      div([id(content), class('yui3-accordion')],
 					  [ \html_new(ConceptSchemes),
 					    \html_open(Alignments),
-					    \html_import
+					    \html_import,
+					    \html_publish(Alignments)
 					  ])
 				    ]),
 				script(type('text/javascript'),
@@ -110,6 +111,14 @@ html_open(Alignments) -->
 			       \html_submit('Start')
 			     ])
 		      ]).
+html_publish(Alignments) -->
+	html_acc_item(publish, 'publish alignment',
+		      [ form(action(location_by_id(http_eq_publish_form)),
+			     [ \html_alignment_table(Alignments),
+			       \html_submit('Publish')
+			     ])
+		      ]).
+
 html_alignment_table(Alignments) -->
 	html(table([thead(tr(\html_alignment_head)),
 		    tbody(\html_alignment_rows(Alignments))

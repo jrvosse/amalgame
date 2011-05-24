@@ -256,10 +256,13 @@ save_mapping(Id, Options) :-
 	rdf_save_turtle(Name, [graph(Id)|Options]).
 
 select_mappings_to_be_saved(Graph, Mappings, Options) :-
-	(    option(finals_only(true), Options)
-	->   findall(Mapping, (
+	option(status(Status), Options, all),
+	(   Status == all
+	->  findall(Mapping, rdf(Mapping, rdf:type, amalgame:'Mapping', Graph), Mappings)
+	;   findall(Mapping, (
 		rdf(Mapping, rdf:type, amalgame:'Mapping', Graph),
-		rdf(Mapping, amalgame:status, amalgame:final)
+		rdf(Mapping, amalgame:status, Status)
 	      ), Mappings)
-	;    findall(Mapping, rdf(Mapping, rdf:type, amalgame:'Mapping', Graph), Mappings)
+
 	).
+
