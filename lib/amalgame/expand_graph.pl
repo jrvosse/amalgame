@@ -246,8 +246,11 @@ save_mappings(Graph, Options) :-
 	forall(member(Mapping, Mappings), save_mapping(Mapping, Options)).
 
 save_mapping(Id, Options) :-
-	expand_mapping(Id, Mapping),
-	materialize_if_needed(Id, Mapping),
+	(   \+ rdf_graph(Id)
+	->  expand_mapping(Id, Mapping),
+	    materialize_mapping_graph(Mapping, [graph(Id)])
+	;   true
+	),
 	file_base_name(Id, Base),
 	file_name_extension(Base, ttl, Name),
 	rdf_save_turtle(Name, [graph(Id)|Options]).
