@@ -7,7 +7,7 @@
 @prefix amalgame: <http://purl.org/vocabularies/amalgame#> .
 @prefix     opmv: <http://purl.org/net/opmv/ns#> .
 @prefix  dcterms: <http://purl.org/dc/terms/> .
-@prefix   wn3020: <http://localhost/my/wn3020/> .
+@prefix   wn3020: <http://semanticweb.cs.vu.nl/lod/wn30/edoal/amalgame/> .
 
 # Named toplevel resources (40)
 
@@ -309,4 +309,4 @@ wn3020:wn3020
 	dcterms:date "2011-04-29T16:44:19+00:00"^^xsd:date ;
 	amalgame:includes <http://purl.org/vocabularies/princeton/wn30/> ,
 			  <http://www.w3.org/2006/03/wn/wn20/> ;
-	rdfs:label "wn3020 Jacco's version" .
+	rdfs:label "Amalgame Wordnet 3.0 to Wordnet 2.0 mappings" .
