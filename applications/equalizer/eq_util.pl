@@ -66,7 +66,7 @@ assert_user_provenance(R, Graph) :-
 %       conceptSchemes that it includes.
 
 amalgame_alignment(Alignment, Schemes) :-
-	rdfs_individual_of(Alignment, amalgame:'Alignment'),
+	rdfs_individual_of(Alignment, amalgame:'AlignmentWorkflow'),
 	findall(S,  rdf(Alignment, amalgame:includes, S), Schemes),
 	Schemes \== [].
 
@@ -107,7 +107,7 @@ node_prop(R, label, Label) :-
 	literal_text(Lit, Label).
 node_prop(R, type, Type) :-
 	rdf(R, rdf:type, Class),
-	(   rdf_equal(Class, amalgame:'Alignment')
+	(   rdf_equal(Class, amalgame:'AlignmentWorkflow')
 	->  Type = alignment
 	;   rdfs_subclass_of(Class, amalgame:'Mapping')
 	->  Type = mapping
