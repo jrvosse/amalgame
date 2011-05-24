@@ -3,10 +3,12 @@
 	    expand_vocab/2,
 	    flush_expand_cache/0,
 	    flush_expand_cache/1,     % +Id
-	    process_options/3
+	    process_options/3,
+	    save_mappings/2
 	  ]).
 
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_turtle_write)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(amalgame/amalgame_modules)).
@@ -230,11 +232,31 @@ param_options(Type, Default, Options) :-
 %	Id has the amalgame:status amalgame:final.
 
 materialize_if_needed(Id, Mapping) :-
-	(   sort(Mapping, Mapping)
-	->  debug(ag_expand, 'Sorting of ~p is OK', [Id])
-	;   debug(ag_expand, 'ERROR: wrong sorting of ~p!', [Id])
-	),
+	% (   sort(Mapping, Mapping)
+	% ->  debug(ag_expand, 'Sorting of ~p is OK', [Id])
+	% ;   debug(ag_expand, 'ERROR: wrong sorting of ~p!', [Id])
+	% ),
 	(   \+ rdf_graph(Id), rdf_has(Id, amalgame:status, amalgame:final)
 	->  materialize_mapping_graph(Mapping, [graph(Id)])
 	;   true
+	).
+
+save_mappings(Graph, Options) :-
+	select_mappings_to_be_saved(Graph, Mappings, Options),
+	forall(member(Mapping, Mappings), save_mapping(Mapping, Options)).
+
+save_mapping(Id, Options) :-
+	expand_mapping(Id, Mapping),
+	materialize_if_needed(Id, Mapping),
+	file_base_name(Id, Base),
+	file_name_extension(Base, ttl, Name),
+	rdf_save_turtle(Name, [graph(Id)|Options]).
+
+select_mappings_to_be_saved(Graph, Mappings, Options) :-
+	(    option(finals_only(true), Options)
+	->   findall(Mapping, (
+		rdf(Mapping, rdf:type, amalgame:'Mapping', Graph),
+		rdf(Mapping, amalgame:status, amalgame:final)
+	      ), Mappings)
+	;    findall(Mapping, rdf(Mapping, rdf:type, amalgame:'Mapping', Graph), Mappings)
 	).
