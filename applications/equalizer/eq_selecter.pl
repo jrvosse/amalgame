@@ -257,7 +257,6 @@ new_alignment(Schemes, Alignment) :-
 
 add_schemes([], _).
 add_schemes([Scheme|Ss], A) :-
-	rdf(_, skos:inScheme, Scheme, SourceGraph:_),
 	rdf_assert(A, amalgame:includes, Scheme, A),
 	add_schemes(Ss, A).
 
