@@ -13,7 +13,6 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(semweb/rdf_file_type)).
-:- use_module(library(amalgame/opm)).
 :- use_module(user(user_db)).
 :- use_module(components(label)).
 :- use_module(eq_util).
@@ -259,7 +258,6 @@ new_alignment(Schemes, Alignment) :-
 add_schemes([], _).
 add_schemes([Scheme|Ss], A) :-
 	rdf(_, skos:inScheme, Scheme, SourceGraph:_),
-	opm_assert_artefact_version(Scheme, SourceGraph, A),
 	rdf_assert(A, amalgame:includes, Scheme, A),
 	add_schemes(Ss, A).
 
