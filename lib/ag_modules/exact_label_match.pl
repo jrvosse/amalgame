@@ -97,13 +97,21 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 
 	(   IgnoreType
 	->  true
-	;   match_type(Source, Target)
+	;   matching_types(Source, Target)
 	).
 
+%%	matching_types(+S, +T) is semidet.
+%
+%	Fails if S and T have conflicting types.
+%       Succeeds if
+%	* S or T have no types other than skos:Concept, or,
+%	* S and T have equal types other than skos:Concept, or,
+%	* S and T have different types, other than skos:Concept,
+%         and one is the subclass of the other.
 
-match_type(S1, _) :- untyped(S1), true, !.
-match_type(_ ,S2) :- untyped(S2), true, !.
-match_type(S1, S2) :-
+matching_types(S1, _) :- untyped(S1), true, !.
+matching_types(_ ,S2) :- untyped(S2), true, !.
+matching_types(S1, S2) :-
 	findall(Type,
 		(rdf(S1, rdf:type, Type),
 		 \+ rdf_equal(Type,  skos:'Concept')
@@ -115,14 +123,22 @@ match_type(S1, S2) :-
 	member(T1, Types1), member(T2, Types2),
 	(   T1 == T2
 	->  true
-	;   rdf_has(T1, skos:exactMatch, T2)
+	;   rdfs_subclass_of(T1, T2)
+	->  true
+	;   rdfs_subclass_of(T2, T1)
 	->  true
 	;   debug(ex_expand, 'Non matching types ~p/~p', [T1,T2]),
 	    false
 	),
 	!.
 
+%%	untyped(+C) is semidet.
+%
+%	C is considered untyped if skos:Concept is its only type.
+
 untyped(S) :-
+	ground(S),
 	rdf_equal(SkosConcept, skos:'Concept'),
 	findall(Type, rdf(S, rdf:type, Type),[SkosConcept]).
+
 
