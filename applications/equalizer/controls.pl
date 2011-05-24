@@ -3,7 +3,9 @@
 	    html_info_control//0,
 	    html_parameter_form//1,
 	    module_input_type/2,
-	    module_special_type/2
+	    module_special_type/2,
+	    status_option/1, % Move to eq_util?
+	    html_options//1  % idem
 	  ]).
 
 :- use_module(library(semweb/rdf_db)).
