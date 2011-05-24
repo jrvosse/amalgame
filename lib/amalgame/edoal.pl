@@ -130,8 +130,11 @@ assert_provlist([P|ProvList], Cell, Graph) :-
 	      ),
 	assert_provlist(ProvList, Cell, Graph).
 
-assert_prov_elem(graph, _Value, Subject, Graph) :- !,
-	rdf_assert(Subject, amalgame:graph, literal('tbd'), Graph).
+assert_prov_elem(graph, _Value, _Subject, _Graph) :-
+	!,
+	% rdf_assert(Subject, amalgame:graph, literal('tbd'), Graph).
+	true.
+
 assert_prov_elem(Key, Value, Subject, Graph) :-
 	rdf_global_id(amalgame:Key, Property),
 	rdf_assert(Subject, Property, literal(Value), Graph).
