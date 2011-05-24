@@ -116,7 +116,7 @@ is_opm_property(P) :-
 %
 %	Defines graph node shape for different types of OPM resources.
 
-opm_shape(R, [shape(octagon),
+opm_shape(R, [shape(box),
  	      style(filled),
 	      fillcolor(Color),
 	      fontsize(10)]) :-
@@ -124,7 +124,7 @@ opm_shape(R, [shape(octagon),
 	rdfs_individual_of(R, opmv:'Process'),
 	!,
 	process_color(R, Color).
-opm_shape(R, [shape(box),
+opm_shape(R, [shape(ellipse),
 	      style(filled),
 	      fillcolor('#EEEEEE'),
 	      fontsize(10)]) :-
