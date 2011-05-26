@@ -1,6 +1,6 @@
 :- module(conf_amalgame, []).
 :- use_module(library(semweb/rdf_library)).
-:- use_module(config_available(skos)).
+:- use_module(library(skos_schema)).
 
 /** <module> Setup amalgame
 */
@@ -12,7 +12,7 @@ http:location(amalgame, cliopatria(amalgame), []).
 :- rdf_attach_library(amalgame(rdf)).
 :- rdf_load_library(amalgame).
 
-:- use_module([  
+:- use_module([
 	% Deprecated:
 		applications(align_stats),
 		applications(alignment/alignment),
