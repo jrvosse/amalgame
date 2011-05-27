@@ -103,7 +103,7 @@ assert_cell(C1, C2, Options) :-
 	),
 	% Disable for now, gives weird results ...
 	(   option(prov(Prov), Options)
-	->  assert_provlist(Prov, Cell, Graph)
+	->  assert_provlist(Prov, Cell, Graph, Options)
 	;   true
 	),
 	% re-instated the method assserter for Anna's stratify needs ...
@@ -119,26 +119,33 @@ assert_methodlist([M|MethodList], Cell, Graph) :-
 	assert_methodlist(MethodList, Cell, Graph).
 
 
-assert_provlist([], _, _).
-assert_provlist([P|ProvList], Cell, Graph) :-
+assert_provlist([], _, _,_).
+assert_provlist([P|ProvList], Cell, Graph, Options) :-
 	rdf_bnode(B),
-	rdf_assert(Cell, amalgame:provenance, B, Graph),
+	rdf_assert(Cell, amalgame:evidence, B, Graph),
 	forall(member(ProvElem, P),
 	       (   ProvElem =.. [Key, Value],
-		   assert_prov_elem(Key, Value, B, Graph)
+		   assert_prov_elem(Key, Value, B, Graph, Options)
 	       )
 	      ),
-	assert_provlist(ProvList, Cell, Graph).
+	assert_provlist(ProvList, Cell, Graph, Options).
 
-assert_prov_elem(graph, _Value, _Subject, _Graph) :-
+assert_prov_elem(graph, ValueGraph, Subject, TargetGraph, Options) :-
 	!,
-	% rdf_assert(Subject, amalgame:graph, literal('tbd'), Graph).
-	true.
+	(   option(evidence_graphs(enabled), Options)
+	->  rdf_assert(Subject, amalgame:evidenceGraph, Subject, TargetGraph),
+	    rdf_assert_triples(ValueGraph, Subject)
+	;   true
+	).
 
-assert_prov_elem(Key, Value, Subject, Graph) :-
+assert_prov_elem(Key, Value, Subject, Graph, _Options) :-
 	rdf_global_id(amalgame:Key, Property),
 	rdf_assert(Subject, Property, literal(Value), Graph).
 
+rdf_assert_triples([], _).
+rdf_assert_triples([rdf(S,P,O)|Tail], Graph) :-
+	rdf_assert(S,P,O,Graph),
+	rdf_assert_triples(Tail, Graph).
 
 %%	edoal_to_triples(+Request, +EdoalGraph, +SkosGraph, +Options) is
 %%	det.

@@ -231,15 +231,18 @@ param_options(Type, Default, Options) :-
 %	this graph does not exist yet and if the resource with the same
 %	Id has the amalgame:status amalgame:final.
 
+materialize_if_needed(Id, _) :-
+	rdf_graph(Id), !.
+materialize_if_needed(Id, _) :-
+	rdf_has(Id, amalgame:status, Status),
+	\+ rdf_equal(Status, amalgame:final),
+	!.
 materialize_if_needed(Id, Mapping) :-
-	% (   sort(Mapping, Mapping)
-	% ->  debug(ag_expand, 'Sorting of ~p is OK', [Id])
-	% ;   debug(ag_expand, 'ERROR: wrong sorting of ~p!', [Id])
-	% ),
-	(   \+ rdf_graph(Id), rdf_has(Id, amalgame:status, amalgame:final)
-	->  materialize_mapping_graph(Mapping, [graph(Id)])
-	;   true
-	).
+	(   rdf_has(Id, amalgame:recordEvidence, amalgame:enabled)
+	->  Enabled = enabled
+	;   Enabled = disabled
+	),
+	materialize_mapping_graph(Mapping, [graph(Id), evidence_graphs(Enabled)]).
 
 save_mappings(Graph, Options) :-
 	select_mappings_to_be_saved(Graph, Mappings, Options),
