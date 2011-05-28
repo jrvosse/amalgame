@@ -182,10 +182,10 @@ json_judge_mapping(Request) :-
 	assert_cell(Subject, Object,
 		    [graph(Target),
 		     relation(Judgement),
-		     prov([relation(Predicate),
+		     prov([[relation(Predicate),
 			   evaluator(User),
 			   comment(Comment)
-			  ])
+			  ]])
 		    ]),
         http_session_assert(judgement(Subject, Predicate, Object, Judgement)),
         reply_json(json([message='judgement processed'])).
