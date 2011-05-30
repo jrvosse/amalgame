@@ -6,6 +6,7 @@
 	   skos_label/2,
 	   skos_label/3,
 	   topconcepts/2,
+	   assert_voc_version/2,
 	   voc_get_computed_props/2,
 	   voc_clear_stats/1,
 	   voc_ensure_stats/1,
@@ -151,7 +152,7 @@ voc_ensure_stats(version(Voc)) :-
 	->  true
 	;   rdf(Voc, opmv:wasGeneratedBy, _)
 	->  true
-	;   assert_voc_version(Voc)
+	;   assert_voc_version(Voc, amalgame_vocs)
 	->  true
 	;   debug(info, 'Failed to ensure opm stats for ~', [Voc])
 	),!.
@@ -185,20 +186,24 @@ voc_ensure_stats(numberOfMappedConcepts(Voc)) :-
 	    assert_voc_props(Voc:[numberOfMappedConcepts(literal(type('http://www.w3.org/2001/XMLSchema#int', Count)))])
 	),!.
 
-assert_voc_version(Voc) :-
+%%	assert_voc_version(+Voc, +TargetGraph) is det.
+%
+%	Assert version of Voc using RDF triples in named graph TargetGraph.
+
+assert_voc_version(Voc, TargetGraph) :-
 	(   rdf(Voc, amalgame:subSchemeOf, SuperVoc)
-	->  assert_subvoc_version(Voc, SuperVoc)
-	;   assert_supervoc_version(Voc)
+	->  assert_subvoc_version(Voc, SuperVoc, TargetGraph)
+	;   assert_supervoc_version(Voc, TargetGraph)
 	).
 
-assert_subvoc_version(Voc, SuperVoc) :-
+assert_subvoc_version(Voc, SuperVoc, TargetGraph) :-
 	voc_ensure_stats(version(SuperVoc)),
 	rdf_has(SuperVoc, owl:versionInfo, Version),
-	rdf_assert(Voc,   owl:versionInfo, Version, amalgame_vocs).
+	rdf_assert(Voc,   owl:versionInfo, Version, TargetGraph).
 
-assert_supervoc_version(Voc) :-
+assert_supervoc_version(Voc, TargetGraph) :-
 	rdf(_, skos:inScheme, Voc, SourceGraph:_),!,
-	opm_assert_artefact_version(Voc, SourceGraph, amalgame_vocs).
+	opm_assert_artefact_version(Voc, SourceGraph, TargetGraph).
 
 
 assert_voc_props([]).
