@@ -3,6 +3,7 @@
 
 % Modules that can be used as matchers and as alignment filters/selecters
 :- use_module(library(ag_modules/exact_label_match)).
+:- use_module(library(ag_modules/compound_match)).
 :- use_module(library(ag_modules/snowball_match)).
 :- use_module(library(ag_modules/isub_match)).
 :- use_module(library(ag_modules/ancestor_match)).
