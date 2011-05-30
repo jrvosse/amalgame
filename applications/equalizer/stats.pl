@@ -257,7 +257,7 @@ ag_prov(R, 'created by', V) :-
 ag_prov(R, 'created at', V) :-
 	rdf(R, dc:date, V).
 ag_prov(Graph, contributors, Vs) :-
-	rdfs_individual_of(Graph, amalgame:'AlignmentWorkflow'),
+	rdfs_individual_of(Graph, amalgame:'AlignmentStrategy'),
 	findall(V,
 		(   rdf(R, _, _, Graph),
 		    \+ R == Graph,

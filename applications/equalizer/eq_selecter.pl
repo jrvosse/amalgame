@@ -260,7 +260,7 @@ http_eq_new(Request) :-
 new_alignment(Schemes, Alignment) :-
 	authorized(write(default, _)),
 	rdf_bnode(Alignment),
-	rdf_transaction((rdf_assert(Alignment, rdf:type, amalgame:'AlignmentWorkflow', Alignment),
+	rdf_transaction((rdf_assert(Alignment, rdf:type, amalgame:'AlignmentStrategy', Alignment),
 			 assert_user_provenance(Alignment, Alignment),
 			 add_schemes(Schemes, Alignment))).
 
