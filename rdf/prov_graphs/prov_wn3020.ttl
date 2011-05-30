@@ -304,7 +304,7 @@ wn3020:targetexcluded
 	rdfs:label "I2ab: target concepts, ignoring gloss-based labels we assume correct" .
 
 wn3020:wn3020
-	a amalgame:AlignmentWorkflow ;
+	a amalgame:AlignmentStrategy ;
 	dcterms:creator <http://koli.ins.cwi.nl:3020/user/jrvosse> ;
 	dcterms:date "2011-04-29T16:44:19+00:00"^^xsd:date ;
 	amalgame:includes <http://purl.org/vocabularies/princeton/wn30/> ,
