@@ -52,9 +52,11 @@ http_eq_nodeinfo(Request) :-
 http_eq_info(Request) :-
 	http_parameters(Request,
 			[ url(URL,
-			      [description('URL of a node (mapping,vocab,process)')])
+			      [description('URL of a node (mapping,vocab,process)')]),
+			  alignment(Alignment,
+				    [description('URL of the alignment strategy')])
 		       ]),
-	amalgame_provenance(URL, Prov),
+	amalgame_provenance(URL, Alignment, Prov),
 	amalgame_info(URL, Stats),
 	append(Prov, Stats, Info),
 	amalgame_parameters(URL, Params),
@@ -245,18 +247,30 @@ amalgame_info(URL,
 amalgame_info(_URL, []).
 
 
-%%	amalgame_provenance(+R, -Provenance:[key-value])
+%%	amalgame_provenance(+R, +Alignment, -Provenance:[key-value])
 %
-%	Provenance is a list of key-value pairs with provenance about R.
+%	Provenance is a list of key-value pairs with provenance about
+%	node R as defined by strategy Alignment
 
-amalgame_provenance(R, Provenance) :-
-	findall(Key-Value, ag_prov(R, Key, Value), Provenance).
+amalgame_provenance(R, Alignment, Provenance) :-
+	findall(Key-Value, ag_prov(R, Alignment, Key, Value), Provenance).
 
-ag_prov(R, 'created by', V) :-
-	rdf(R, dc:creator, V).
-ag_prov(R, 'created at', V) :-
-	rdf(R, dc:date, V).
-ag_prov(Graph, contributors, Vs) :-
+ag_prov(R, A, 'created by', V) :-
+	(   rdf(R, dc:creator, V, A)
+	->  true
+	;   rdf(R, dc:creator, V)
+	).
+ag_prov(R, A, 'created at', V) :-
+	(   rdf(R, dc:date, V, A)
+	->  true
+	;   rdf(R, dc:date, V)
+	).
+ag_prov(R, A, owl:versionInfo, V) :-
+	(   rdf(R, owl:versionInfo, literal(V), A)
+	->  true
+	;   rdf(R, owl:versionInfo, literal(V))
+	).
+ag_prov(Graph, Graph, contributors, Vs) :-
 	rdfs_individual_of(Graph, amalgame:'AlignmentStrategy'),
 	findall(V,
 		(   rdf(R, _, _, Graph),
@@ -267,16 +281,6 @@ ag_prov(Graph, contributors, Vs) :-
 	Vs0 \== [],
 	!,
 	sort(Vs0, Vs).
-ag_prov(R, owl:versionInfo, V) :-
-	rdf_has(R,  owl:versionInfo, literal(V)).
-
-/*ag_prov(Mapping, Key, Value) :-
-	rdfs_individual_of(Mapping, amalgame:'Mapping'),
-	!,
-	rdf_has(Mapping, opmv:wasGeneratedBy, Process),
-	ag_prov(Process, Key, Value).
-*/
-
 
 %%	amalgame_parameters(+URI, -Parmas)
 %
