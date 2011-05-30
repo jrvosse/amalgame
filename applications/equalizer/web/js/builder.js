@@ -87,6 +87,7 @@ YUI.add('builder', function(Y) {
 			//.plug({fn:Y.Plugin.DataSourceCache, cfg:{max:10}});
 			this.infobox = new Y.InfoBox({
 				srcNode: NODE_INFO,
+				alignment: this.get("alignment"),
 				datasource: DS
 			});
 		},

@@ -30,6 +30,9 @@ YUI.add('infobox', function(Y) {
 		datasource: {
 			value: null
 		},
+		alignment: {
+			value: null
+		},
 		selected: {
 			value: null
 		}
@@ -59,6 +62,7 @@ YUI.add('infobox', function(Y) {
 			var instance = this,
 				selected = this.get("selected"),
 				datasource = this.get("datasource"),
+				alignment = this.get("alignment"),
 				content = this.get("srcNode");
 				
 			if(selected) {
@@ -93,7 +97,7 @@ YUI.add('infobox', function(Y) {
 				}
 								
 				datasource.sendRequest({
-					request:'?url='+uri,
+					request:'?url='+uri+'&alignment='+alignment,
 					callback:{success:function(o) {
 						var HTML = o.response.results[0].responseText;
 						NODE_PROPS.setContent(HTML);
