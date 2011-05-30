@@ -88,7 +88,7 @@ match(align(Source, TargetScheme, []), Results, Options) :-
 		Targets),
 	length(Tokens, TokenLength),
 	length(Targets, NrMatched),
-	NrMatched > 1,
+	NrMatched > 0,
 	Match is NrMatched/TokenLength,
 	format(atom(Score), 'Matched ~w out of ~w parts', [NrMatched, TokenLength]),
 	create_results(Targets, Source, Prov, Results).
