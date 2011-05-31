@@ -43,6 +43,11 @@ amalgame:AritySelect
     skos:definition "Select correspondence with a specific arity between source and target:\n 11 = unique source and target,\n N1 = unique target for a source,\n 1N = unique source for a target"@en ;
     rdfs:subClassOf amalgame:MappingSelecter .
     
+amalgame:TokenAritySelect
+    rdfs:label "token arity"@en ;
+    skos:definition "Similar to plain arity selector, but now on the level of splitted compound labels"@en ;
+    rdfs:subClassOf amalgame:MappingSelecter .
+
 amalgame:BestNumeric
     rdfs:label "best numeric"@en ;
     skos:definition "Select correspondences that have the best score considering some numerical ranking."@en ;
