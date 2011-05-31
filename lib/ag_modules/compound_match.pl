@@ -78,12 +78,13 @@ match(align(Source, TargetScheme, []), Results, Options) :-
 
 	rdf_has(Source, MatchProp1, literal(lang(SourceLang, SourceLabel)), SourceProp),
 	rdf_tokenize_literal(SourceLabel, Tokens),
-	findall(Target-TargetProv,
+	findall(Targets-Label-LabelAmbScore,
 		(   member(Token, Tokens),
 		    term_to_atom(Token, Label),
-		    match_label(Source, Label, Target, TargetProv,
-				[sourcelang(SourceLang)|Options]),
-		    vocab_member(Target, TargetScheme)
+		    match_label(Source, Label, Targets,
+				[scheme(TargetScheme), sourcelang(SourceLang)|Options]),
+		    length(Targets, LabelAmbScore)
+
 		),
 		Targets),
 	length(Tokens, TokenLength),
@@ -94,20 +95,29 @@ match(align(Source, TargetScheme, []), Results, Options) :-
 	create_results(Targets, Source, Prov, Results).
 
 create_results([], _, _, []).
-create_results([Target-TargetProvGraph|Tail], Source,
-	       OverallProv, [align(Source, Target, [graph(ProvGraph)|Rest])|Results]) :-
+create_results([Targets|Tail], Source, OverallProv, Results):-
+	create_result_list(Targets, Source, OverallProv, Results0),
+	create_results(Tail, Source, OverallProv, Results1),
+	append(Results0, Results1, Results).
+
+create_result_list([]-_-_, _, _, []).
+create_result_list([T-TProv|Tail]-L-Count, Source, OverallProv, [A|Results]):-
+	create_result(T-L-TProv-Count, Source, OverallProv, A),
+	create_result_list(Tail-L-Count, Source, OverallProv, Results).
+
+create_result(Target-L-TargetProvGraph-Count, Source, OverallProv,
+	      align(Source, Target, [token(L),token_ambiguity(Count),graph(ProvGraph)|Rest])) :-
 	select_option(graph(Graph), OverallProv, Rest),
-	append(Graph, TargetProvGraph, ProvGraph),
+	append(Graph, TargetProvGraph, ProvGraph).
 
-	create_results(Tail, Source, OverallProv, Results).
-
-match_label(Source, Label, Target, ProvGraph, Options) :-
+match_label(Source, Label, Targets, Options) :-
 	rdf_equal(rdfs:label, RdfsLabel),
 	option(targetlabel(MatchProp), Options, RdfsLabel),
 	option(matchacross_lang(MatchAcross), Options, true),
 	option(matchacross_type(IgnoreType),  Options, true),
 	option(case_sensitive(CaseSensitive), Options, false),
 	option(sourcelang(SourceLang), Options),
+	option(scheme(TargetScheme), Options),
 
 	(   CaseSensitive
 	->  SearchTarget=literal(lang(TargetLang, Label))
@@ -120,15 +130,18 @@ match_label(Source, Label, Target, ProvGraph, Options) :-
 	;   true
 	),
 
-	ProvGraph = [rdf(Target, TargetProp, literal(lang(TargetLang, TargetLabel)))],
-
-	rdf_has(Target, MatchProp, SearchTarget, TargetProp),
-	Source \== Target,
-
-	(   IgnoreType
-	->  true
-	;   matching_types(Source, Target)
-	).
+	findall(Target-ProvGraph,
+		(   rdf_has(Target, MatchProp, SearchTarget, TargetProp),
+		    Source \== Target,
+		    vocab_member(Target, TargetScheme),
+		    (   IgnoreType
+		    ->  true
+		    ;   matching_types(Source, Target)
+		    ),
+		    ProvGraph = [rdf(Target, TargetProp, literal(lang(TargetLang, TargetLabel)))]
+		),
+		Targets),
+	Targets \= [].
 
 %%	matching_types(+S, +T) is semidet.
 %
