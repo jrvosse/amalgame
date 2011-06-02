@@ -8,13 +8,18 @@ amalgame:ExactLabelMatcher
     skos:definition "A basic label matcher based on exact matching labels of source and target concepts"@en ;
     rdfs:subClassOf amalgame:Matcher .
 
+amalgame:CompoundMatcher
+    rdfs:label "string/label (compound)"@en ;
+    skos:definition "A label matcher matching after compound splitting the label(s) of the source concepts"@en ;
+    rdfs:subClassOf amalgame:Matcher .
+
 amalgame:SnowballMatcher
-    rdfs:label "string/label(stemmed)"@en ;
+    rdfs:label "string/label (stemmed)"@en ;
     skos:definition "A label matcher with similarity based on (snowball) stemming."@en ;
     rdfs:subClassOf amalgame:Matcher .
 
 amalgame:IsubMatcher        
-    rdfs:label "string/smilarity"@en ;
+    rdfs:label "string/similarity"@en ;
     skos:definition "An string similarity matcher based on the 'isub' metric introduced in 'A string metric for ontology alignment' by Giorgos Stoilos, 2005."@en ;
     rdfs:subClassOf amalgame:Matcher .
 
@@ -38,6 +43,11 @@ amalgame:AritySelect
     skos:definition "Select correspondence with a specific arity between source and target:\n 11 = unique source and target,\n N1 = unique target for a source,\n 1N = unique source for a target"@en ;
     rdfs:subClassOf amalgame:MappingSelecter .
     
+amalgame:TokenAritySelect
+    rdfs:label "token arity"@en ;
+    skos:definition "Similar to plain arity selector, but now on the level of splitted compound labels"@en ;
+    rdfs:subClassOf amalgame:MappingSelecter .
+
 amalgame:BestNumeric
     rdfs:label "best numeric"@en ;
     skos:definition "Select correspondences that have the best score considering some numerical ranking."@en ;

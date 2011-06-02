@@ -198,7 +198,7 @@ YUI.add('evaluater', function(Y) {
 		_fetchInfo : function(uri) {
 			if(uri) {
 				this.infoDS.sendRequest({
-					request:'?url='+uri,
+					request:'?url='+uri+'&alignment='+this.get("alignment"),
 					callback:{success:function(o) {
 						var HTML = o.response.results[0].responseText;
 						NODE_INFO.setContent(HTML);
