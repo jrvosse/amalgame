@@ -89,11 +89,12 @@ opm_was_generated_by(Process, Artifacts, Graph, Options) :-
 	      ),
 	opm_program(Graph, Program),
 	opm_agent(Graph, Agent),
-	get_xml_dateTime(TimeStamp),
-	rdf_bnode(BN_TimeStamp),
-	rdf_assert(BN_TimeStamp, rdf:type, time:'Instant',  Graph),
-	rdf_assert(BN_TimeStamp, time:inXSDDateTime, literal(type(xsd:dateTime, TimeStamp)), Graph),
-	rdf_assert(Process, opmv:wasStartedAt,   BN_TimeStamp , Graph),
+	get_time(Now),
+	get_xml_dateTime(Now, NowXML),
+	rdf_bnode(BN_now),
+	rdf_assert(BN_now, rdf:type, time:'Instant',  Graph),
+	rdf_assert(BN_now, time:inXSDDateTime, literal(type(xsd:dateTime, NowXML)), Graph),
+	rdf_assert(Process, opmv:wasEndedAt,   BN_now , Graph),
 	rdf_assert(Process, opmv:wasPerformedBy, Program, Graph),
 	rdf_assert(Process, opmv:wasPerformedBy, Agent,   Graph),
 
@@ -169,8 +170,7 @@ opm_agent(Graph, Agent) :-
 	rdf_assert(Agent, rdfs:label, literal(UserName),  Graph),
 	rdf_assert(Agent, rdf:type,   opmv:'Agent',	  Graph).
 
-get_xml_dateTime(TimeStamp) :-
-	get_time(T),
+get_xml_dateTime(T, TimeStamp) :-
 	format_time(atom(TimeStamp), '%Y-%m-%dT%H-%M-%S%Oz', T).
 
 %%	opm_assert_artefact_version(+Artifact,+SourceGraph,+TargetGraph) is semidet.
