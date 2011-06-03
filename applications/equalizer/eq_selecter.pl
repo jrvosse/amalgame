@@ -105,14 +105,14 @@ html_vocab_rows([Scheme|Vs]) -->
 %
 
 html_open(Alignments) -->
-	html_acc_item(open, 'open alignment',
+	html_acc_item(open, 'open alignment strategy',
 		      [ form(action(location_by_id(http_eq_build)),
 			     [ \html_alignment_table(Alignments),
 			       \html_submit('Start')
 			     ])
 		      ]).
 html_publish(Alignments) -->
-	html_acc_item(publish, 'publish alignment',
+	html_acc_item(publish, 'publish mapping results',
 		      [ form(action(location_by_id(http_eq_publish_form)),
 			     [ \html_alignment_table(Alignments),
 			       \html_submit('Publish')
@@ -155,7 +155,7 @@ graph_label(Graph, Graph).
 
 
 html_import -->
-	html_acc_item(import, 'import alignment',
+	html_acc_item(import, 'clone from existing strategy or execution trace',
 		      [ form(action(location_by_id(http_eq_upload_url)),
 			     [ 'URL: ',
 			       input([type(text), name(url), value('http://'),
