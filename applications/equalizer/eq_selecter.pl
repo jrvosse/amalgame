@@ -155,7 +155,7 @@ graph_label(Graph, Graph).
 
 
 html_import -->
-	html_acc_item(import, 'clone from existing strategy or execution trace',
+	html_acc_item(import, 'upload strategy or clone execution trace',
 		      [ form(action(location_by_id(http_eq_upload_url)),
 			     [ 'URL: ',
 			       input([type(text), name(url), value('http://'),
@@ -289,7 +289,15 @@ http_eq_upload_data(Request) :-
 			   ( close(Stream),
 			     free_memory_file(MemFile)
 			   )),
-	build_redirect(Request, Graph).
+	rdf(Strategy, rdf:type, amalgame:'AlignmentStrategy', Graph),
+
+	% Copy entire strategy graph to keep original named graph:
+	findall(rdf(S,P,O), rdf(S,P,O,Graph), StrategyTriples),
+	forall(member(rdf(S,P,O), StrategyTriples),
+	       rdf_assert(S,P,O,Strategy)
+	      ),
+	rdf_retractall(_,_,_,Graph),
+	build_redirect(Request, Strategy).
 
 http_eq_upload_url(Request) :-
 	authorized(write(default, _)),
