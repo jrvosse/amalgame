@@ -283,12 +283,13 @@ save_mapping(Id, Strategy, ProvGraph, Options) :-
 select_mappings_to_be_saved(Graph, Mappings, Options) :-
 	option(status(Status), Options, all),
 	(   Status == all
-	->  findall(Mapping, rdf(Mapping, rdf:type, amalgame:'Mapping', Graph), Mappings)
+	->  findall(Mapping,
+		    rdf(Mapping, rdf:type, amalgame:'Mapping', Graph),
+		    Mappings)
 	;   findall(Mapping, (
 		rdf(Mapping, rdf:type, amalgame:'Mapping', Graph),
 		rdf(Mapping, amalgame:status, Status)
 	      ), Mappings)
-
 	).
 
 
@@ -301,6 +302,7 @@ prov_graph(Strategy, Graph) :-
 	rdf_bnode(Graph),
 	rdf_assert(Graph, amalgame:strategy, Strategy, Graph),
 	rdf_assert(Graph, rdfs:label, literal(lang(en,Label)), Graph),
+	% Copy Strategy triples to empty prov graph:
 	findall(rdf(Strategy,P,O), rdf(Strategy,P,O,Strategy), STriples),
 	forall(member(rdf(S,P,O), STriples), rdf_assert(S,P,O,Graph)).
 
