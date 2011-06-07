@@ -1,4 +1,4 @@
-:- module(eq_selecter,
+- module(eq_selecter,
 	  []).
 
 :- use_module(library(http/http_dispatch)).
@@ -282,21 +282,19 @@ http_eq_upload_data(Request) :-
 			       [ description('RDF data to be loaded')
 			       ])
 			]),
-	rdf_bnode(Graph),
+	rdf_bnode(TmpGraph),
 	atom_to_memory_file(Data, MemFile),
 	setup_call_cleanup(open_memory_file(MemFile, read, Stream),
-			   rdf_guess_format_and_load(Stream, [graph(Graph)]),
+			   rdf_guess_format_and_load(Stream, [graph(TmpGraph)]),
 			   ( close(Stream),
 			     free_memory_file(MemFile)
 			   )),
-	rdf(Strategy, rdf:type, amalgame:'AlignmentStrategy', Graph),
+	rdf(Strategy, rdf:type, amalgame:'AlignmentStrategy', TmpGraph),!,
 
 	% Copy entire strategy graph to keep original named graph:
-	findall(rdf(S,P,O), rdf(S,P,O,Graph), StrategyTriples),
-	forall(member(rdf(S,P,O), StrategyTriples),
-	       rdf_assert(S,P,O,Strategy)
-	      ),
-	rdf_retractall(_,_,_,Graph),
+	findall(rdf(S,P,O), rdf(S,P,O,TmpGraph), Triples),
+	forall(member(rdf(S,P,O), Triples), rdf_assert(S,P,O,Strategy)),
+	rdf_unload(TmpGraph),
 	build_redirect(Request, Strategy).
 
 http_eq_upload_url(Request) :-
