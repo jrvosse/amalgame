@@ -1,4 +1,4 @@
-- module(eq_selecter,
+:- module(eq_selecter,
 	  []).
 
 :- use_module(library(http/http_dispatch)).
