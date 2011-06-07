@@ -336,10 +336,10 @@ add_amalgame_opm(Process, Artifacts, Strategy, ProvGraph) :-
 
 remove_old_prov(Process, ProvGraph) :-
 	findall(Bnode,
-		(   rdf(Process, _, Bnode),
+		(   rdf(Process, _, Bnode, ProvGraph),
 		    rdf_is_bnode(Bnode)
 		),
 		Bnodes),
-	forall(member(B,Bnodes), rdf_retractall(B,_,_)),
+	forall(member(B,Bnodes), rdf_retractall(B,_,_,ProvGraph)),
 	rdf_retractall(Process, _, _, ProvGraph),
 	rdf_retractall(_, _ ,Process, ProvGraph).
