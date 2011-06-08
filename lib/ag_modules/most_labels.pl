@@ -47,18 +47,23 @@ partition_(source, [align(S,T,P)|As], Sel, Dis, Und) :-
 	    Sel = SelRest,
 	    Dis = DisRest
 	),
-	partition_(Rest, SelRest, DisRest, UndRest).
+	partition_(source, Rest, SelRest, DisRest, UndRest).
 
 same_source([align(S,T,P)|As], S, [align(S,T,P)|Same], Rest) :-
 	!,
 	same_source(As, S, Same, Rest).
 same_source(As, _S, [], As).
 
-most_labels(As, Selected, [A|T]) :-
+most_labels(As, Selected, Discarded) :-
 	group_label_count(As, Counts),
-	sort(Counts, [N-Selected,N1-A|T0]),
-	\+ N == N1,
-	pairs_values(T0, T).
+	!,
+	(   Counts = [_N-Selected]
+	->  Discarded = []
+	;   sort(Counts, [N-Selected,N1-A|T0]),
+	    N > N1,
+	    pairs_values(T0, T),
+	    Discarded = [A|T]
+	).
 
 group_label_count([], []).
 group_label_count([Align|As], [Count-Align|Ts]) :-
@@ -66,7 +71,7 @@ group_label_count([Align|As], [Count-Align|Ts]) :-
 	findall(M, (member(P,Provenance),label_match(M,P)), Methods),
 	length(Methods, Count0),
 	Count is 1/Count0,
- 	group_label_count(As, Ts).
+	group_label_count(As, Ts).
 
 label_match(SP-TP, Prov) :-
 	memberchk(graph([rdf(_,SP,literal(_)),
