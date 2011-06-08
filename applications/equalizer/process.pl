@@ -130,11 +130,11 @@ assert_output(Process, Type, Graph) :-
 new_output(Type, Process, P, Graph) :-
 	rdf_bnode(OutputURI),
 	rdf_assert(OutputURI, rdf:type, Type, Graph),
+	rdf_assert(OutputURI, amalgame:status, amalgame:intermediate, Graph),
         rdf_assert(OutputURI, P, Process, Graph),
 	(   setting(precompute_mapping, true)
 	->  debug(eq, 'precompute ~w', [OutputURI]),
-	    thread_create(expand_mapping(OutputURI, _), _,
-			  [ detached(true) ])
+	    thread_create(expand_mapping(OutputURI, _), _, [ detached(true) ])
 	;   true
 	).
 
@@ -201,6 +201,10 @@ update_node_prop(status=Status, URI, Alignment) :-
 	(   Status == ''
 	->  true
 	;   rdf_assert(URI, amalgame:status, Status, Alignment)
+	),
+	(   rdf_equal(Status, amalgame:final)
+	->  thread_create(expand_mapping(URI, _), _, [ detached(true) ])
+	;   true
 	).
 
 
