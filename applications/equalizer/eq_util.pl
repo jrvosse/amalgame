@@ -106,12 +106,11 @@ node_prop(R, label, Label) :-
 	rdf_display_label(R, Lit),
 	literal_text(Lit, Label).
 node_prop(R, type, Type) :-
-	rdf(R, rdf:type, Class),
-	(   rdf_equal(Class, amalgame:'AlignmentStrategy')
+	(   rdfs_individual_of(R, amalgame:'AlignmentStrategy')
 	->  Type = alignment
-	;   rdfs_subclass_of(Class, amalgame:'Mapping')
+	;   rdfs_individual_of(R, amalgame:'Mapping')
 	->  Type = mapping
-	;   rdfs_subclass_of(Class, opmv:'Process')
+	;   rdfs_individual_of(R, opmv:'Process')
 	->  Type = process
 	;   Type = vocab
 	).
