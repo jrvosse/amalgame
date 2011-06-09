@@ -11,6 +11,7 @@
 :- use_module(library(http/js_write)).
 :- use_module(library(yui3_beta)).
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(semweb/rdf_file_type)).
 :- use_module(user(user_db)).
@@ -33,7 +34,7 @@ http_eq(_Request) :-
 	html_page.
 
 find_schemes(Schemes) :-
-	findall(C, rdf(C, rdf:type, skos:'ConceptScheme'), Cs),
+	findall(C, rdfs_individual_of(C, skos:'ConceptScheme'), Cs),
 	findall(G, is_edm_collection(G), Gs),
 	append(Cs, Gs, All),
 	sort(All, Schemes).
