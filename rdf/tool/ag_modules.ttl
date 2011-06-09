@@ -63,6 +63,11 @@ amalgame:MostLabels
     skos:definition "Select correspondences that have been matched on the most labels (according to their provenance data.)"@en ;
     rdfs:subClassOf amalgame:MappingSelecter .
 
+amalgame:MostGeneric
+    rdfs:label "most generic"@en ;
+    skos:definition "Select the most generic among alternatives for the same source/target (according to the provenance data.)"@en ;
+    rdfs:subClassOf amalgame:MappingSelecter .
+
 amalgame:MapMerger
     rdfs:label "mapping merger"@en ;
     skos:definition "Merge two or more mappings into one new mapping. This can, for example, to collect the good mappings made by different processes."@en ;

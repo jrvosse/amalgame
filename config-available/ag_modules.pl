@@ -16,6 +16,7 @@
 :- use_module(library(ag_modules/best_numeric)).
 :- use_module(library(ag_modules/most_methods)).
 :- use_module(library(ag_modules/most_labels)).
+:- use_module(library(ag_modules/most_generic)).
 
 % Vocabulary filters/selecters
 :- use_module(library(ag_modules/voc_exclude)).
