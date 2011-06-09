@@ -102,11 +102,10 @@ cache_expand_result(_, _, _).
 %	Retract all cached mappings.
 
 flush_expand_cache :-
-	findall(P,prov_graph(_,P), ProvGraphs),
-	forall(member(P, ProvGraphs), catch(rdf_unload(P), _, true)),
-	findall(Id, rdf(Id, amalgame:status, amalgame:final), Finals),
-	forall(member(F, Finals), catch(rdf_unload(F), _, true)),
-	forall(expand_cache(Id, _), flush_expand_cache(Id)).
+	del_prov_graphs,
+	del_materialized_finals,
+	forall(expand_cache(Id, _),
+	       flush_expand_cache(Id)).
 
 
 flush_expand_cache(Id) :-
@@ -115,6 +114,16 @@ flush_expand_cache(Id) :-
 	catch(rdf_unload(Id), _, true),
 	debug(ag_expand, 'flush cache and unloading graph for ~p', [Id]).
 
+del_prov_graphs :-
+	findall(P,prov_graph(_,P), ProvGraphs),
+	forall(member(P, ProvGraphs), catch(rdf_unload(P), _, true)).
+
+del_materialized_finals :-
+	findall(Id, (
+		    rdf(Id, amalgame:status, amalgame:final),
+		     rdfs_individual_of(Id, amalgame:'Mapping')
+		    ), Finals),
+	forall(member(F, Finals), catch(rdf_unload(F), _, true)).
 
 %%	exec_amalgame_process(+Type, +Process, +Module, -Result,
 %%	+Options)
@@ -298,6 +307,7 @@ prov_graph(Strategy, Graph) :-
 	!.
 
 prov_graph(Strategy, Graph) :-
+	ground(Strategy),
 	format(atom(Label), 'Provenance graph for strategy ~p', [Strategy]),
 	rdf_bnode(Graph),
 	rdf_assert(Graph, amalgame:strategy, Strategy, Graph),
