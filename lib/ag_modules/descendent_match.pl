@@ -58,11 +58,18 @@ match(align(S, T, Prov0), align(S, T, [Prov|Prov0]), Options) :-
 	option(steps(MaxSteps), Options),
 	descendent(S, MaxSteps, DescS, R1, _Steps1),
 	descendent(T, MaxSteps, DescT, R2, _Steps2),
-	has_map([DescS, DescT],_, O, Graph),
+	has_map([DescS, DescT],_, Graph),
+	Prov = [method(descendent_match),
+		graph([R1,R2])
+	       ].
+
+	/* FIXME: need to make a decision about what to do with align:relation ...
+        has_map([DescS, DescT],_, O, Graph),
 	memberchk(relation(R), O),
 	Prov = [method(descendent_match),
 		graph([R1,R2,rdf(DescS, R, DescT)])
 	       ].
+        */
 
 descendent(R, MaxSteps, Child, rdf_reachable(R, Prop, Child), Steps) :-
 	rdf_equal(skos:narrower, Prop),
