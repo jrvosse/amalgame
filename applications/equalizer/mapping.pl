@@ -50,6 +50,7 @@ http_data_mapping(Request) :-
 	http_parameters(Request,
 			[ url(URL,
 			      [description('URL of mapping graph')]),
+			  alignment(Strategy, [description('URL of strategy')]),
 			  sort(SortBy,
 			       [default(source),
 				oneof([source,target]),
@@ -61,7 +62,7 @@ http_data_mapping(Request) :-
 				 [default(0), number,
 				  description('first result that is returned')])
 		       ]),
-	expand_mapping(URL, Mapping0),
+	expand_mapping(Strategy, URL, Mapping0),
 	length(Mapping0, Count),
 	maplist(mapping_label, Mapping0, Mapping1),
 	sort_key(SortBy, SortKey),
@@ -147,6 +148,7 @@ http_correspondence(Request) :-
 				 [description('URI of the target concept')]),
 			  mapping(Mapping,
 				  [description('URI of the mapping')]),
+			  alignment(Strategy, [description('URL of strategy')]),
 			  allsource(AllSource,
 				 [boolean, default(false),
 				  description('Include all sources')]),
@@ -155,7 +157,7 @@ http_correspondence(Request) :-
 				  description('Include all target')])
 			]),
 	findall(R-L, mapping_relation(L, R), Relations),
-	expand_mapping(Mapping, Ms),
+	expand_mapping(Strategy, Mapping, Ms),
 	(   AllSource
 	->  A = align(Source,_,_)
 	;   AllTarget

@@ -34,12 +34,14 @@ flush_stats_cache :-
 http_eq_nodeinfo(Request) :-
 	http_parameters(Request,
 			[ url(URL,
-			      [description('URL of a node (mapping,vocab,process)')])
+			      [description('URL of a node (mapping,vocab,process)')]),
+			  alignment(Alignment,
+				    [description('URL of the alignment strategy')])
 		       ]),
 	html_current_option(content_type(Type)),
 	format('Content-type: ~w~n~n', [Type]),
 	(   rdfs_individual_of(URL, amalgame:'Mapping')
-	->  with_mutex(URL, mapping_counts(URL, _MN, _SN, _TN, SPerc, TPerc)),
+	->  with_mutex(URL, mapping_counts(URL, Alignment, _MN, _SN, _TN, SPerc, TPerc)),
 	    format('s:~w\% t:~w\%',
 		   [SPerc,TPerc])
 	;   true
@@ -53,13 +55,13 @@ http_eq_info(Request) :-
 	http_parameters(Request,
 			[ url(URL,
 			      [description('URL of a node (mapping,vocab,process)')]),
-			  alignment(Alignment,
+			  alignment(Strategy,
 				    [description('URL of the alignment strategy')])
 		       ]),
-	amalgame_provenance(URL, Alignment, Prov),
-	amalgame_info(URL, Stats),
+	amalgame_provenance(URL, Strategy, Prov),
+	amalgame_info(URL, Strategy, Stats),
 	append(Prov, Stats, Info),
-	amalgame_parameters(URL, Params),
+	amalgame_parameters(URL, Strategy, Params),
 	phrase(html([\html_prop_table(Info),
 		     \html_form(Params, URL)
 		    ]),
@@ -120,7 +122,7 @@ html_form(Params, URI) -->
 		       ]))).
 
 
-%%	mapping_counts(+MappingURI, -MappingN, -SourceN, -TargetN)
+%%	mapping_counts(+MappingURI, +Strategy, -MappingN, -SourceN, -TargetN)
 %
 %	Counts for the mappings in MappingURI.
 %
@@ -128,14 +130,14 @@ html_form(Params, URI) -->
 %       @param SourceN is the number of source concepts mapped
 %       @param TargetN is the number of target concepts mapped
 
-mapping_counts(URL, MN, SN, TN, SPerc, TPerc) :-
-	stats_cache(URL, stats(MN, SN, TN, SPerc, TPerc)),
+mapping_counts(URL, Strategy, MN, SN, TN, SPerc, TPerc) :-
+	stats_cache(URL-Strategy, stats(MN, SN, TN, SPerc, TPerc)),
 	!.
-mapping_counts(URL, MN, SN, TN, SPerc, TPerc) :-
-	expand_mapping(URL, Mapping),
-	mapping_sources(URL, InputS, InputT),
-	concept_count(InputS, SourceN),
-	concept_count(InputT, TargetN),
+mapping_counts(URL, Strategy, MN, SN, TN, SPerc, TPerc) :-
+	expand_mapping(Strategy, URL, Mapping),
+	mapping_sources(URL, Strategy, InputS, InputT),
+	concept_count(InputS, Strategy, SourceN),
+	concept_count(InputT, Strategy, TargetN),
 
 	maplist(align_source, Mapping, Ss0),
 	maplist(align_target, Mapping, Ts0),
@@ -148,7 +150,7 @@ mapping_counts(URL, MN, SN, TN, SPerc, TPerc) :-
 	rounded_perc(SourceN, SN, SPerc),
 	rounded_perc(TargetN, TN, TPerc),
 	retractall(stats_cache(_,_)),
-	assert(stats_cache(URL, stats(MN, SN, TN, SPerc, TPerc))).
+	assert(stats_cache(URL-Strategy, stats(MN, SN, TN, SPerc, TPerc))).
 
 rounded_perc(0, _, 0.0) :- !.
 rounded_perc(_, 0, 0.0) :- !.
@@ -164,66 +166,67 @@ dyn_perc_round(P0, P, N) :-
 	;   P is P1/(N/100)
 	).
 
-%%	concept_count(+Vocab, -Count)
+%%	concept_count(+Vocab, +Strategy, -Count)
 %
-%	Count is the number of concepts in Vocab
+%	Count is the number of concepts in Vocab when expanded in Strategy
 
-concept_count(Vocab, Count) :-
-	stats_cache(Vocab, stats(Count)),
+concept_count(Vocab, Strategy, Count) :-
+	stats_cache(Vocab-Strategy, stats(Count)),
 	!.
-concept_count(Vocab, Count) :-
-	expand_vocab(Vocab, Scheme),
+concept_count(Vocab, Strategy, Count) :-
+	expand_vocab(Strategy, Vocab, Scheme),
 	findall(C, vocab_member(C, Scheme), Cs),
 	length(Cs, Count),
 	retractall(stats_cache(_,_)),
-	assert(stats_cache(Vocab, stats(Count))).
+	assert(stats_cache(Vocab-Strategy, stats(Count))).
 
 
-%%	mapping_sources(+MappingURI, -Source, -Target)
+%%	mapping_sources(+MappingURI, Strategy, -Source, -Target)
 %
 %	Source and Target are the recursive source and target
 %	vocabularies of Mapping.
 
-mapping_sources(URL, S, T) :-
-	rdf_has(URL, opmv:wasGeneratedBy, Process),
-	(   rdf(Process, amalgame:source, S0),
-	    rdf(Process, amalgame:target, T0)
-	->  vocab_source(S0, S),
-	    vocab_source(T0, T)
-	;   rdf(Process, amalgame:input, Input)
-	->  mapping_sources(Input, S, T)
+mapping_sources(URL, Strategy, S, T) :-
+	rdf_has(URL, opmv:wasGeneratedBy, Process, RealProp),
+	rdf(URL, RealProp, Process, Strategy),
+	(   rdf(Process, amalgame:source, S0, Strategy),
+	    rdf(Process, amalgame:target, T0, Strategy)
+	->  vocab_source(S0, Strategy, S),
+	    vocab_source(T0, Strategy, T)
+	;   rdf(Process, amalgame:input, Input, Strategy)
+	->  mapping_sources(Input, Strategy, S, T)
 	).
 
-vocab_source(V, S) :-
-	rdf_has(V, opmv:wasGeneratedBy, Process),
-	rdf_has(Process, amalgame:input, Input),
+vocab_source(V, Strategy, S) :-
+	rdf_has(V, opmv:wasGeneratedBy, Process, Strategy),
+	rdf_has(Process, amalgame:input, Input, Strategy),
 	!,
-	vocab_source(Input, S).
-vocab_source(V, V).
+	vocab_source(Input, Strategy, S).
+vocab_source(V, _S, V).
 
 
 %%	amalgame_info(+Mapping, -Info)
 %
 %	Stats of a resourcemapping
 
-amalgame_info(URL, Stats) :-
+amalgame_info(URL, Strategy, Stats) :-
 	rdfs_individual_of(URL, amalgame:'Mapping'),
 	!,
 	Stats = ['total mappings'-MN,
 		 'mapped source concepts'-SN,
 		 'mapped target concepts'-TN
 		],
-	with_mutex(URL, mapping_counts(URL, MN, SN0, TN0, SPerc, TPerc)),
+	with_mutex(URL, mapping_counts(URL, Strategy, MN, SN0, TN0, SPerc, TPerc)),
 	concat_atom([SN0, ' (',SPerc,'%)'], SN),
 	concat_atom([TN0, ' (',TPerc,'%)'], TN).
-amalgame_info(Scheme,
+amalgame_info(Scheme, Strategy,
 	    ['Total concepts'-Total
 	    ]) :-
 	rdfs_individual_of(Scheme, skos:'ConceptScheme'),
 	!,
-	concept_count(Scheme, Total).
+	concept_count(Scheme, Strategy, Total).
 
-amalgame_info(EDMGraph,
+amalgame_info(EDMGraph, _Strategy,
 	    ['Total concepts'-Total
 	    ]) :-
 	P='http://www.europeana.eu/schemas/edm/country',
@@ -233,18 +236,18 @@ amalgame_info(EDMGraph,
 	sort(Is, Sorted),
 	length(Sorted, Total).
 
-amalgame_info(URL,
+amalgame_info(URL, Strategy,
 	       ['type'   - \(cp_label:rdf_link(Type)),
 		'about'   - Definition
 	       ]) :-
 	rdfs_individual_of(URL, amalgame:'Process'),
-	rdf(URL, rdf:type, Type),
+	rdf(URL, rdf:type, Type, Strategy),
 	(   rdf_has(Type, skos:definition, literal(Definition))
 	->  true
 	;   Definition = '-'
 	).
 
-amalgame_info(_URL, []).
+amalgame_info(_URL, _Strategy, []).
 
 
 %%	amalgame_provenance(+R, +Alignment, -Provenance:[key-value])
@@ -289,15 +292,15 @@ ag_prov(Graph, Graph, contributors, Vs) :-
 %
 %	Params is a list of parameters for URI.
 
-amalgame_parameters(Process, Params) :-
+amalgame_parameters(Process, Strategy, Params) :-
 	rdfs_individual_of(Process, amalgame:'Process'),
 	!,
-	rdf(Process, rdf:type, Type),
+	rdf(Process, rdf:type, Type, Strategy),
 	amalgame_module_id(Type, Module),
 	amalgame_module_parameters(Module, DefaultParams),
 	process_options(Process, Module, CurrentValues),
 	override_options(DefaultParams, CurrentValues, Params).
-amalgame_parameters(_, []).
+amalgame_parameters(_, _Strategy, []).
 
 override_options([], _, []).
 override_options([H|T], Current, [V|Results]) :-
@@ -306,8 +309,6 @@ override_options([H|T], Current, [V|Results]) :-
 	V=parameter(Id, Type, Value,   Desc),
 	Opt =.. [Id, Value],
 	option(Opt, Current, Default).
-
-
 
 align_source(align(S,_,_), S).
 align_target(align(_,T,_), T).

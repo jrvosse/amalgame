@@ -52,7 +52,7 @@
 %	alignments in HTML.
 
 http_merge_alignments(Request) :-
-      	http_parameters(Request, [selected(Selected,[list(atom)])]),
+	http_parameters(Request, [selected(Selected,[list(atom)])]),
 	create_merge_graph(Selected, MergeGraph),
 	reply_html_page(cliopatria(default),
 			title('Merge results'),
@@ -66,7 +66,7 @@ http_merge_alignments(Request) :-
 %	current graph.
 
 http_stratify_alignment(Request) :-
-      	http_parameters(Request, [graph(MergeGraph,[])]),
+	http_parameters(Request, [graph(MergeGraph,[])]),
 	stratify_merge(MergeGraph),
 	reply_html_page(cliopatria(default),
 			[title('Alignments')
@@ -143,7 +143,11 @@ http_compute_overlaps(Request) :-
 
 http_materialize_graph(Request) :-
 	http_parameters(Request, [graph(Graph, []), target(Target, [])]),
-	expand_mapping(Graph, Mappings),
+	% hack to get strategy
+	rdf_has(Graph, opmv:wasGeneratedBy, Process, RealProp),
+	rdf(Graph, RealProp, Process, Strategy),
+	\+ rdfs_individual_of(Strategy, amalgame:'AlignmentTrace'),
+	expand_mapping(Strategy, Graph, Mappings),
 	materialize_mapping_graph(Mappings, [graph(Target)]),
 	align_clear_stats(graph(Target)),
 	align_ensure_stats(all(Target)),
@@ -866,7 +870,7 @@ li_select_from_graph(Graph) -->
 		     [input([type(hidden), name(graph), value(Graph)],[]),
 		      input([type(hidden), name(condition), value(confidence)],[]),
 		      input([type(submit), class(submit), value('Select')],[]),
-		      	       ' to graph ',
+			       ' to graph ',
 		       input([type(text), class(target),
 			      name(target), value(Target),
 			      size(25)],[]),
@@ -904,7 +908,7 @@ li_one_to_one(Graph) -->
 		     [input([type(hidden), name(graph), value(Graph)],[]),
 		      input([type(hidden), name(condition), value(one_to_one)],[]),
 		      input([type(submit), class(submit), value('Select')],[]),
-		      	       ' to graph ',
+			       ' to graph ',
 		       input([type(text), class(target),
 			      name(target), value(Target),
 			      size(25)],[]),
@@ -927,7 +931,7 @@ li_select_unique_labels(Graph) -->
 		     [input([type(hidden), name(graph), value(Graph)],[]),
 		      input([type(hidden), name(condition), value(unique_label)],[]),
 		      input([type(submit), class(submit), value('Select')],[]),
-		      	       ' to graph ',
+			       ' to graph ',
 		       input([type(text), class(target),
 			      name(target), value(Target),
 			      size(25)],[]),
