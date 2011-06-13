@@ -16,7 +16,6 @@ parameter(type, oneof([source,target]), source,
 
 exclude(Vocab, Mapping, scheme(NewScheme), Options) :-
 	rdf_bnode(NewScheme),
-	%rdf_assert(NewScheme, rdf:type, skos:'ConceptScheme', tmp),
  	option(type(Type), Options),
  	findall(C, vocab_member(C, Vocab), Concepts0),
   	mapping_concepts(Type, Mapping, Exclude0),
@@ -30,7 +29,7 @@ add_to_scheme(R, Scheme) :-
 	rdf(R, skos:inScheme, Scheme),
 	!.
 add_to_scheme(R, Scheme) :-
-	rdf_assert(R, skos:inScheme, Scheme, tmp).
+	rdf_assert(R, skos:inScheme, Scheme, Scheme).
 
 %	pairs_keys(Pairs, Rest),
 % 	ord_list_to_rbtree(Pairs, RestAssoc).
