@@ -256,17 +256,20 @@ amalgame_provenance(R, Alignment, Provenance) :-
 	findall(Key-Value, ag_prov(R, Alignment, Key, Value), Provenance).
 
 ag_prov(R, A, 'created by', V) :-
-	(   rdf(R, dc:creator, V, A)
+	(   rdf_has(R, dc:creator, V, RealProp),
+	    rdf(R, RealProp, V, A)
 	->  true
-	;   rdf(R, dc:creator, V)
+	;   rdf_has(R, dc:creator, V)
 	).
 ag_prov(R, A, 'created at', V) :-
-	(   rdf(R, dc:date, V, A)
+	(   rdf_has(R, dc:date, V, RealProp),
+	    rdf(R, RealProp, V, A)
 	->  true
-	;   rdf(R, dc:date, V)
+	;   rdf_has(R, dc:date, V)
 	).
-ag_prov(R, A, owl:versionInfo, V) :-
-	(   rdf(R, owl:versionInfo, literal(V), A)
+ag_prov(R, A, owl:'version', V) :-
+	(   rdf_has(R, owl:versionInfo, literal(V), RealProp),
+	    rdf(R, RealProp, literal(V), A)
 	->  true
 	;   rdf(R, owl:versionInfo, literal(V))
 	).
