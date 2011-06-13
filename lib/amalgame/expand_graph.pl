@@ -65,11 +65,12 @@ expand_vocab(_Strategy, Vocab, Vocab).
 
 expand_process(Strategy, Process, Result) :-
 	ground(Process),
-	expand_cache(Process-Strategy, Result),
-	!,
-	debug(ag_expand, 'Output of process ~p taken from cache', [Process]).
+	(   expand_cache(Process-Strategy, Result)
+	->  debug(ag_expand, 'Output of process ~p taken from cache', [Process])
+	;   do_expand_process(Strategy, Process, Result)
+	).
 
-expand_process(Strategy, Process, Result) :-
+do_expand_process(Strategy, Process, Result) :-
 	rdf(Process, rdf:type, Type, Strategy),
 
 	% Do not try multiple types if something fails below...
@@ -87,13 +88,16 @@ expand_process(Strategy, Process, Result) :-
 	cache_expand_result(Time, Process, Strategy, Result),
 
 	% Provenance admin:
-	findall(URI-Mapping,
-		(   rdf_has(URI, opmv:wasGeneratedBy, Process, OutputType),
-		    rdf(URI, OutputType, Process, Strategy),
-		    select_result_mapping(Result, OutputType, Mapping)
-	       ),
-		Artifacts),
-	add_amalgame_opm(Strategy, Process, Artifacts).
+	(   Result = scheme(_)   % Result is a single vocabulary
+	->  add_amalgame_opm(Strategy, Process, Result)
+	;   findall(URI-Mapping, % Result is one or more mappings
+		    (   rdf_has(URI, opmv:wasGeneratedBy, Process, OutputType),
+			rdf(URI, OutputType, Process, Strategy),
+			select_result_mapping(Result, OutputType, Mapping)
+		    ),
+		    Artifacts),
+	    add_amalgame_opm(Strategy, Process, Artifacts)
+	).
 
 cache_expand_result(ExecTime, Process, Strategy, Result) :-
 	setting(cache_time, CacheTime),
@@ -108,10 +112,11 @@ cache_expand_result(_, _, _, _).
 
 flush_expand_cache :-
 	del_prov_graphs,
+	del_materialized_vocs,
 	del_materialized_finals,
 	forall(expand_cache(Id-Strategy, _),
-	       flush_expand_cache(Id, Strategy)).
-
+	       flush_expand_cache(Id, Strategy)
+	      ).
 
 flush_expand_cache(Id, Strategy) :-
 	expand_cache(Id-Strategy, _), % make sure Id is bounded to something in the cache
@@ -121,14 +126,34 @@ flush_expand_cache(Id, Strategy) :-
 
 del_prov_graphs :-
 	findall(P,prov_graph(_,P), ProvGraphs),
-	forall(member(P, ProvGraphs), catch(rdf_unload(P), _, true)).
+	forall(member(P, ProvGraphs),
+	       (   catch(rdf_unload(P), _, true),
+		   debug(ag_expand, 'Deleting provenance graph ~w', [P])
+	       )
+	      ).
 
 del_materialized_finals :-
 	findall(Id, (
 		    rdf(Id, amalgame:status, amalgame:final),
 		     rdfs_individual_of(Id, amalgame:'Mapping')
 		    ), Finals),
-	forall(member(F, Finals), catch(rdf_unload(F), _, true)).
+	forall(member(F, Finals),
+	       (   catch(rdf_unload(F), _, true),
+		   debug(ag_expand, 'Deleting final result graph ~w', [F])
+	       )
+	      ).
+
+del_materialized_vocs :-
+	findall(Voc,
+		(   rdfs_individual_of(Voc, skos:'ConceptScheme'),
+		    rdf_graph(Voc),
+		    rdf_has(Voc, opmv:wasGeneratedBy, _)
+		), Vocs),
+	forall(member(V, Vocs),
+	       (   catch(rdf_unload(V), _, true),
+		    debug(ag_expand, 'Deleting materialized vocab graph ~w', [V])
+	       )
+	      ).
 
 %%	exec_amalgame_process(+Type, +Process, +Module, -Result,
 %%	+Options)
@@ -152,13 +177,15 @@ exec_amalgame_process(Type, Process, Strategy, Module, Mapping, Time, Options) :
 	merge_provenance(Mapping0, Mapping).
 exec_amalgame_process(Class, Process, Strategy, Module, Result, Time, Options) :-
 	rdfs_subclass_of(Class, amalgame:'VocExclude'),
+	rdf(NewVocab, opmv:wasGeneratedBy, Process, Strategy),
+	NewVocOption = new_scheme(NewVocab),
 	!,
 	once(rdf(Process, amalgame:input, Input, Strategy)),
 	expand_vocab(Strategy, Input, Vocab),
 	findall(S, rdf(Process, amalgame:exclude, S), Ss),
 	maplist(expand_mapping(Strategy), Ss, Expanded),
 	append(Expanded, Mapping),
-	timed_call(Module:exclude(Vocab, Mapping, Result, Options), Time).
+	timed_call(Module:exclude(Vocab, Mapping, Result, [NewVocOption|Options]), Time).
 exec_amalgame_process(Class, Process, Strategy, Module, Result, Time, Options) :-
 	rdfs_subclass_of(Class, amalgame:'MappingSelecter'),
 	!,
@@ -348,32 +375,47 @@ assert_count(MapUri, MapList, ProvGraph) :-
 align_source(align(S,_,_), S).
 align_target(align(_,T,_), T).
 
-add_amalgame_opm(Strategy, Process, Pairs) :-
-	prov_graph(Strategy, ProvGraph),
-	remove_old_prov(Process, ProvGraph),
-	assert_counts(Pairs, ProvGraph),
-
-	pairs_keys(Pairs, Artifacts),
-	opm_was_generated_by(Process, Artifacts, ProvGraph, []),
-
+add_amalgame_opm(Strategy, Process, Results) :-
 	rdf_equal(opmv:used, OpmvUsed),
 	rdf_equal(opmv:wasDerivedFrom, OpmvWDF),
+
+	prov_graph(Strategy, ProvGraph),
+
+	% Remove old info about Process from ProvGraph
+	remove_old_prov(Process, ProvGraph),
+
+	% Copy all triples about Process from Strategy to ProvGraph
 	findall(rdf(Process, P, O), rdf(Process,P,O,Strategy), ProcessTriples),
-	findall(rdf(S,P,O),
-		(   member(S, Artifacts),
-		    rdf(S,P,O,Strategy)
-		), ArtifactTriples),
+
+	% Translate subProperties of ompv:used to opmv:used
 	findall(rdf(Process, OpmvUsed, S),
 		(   rdf_has(Process, OpmvUsed, S, RealProp),
 		    rdf(Process, RealProp, S, Strategy)
 		),
 		InputTriples),
+
+	(   Results = scheme(Vocab)
+	->  Artifacts = [Vocab]
+	;   assert_counts(Results, ProvGraph),
+	    pairs_keys(Results, Artifacts)
+	),
+
+	opm_was_generated_by(Process, Artifacts, ProvGraph, []),
+
+	% Generate opmv:wasDerivedFrom triples between Mappings
 	findall(rdf(Target, OpmvWDF, Source),
 		(   member(Target, Artifacts),
 		    rdf_has(Process, opmv:used, Source, RealProp),
 		    rdf(Process, RealProp, S, Strategy)
 		),
 		DerivedTriples),
+
+	% Copy all triples about the Mapping from Strategy to ProvGraph
+	findall(rdf(S,P,O),
+		(   member(S, Artifacts),
+		    rdf(S,P,O,Strategy)
+		), ArtifactTriples),
+
 	append([ProcessTriples,
 		ArtifactTriples,
 		InputTriples,
