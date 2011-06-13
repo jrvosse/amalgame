@@ -71,10 +71,12 @@ YUI.add('builder', function(Y) {
 		_initGraph : function() {
 			var DS = new Y.DataSource.IO({
 				source: this.get("paths").nodeinfo
-			})
+			});
 			//.plug({fn:Y.Plugin.DataSourceCache, cfg:{max:10}});
+			var alignment =	this.get('alignment');
 			this.opmviz = new Y.OPMViz({
-				datasource: DS
+				datasource: DS,
+				alignment: alignment
 			}).render(NODE_OPM);
 		},
 		

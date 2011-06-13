@@ -14,6 +14,9 @@ YUI.add('opmviz', function(Y) {
 		active: {
 			value:null
 		},
+		alignment: {
+			value: null
+		},
 		datasource: {
 			value: null
 		}
@@ -70,8 +73,9 @@ YUI.add('opmviz', function(Y) {
 		
 		_fetchNodeStats : function(uri, target) {
 			var datasource = this.get("datasource");
+			var alignment = this.get('alignment');
 			datasource.sendRequest({
-				request:'?url='+uri,
+				request:'?url='+uri+'&alignment='+alignment,
 				callback:{success:function(o) {
 						var HTML = o.response.results[0].responseText;
 						if(HTML&&!target.one(".info")) {
