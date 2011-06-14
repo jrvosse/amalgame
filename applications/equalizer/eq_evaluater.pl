@@ -15,6 +15,10 @@
 :- use_module(stats).
 :- use_module(eq_util).
 
+:- public amalgame_module/1.
+
+amalgame_module(amalgame:'EvaluationProcess').
+
 :- multifile
 	eq:menu_item/2.
 
