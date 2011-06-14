@@ -73,7 +73,7 @@ amalgame:undecidedBy
 	rdfs:subPropertyOf opmv:wasGeneratedBy.
 
 amalgame:evaluationOf
-	rdfs:subPropertyOf opmv:used.
+	rdfs:subPropertyOf opmv:wasDerivedFrom.
 
 amalgame:NoAlignmentGraph a rdfs:Class ;
 	rdfs:label "No Alignment Graph"@en ;
