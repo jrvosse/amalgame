@@ -134,7 +134,7 @@ new_output(Type, Process, P, Graph) :-
         rdf_assert(OutputURI, P, Process, Graph),
 	(   setting(precompute_mapping, true)
 	->  debug(eq, 'precompute ~w', [OutputURI]),
-	    thread_create(expand_mapping(OutputURI, _), _, [ detached(true) ])
+	    thread_create(expand_mapping(Graph, OutputURI, _), _, [ detached(true) ])
 	;   true
 	).
 
