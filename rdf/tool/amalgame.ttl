@@ -72,6 +72,9 @@ amalgame:undecidedBy
 	rdfs:range opmv:Process ;
 	rdfs:subPropertyOf opmv:wasGeneratedBy.
 
+amalgame:evaluationOf
+	rdfs:subPropertyOf opmv:used.
+
 amalgame:NoAlignmentGraph a rdfs:Class ;
 	rdfs:label "No Alignment Graph"@en ;
 	rdfs:comment "The class of all Named Graphs in the repository containing no mappings and/or alignments."@en.

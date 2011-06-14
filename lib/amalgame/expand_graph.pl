@@ -341,11 +341,14 @@ evaluation_graph(Strategy, Mapping, EvalGraph) :-
 evaluation_graph(Strategy, Mapping, EvalGraph) :-
 	rdf_bnode(EvalProcess),
 	rdf_bnode(EvalGraph),
+	format(atom(Comment), 'Manual evaluation of ~w', [Mapping]),
+
 	rdf_assert(EvalProcess, rdf:type, amalgame:'EvaluationProcess', Strategy),
 	rdf_assert(EvalGraph, rdf:type, amalgame:'EvaluatedMapping', Strategy),
 	rdf_assert(EvalGraph, opmv:wasGeneratedBy, EvalProcess, Strategy),
 	rdf_assert(EvalGraph, amalgame:evaluationOf, Mapping, Strategy),
-
+	rdf_assert(EvalGraph, rdfs:label, literal('Evaluation results')),
+	rdf_assert(EvalGraph, rdfs:comment, literal(Comment)),
 
 	Options = [was_derived_from([Mapping])],
 	prov_graph(Strategy, ProvGraph),

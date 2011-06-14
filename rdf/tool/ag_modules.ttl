@@ -3,6 +3,11 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix amalgame: <http://purl.org/vocabularies/amalgame#> .
 
+amalgame:EvaluationProcess
+    rdfs:label "Manual evalution"@en ;
+    skos:definition "A process class representing manual evaluation processes "@en ;
+    rdfs:subClassOf amalgame:Process .
+
 amalgame:ExactLabelMatcher
     rdfs:label "string/label (exact)"@en ;
     skos:definition "A basic label matcher based on exact matching labels of source and target concepts"@en ;
