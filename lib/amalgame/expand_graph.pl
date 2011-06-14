@@ -4,7 +4,8 @@
 	    flush_expand_cache/0,
 	    flush_expand_cache/2,     % +Id, +Strategy
 	    process_options/3,
-	    save_mappings/2
+	    save_mappings/2,
+	    evaluation_graph/3
 	  ]).
 
 :- use_module(library(semweb/rdf_db)).
@@ -332,6 +333,30 @@ select_mappings_to_be_saved(Graph, Mappings, Options) :-
 		rdf(Mapping, amalgame:status, Status)
 	      ), Mappings)
 	).
+
+evaluation_graph(Strategy, Mapping, EvalGraph) :-
+	rdf(EvalGraph, amalgame:evaluationOf, Mapping, Strategy),
+	!.
+
+evaluation_graph(Strategy, Mapping, EvalGraph) :-
+	rdf_bnode(EvalProcess),
+	rdf_bnode(EvalGraph),
+	rdf_assert(EvalProcess, rdf:type, amalgame:'EvaluationProcess', Strategy),
+	rdf_assert(EvalGraph, rdf:type, amalgame:'EvaluatedMapping', Strategy),
+	rdf_assert(EvalGraph, opmv:wasGeneratedFrom, EvalProcess, Strategy),
+	rdf_assert(EvalGraph, amalgame:evaluationOf, Mapping, Strategy),
+
+
+	Options = [was_derived_from([Mapping])],
+	prov_graph(Strategy, ProvGraph),
+	opm_was_generated_by(EvalProcess, [EvalGraph], ProvGraph, Options).
+
+delete_eval_graph_admin(Strategy, Mapping, EvalGraph) :-
+	% Beware, this will delete all metadata about your manual evaluations!
+	rdf(EvalGraph, amalgame:evaluationOf, Mapping, Strategy),
+	rdf(EvalGraph, opmv:wasGeneratedFrom, EvalProcess, Strategy),
+	rdf_retractall(EvalGraph, _, _, Strategy),
+	rdf_retractall(EvalProcess, _, _, Strategy).
 
 
 prov_graph(Strategy, Graph) :-
