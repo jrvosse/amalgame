@@ -224,6 +224,7 @@ YUI.add('evaluater', function(Y) {
 			
 			// call the server
 			var data = {
+				alignment:this.get("alignment"),
 				mapping:this.get("selected"),
 				source: this._source,
 				target: this._target,
