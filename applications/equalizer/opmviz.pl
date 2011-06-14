@@ -150,6 +150,9 @@ process_color(R, '#99CCFF') :-
 process_color(R, '#CC99FF') :-
 	rdfs_individual_of(R, amalgame:'Matcher'),
 	!.
+process_color(R, '#FF99CC') :-
+	rdfs_individual_of(R, amalgame:'EvaluationProcess'),
+	!.
 process_color(_, '#DDDDDD').
 
 artifact_color(R, '#CCFF99') :-

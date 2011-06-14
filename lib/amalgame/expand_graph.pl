@@ -344,12 +344,14 @@ evaluation_graph(Strategy, Mapping, EvalGraph) :-
 	format(atom(Comment), 'Manual evaluation of ~w', [Mapping]),
 
 	rdf_assert(EvalProcess, rdf:type, amalgame:'EvaluationProcess', Strategy),
-	rdf_assert(EvalGraph, rdf:type, amalgame:'EvaluatedMapping', Strategy),
-	rdf_assert(EvalGraph, opmv:wasGeneratedBy, EvalProcess, Strategy),
-	rdf_assert(EvalGraph, amalgame:evaluationOf, Mapping, Strategy),
+	rdf_assert(EvalProcess, rdfs:label, literal('Manual evaluation')),
 	rdf_assert(EvalProcess, amalgame:input,	Mapping, Strategy),
+
+	rdf_assert(EvalGraph, rdf:type, amalgame:'EvaluatedMapping', Strategy),
 	rdf_assert(EvalGraph, rdfs:label, literal('Evaluation results')),
 	rdf_assert(EvalGraph, rdfs:comment, literal(Comment)),
+	rdf_assert(EvalGraph, opmv:wasGeneratedBy, EvalProcess, Strategy),
+	rdf_assert(EvalGraph, amalgame:evaluationOf, Mapping, Strategy),
 
 	Options = [was_derived_from([Mapping])],
 	prov_graph(Strategy, ProvGraph),
@@ -358,7 +360,8 @@ evaluation_graph(Strategy, Mapping, EvalGraph) :-
 delete_eval_graph_admin(Strategy, Mapping, EvalGraph) :-
 	% Beware, this will delete all metadata about your manual evaluations!
 	rdf(EvalGraph, amalgame:evaluationOf, Mapping, Strategy),
-	rdf(EvalGraph, opmv:wasGeneratedFrom, EvalProcess, Strategy),
+	rdf(EvalGraph, opmv:wasGeneratedBy, EvalProcess, Strategy),
+	!,
 	rdf_retractall(EvalGraph, _, _, Strategy),
 	rdf_retractall(EvalProcess, _, _, Strategy).
 
