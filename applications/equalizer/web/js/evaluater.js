@@ -150,7 +150,8 @@ YUI.add('evaluater', function(Y) {
 			e.preventDefault(e);
 			var cs = this._getSelection();
 			var c = cs[0];
-			c.graph = this.get("alignment");
+			c.alignment = this.get("alignment");
+			c.mapping   = this.get("selected");
 			this._submitCorrespondence(c);
 			if(nav=="next") {
 				Y.log("next mapping");
