@@ -189,6 +189,7 @@ concept_count(Vocab, Strategy, Count) :-
 mapping_sources(URL, Strategy, S, T) :-
 	rdf_has(URL, opmv:wasGeneratedBy, Process, RealProp),
 	rdf(URL, RealProp, Process, Strategy),
+	!,
 	(   rdf(Process, amalgame:source, S0, Strategy),
 	    rdf(Process, amalgame:target, T0, Strategy)
 	->  vocab_source(S0, Strategy, S),
