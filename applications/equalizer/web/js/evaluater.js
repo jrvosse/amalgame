@@ -118,6 +118,7 @@ YUI.add('evaluater', function(Y) {
 			this.mappingtable = new Y.MappingTable({
 				srcNode: NODE_MAPPING_TABLE,
 				datasource:DS,
+				alignment: this.get("alignment"),
 				mapping:this.get("selected")
 			});
 		},

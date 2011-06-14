@@ -21,6 +21,9 @@ YUI.add('mappingtable', function(Y) {
 				return Lang.isNumber(val);
 			}
 		},
+		alignment: {
+			value: null
+		},
 		mapping: {
 			value: null
 		},
@@ -78,6 +81,7 @@ YUI.add('mappingtable', function(Y) {
 		loadData : function(conf, recordsOnly) {
 			var mapping = this.get("mapping"),
 				datasource = this.get("datasource"),
+				alignment = this.get("alignment"),
 				table = this.table,
 				paginator = this.paginator;
 
@@ -97,6 +101,7 @@ YUI.add('mappingtable', function(Y) {
 			if(mapping) {
 				conf = conf ? conf : {};
 				conf.url = mapping;
+				conf.alignment=alignment;
 				datasource.sendRequest({
 					request:'?'+Y.QueryString.stringify(conf),
 					callback:callback
