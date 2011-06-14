@@ -343,7 +343,7 @@ evaluation_graph(Strategy, Mapping, EvalGraph) :-
 	rdf_bnode(EvalGraph),
 	rdf_assert(EvalProcess, rdf:type, amalgame:'EvaluationProcess', Strategy),
 	rdf_assert(EvalGraph, rdf:type, amalgame:'EvaluatedMapping', Strategy),
-	rdf_assert(EvalGraph, opmv:wasGeneratedFrom, EvalProcess, Strategy),
+	rdf_assert(EvalGraph, opmv:wasGeneratedBy, EvalProcess, Strategy),
 	rdf_assert(EvalGraph, amalgame:evaluationOf, Mapping, Strategy),
 
 
