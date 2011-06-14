@@ -203,7 +203,7 @@ update_node_prop(status=Status, URI, Alignment) :-
 	;   rdf_assert(URI, amalgame:status, Status, Alignment)
 	),
 	(   rdf_equal(Status, amalgame:final)
-	->  thread_create(expand_mapping(URI, _), _, [ detached(true) ])
+	->  thread_create(expand_mapping(Alignment, URI, _), _, [ detached(true) ])
 	;   true
 	).
 
