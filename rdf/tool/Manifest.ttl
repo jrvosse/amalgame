@@ -27,7 +27,7 @@
 	a lib:Ontology ;
 	a lib:Virtual ;
 	dcterms:title "Schema for the amalgame modules"@en ;
-	lib:source amalgame:modules ;
+	lib:source <http://purl.org/vocabularies/amalgame/modules/> ;
 	owl:imports
 		<ag_modules.ttl> .
 
