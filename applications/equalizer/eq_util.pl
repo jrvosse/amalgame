@@ -56,8 +56,8 @@ html_menu_item(Handler, Label, _Active, Alignment) -->
 assert_user_provenance(R, Graph) :-
 	logged_on(User),
 	now_xsd(Time),
-	rdf_assert(R, dc:creator, User, Graph),
-	rdf_assert(R, dc:date, literal(type(xsd:date, Time)), Graph).
+	rdf_assert(R, dcterms:creator, User, Graph),
+	rdf_assert(R, dcterms:date, literal(type(xsd:date, Time)), Graph).
 
 
 %%	amalgame_alignment(?Alignment, ?Schemes)
