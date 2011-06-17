@@ -134,7 +134,12 @@ new_output(Type, Process, P, Graph) :-
         rdf_assert(OutputURI, P, Process, Graph),
 	(   setting(precompute_mapping, true)
 	->  debug(eq, 'precompute ~w', [OutputURI]),
-	    thread_create(expand_mapping(Graph, OutputURI, _), _, [ detached(true) ])
+	    thread_create((
+			  % Write debug output to server console,
+			  % cannot write to client:
+			  set_stream(user_output, alias(current_output)),
+			  expand_mapping(Graph, OutputURI, _)
+			  ), _, [ detached(true) ])
 	;   true
 	).
 
@@ -203,7 +208,10 @@ update_node_prop(status=Status, URI, Alignment) :-
 	;   rdf_assert(URI, amalgame:status, Status, Alignment)
 	),
 	(   rdf_equal(Status, amalgame:final)
-	->  thread_create(expand_mapping(Alignment, URI, _), _, [ detached(true) ])
+	->  thread_create((
+			  set_stream(user_output, alias(current_output)),
+			   expand_mapping(Alignment, URI, _)
+			  ), _, [ detached(true) ])
 	;   true
 	).
 
