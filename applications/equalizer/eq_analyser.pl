@@ -17,7 +17,8 @@
 :- multifile
 	eq:menu_item/2.
 
-eq:menu_item(http_eq_analyse, 'analyse').
+% temp commented out
+% eq:menu_item(http_eq_analyse, 'analyse').
 
 % http handlers for this applications
 
