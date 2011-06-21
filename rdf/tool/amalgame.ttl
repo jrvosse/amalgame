@@ -7,11 +7,11 @@
 @prefix     skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix     xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-amalgame:Process 
+amalgame:Process
     rdfs:label "process"@en ;
     skos:definition "Top class for all amalgame processes"@en ;
     rdfs:subClassOf opmv:Process .
-amalgame:Matcher 
+amalgame:Matcher
     rdfs:label "matcher"@en ;
     skos:definition "Component that creates a mapping given a source and target vocabulary"@en ;
     rdfs:range amalgame:Mapping ;
@@ -37,7 +37,7 @@ amalgame:Subtracter
     rdfs:domain skos:ConceptScheme ;
     rdfs:range skos:ConceptScheme ;
     rdfs:subClassOf amalgame:Process .
-amalgame:Merger 
+amalgame:Merger
     rdfs:label "merger"@en ;
     skos:definition "Component that creates a mapping by combining the correspondences from a number of mappings"@en ;
     rdfs:domain amalgame:Mapping ;
@@ -122,10 +122,10 @@ amalgame:PartitionedAlignment a rdfs:Class;
 	rdfs:label "Amalgame Partitioned"@en ;
 	rdfs:comment "A Named Graph that has been created by partitioning another named graph into one or more new graphs. The source graph is recorded by dcterms:source in the amalgame:provenance section."@en .
 
-amalgame:EvaluatedAlignment a rdfs:Class;
-	rdfs:subClassOf amalgame:DerivedAlignment ;
+amalgame:EvaluatedMapping a rdfs:Class;
+	rdfs:subClassOf amalgame:Mapping ;
 	rdfs:label "Amalgame Evaluation Results"@en ;
-	rdfs:comment "A Named Graph that has been created by manually evaluating another named graph into a new graph. The source graph is recorded by dcterms:source in the amalgame:provenance section."@en .
+	rdfs:comment "A Named Graph that has been created by manually evaluating another named graph into a new graph. The source graph is recorded by the amalgame:evaluationOf property."@en .
 
 amalgame:SelectionAlignment a rdfs:Class;
 	rdfs:subClassOf amalgame:DerivedAlignment ;
