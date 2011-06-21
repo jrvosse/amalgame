@@ -14,6 +14,7 @@
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(semweb/rdf_file_type)).
+:- use_module(library(skos/vocabularies)).
 :- use_module(user(user_db)).
 :- use_module(components(label)).
 :- use_module(eq_util).
@@ -86,17 +87,36 @@ html_vocab_table(Vs) -->
 html_vocab_head -->
 	html([th([]),
 	      th(name),
-	      th('# concepts (estimate)')
+	      th('# concepts'),
+	      th('# prefLabels'),
+	      th('# altLabels'),
+	      th('# mapped'),
+	      th('(%)')
 	     ]).
 
 html_vocab_rows([]) --> !.
 html_vocab_rows([Scheme|Vs]) -->
-	{ rdf_estimate_complexity(_, skos:inScheme, Scheme, Count)
+% rdf_estimate_complexity(_, skos:inScheme, Scheme, Count)
+	{
+	 voc_ensure_stats(all(Scheme)),
+	 rdf(Scheme, amalgame:numberOfConcepts,   literal(type(_,ConceptCount))),
+	 rdf(Scheme, amalgame:numberOfPrefLabels, literal(type(_,PrefCount))),
+	 rdf(Scheme, amalgame:numberOfAltLabels, literal(type(_, AltCount))),
+	 rdf(Scheme, amalgame:numberOfMappedConcepts, literal(type(_, MappedCount))),
+	 (   ConceptCount > 0
+	 ->  Perc is (100*MappedCount)/ConceptCount,
+	     format(atom(MPercent), '(~2f%)', [Perc])
+	 ;   MPercent = -
+	 )
 	},
 	html(tr([td(input([type(checkbox), autocomplete(off), class(option),
 			   name(scheme), value(Scheme)])),
 		 td(\html_graph_name(Scheme)),
-		 td(class(count), Count)
+		 td(class(count), ConceptCount),
+		 td(class(prefLabel), PrefCount),
+		 td(class(altLabel), AltCount),
+		 td(class(mapped), MappedCount),
+		 td(class(pmapped), MPercent)
 		])),
 	html_vocab_rows(Vs).
 
@@ -145,9 +165,10 @@ html_scheme_labels([S|Ss]) -->
 	html_scheme_labels(Ss).
 
 html_graph_name(Graph) -->
-	{ graph_label(Graph, Label)
+	{ graph_label(Graph, Label),
+	  resource_link(Graph,Link)
 	},
-	html(Label).
+	html(a([href(Link)],Label)).
 
 graph_label(Graph, Label) :-
 	rdf_label(Graph, Lit),
