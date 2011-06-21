@@ -5,6 +5,7 @@
 	    flush_expand_cache/2,     % +Id, +Strategy
 	    process_options/3,
 	    save_mappings/2,
+	    provenance_graph/2,
 	    evaluation_graph/3
 	  ]).
 
@@ -131,7 +132,7 @@ flush_expand_cache(Id, Strategy) :-
 	debug(ag_expand, 'flush cache and unloading graph for ~p', [Id]).
 
 del_prov_graphs :-
-	findall(P,prov_graph(_,P), ProvGraphs),
+	findall(P,provenance_graph(_,P), ProvGraphs),
 	forall(member(P, ProvGraphs),
 	       (   catch(rdf_unload(P), _, true),
 		   debug(ag_expand, 'Deleting provenance graph ~w', [P])
@@ -311,7 +312,7 @@ materialize_if_needed(Id, Mapping) :-
 	materialize_mapping_graph(Mapping, [graph(Id), evidence_graphs(Enabled)]).
 
 save_mappings(Strategy, Options) :-
-	prov_graph(Strategy, ProvGraph),
+	provenance_graph(Strategy, ProvGraph),
 	select_mappings_to_be_saved(Strategy, Mappings, Options),
 	forall(member(Mapping, Mappings), save_mapping(Mapping, Strategy,ProvGraph,Options)).
 
@@ -360,7 +361,7 @@ evaluation_graph(Strategy, Mapping, EvalGraph) :-
 	rdf_assert(EvalGraph, amalgame:evaluationOf, Mapping, Strategy),
 
 	Options = [was_derived_from([Mapping])],
-	prov_graph(Strategy, ProvGraph),
+	provenance_graph(Strategy, ProvGraph),
 	opm_was_generated_by(EvalProcess, [EvalGraph], ProvGraph, Options).
 
 delete_eval_graph_admin(Strategy, Mapping, EvalGraph) :-
@@ -371,12 +372,15 @@ delete_eval_graph_admin(Strategy, Mapping, EvalGraph) :-
 	rdf_retractall(EvalGraph, _, _, Strategy),
 	rdf_retractall(EvalProcess, _, _, Strategy).
 
+%%	provenance_graph(+Strategy, ?Graph) is det.
+%
+%	True if Graph is the provenance graph associated with strategy.
 
-prov_graph(Strategy, Graph) :-
+provenance_graph(Strategy, Graph) :-
 	rdf(Graph, amalgame:strategy, Strategy, Graph),
 	!.
 
-prov_graph(Strategy, Graph) :-
+provenance_graph(Strategy, Graph) :-
 	ground(Strategy),
 	rdf_bnode(Graph),
 	create_prov_graph(Strategy, Graph).
@@ -417,7 +421,7 @@ add_amalgame_opm(Strategy, Process, Results) :-
 	rdf_equal(opmv:used, OpmvUsed),
 	rdf_equal(opmv:wasDerivedFrom, OpmvWDF),
 
-	prov_graph(Strategy, ProvGraph),
+	provenance_graph(Strategy, ProvGraph),
 
 	% Remove old info about Process from ProvGraph
 	remove_old_prov(Process, ProvGraph),
