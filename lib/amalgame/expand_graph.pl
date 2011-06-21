@@ -33,6 +33,11 @@
 %          if Id is a Vocabulary Result is an assoc or one of
 %          scheme(Scheme) or type(Class)
 
+expand_mapping(_Strategy, Id, Mapping) :-
+	rdfs_individual_of(Id, amalgame:'EvaluatedMapping'),
+	!,
+	findall(align(S,T,P), has_map([S,T], edoal,P,Id), Mapping).
+
 expand_mapping(Strategy, Id, Mapping) :-
 	rdf_has(Id, opmv:wasGeneratedBy, Process, OutputType),
 	rdf(Id, OutputType, Process, Strategy),
@@ -206,6 +211,7 @@ exec_amalgame_process(Class, Process, Strategy, Module, Result, Time, Options) :
 	findall(Input, rdf(Process, amalgame:input, Input, Strategy), Inputs),
 	maplist(expand_mapping(Strategy), Inputs, Expanded),
 	timed_call(Module:merger(Expanded, Result, Options), Time).
+
 exec_amalgame_process(Class, Process,_,_, _, _, _) :-
 	throw(error(existence_error(mapping_process, [Class, Process]), _)).
 
