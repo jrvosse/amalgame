@@ -265,6 +265,12 @@ ag_prov(R, A, 'created by', V) :-
 	->  true
 	;   rdf_has(R, dc:creator, V)
 	).
+
+ag_prov(R, _A, 'controlled by', \rdf_link(Agent)) :-
+	(   rdf_has(R,  opmv:wasControlledBy, Agent)
+	;   rdf_has(R, opmv:wasGeneratedBy, Process),
+	    rdf_has(Process, opmv:wasControlledBy, Agent)
+	).
 ag_prov(R, A, 'created at', V) :-
 	(   rdf_has(R, dc:date, V, RealProp),
 	    rdf(R, RealProp, V, A)

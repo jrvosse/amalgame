@@ -4,7 +4,7 @@
 @prefix amalgame: <http://purl.org/vocabularies/amalgame#> .
 
 amalgame:EvaluationProcess
-    rdfs:label "Manual evalution"@en ;
+    rdfs:label "Manual evaluation"@en ;
     skos:definition "A process class representing manual evaluation processes "@en ;
     rdfs:subClassOf amalgame:Process .
 
