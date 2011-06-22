@@ -16,6 +16,7 @@
 :- use_module(library(amalgame/amalgame_modules)).
 :- use_module(library(amalgame/map)).
 :- use_module(library(amalgame/opm)).
+:- use_module(library(skos/vocabularies)).
 
 :- dynamic
 	expand_cache/2.
@@ -158,7 +159,8 @@ del_materialized_vocs :-
 		), Vocs),
 	forall(member(V, Vocs),
 	       (   catch(rdf_unload(V), _, true),
-		    debug(ag_expand, 'Deleting materialized vocab graph ~w', [V])
+		   voc_clear_stats(V),
+		   debug(ag_expand, 'Deleting materialized vocab graph ~w', [V])
 	       )
 	      ).
 
@@ -309,6 +311,7 @@ materialize_if_needed(Id, Mapping) :-
 	->  Enabled = enabled
 	;   Enabled = disabled
 	),
+	voc_clear_stats(all),
 	materialize_mapping_graph(Mapping, [graph(Id), evidence_graphs(Enabled)]).
 
 save_mappings(Strategy, Options) :-
