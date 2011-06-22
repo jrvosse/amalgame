@@ -28,12 +28,14 @@
 		   requires([ css('amalgame.css')
 			    ])
 		 ]).
+/*
 cliopatria:resource_link(Alignment, Link) :-
 	rdfs_individual_of(Alignment, amalgame:'Alignment'),
 	http_link_to_id(http_list_alignment, [graph(Alignment)], Link).
 cliopatria:resource_link(Voc, Link) :-
 	rdfs_individual_of(Voc, skos:'ConceptScheme'),
 	http_link_to_id(http_list_skos_voc, [voc(Voc)], Link).
+*/
 cliopatria:display_link(Cell, _Options) -->
 	{
 	 rdfs_individual_of(Cell, align:'Cell'),
