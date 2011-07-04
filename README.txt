@@ -21,4 +21,17 @@ Alignment strategy
 An alignment strategy is a recipee that defines how the mappings that constitute the alignment have to be made.  It defines for all mappings the amalgame alignment modules that created them, and their inputs.  In addition to the mappings actually used in the final alignment (these mappings are typically marked with amalgame:status amalgame:final) strategies typically also define (amalgame:intermediate) mappings that are used as input for processes generating other mappingsand mappings that are explicitly not used (e.g. for lack of quality) and have been marked with amalgame:discarded.
 A strategy defines a dependency graph between mappings (which are subclasses of opmv:Artifacts) and amalgame modules (which are subclasses of opmv:Processes).  Such a graph can be seen as the backbone of an OPM provenance graph. We defined the RDF vocabulary for our strategies as an extension of the OPMV vocabulary.  By executing such a strategy and recording the information that is specific to that execution, one can extend an amalgame strategy into a complete OPM graph.  Vice versa, if the OPM graph recording such an execution has been encoded by using the amalgame extension vocabulary, the dependency graph that forms the backbone of the OPM graph can be re-used as an amalgame alignment strategy for another run.
 
+Prov graph
+[tbd]
+
+
+TODO
+
+- Michiel add (voc) exclude and merge to builder interface
+- Michiel add voc browser to new interface
+- Michiel add stats to alignment strats on openings page
+- Sync mapping table for analyse, eval and publish interface
+- add skos prop/conf. value interface to publisher
+- add overlap func to analyser
+- add merge/stratified overlap to builder
 
