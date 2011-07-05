@@ -18,7 +18,7 @@
 	eq:menu_item/2.
 
 % temp commented out
-% eq:menu_item(http_eq_analyse, 'analyse').
+eq:menu_item(http_eq_analyse, 'analyse').
 
 % http handlers for this applications
 
