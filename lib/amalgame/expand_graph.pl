@@ -330,6 +330,7 @@ save_mapping(Id, Strategy, ProvGraph, Options) :-
 	),
 
 	rdf_statistics(triples_by_file(Id, NrOfTriples)),
+	assert_metadata(Id, Strategy, void),
 	rdf_assert(Id, void:vocabulary,   amalgame:'', void),
 	rdf_assert(Id, void:vocabulary,   void:'', void),
 	rdf_assert(Id, rdf:type,          void:'Linkset', void),
@@ -342,6 +343,18 @@ save_mapping(Id, Strategy, ProvGraph, Options) :-
 	file_name_extension(Base, ttl, Name),
 	rdf_save_turtle(Name, [graph(Id)|Options]).
 
+assert_metadata(Id, Strategy, Graph) :-
+	findall(rdf(Id,P,O),
+		is_metadata_triple(Id, P, O, Strategy),
+		Triples),
+	forall(member(rdf(S,P,O), Triples), rdf_assert(S,P,O,Graph)).
+
+
+is_metadata_triple(S,P,O,Graph) :-
+	rdf_has(S,opmv:wasGeneratedBy, Process, RP),
+	rdf(S,RP,Process,Graph),
+	rdf(Process, opmv:wasPerformedBy, O),
+	rdf_equal(dcterms:creator, P).
 
 select_mappings_to_be_saved(Graph, Mappings, Options) :-
 	option(status(Status), Options, all),
