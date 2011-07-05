@@ -33,3 +33,13 @@ body {
 	text-decoration: none;
 	color: #3875D7
 }
+
+.mappinglist td {
+	padding: .2em;
+}
+.mappinglist {
+	width: 25em;
+}
+.mappinglist td.src_mapped , .mappinglist td.target_mapped, .mappinglist td.nr_of_mappings {
+	text-align: right;
+}
