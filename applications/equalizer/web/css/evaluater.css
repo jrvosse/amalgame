@@ -1,12 +1,12 @@
 /* main layout */
 #content {
-	margin: 10px;
-	padding-left: 275px;
+	margin: .5em;
+	padding-left: 27.5em;
 }
 #left {
-	width: 250px;
-	margin-left: -275px;
-	margin-right: 25px;
+	width: 25em;
+	margin-left: -27.5em;
+	margin-right: 1em;
 }
 #main {
 	width: 100%;
@@ -29,14 +29,14 @@
 .yui3-mappinglist li {
 	padding: 2px 4px;
 }
-.yui3-mappinglist li.selected {
+.yui3-mappinglist tr.selected {
 	background-color: #3875D7;
 }
-.yui3-mappinglist li a {
+.yui3-mappinglist tr a {
 	text-decoration: none;
 	color: #222;
 }
-.yui3-mappinglist li.selected a {
+.yui3-mappinglist tr.selected a {
 	color: white;
 }
 
