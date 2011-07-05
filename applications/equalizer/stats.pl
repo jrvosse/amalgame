@@ -1,5 +1,5 @@
 :- module(eq_stats,
-	  [ flush_stats_cache/0
+	  [
 	  ]).
 
 :- use_module(library(http/http_dispatch)).
@@ -10,22 +10,16 @@
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(amalgame/amalgame_modules)).
 :- use_module(library(amalgame/expand_graph)).
-:- use_module(library(amalgame/vocabulary)).
 :- use_module(cliopatria(components/label)).
 
 :- use_module(controls).
+:- use_module(eq_util).
 
 % http handlers for this applications
 
 :- http_handler(amalgame(private/nodeinfo), http_eq_nodeinfo, []).
 :- http_handler(amalgame(private/info), http_eq_info, []).
 
-:- dynamic
-	stats_cache/2.
-
-flush_stats_cache :-
-	retractall(stats_cache(_,_)),
-	flush_expand_cache.
 
 %%	http_eq_nodeinfo(+Request)
 %
@@ -121,89 +115,6 @@ html_form(Params, URI) -->
 			\html_parameter_form(Params)
 		       ]))).
 
-
-%%	mapping_counts(+MappingURI, +Strategy, -MappingN, -SourceN, -TargetN)
-%
-%	Counts for the mappings in MappingURI.
-%
-%       @param MappingN is the number of total correspondences
-%       @param SourceN is the number of source concepts mapped
-%       @param TargetN is the number of target concepts mapped
-
-mapping_counts(URL, Strategy, MN, SN, TN, SPerc, TPerc) :-
-	stats_cache(URL-Strategy, stats(MN, SN, TN, SPerc, TPerc)),
-	!.
-mapping_counts(URL, Strategy, MN, SN, TN, SPerc, TPerc) :-
-	expand_mapping(Strategy, URL, Mapping),
-	mapping_sources(URL, Strategy, InputS, InputT),
-	concept_count(InputS, Strategy, SourceN),
-	concept_count(InputT, Strategy, TargetN),
-
-	maplist(align_source, Mapping, Ss0),
-	maplist(align_target, Mapping, Ts0),
-	sort(Ss0, Ss),
-	sort(Ts0, Ts),
-	length(Mapping, MN),
-	length(Ss, SN),
-	length(Ts, TN),
-
-	rounded_perc(SourceN, SN, SPerc),
-	rounded_perc(TargetN, TN, TPerc),
-	retractall(stats_cache(_,_)),
-	assert(stats_cache(URL-Strategy, stats(MN, SN, TN, SPerc, TPerc))).
-
-rounded_perc(0, _, 0.0) :- !.
-rounded_perc(_, 0, 0.0) :- !.
-rounded_perc(Total, V, Perc) :-
-	Perc0 is V/Total,
-	dyn_perc_round(Perc0, Perc, 100).
-
-dyn_perc_round(P0, P, N) :-
-	P1 is round(P0*N),
-	(   P1 == 0
-	->  N1 is N*10,
-	    dyn_perc_round(P0, P, N1)
-	;   P is P1/(N/100)
-	).
-
-%%	concept_count(+Vocab, +Strategy, -Count)
-%
-%	Count is the number of concepts in Vocab when expanded in Strategy
-
-concept_count(Vocab, Strategy, Count) :-
-	stats_cache(Vocab-Strategy, stats(Count)),
-	!.
-concept_count(Vocab, Strategy, Count) :-
-	expand_vocab(Strategy, Vocab, Scheme),
-	findall(C, vocab_member(C, Scheme), Cs),
-	length(Cs, Count),
-	retractall(stats_cache(_,_)),
-	assert(stats_cache(Vocab-Strategy, stats(Count))).
-
-
-%%	mapping_sources(+MappingURI, Strategy, -Source, -Target)
-%
-%	Source and Target are the recursive source and target
-%	vocabularies of Mapping.
-
-mapping_sources(URL, Strategy, S, T) :-
-	rdf_has(URL, opmv:wasGeneratedBy, Process, RealProp),
-	rdf(URL, RealProp, Process, Strategy),
-	!,
-	(   rdf(Process, amalgame:source, S0, Strategy),
-	    rdf(Process, amalgame:target, T0, Strategy)
-	->  vocab_source(S0, Strategy, S),
-	    vocab_source(T0, Strategy, T)
-	;   rdf(Process, amalgame:input, Input, Strategy)
-	->  mapping_sources(Input, Strategy, S, T)
-	).
-
-vocab_source(V, Strategy, S) :-
-	rdf_has(V, opmv:wasGeneratedBy, Process, Strategy),
-	rdf_has(Process, amalgame:input, Input, Strategy),
-	!,
-	vocab_source(Input, Strategy, S).
-vocab_source(V, _S, V).
 
 
 %%	amalgame_info(+Mapping, -Info)
@@ -320,7 +231,5 @@ override_options([H|T], Current, [V|Results]) :-
 	Opt =.. [Id, Value],
 	option(Opt, Current, Default).
 
-align_source(align(S,_,_), S).
-align_target(align(_,T,_), T).
 
 
