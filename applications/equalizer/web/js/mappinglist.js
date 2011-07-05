@@ -27,11 +27,11 @@ YUI.add('mappinglist', function(Y) {
 		},
 		destructor : function() {},
 		renderUI : function() {
-			this.listNode = this.get("contentBox").appendChild(Node.create("<ul></ul>"));
+			this.listNode = this.get("contentBox").appendChild(Node.create("<table class='mappinglist'></table>"));
 		},
 		bindUI : function() {
 			this._history.on('selectedChange', this._onSelectChange, this);	
-			Y.delegate("click", this._onMappingSelect, this.listNode, "li", this)
+			Y.delegate("click", this._onMappingSelect, this.listNode, "tr.row", this)
 			this.after("mappingsChange", this.syncUI, this);
 		},
 		syncUI : function() {
@@ -43,8 +43,8 @@ YUI.add('mappinglist', function(Y) {
 		// - we only update the selected value in the history manager
 		// - we also update the url of the page
 		_onMappingSelect : function(e) {
-			var index = this.listNode.all("li").indexOf(e.currentTarget),
-				uri = this.get("mappings")[index].uri;	
+			var index = this.listNode.all("tr.row").indexOf(e.currentTarget);
+			var uri = this.get("mappings")[index].uri;	
 			var params = Y.QueryString.parse(window.location.search.substr(1));
 			params.mapping = uri;
 			this._history.addValue("selected", uri, {
@@ -64,20 +64,32 @@ YUI.add('mappinglist', function(Y) {
 		_setMappings : function() {
 			var listNode = this.listNode,
 				mappings = this.get("mappings");
+			listNode.append("<tr>"+
+				"<th>Mapping</a></th>"+
+				"<th colspan='2' class='src_mapped'># sources</th>"+
+				"<th colspan='2' class='target_mapped'># trgs</th>"+
+				"<th class='nr_of_mappings'># mappings</th>"+
+				"</tr>");
 	
 			if(mappings) {
 				for (var i=0; i < mappings.length; i++) {
 					var m = mappings[i];
-					listNode.append("<li><a href='javascript:void(0)'>"+m.label+"</a></li>");
+					listNode.append("<tr class='row'>"+
+					"<td><a href='javascript:void(0)'>"+m.label+"</a></td>"+
+					"<td class='src_mapped'>"+m.stats.numberOfSourceConcepts+"</td>"+
+					"<td class='p_src_mapped'>("+m.stats.pSources+"%)</td>"+
+					"<td class='target_mapped'>"+m.stats.numberOfTargetConcepts+"</td>"+
+					"<td class='p_target_map>ed'>("+m.stats.pTargets+"%)</td>"+
+					"<td class='nr_of_mappings'>"+m.stats.numberOfMappings+"</td>"+
+					"</tr>");
 				}
 			}
 		},
 		
 		_toggleSelection : function() {
 			var sel = this.get("selected"),
-				nodes = this.listNode.all("li"),
+				nodes = this.listNode.all("tr.row"),
 				index = this._mappingIndexOf(sel);
-			
 			nodes.removeClass("selected");
 			if(index >= 0) {
 				nodes.item(index).addClass("selected");
