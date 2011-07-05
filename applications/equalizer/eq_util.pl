@@ -94,8 +94,8 @@ js_mappings(Strategy, Results) :-
 			     numberOfMappings(MN),
 			     numberOfSourceConcepts(SN),
 			     numberOfTargetConcepts(TN),
-			     psources(SPerc),
-			     ptargets(TPerc)
+			     pSources(SPerc),
+			     pTargets(TPerc)
 			    ]
 		),
 		Results).
