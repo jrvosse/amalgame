@@ -83,25 +83,26 @@ amalgame_alignment(Alignment, Schemes) :-
 	Schemes \== [].
 
 
-js_mappings(Alignment, Mappings) :-
+js_mappings(Strategy, Results) :-
+	findall(M-L,
+		mapping(Strategy, M, L),
+		Mappings),
 	findall(json([uri=M, label=L, stats=json(Stats)]),
-		mapping(Alignment, M, L, Stats),
-		Mappings).
+		(   member(M-L, Mappings),
+		    mapping_counts(M, Strategy, MN, SN, TN, SPerc, TPerc),
+		    Stats = [
+			     numberOfMappings(MN),
+			     numberOfSourceConcepts(SN),
+			     numberOfTargetConcepts(TN),
+			     psources(SPerc),
+			     ptargets(TPerc)
+			    ]
+		),
+		Results).
 
-mapping(Strategy, URI, Label, Stats) :-
-	Stats = [
-		 numberOfMappings(MN),
-		 numberOfSourceConcepts(SN),
-		 numberOfTargetConcepts(TN),
-		 psources(SPerc),
-		 ptargets(TPerc)
-		],
+mapping(Strategy, URI, Label) :-
 	rdf(URI, rdf:type, amalgame:'Mapping',Strategy),
-	rdf_display_label(URI, Label),
-	!,
-	mapping_counts(URI, Strategy, MN, SN, TN, SPerc, TPerc).
-
-
+	rdf_display_label(URI, Label).
 
 %%	js_alignment_nodes(+Alignment, -Nodes)
 %
