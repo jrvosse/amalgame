@@ -281,7 +281,7 @@ http_eq_new(Request) :-
 
 new_alignment(Schemes, Alignment) :-
 	authorized(write(default, _)),
-	rdf_bnode(Alignment),
+	gensym(strategy, Alignment),
 	rdf_transaction((rdf_assert(Alignment, rdf:type, amalgame:'AlignmentStrategy', Alignment),
 			 assert_user_provenance(Alignment, Alignment),
 			 add_schemes(Schemes, Alignment))).
@@ -325,7 +325,7 @@ http_eq_upload_url(Request) :-
 	http_parameters(Request,
 			[ url(URL, [])
 			]),
-	rdf_bnode(Graph),
+	gensym(strategy, Graph),
 	rdf_load(URL, [graph(Graph)]),
 	build_redirect(Request, Graph).
 

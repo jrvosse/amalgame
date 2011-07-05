@@ -315,9 +315,12 @@ materialize_if_needed(Id, Mapping) :-
 	materialize_mapping_graph(Mapping, [graph(Id), evidence_graphs(Enabled)]).
 
 save_mappings(Strategy, Options) :-
+	(   rdf_graph(void) -> rdf_unload(void); true),
+
 	provenance_graph(Strategy, ProvGraph),
 	select_mappings_to_be_saved(Strategy, Mappings, Options),
-	forall(member(Mapping, Mappings), save_mapping(Mapping, Strategy,ProvGraph,Options)).
+	forall(member(Mapping, Mappings), save_mapping(Mapping, Strategy,ProvGraph,Options)),
+	rdf_save_turtle('void.ttl', [graph(void)|Options]).
 
 save_mapping(Id, Strategy, ProvGraph, Options) :-
 	(   \+ rdf_graph(Id)
@@ -325,8 +328,16 @@ save_mapping(Id, Strategy, ProvGraph, Options) :-
 	    materialize_mapping_graph(Mapping, [graph(Id)])
 	;   true
 	),
-	rdf_assert(Id, amalgame:strategy, Strategy, Id),
-	rdf_assert(Id, amalgame:opm,      ProvGraph, Id),
+
+	rdf_statistics(triples_by_file(Id, NrOfTriples)),
+	rdf_assert(Id, void:vocabulary,   amalgame:'', void),
+	rdf_assert(Id, void:vocabulary,   void:'', void),
+	rdf_assert(Id, rdf:type,          void:'Linkset', void),
+	rdf_assert(Id, void:triples, literal(NrOfTriples), void),
+
+	rdf_assert(Id, amalgame:strategy, Strategy, void),
+	rdf_assert(Id, amalgame:opm,      ProvGraph, void),
+
 	file_base_name(Id, Base),
 	file_name_extension(Base, ttl, Name),
 	rdf_save_turtle(Name, [graph(Id)|Options]).
@@ -349,8 +360,8 @@ evaluation_graph(Strategy, Mapping, EvalGraph) :-
 	!.
 
 evaluation_graph(Strategy, Mapping, EvalGraph) :-
-	rdf_bnode(EvalProcess),
-	rdf_bnode(EvalGraph),
+	gensym(evaluation_process, EvalProcess),
+	gensym(evaluation_result, EvalGraph),
 	format(atom(Comment), 'Manual evaluation of ~w', [Mapping]),
 
 	rdf_assert(EvalProcess, rdf:type, amalgame:'EvaluationProcess', Strategy),
@@ -385,7 +396,7 @@ provenance_graph(Strategy, Graph) :-
 
 provenance_graph(Strategy, Graph) :-
 	ground(Strategy),
-	rdf_bnode(Graph),
+	gensym('provgraph', Graph),
 	create_prov_graph(Strategy, Graph).
 
 create_prov_graph(Strategy, Graph) :-
