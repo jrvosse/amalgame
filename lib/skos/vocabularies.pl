@@ -98,8 +98,12 @@ voc_get_computed_props(Voc, Props) :-
 	maplist(=.., Props, GraphProps).
 
 voc_clear_stats(all) :-
-	rdf_unload(amalgame_vocs),
-	print_message(informational, map(cleared, 'vocabulary statistics', amalgame_vocs, all)).
+	(   rdf_graph(amalgame_vocs)
+	->  rdf_unload(amalgame_vocs),
+	    print_message(informational, map(cleared, 'vocabulary statistics', amalgame_vocs, all))
+	;   true
+	).
+
 
 voc_clear_stats(Graph) :-
 	rdf_retractall(Graph, _, _, amalgame_vocs),
