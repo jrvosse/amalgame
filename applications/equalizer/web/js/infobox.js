@@ -95,9 +95,9 @@ YUI.add('infobox', function(Y) {
 				} else {
 					content.one('.control-submit').addClass("hidden");
 				}
-								
+				var conf = { 'url':uri, 'alignment':alignment };	
 				datasource.sendRequest({
-					request:'?url='+uri+'&alignment='+alignment,
+					request:'?' + Y.QueryString.stringify(conf),
 					callback:{success:function(o) {
 						var HTML = o.response.results[0].responseText;
 						NODE_PROPS.setContent(HTML);

@@ -74,8 +74,12 @@ YUI.add('opmviz', function(Y) {
 		_fetchNodeStats : function(uri, target) {
 			var datasource = this.get("datasource");
 			var alignment = this.get('alignment');
+			var conf = { 
+				'url':uri,
+				'alignment':alignment
+			};
 			datasource.sendRequest({
-				request:'?url='+uri+'&alignment='+alignment,
+				request:'?'+Y.QueryString.stringify(conf),
 				callback:{success:function(o) {
 						var HTML = o.response.results[0].responseText;
 						if(HTML&&!target.one(".info")) {
