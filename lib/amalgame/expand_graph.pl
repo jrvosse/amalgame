@@ -105,6 +105,15 @@ do_expand_process(Strategy, Process, Result) :-
 		    ),
 		    Artifacts),
 	    add_amalgame_opm(Strategy, Process, Artifacts)
+	),
+
+	% HACK: this is needed to get the preloaded graph in the strategy graph
+        % because we cannot select a mapping that has not been generated within the
+	% builder as an input mapping.
+	(   rdfs_subclass_of(Type, amalgame:'SelectPreLoaded')
+	->  option(name(PreloadedGraph), Options),
+	    rdf_assert(Process, opmv:used, PreloadedGraph, Strategy)
+	;   true
 	).
 
 cache_expand_result(ExecTime, Process, Strategy, Result) :-
@@ -184,6 +193,7 @@ exec_amalgame_process(Type, Process, Strategy, Module, Mapping, Time, Options) :
 	    timed_call(Module:filter(MappingIn, Mapping0, Options), Time)
 	),
 	merge_provenance(Mapping0, Mapping).
+
 exec_amalgame_process(Class, Process, Strategy, Module, Result, Time, Options) :-
 	rdfs_subclass_of(Class, amalgame:'VocExclude'),
 	rdf(NewVocab, opmv:wasGeneratedBy, Process, Strategy),
