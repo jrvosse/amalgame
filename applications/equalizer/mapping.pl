@@ -33,13 +33,13 @@
 %
 %	Available mapping relations.
 
-mapping_relation(exact, 'http://www.w3.org/2004/02/skos/core#exactMatch').
-mapping_relation(close, 'http://www.w3.org/2004/02/skos/core#closeMatch').
-mapping_relation(narrower, 'http://www.w3.org/2004/02/skos/core#narrowMatch').
-mapping_relation(broader, 'http://www.w3.org/2004/02/skos/core#broadMatch').
-mapping_relation(related, 'http://www.w3.org/2004/02/skos/core#related').
+mapping_relation(exact,     'http://www.w3.org/2004/02/skos/core#exactMatch').
+mapping_relation(close,     'http://www.w3.org/2004/02/skos/core#closeMatch').
+mapping_relation(narrower,  'http://www.w3.org/2004/02/skos/core#narrowMatch').
+mapping_relation(broader,   'http://www.w3.org/2004/02/skos/core#broadMatch').
+mapping_relation(related,   'http://www.w3.org/2004/02/skos/core#related').
 mapping_relation(unrelated, 'http://purl.org/vocabularies/amalgame#unrelated').
-mapping_relation(unsure, 'http://purl.org/vocabularies/amalgame#unsure').
+mapping_relation(unsure,    'http://purl.org/vocabularies/amalgame#unsure').
 
 %%	http_data_mapping(+Request)
 %
