@@ -8,6 +8,11 @@ amalgame:EvaluationProcess
     skos:definition "A process class representing manual evaluation processes "@en ;
     rdfs:subClassOf amalgame:Process .
 
+amalgame:SelectPreLoaded
+    rdfs:label "import/preloaded"@en ;
+    skos:definition "import mappings from preloaded named graph"@en ;
+    rdfs:subClassOf amalgame:Matcher .
+
 amalgame:ExactLabelMatcher
     rdfs:label "string/label (exact)"@en ;
     skos:definition "A basic label matcher based on exact matching labels of source and target concepts"@en ;

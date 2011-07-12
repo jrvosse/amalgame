@@ -9,6 +9,7 @@
 :- use_module(library(ag_modules/ancestor_match)).
 :- use_module(library(ag_modules/descendent_match)).
 :- use_module(library(ag_modules/related_match)).
+:- use_module(library(ag_modules/preloaded_mapping)).
 
 % Alignment filters/selecters
 :- use_module(library(ag_modules/arity_select)).
