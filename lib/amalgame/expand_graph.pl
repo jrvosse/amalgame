@@ -24,7 +24,7 @@
 :- setting(cache_time, float, 0.5,
 	   'Minimum execution time to cache results').
 
-%%	expand_mapping(Strategy, +Id, -Result) is det.
+%%	expand_mapping(+Strategy, +Id, -Result) is det.
 %
 %	Generate the Result corresponding to Id.
 %	We use a mutex so that the next thread will use the cached
@@ -64,11 +64,11 @@ expand_vocab(Strategy, Id, Vocab) :-
 
 expand_vocab(_Strategy, Vocab, Vocab).
 
-%%	expand_process(+Process, +Strategy, -Result, +Options)
+%%	expand_process(+Strategy, +Process, -Result)
 %
 %	Expand Process according to Strategy to generate Result.
 %
-%	Results are cached when execution time eof process takes longer
+%	Results are cached when execution time of process takes longer
 %	then setting(cache_time).
 
 expand_process(Strategy, Process, Result) :-
@@ -107,9 +107,9 @@ do_expand_process(Strategy, Process, Result) :-
 	    add_amalgame_opm(Strategy, Process, Artifacts)
 	),
 
-	% HACK: this is needed to get the preloaded graph in the strategy graph
+	% HACK: this is needed to get preloaded graphs in the strategy graph
         % because we cannot select a mapping that has not been generated within the
-	% builder as an input mapping.
+	% builder as an input mapping...
 	(   rdfs_subclass_of(Type, amalgame:'SelectPreLoaded')
 	->  option(name(PreloadedGraph), Options),
 	    rdf_assert(Process, opmv:used, PreloadedGraph, Strategy)
