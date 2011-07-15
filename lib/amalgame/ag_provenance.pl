@@ -5,6 +5,7 @@
 	 remove_old_prov/2                           % +Process, +ProvGraph
 	]).
 
+:- use_module(library(semweb/rdf_db)).
 :- use_module(library(amalgame/opm)).
 :- use_module(library(amalgame/map)).
 
