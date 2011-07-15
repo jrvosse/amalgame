@@ -1,5 +1,6 @@
 :- module(ag_map,
 	  [
+	   assert_counts/2,        % +MapList, +ProvGraph
 	   materialize_mapping_graph/2, % +List, +Options
 	   merge_provenance/2,     % +List, -Merged
 	   compare_align/4,        % +Type, ?Order, A1, A2
@@ -271,3 +272,25 @@ mat_alignment_graph([align(S,T, P)|As], Options) :-
         % rdf_assert(S, skos:exactMatch, T, Graph),
         mat_alignment_graph(As, Options).
 
+assert_counts([],_).
+assert_counts([A-M|Tail], ProvGraph) :-
+	assert_count(A, M, ProvGraph),
+	assert_counts(Tail, ProvGraph).
+
+assert_count(MapUri, MapList, ProvGraph) :-
+	maplist(align_source, MapList, Ss0),
+	maplist(align_target, MapList, Ts0),
+	sort(Ss0, Ss),
+	sort(Ts0, Ts),
+	length(Ss, SN),
+	length(Ts, TN),
+	length(MapList, Count),
+	rdf_assert(MapUri, amalgame:count,
+		   literal(type('http://www.w3.org/2001/XMLSchema#int', Count)), ProvGraph),
+	rdf_assert(MapUri, amalgame:mappedSourceConcepts,
+		   literal(type('http://www.w3.org/2001/XMLSchema#int', SN)), ProvGraph),
+	rdf_assert(MapUri, amalgame:mappedTargetConcepts,
+		   literal(type('http://www.w3.org/2001/XMLSchema#int', TN)), ProvGraph).
+
+align_source(align(S,_,_), S).
+align_target(align(_,T,_), T).

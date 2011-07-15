@@ -5,7 +5,6 @@
 	    flush_expand_cache/2,     % +Id, +Strategy
 	    process_options/3,
 	    save_mappings/2,
-	    provenance_graph/2,
 	    evaluation_graph/3
 	  ]).
 
@@ -16,6 +15,8 @@
 :- use_module(library(amalgame/amalgame_modules)).
 :- use_module(library(amalgame/map)).
 :- use_module(library(amalgame/opm)).
+:- use_module(library(amalgame/ag_provenance)).
+
 :- use_module(library(skos/vocabularies)).
 
 :- dynamic
@@ -409,109 +410,4 @@ delete_eval_graph_admin(Strategy, Mapping, EvalGraph) :-
 	rdf_retractall(EvalGraph, _, _, Strategy),
 	rdf_retractall(EvalProcess, _, _, Strategy).
 
-%%	provenance_graph(+Strategy, ?Graph) is det.
-%
-%	True if Graph is the provenance graph associated with strategy.
 
-provenance_graph(Strategy, Graph) :-
-	rdf(Graph, amalgame:strategy, Strategy, Graph),
-	!.
-
-provenance_graph(Strategy, Graph) :-
-	ground(Strategy),
-	gensym('provgraph', Graph),
-	create_prov_graph(Strategy, Graph).
-
-create_prov_graph(Strategy, Graph) :-
-	format(atom(Label), 'Provenance graph for strategy ~p', [Strategy]),
-	rdf_assert(Graph, amalgame:strategy, Strategy, Graph),
-	rdf_assert(Graph, rdfs:label, literal(lang(en,Label)), Graph),
-	% Copy Strategy triples to empty prov graph:
-	findall(rdf(Strategy,P,O), rdf(Strategy,P,O,Strategy), STriples),
-	forall(member(rdf(S,P,O), STriples), rdf_assert(S,P,O,Graph)).
-
-assert_counts([],_).
-assert_counts([A-M|Tail], ProvGraph) :-
-	assert_count(A, M, ProvGraph),
-	assert_counts(Tail, ProvGraph).
-
-assert_count(MapUri, MapList, ProvGraph) :-
-
-	maplist(align_source, MapList, Ss0),
-	maplist(align_target, MapList, Ts0),
-	sort(Ss0, Ss),
-	sort(Ts0, Ts),
-	length(Ss, SN),
-	length(Ts, TN),
-	length(MapList, Count),
-	rdf_assert(MapUri, amalgame:count,
-		   literal(type('http://www.w3.org/2001/XMLSchema#int', Count)), ProvGraph),
-	rdf_assert(MapUri, amalgame:mappedSourceConcepts,
-		   literal(type('http://www.w3.org/2001/XMLSchema#int', SN)), ProvGraph),
-	rdf_assert(MapUri, amalgame:mappedTargetConcepts,
-		   literal(type('http://www.w3.org/2001/XMLSchema#int', TN)), ProvGraph).
-
-align_source(align(S,_,_), S).
-align_target(align(_,T,_), T).
-
-add_amalgame_opm(Strategy, Process, Results) :-
-	rdf_equal(opmv:used, OpmvUsed),
-	rdf_equal(opmv:wasDerivedFrom, OpmvWDF),
-
-	provenance_graph(Strategy, ProvGraph),
-
-	% Remove old info about Process from ProvGraph
-	remove_old_prov(Process, ProvGraph),
-
-	% Copy all triples about Process from Strategy to ProvGraph
-	findall(rdf(Process, P, O), rdf(Process,P,O,Strategy), ProcessTriples),
-
-	% Translate subProperties of ompv:used to opmv:used
-	findall(rdf(Process, OpmvUsed, S),
-		(   rdf_has(Process, OpmvUsed, S, RealProp),
-		    rdf(Process, RealProp, S, Strategy)
-		),
-		InputTriples),
-
-	(   Results = scheme(Vocab)
-	->  Artifacts = [Vocab]
-	;   assert_counts(Results, ProvGraph),
-	    pairs_keys(Results, Artifacts)
-	),
-
-	opm_was_generated_by(Process, Artifacts, ProvGraph, []),
-
-	% Generate opmv:wasDerivedFrom triples between Mappings
-	findall(rdf(Target, OpmvWDF, Source),
-		(   member(Target, Artifacts),
-		    rdf_has(Process, opmv:used, Source, RealProp),
-		    rdf(Process, RealProp, S, Strategy)
-		),
-		DerivedTriples),
-
-	% Copy all triples about the Mapping from Strategy to ProvGraph
-	findall(rdf(S,P,O),
-		(   member(S, Artifacts),
-		    rdf(S,P,O,Strategy)
-		), ArtifactTriples),
-
-	append([ProcessTriples,
-		ArtifactTriples,
-		InputTriples,
-		DerivedTriples], AllTriples),
-	forall(member(rdf(S,P,O), AllTriples), rdf_assert(S,P,O,ProvGraph)).
-
-%%	remove_old_prov(+Process, Graph) is det.
-%
-%	Remove all provenance triples related to Process from Graph.
-%
-
-remove_old_prov(Process, ProvGraph) :-
-	findall(Bnode,
-		(   rdf(Process, _, Bnode, ProvGraph),
-		    rdf_is_bnode(Bnode)
-		),
-		Bnodes),
-	forall(member(B,Bnodes), rdf_retractall(B,_,_,ProvGraph)),
-	rdf_retractall(Process, _, _, ProvGraph),
-	rdf_retractall(_, _ ,Process, ProvGraph).
