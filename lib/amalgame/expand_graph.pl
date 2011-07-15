@@ -131,7 +131,7 @@ cache_expand_result(_, _, _, _).
 flush_expand_cache :-
 	del_prov_graphs,
 	del_materialized_vocs,
-	del_materialized_finals,
+	del_materialized_mappings,
 	forall(expand_cache(Id-Strategy, _),
 	       flush_expand_cache(Id, Strategy)
 	      ).
@@ -150,10 +150,11 @@ del_prov_graphs :-
 	       )
 	      ).
 
-del_materialized_finals :-
+del_materialized_mappings :-
+	(   rdf_graph(void) -> rdf_unload(void); true),
 	findall(Id, (
-		    rdf(Id, amalgame:status, amalgame:final),
-		     rdfs_individual_of(Id, amalgame:'Mapping')
+		     rdfs_individual_of(Id, amalgame:'Mapping'),
+		     rdf_graph(Id)
 		    ), Finals),
 	forall(member(F, Finals),
 	       (   catch(rdf_unload(F), _, true),
@@ -358,8 +359,19 @@ assert_metadata(Id, Strategy, Graph) :-
 	findall(rdf(Id,P,O),
 		is_metadata_triple(Id, P, O, Strategy),
 		Triples),
-	forall(member(rdf(S,P,O), Triples), rdf_assert(S,P,O,Graph)).
+	expand_bnode_objects(Triples, Expanded),
+	forall(member(rdf(S,P,O), Expanded), rdf_assert(S,P,O,Graph)).
 
+expand_bnode_objects([],[]).
+expand_bnode_objects([rdf(S,P,O)|Tail], [rdf(S,P,O)|Expanded]) :-
+	expand_bnode_objects(Tail, ExpandedTail),
+	(   rdf_is_bnode(O)
+	->  Bnode = O,
+	    findall(rdf(Bnode, P1, O1), rdf(Bnode, P1, O1), BnodeTriples),
+	    expand_bnode_objects(BnodeTriples, ExpandedBnode),
+	    append(ExpandedBnode, ExpandedTail, Expanded)
+	;   Expanded = ExpandedTail
+	).
 
 is_metadata_triple(S,P,O,Graph) :-
 	rdf_has(S,opmv:wasGeneratedBy, Process, RP),
