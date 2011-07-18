@@ -88,11 +88,11 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 	rdf_has(Source, MatchProp1, literal(lang(SourceLang, SourceLabel)), SourceProp),
 
 	\+ Source == Target,
-	snowball(Snowball_Language, SourceLabel, SourceStem0),
-	downcase_atom(SourceStem0, SourceStem),
+	downcase_atom(SourceLabel, SourceLabel0),
+	snowball(Snowball_Language, SourceLabel0, SourceStem),
 	rdf_has(Target, MatchProp2, literal(lang(TargetLang, TargetLabel)), TargetProp),
-	snowball(Snowball_Language, TargetLabel, TargetStem0),
-	downcase_atom(TargetStem0, TargetStem),
+	downcase_atom(TargetLabel, TargetLabel0),
+	snowball(Snowball_Language, TargetLabel0, TargetStem),
 	(   Edit_Distance == 0
 	->  TargetStem == SourceStem
 	;   literal_distance(SourceStem, TargetStem, Distance),
