@@ -1,5 +1,6 @@
 :- module(ag_map,
 	  [
+	   has_correspondence/2,
 	   assert_counts/2,        % +MapList, +ProvGraph
 	   materialize_mapping_graph/2, % +List, +Options
 	   merge_provenance/2,     % +List, -Merged
@@ -37,8 +38,6 @@ mapping_props([
 	       align:measure,
 	       align:relation,
 	       rdfs:comment,
-	       % amalgame:method,
-	       % amalgame:match,
 	       amalgame:provenance
 	      ]).
 
@@ -77,7 +76,8 @@ map_iterator([E1,E2], GraphList) :-
         member(G, GraphList),
 	has_map([E1, E2], _, G).
 
-
+has_correspondence(align(E1,E2,[[preloaded(Graph)|Properties]]), Graph) :-
+	has_map([E1, E2], _, Properties, Graph).
 
 %%	has_map(+Map, ?Format, ?Properties, -Graph) is non_det.
 %%%	has_map(+Map, ?Format, -Graph) is non_det.

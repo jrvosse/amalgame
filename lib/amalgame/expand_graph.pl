@@ -39,7 +39,7 @@
 expand_mapping(_Strategy, Id, Mapping) :-
 	rdfs_individual_of(Id, amalgame:'EvaluatedMapping'),
 	!,
-	findall(align(S,T,P), has_map([S,T], edoal,P,Id), Mapping).
+	findall(C, has_correspondence(C,Id), Mapping).
 
 expand_mapping(Strategy, Id, Mapping) :-
 	rdf_has(Id, opmv:wasGeneratedBy, Process, OutputType),
