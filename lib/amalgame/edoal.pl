@@ -134,7 +134,7 @@ assert_provlist([P|ProvList], Cell, Graph, Options) :-
 	rdf_assert(Cell, amalgame:evidence, B, Graph),
 	forall(member(ProvElem, P),
 	       (   ProvElem =.. [Key, Value],
-		   assert_prov_elem(Key, Value, B, Graph, [cell(Cell)|Options])
+		   assert_prov_elem(Key, Value, B, Graph, Options)
 	       )
 	      ),
 	assert_provlist(ProvList, Cell, Graph, Options).
@@ -146,10 +146,6 @@ assert_prov_elem(graph, ValueGraph, Subject, TargetGraph, Options) :-
 	    rdf_assert_triples(ValueGraph, Subject)
 	;   true
 	).
-assert_prov_elem(relation, Value, _B, Graph, Options) :-
-	option(cell(Cell), Options),
-	rdf_assert(Cell, align:relation, Value, Graph),
-	!.
 
 assert_prov_elem(Key, Value, Subject, Graph, _Options) :-
 	rdf_global_id(amalgame:Key, Property),
