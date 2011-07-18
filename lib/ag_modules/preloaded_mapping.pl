@@ -20,8 +20,8 @@ matcher(Source, Target, Mapping, Options) :-
 		    vocab_member(S, Source),
 		    vocab_member(T, Target),
 		    (   option(relation(R), Props)
-		    ->	P = [[relation(R)]]
-		    ;	P = [[]]
+		    ->	P = [[method(preloaded),relation(R)]]
+		    ;	P = [[method(preloaded)]]
 		    )
 		),
 		Mapping).
