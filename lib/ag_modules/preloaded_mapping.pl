@@ -15,16 +15,15 @@ parameter(name, 'atom', 'no default',
 
 matcher(Source, Target, Mapping, Options) :-
 	option(name(Graph), Options),
-	findall(align(S,T,P),
-		(   has_map([S,T],_Format,Props,Graph),
-		    vocab_member(S, Source),
-		    vocab_member(T, Target),
-		    (   option(relation(R), Props)
-		    ->	P = [[method(preloaded),relation(R)]]
-		    ;	P = [[method(preloaded)]]
-		    )
-		),
+	findall(Correspondence,
+		c_from_graph(Correspondence, Source, Target, Graph),
 		Mapping).
+
+
+c_from_graph(align(S,T,P), Source, Target, Graph) :-
+	has_correspondence(align(S,T,P), Graph),
+	vocab_member(S, Source),
+	vocab_member(T, Target).
 
 
 
