@@ -60,7 +60,8 @@ match(align(S, T, Prov0), align(S, T, [Prov|Prov0]), Options) :-
 
 	related(S, MaxSteps, AncS, R1, _Steps1),
 	related(T, MaxSteps, AncT, R2, _Steps2),
-	has_map([AncS, AncT],_, O, Graph),
+	has_correspondence(align(AncS,AncT,P), Graph),
+	member(O,P),
 	memberchk(relation(R), O),
 	Prov = [method(related_match),
 		graph([R1,R2,rdf(AncS,R,AncT)])

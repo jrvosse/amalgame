@@ -58,7 +58,7 @@ match(align(S, T, Prov0), align(S, T, [Prov|Prov0]), Options) :-
 	option(steps(MaxSteps), Options),
 	descendent(S, MaxSteps, DescS, R1, _Steps1),
 	descendent(T, MaxSteps, DescT, R2, _Steps2),
-	has_map([DescS, DescT],_, Graph),
+	has_correspondence(align(DescS, DescT,_), Graph),
 	Prov = [method(descendent_match),
 		graph([R1,R2])
 	       ].

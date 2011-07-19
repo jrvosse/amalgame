@@ -60,7 +60,7 @@ match(align(S, T, Prov0), align(S, T, [Prov|Prov0]), Options) :-
 
 	ancestor(S, MaxSteps, AncS, R1, _Steps1),
 	ancestor(T, MaxSteps, AncT, R2, _Steps2),
-	has_map([AncS, AncT], _, Graph),
+	has_correspondence(align(AncS,AncT,_), Graph),
 	Prov = [method(ancestor_match),
 		graph([R1,R2])
 	       ].
