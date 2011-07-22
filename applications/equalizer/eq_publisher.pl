@@ -6,6 +6,8 @@
 :- use_module(library(http/http_path)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/html_write)).
+:- use_module(library(http/http_path)).
+:- use_module(library(http/http_dispatch)).
 :- use_module(library(http/js_write)).
 :- use_module(library(yui3_beta)).
 :- use_module(user(user_db)).
@@ -45,7 +47,24 @@ http_eq_publish(Request) :-
 				     description('URI of an alignment workflow')]),
 			  status(Status, [uri, description('amalgame:status value')])
 			]),
-	save_mappings(Alignment, [status(Status)]).
+
+	expand_file_search_path(alignment_results(.), L),
+	exists_directory(L),
+	absolute_file_name(L,BaseDir),!,
+	atomic_list_concat([BaseDir, Alignment], '/', Dir),
+	atomic_list_concat(['file:/', BaseDir, Alignment], '/', FileDir),
+	save_mappings(Dir, Alignment, [status(Status)]),
+	http_absolute_location(alignment_results(Alignment/'void.ttl'), WebDir, []),
+
+	reply_html_page(equalizer(main),
+			[ title(['Saved alignments'])
+			],
+			[\html_requires(css('eq.css')),
+			 div([
+			      'Saved alignments in server directory ',
+			      a([href(WebDir)], FileDir)
+			     ])
+			]).
 
 		 /*******************************
 		 *	      HTML		*

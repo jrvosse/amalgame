@@ -4,7 +4,7 @@
 	    flush_expand_cache/0,
 	    flush_expand_cache/2,     % +Id, +Strategy
 	    process_options/3,
-	    save_mappings/2,
+	    save_mappings/3,
 	    evaluation_graph/3
 	  ]).
 
@@ -151,7 +151,7 @@ del_prov_graphs :-
 	      ).
 
 del_materialized_mappings :-
-	(   rdf_graph(void) -> rdf_unload(void); true),
+	% (   rdf_graph(void) -> rdf_unload(void); true),
 	findall(Id, (
 		     rdfs_individual_of(Id, amalgame:'Mapping'),
 		     rdf_graph(Id)
@@ -326,13 +326,39 @@ materialize_if_needed(Id, Mapping) :-
 	voc_clear_stats(all),
 	materialize_mapping_graph(Mapping, [graph(Id), evidence_graphs(Enabled)]).
 
-save_mappings(Strategy, Options) :-
-	(   rdf_graph(void) -> rdf_unload(void); true),
+void_graph(Strategy, VoidGraph) :-
+	ground(Strategy),
+	atomic_concat(Strategy, '_void', VoidGraph).
+
+make_new_directory(D) :-
+	(   exists_directory(D)
+	->  atomic_concat(D, '/*.ttl', WildCard),
+	    expand_file_name(WildCard, L),
+	    forall(member(F,L), delete_file(F)),
+	    delete_directory(D)
+	;   true
+	),
+	make_directory(D).
+
+save_mappings(Dir, Strategy, Options) :-
+	void_graph(Strategy, VoidGraph),
+	(   rdf_graph(VoidGraph) -> rdf_unload(VoidGraph); true),
+
+	make_new_directory(Dir),
 
 	provenance_graph(Strategy, ProvGraph),
+	absolute_file_name(Strategy,  StratFile, [relative_to(Dir), extensions([ttl])]),
+	absolute_file_name(ProvGraph, ProvFile,  [relative_to(Dir), extensions([ttl])]),
+	absolute_file_name(void,      VoidFile,  [relative_to(Dir), extensions([ttl])]),
+
 	select_mappings_to_be_saved(Strategy, Mappings, Options),
-	forall(member(Mapping, Mappings), save_mapping(Mapping, Strategy,ProvGraph,Options)),
-	rdf_save_turtle('void.ttl', [graph(void)|Options]).
+	forall(member(Mapping, Mappings),
+	       save_mapping(Mapping, Strategy, ProvGraph, [dir(Dir),Options])),
+
+	rdf_save_turtle(StratFile, [graph(Strategy)|Options]),
+	rdf_save_turtle(ProvFile,  [graph(ProvGraph)|Options]),
+	rdf_save_turtle(VoidFile,  [graph(VoidGraph)|Options]).
+
 
 save_mapping(Id, Strategy, ProvGraph, Options) :-
 	(   \+ rdf_graph(Id)
@@ -341,18 +367,20 @@ save_mapping(Id, Strategy, ProvGraph, Options) :-
 	;   true
 	),
 
+	void_graph(Strategy, Void),
 	rdf_statistics(triples_by_file(Id, NrOfTriples)),
-	assert_metadata(Id, Strategy, void),
-	rdf_assert(Id, void:vocabulary,   amalgame:'', void),
-	rdf_assert(Id, void:vocabulary,   void:'', void),
-	rdf_assert(Id, rdf:type,          void:'Linkset', void),
-	rdf_assert(Id, void:triples, literal(NrOfTriples), void),
+	assert_metadata(Id, Strategy, Void),
+	rdf_assert(Id, void:vocabulary,   amalgame:'', Void),
+	rdf_assert(Id, void:vocabulary,   void:'', Void),
+	rdf_assert(Id, rdf:type,          void:'Linkset', Void),
+	rdf_assert(Id, void:triples, literal(NrOfTriples), Void),
 
-	rdf_assert(Id, amalgame:strategy, Strategy, void),
-	rdf_assert(Id, amalgame:opm,      ProvGraph, void),
+	rdf_assert(Id, amalgame:strategy, Strategy, Void),
+	rdf_assert(Id, amalgame:opm,      ProvGraph, Void),
 
 	file_base_name(Id, Base),
-	file_name_extension(Base, ttl, Name),
+	option(dir(Dir), Options, tmpdir),
+	absolute_file_name(Base,  Name, [relative_to(Dir), extensions([ttl])]),
 	rdf_save_turtle(Name, [graph(Id)|Options]).
 
 assert_metadata(Id, Strategy, Graph) :-
