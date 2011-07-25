@@ -346,9 +346,10 @@ save_mappings(Strategy, Dir, Options) :-
 	(   rdf_graph(VoidGraph) -> rdf_unload(VoidGraph); true),
 
 	make_new_directory(Dir),
-
-	absolute_file_name(Strategy,  StratFile, [relative_to(Dir), extensions([ttl])]),
-	absolute_file_name(ProvGraph, ProvFile,  [relative_to(Dir), extensions([ttl])]),
+	file_base_name(Strategy, StrategyB),
+	file_base_name(ProvGraph, ProvGraphB),
+	absolute_file_name(StrategyB,  StratFile, [relative_to(Dir), extensions([ttl])]),
+	absolute_file_name(ProvGraphB, ProvFile,  [relative_to(Dir), extensions([ttl])]),
 	absolute_file_name(void,      VoidFile,  [relative_to(Dir), extensions([ttl])]),
 
 	select_mappings_to_be_saved(Strategy, Mappings, Options),
