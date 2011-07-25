@@ -366,6 +366,7 @@ save_mapping(Id, Strategy, ProvGraph, Options) :-
 	    materialize_mapping_graph(Mapping, [graph(Id)])
 	;   true
 	),
+	rdf_equal(xsd:int, Int),
 
 	void_graph(Strategy, Void),
 	rdf_statistics(triples_by_file(Id, NrOfTriples)),
@@ -373,7 +374,7 @@ save_mapping(Id, Strategy, ProvGraph, Options) :-
 	rdf_assert(Id, void:vocabulary,   amalgame:'', Void),
 	rdf_assert(Id, void:vocabulary,   void:'', Void),
 	rdf_assert(Id, rdf:type,          void:'Linkset', Void),
-	rdf_assert(Id, void:triples, literal(NrOfTriples), Void),
+	rdf_assert(Id, void:triples, literal(type(Int,NrOfTriples)), Void),
 
 	rdf_assert(Id, amalgame:strategy, Strategy, Void),
 	rdf_assert(Id, amalgame:opm,      ProvGraph, Void),
@@ -406,6 +407,12 @@ is_metadata_triple(S,P,O,Graph) :-
 	rdf(S,RP,Process,Graph),
 	rdf(Process, opmv:wasPerformedBy, O),
 	rdf_equal(dcterms:creator, P).
+is_metadata_triple(S,P,literal(type(T,N)), _Graph) :-
+	rdf_has(S, amalgame:mappedSourceConcepts, literal(type(T,N))),
+	rdf_equal(P, void:distinctSubjects).
+is_metadata_triple(S,P,literal(type(T,N)), _Graph) :-
+	rdf_has(S, amalgame:mappedTargetConcepts, literal(type(T,N))),
+	rdf_equal(P, void:distinctObjects).
 
 select_mappings_to_be_saved(Graph, Mappings, Options) :-
 	option(status(Status), Options, all),
