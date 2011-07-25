@@ -25,6 +25,9 @@
 :- http_handler(amalgame(load/url), http_eq_upload_url, []).
 :- http_handler(amalgame(load/data), http_eq_upload_data, []).
 
+:- setting(default_namespace, atom, 'http://example.com/',
+	   'Default namespace to use on alignment results. Can be changed later.').
+
 %%	http_eq(+Request)
 %
 %	Emit html page to start a new or load an existing alignment
@@ -285,9 +288,13 @@ http_eq_new(Request) :-
 %	Assert a new alignment graph.
 
 new_alignment(Schemes, Alignment) :-
+	setting(default_namespace, NS),
 	authorized(write(default, _)),
-	gensym(strategy, Alignment),	\+ rdf_graph(Alignment),
+	gensym(strategy, Local),
+	atomic_list_concat([NS,Local], Alignment),
+	\+ rdf_graph(Alignment),
 	rdf_transaction((rdf_assert(Alignment, rdf:type, amalgame:'AlignmentStrategy', Alignment),
+			 rdf_assert(Alignment, amalgame:publish_ns, NS, Alignment),
 			 assert_user_provenance(Alignment, Alignment),
 			 add_schemes(Schemes, Alignment))).
 
@@ -330,7 +337,9 @@ http_eq_upload_url(Request) :-
 	http_parameters(Request,
 			[ url(URL, [])
 			]),
-	gensym(strategy, Graph),
+	gensym(strategy, Local),
+	setting(default_namespace, NS),
+	atomic_list_concat(NS, Local, Graph),
 	rdf_load(URL, [graph(Graph)]),
 	build_redirect(Request, Graph).
 
