@@ -6,12 +6,11 @@
 	  split_alignment/4,
 	  select_from_alignment/5,
 
+	  align_stat/2,
 	  align_get_computed_props/2,
 	  align_ensure_stats/1,
 	  align_clear_stats/1,
-	  align_recompute_stats/1,
-
-	  assert_alignment_props/3
+	  align_recompute_stats/1
 	 ]).
 
 :- use_module(library(semweb/rdf_db)).
@@ -75,6 +74,19 @@ align_get_computed_props(Graph, Props) :-
 	       ),
 	maplist(=.., Props, GraphProps).
 
+align_stat(format(Format), Graph) :-
+	rdf(Graph, amalgame:format, Format).
+align_stat(count(Count), Graph) :-
+	rdf(Graph, amalgame:count, literal(type(_, Count))).
+align_stat(source(Source), Graph) :-
+	rdf(Graph, void:subjectsTarget, Source).
+align_stat(target(Target), Graph) :-
+	rdf(Graph, void:objectsTarget, Target).
+align_stat(smapped(N), Graph) :-
+	rdf(Graph, amalgame:mappedSourceConcepts, literal(type(_,N))).
+align_stat(tmapped(N), Graph) :-
+	rdf(Graph, amalgame:mappedTargetConcepts, literal(type(_,N))).
+
 %%	align_ensure_stats(+Type) is det.
 %
 %	Ensures that alignmets statistics of type Type have been
@@ -82,8 +94,7 @@ align_get_computed_props(Graph, Props) :-
 %
 %	* found: makes sure that the algorithm to find all alignment
 %	graphs has been run.
-%	* totalcount(Graph): idem for total number of alignments in Graph
-%	* mapped(Graph): idem for total number of alignments in Graph
+%	* count(Graph): idem for total number of alignments in Graph
 %	* source(Graph): idem for the source of the  alignments in Graph
 %	* target(Graph): idem for the target of the  alignments in Graph
 %	* mapped(Graph): idem for the numbers of mapped source and target concepts in Graph
@@ -100,6 +111,7 @@ align_ensure_stats(all(Graph)) :-
 	align_ensure_stats(target(Graph)),
 	align_ensure_stats(mapped(Graph)).
 
+
 align_ensure_stats(format(Graph)) :-
 	rdf(Graph, amalgame:format, _), !.
 align_ensure_stats(format(Graph)) :-
@@ -108,7 +120,8 @@ align_ensure_stats(format(Graph)) :-
 	;   Format = empty
 	),
 	!,
-	assert_alignment_props([Graph:[format(literal(Format))]], amalgame),!.
+	rdf_assert(Graph, amalgame:format, literal(Format), amalgame),!.
+
 align_ensure_stats(format(_)) :- !.
 
 
@@ -119,29 +132,28 @@ align_ensure_stats(count(Graph)) :-
 	->  count_alignment(Graph, Format, Count)
 	;   Count = 0
 	),
-	assert_alignment_props(Graph:[count(literal(type('http://www.w3.org/2001/XMLSchema#int',Count)))], amalgame),
-	!.
+	rdf_equal(xsd:int, Int),
+	rdf_assert(Graph, amalgame:count, literal(type(Int, Count)), amalgame),!.
 
 align_ensure_stats(source(Graph)) :-
-	rdf(Graph, amalgame:source, _),!.
+	rdf(Graph, void:subjectsTarget, _),!.
 align_ensure_stats(source(Graph)) :-
 	(   is_alignment_graph(Graph, Format)
 	->  find_source(Graph, Format, Source)
 	;   Source = nill
 	),
-	assert_alignment_props(Graph:[source(Source)], amalgame),
+	rdf_assert(Graph, void:subjectsTarget, Source, amalgame),
 	!.
 
 align_ensure_stats(target(Graph)) :-
-	rdf(Graph, amalgame:target, _),!.
+	rdf(Graph, void:objectsTarget, _),!.
 align_ensure_stats(target(Graph)) :-
 	(   is_alignment_graph(Graph, Format)
 	->  find_target(Graph, Format, Target)
 	;   Target = nill
 	),
-	assert_alignment_props(Graph:[target(Target)], amalgame),
+	rdf_assert(Graph, void:objectsTarget, Target, amalgame),
 	!.
-
 
 align_ensure_stats(mapped(Graph)) :-
 	rdf(Graph, amalgame:mappedSourceConcepts, _),!.
@@ -151,15 +163,14 @@ align_ensure_stats(mapped(Graph)) :-
 	    findall(M2, (has_map([_, M2], Format, Graph), nonvar(M2)), M2s),
 	    sort(M1s, MappedSourceConcepts),
 	    sort(M2s, MappedTargetConcepts),
-	    length(MappedSourceConcepts, NrMappedSourceConcepts),
-	    length(MappedTargetConcepts, NrMappedTargetConcepts)
-	;   NrMappedSourceConcepts = 0,
-	    NrMappedTargetConcepts = 0
+	    length(MappedSourceConcepts, NrSubjects),
+	    length(MappedTargetConcepts, NrObjects)
+	;   NrSubjects = 0,
+	    NrObjects = 0
 	),
-	assert_alignment_props(Graph:[mappedSourceConcepts(literal(type('http://www.w3.org/2001/XMLSchema#int', NrMappedSourceConcepts))),
-				      mappedTargetConcepts(literal(type('http://www.w3.org/2001/XMLSchema#int', NrMappedTargetConcepts)))
-					 ], amalgame),
-	!.
+	rdf_equal(xsd:int, Int),
+	rdf_assert(Graph, amalgame:mappedSourceConcepts, literal(type(Int, NrSubjects)), amalgame),
+	rdf_assert(Graph, amalgame:mappedTargetConcepts,  literal(type(Int, NrObjects)), amalgame),!.
 
 %%	align_clear_stats(+Type) is det.
 %%	align_clear_stats(-Type) is nondet.
@@ -251,26 +262,6 @@ find_target(Graph, Format, Target) :-
 	;   iri_xml_namespace(E2, Target)
 	).
 find_target(_, _, null).
-
-assert_alignment_props(Alignment, Props, Graph) :-
-	assert_alignment_props(Alignment:Props, Graph).
-
-assert_alignment_props([],_).
-assert_alignment_props([Head|Tail], Graph) :-
-	assert_alignment_props(Head, Graph),
-	assert_alignment_props(Tail, Graph),!.
-
-assert_alignment_props(Alignment:Props, Graph) :-
-	(   rdfs_individual_of(Alignment, amalgame:'Alignment')
-	->  true
-	;   rdf_assert(Alignment, rdf:type, amalgame:'LoadedAlignment',	Graph)
-	),
-	rdf_equal(amalgame:'', NS),
-	forall(member(M,Props),
-	       (   M =.. [PropName, Value],
-		   format(atom(URI), '~w~w', [NS,PropName]),
-		   rdf_assert(Alignment, URI, Value, Graph)
-	       )).
 
 has_nickname(Graph,Nick) :-
 	rdf(Graph, amalgame:nickname, literal(Nick), amalgame_nicknames).
