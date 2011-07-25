@@ -98,11 +98,16 @@ html_vocab_rows([]) --> !.
 html_vocab_rows([Scheme|Vs]) -->
 % rdf_estimate_complexity(_, skos:inScheme, Scheme, Count)
 	{
-	 voc_ensure_stats(all(Scheme)),
-	 rdf(Scheme, amalgame:numberOfConcepts,   literal(type(_,ConceptCount))),
-	 rdf(Scheme, amalgame:numberOfPrefLabels, literal(type(_,PrefCount))),
-	 rdf(Scheme, amalgame:numberOfAltLabels, literal(type(_, AltCount))),
-	 rdf(Scheme, amalgame:numberOfMappedConcepts, literal(type(_, MappedCount))),
+	 (   voc_ensure_stats(all(Scheme))
+	 ->  rdf(Scheme, amalgame:numberOfConcepts,   literal(type(_,ConceptCount))),
+	     rdf(Scheme, amalgame:numberOfPrefLabels, literal(type(_,PrefCount))),
+	     rdf(Scheme, amalgame:numberOfAltLabels, literal(type(_, AltCount))),
+	     rdf(Scheme, amalgame:numberOfMappedConcepts, literal(type(_, MappedCount)))
+	 ;   ConceptCount = 0,
+	     PrefCount = 0,
+	     AltCount = 0,
+	     MappedCount = 0
+	 ),
 	 (   ConceptCount > 0
 	 ->  Perc is (100*MappedCount)/ConceptCount,
 	     format(atom(MPercent), '(~2f%)', [Perc])

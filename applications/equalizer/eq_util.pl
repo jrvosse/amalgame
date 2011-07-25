@@ -187,6 +187,25 @@ xsd_timestamp(Time, Atom) :-
 is_edm_collection(EDM) :-
 	once(rdf(_,edm:country, _, EDM:_)).
 
+is_edm_collection(EDM) :-
+	findall(Target-Graph-Class, is_edm_collection_(Target, Graph, Class), Results0),
+	sort(Results0, Results),
+	forall(member(Target-Graph-Class, Results),
+	       (   rdf_assert(Target, rdf:type, amalgame:'Alignable', amalgame),
+		   rdf_assert(Target, amalgame:graph, Graph, amalgame),
+		   rdf_assert(Target, amalgame:class, Class, amalgame)
+	       )
+	      ),
+	!,
+	member(EDM-_-_, Results).
+
+is_edm_collection_(EDM, Graph, Class) :-
+	rdf_equal(Class,  edm:'Agent'),
+	rdfs_individual_of(Agent, Class),
+	rdf(Agent, rdf:type, _, Graph:_),
+	atom_concat(Graph, '_Agent', EDM).
+
+
 %%	mapping_counts(+MappingURI, +Strategy, -MappingN, -SourceN, -TargetN)
 %
 %	Counts for the mappings in MappingURI.
