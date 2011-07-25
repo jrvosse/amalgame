@@ -166,8 +166,8 @@ http_include_opm_graph(Request) :-
 
 
 http_compute_stats(Request) :-
-	http_link_to_id(http_list_alignments, [], Link),
 	http_parameters(Request, [graph(all, [])]),
+	http_link_to_id(http_list_alignments, [], Link),
 	Title = 'Amalgame: computing key alignment statistics',
 	call_showing_messages(compute_stats,
 			      [head(title(Title)),
@@ -371,10 +371,8 @@ sample(Request, Method, Graph, Name, Size) :-
 	opm_was_generated_by(Process, Name, Name, [was_derived_from([Graph])]),
 
 	align_get_computed_props(Graph, SourceProps),
-	findall(member(M),
-		member(member(M), SourceProps),
-		Members),
-	assert_alignment_props(Name, Members, Name),
+	forall(member(member(M), SourceProps),
+	       rdf_assert(Name, amalgame:member, M, Name)),
 
 	findall(Map, has_map(Map, _, Graph), Maps),
 	length(Maps, Length),
@@ -660,29 +658,23 @@ show_alignments([Graph|Tail], Number) -->
 	 http_link_to_id(http_compute_stats, [graph(Graph), stat(all)], MissingLink),
 	 MissingValue = a([href(MissingLink)],'?'),
 	 (   is_alignment_graph(Graph, Format) -> true; Format=empty),
-	 align_get_computed_props(Graph, Props),
-	 (   memberchk(count(literal(type(_,Count))), Props)
+	 (   align_stat(count(Count), Graph)
 	 ->  NewNumber is Number + Count
 	 ;   NewNumber = Number, Count = MissingValue
 	 ),
-	 (   memberchk(alignment(A), Props)
-	 ->  http_link_to_id(list_resource, [r(A)], AlignLink),
-	     FormatLink = a([href(AlignLink)], Format)
-	 ;   FormatLink = Format
-	 ),
-	 (   memberchk(source(SourceGraph), Props)
+	 (   align_stat(source(SourceGraph), Graph)
 	 ->  Source = \show_voc(SourceGraph)
 	 ;   Source = MissingValue
 	 ),
-	 (   memberchk(target(TargetGraph), Props)
+	 (   align_stat(target(TargetGraph), Graph)
 	 ->  Target = \show_voc(TargetGraph)
 	 ;   Target = MissingValue
 	 ),
-	 (   memberchk(mappedSourceConcepts(MSC), Props)
+	 (   align_stat(smapped(MSC), Graph)
 	 ->  SourcesMapped = literal(type(_,MSC))
 	 ;   SourcesMapped = MissingValue
 	 ),
-	 (   memberchk(mappedTargetConcepts(MTC), Props)
+	 (   align_stat(tmapped(MTC), Graph)
 	 ->  TargetsMapped = literal(type(_,MTC))
 	 ;   TargetsMapped = MissingValue
 	 )
@@ -695,7 +687,7 @@ show_alignments([Graph|Tail], Number) -->
 		 td([class(src_mapped),style('text-align: right')],SourcesMapped),
 		 td([class(target)], Target),
 		 td([class(target_mapped), style('text-align: right')],TargetsMapped),
-		 td([class(format)],FormatLink),
+		 td([class(format)],Format),
 		 td([class(count),style('text-align: right')],Count),
 		 td([class(graph)],div(\show_graph(Graph)))
 		])),
@@ -742,7 +734,7 @@ li_export_graph(Graph) -->
 li_export_graph(Graph) -->
 	{
 	 http_link_to_id(http_skos_export, [], ExportLink),
-	 % rdf_equal(skos:closeMatch, DefaultRelation),
+	 rdf_equal(skos:closeMatch, DefaultRelation),
 	 Override=no_override,
 	 supported_map_relations(MapRelations),
 	 Base=export,
@@ -764,7 +756,7 @@ li_export_graph(Graph) -->
 			      value(Graph)],[]),
 		       ' to export to a single triple format. Override provided map relation by: ',
 		       select([name(relation)],
-			      [\show_mapping_relations([Override|MapRelations], Override)])
+			      [\show_mapping_relations([Override|MapRelations], DefaultRelation)])
 		      ]
 		     ))).
 
