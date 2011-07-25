@@ -22,18 +22,35 @@ vocab_member(E, scheme(Scheme)) :-
 vocab_member(E, type(Class)) :-
 	!,
 	rdfs_individual_of(E, Class).
+
+vocab_member(E, graph(G)) :-
+	rdf(E, rdf:type, _, G).
+
 vocab_member(F, 'http://sws.geonames.org/') :-
 	!,
 	rdfs_individual_of(F, 'http://www.geonames.org/ontology#Feature').
 vocab_member(E, Scheme) :-
+	atom(Scheme),
 	rdf(Scheme, rdf:type, skos:'ConceptScheme'),
 	!,
 	rdf_has(E, skos:inScheme, Scheme).
+
+vocab_member(E, Alignable) :-
+	atom(Alignable),
+	rdfs_individual_of(Alignable, amalgame:'Alignable'),
+	rdf(Alignable, amalgame:class, Class),
+	rdf(Alignable, amalgame:graph, Graph),
+	!,
+	vocab_member(E, graph(Graph)),
+	vocab_member(E, type(Class)).
+
 vocab_member(I, EDMGraph) :-
+	atom(EDMGraph),
 	rdf(_, 'http://www.europeana.eu/schemas/edm/country',_, EDMGraph),
 	!,
 	rdf(I, 'http://www.europeana.eu/schemas/edm/country', _, EDMGraph).
 vocab_member(E, Class) :-
+	atom(Class),
 	rdfs_individual_of(Class, rdfs:'Class'),
 	!,
 	rdfs_individual_of(E, Class).
