@@ -128,7 +128,10 @@ assert_output(Process, Type, Graph) :-
 	new_output(OutputClass, Process, opmv:wasGeneratedBy, Graph).
 
 new_output(Type, Process, P, Graph) :-
-	gensym(dataset, OutputURI),
+	rdf(Graph, amalgame:publish_ns, NS),
+	gensym(dataset, Local),
+	atomic_concat(NS, Local, OutputURI),
+	\+ rdf(OutputURI, _, _),
 	rdf_assert(OutputURI, rdf:type, Type, Graph),
 	rdf_assert(OutputURI, amalgame:status, amalgame:intermediate, Graph),
         rdf_assert(OutputURI, P, Process, Graph),
