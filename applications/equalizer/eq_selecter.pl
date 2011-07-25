@@ -286,7 +286,7 @@ http_eq_new(Request) :-
 
 new_alignment(Schemes, Alignment) :-
 	authorized(write(default, _)),
-	gensym(strategy, Alignment),
+	gensym(strategy, Alignment),	\+ rdf_graph(Alignment),
 	rdf_transaction((rdf_assert(Alignment, rdf:type, amalgame:'AlignmentStrategy', Alignment),
 			 assert_user_provenance(Alignment, Alignment),
 			 add_schemes(Schemes, Alignment))).
