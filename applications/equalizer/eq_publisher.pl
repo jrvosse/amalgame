@@ -51,10 +51,11 @@ http_eq_publish(Request) :-
 	expand_file_search_path(alignment_results(.), L),
 	exists_directory(L),
 	absolute_file_name(L,BaseDir),!,
-	atomic_list_concat([BaseDir, Alignment], '/', Dir),
+	file_base_name(Alignment, AlignmentB),
+	atomic_list_concat([BaseDir, AlignmentB], '/', Dir),
 	atomic_list_concat(['file:/', BaseDir, Alignment], '/', FileDir),
-	save_mappings(Dir, Alignment, [status(Status)]),
-	http_absolute_location(alignment_results(Alignment/'void.ttl'), WebDir, []),
+	http_absolute_location(alignment_results(AlignmentB/'void.ttl'), VoidLink, []),
+	save_mappings(Alignment, Dir, [status(Status)]),
 
 	reply_html_page(equalizer(main),
 			[ title(['Saved alignments'])
@@ -62,7 +63,7 @@ http_eq_publish(Request) :-
 			[\html_requires(css('eq.css')),
 			 div([
 			      'Saved alignments in server directory ',
-			      a([href(WebDir)], FileDir)
+			      a([href(VoidLink)], FileDir)
 			     ])
 			]).
 
