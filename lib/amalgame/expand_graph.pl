@@ -340,13 +340,13 @@ make_new_directory(D) :-
 	),
 	make_directory(D).
 
-save_mappings(Dir, Strategy, Options) :-
+save_mappings(Strategy, Dir, Options) :-
+	provenance_graph(Strategy, ProvGraph),
 	void_graph(Strategy, VoidGraph),
 	(   rdf_graph(VoidGraph) -> rdf_unload(VoidGraph); true),
 
 	make_new_directory(Dir),
 
-	provenance_graph(Strategy, ProvGraph),
 	absolute_file_name(Strategy,  StratFile, [relative_to(Dir), extensions([ttl])]),
 	absolute_file_name(ProvGraph, ProvFile,  [relative_to(Dir), extensions([ttl])]),
 	absolute_file_name(void,      VoidFile,  [relative_to(Dir), extensions([ttl])]),
@@ -357,7 +357,8 @@ save_mappings(Dir, Strategy, Options) :-
 
 	rdf_save_turtle(StratFile, [graph(Strategy)|Options]),
 	rdf_save_turtle(ProvFile,  [graph(ProvGraph)|Options]),
-	rdf_save_turtle(VoidFile,  [graph(VoidGraph)|Options]).
+	rdf_save_turtle(VoidFile,  [graph(VoidGraph)|Options]),
+	rdf_unload(VoidGraph).
 
 
 save_mapping(Id, Strategy, ProvGraph, Options) :-
