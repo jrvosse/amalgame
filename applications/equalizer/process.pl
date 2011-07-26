@@ -16,8 +16,8 @@
 	   'When true mappings are computed in the background').
 
 :- http_handler(amalgame(data/addprocess), http_add_process, []).
-:- http_handler(amalgame(date/updatenode), http_update_node, []).
-:- http_handler(amalgame(date/deletenode), http_delete_node, []).
+:- http_handler(amalgame(data/updatenode), http_update_node, []).
+:- http_handler(amalgame(data/deletenode), http_delete_node, []).
 
 :- rdf_meta
 	new_output(r, r,r,r),
@@ -39,8 +39,7 @@ http_add_process(Request) :-
 				  optional(true),
 				  description('URI of the target')]),
 			  exclude(Excludes,
-				  [uri,
-				   zero_or_more,
+				  [uri,				   zero_or_more,
 				   description('List of mappings to exclude')]),
 			  process(Process,
 				  [uri,
@@ -179,9 +178,11 @@ http_update_node(Request) :-
 			],
 			[form_data(Params)
 			]),
-	rdf_transaction(update_node_props(Params, URI, Alignment)),
-	js_alignment_nodes(Alignment, Nodes),
-	reply_json(json([nodes=json(Nodes)])).
+	selectchk(namespace=NS, Params, Rest),
+	rdf_transaction(update_node_props(Rest, URI, Alignment)),
+	change_ns_if_needed(NS, URI, Alignment, NewAlignment),
+	js_alignment_nodes(NewAlignment, Nodes),
+	reply_json(json([alignment=NewAlignment,nodes=json(Nodes)])).
 
 update_node_props([], _, _).
 update_node_props([T|Ts], URI, Alignment) :-
@@ -218,6 +219,15 @@ update_node_prop(status=Status, URI, Alignment) :-
 	;   true
 	).
 
+change_ns_if_needed(NS, URI, Strategy, NewStrategy) :-
+	rdf(URI, amalgame:publish_ns, OldNS, Strategy),
+	(OldNS == NS
+	-> NewStrategy = Strategy
+	;  rdf_retractall(URI, amalgame:publish_ns, OldNS, Strategy),
+	   rdf_assert(URI, amalgame:publish_ns, NS, Strategy),
+	   flush_stats_cache,
+	   change_namespace(OldNS, NS, Strategy, NewStrategy)
+   ).
 
 %%	http_delete_node(+Request)
 %
@@ -254,5 +264,34 @@ process_retract(URI, Alignment) :-
 process_retract(_, _).
 
 
+
+
+change_namespace(Old, New, Strategy, NewStrategy) :-
+	debug(now, 'Replace ~w by ~w for ~w', [Old, New, Strategy]),
+	sub_atom(Strategy, 0, Len, After, Old),
+	sub_atom(Strategy, Len, After, 0, Local),
+	atom_concat(New, Local, NewStrategy),
+	findall(rdf(S,P,O), tainted_s_ns(S,P,O, Old, Strategy), Results),
+	length(Results, N),
+	debug(now, 'New strategy is ~w, tainted triples ~w', [NewStrategy, N]),
+	forall(member(T, Results), fix_s_ns(T, Old, New)),
+	rdf_transaction(
+			forall(rdf(S,P,O,Strategy),
+			       rdf_update(S,P,O,graph(NewStrategy))
+			      )
+		       ).
+
+
+
+tainted_s_ns(S,P,O,Old,Strategy) :-
+	rdf(S,P,O,Strategy:_),
+	sub_atom(S, 0,_,_,Old).
+
+fix_s_ns(rdf(S,P,O), Old, New) :-
+	debug(now, '~w ~w ~w', [S,P,O]),
+	sub_atom(S,0,Len,After,Old),
+	sub_atom(S,Len,After,0, Local),
+	atom_concat(New,Local,NewS),
+	rdf_update(S,P,O, subject(NewS)).
 
 
