@@ -20,6 +20,9 @@
 :- multifile
 	eq:menu_item/2.
 
+:- setting(default_namespace, atom, 'http://example.com/',
+	   'Default namespace to use on alignment results. Can be changed later.').
+
 % http handlers for this applications
 :- http_handler(amalgame(publish),      http_eq_publish, []).
 :- http_handler(amalgame(publish_form), http_eq_publish_form, []).
