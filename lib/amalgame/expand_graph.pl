@@ -323,7 +323,7 @@ materialize_if_needed(Id, Mapping) :-
 	->  Enabled = enabled
 	;   Enabled = disabled
 	),
-	// voc_clear_stats(all),
+	% voc_clear_stats(all),
 	materialize_mapping_graph(Mapping, [graph(Id), evidence_graphs(Enabled)]).
 
 void_graph(Strategy, VoidGraph) :-
@@ -420,12 +420,15 @@ select_mappings_to_be_saved(Graph, Mappings, Options) :-
 	option(status(Status), Options, all),
 	(   Status == all
 	->  findall(Mapping,
-		    rdf(Mapping, rdf:type, amalgame:'Mapping', Graph),
+		    (	rdfs_individual_of(Mapping, amalgame:'Mapping'),
+			rdf(Mapping, rdf:type, _, Graph)
+		    ),
 		    Mappings)
-	;   findall(Mapping, (
-		rdf(Mapping, rdf:type, amalgame:'Mapping', Graph),
-		rdf(Mapping, amalgame:status, Status)
-	      ), Mappings)
+	;   findall(Mapping,
+		    (	rdfs_individual_of(Mapping, amalgame:'Mapping'),
+			rdf(Mapping, rdf:type, _, Graph),
+			rdf(Mapping, amalgame:status, Status)
+		    ), Mappings)
 	).
 
 evaluation_graph(Strategy, Mapping, EvalGraph) :-
