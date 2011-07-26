@@ -1,5 +1,6 @@
 :- module(eq_builder, []).
 
+:- use_module(library(semweb/rdf_db)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_host)).
@@ -138,8 +139,8 @@ js_module(controls, json([fullpath(Path),
 
 fix_publish_ns(A) :-
 	% backward compatibility
-	(   rdf(A, amalgame:publish_ns, _)
+	(   rdf(A, amalgame:publish_ns, _,A)
 	->  true
 	;   setting(eq_publisher:default_namespace, NS),
-	    rdf_assert(A, amalgame:publish_ns, NS)
+	    rdf_assert(A, amalgame:publish_ns, NS, A)
 	).
