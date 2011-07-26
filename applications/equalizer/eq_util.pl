@@ -235,7 +235,7 @@ mapping_counts(URL, Strategy, MN, SN, TN, SPerc, TPerc) :-
 
 	rounded_perc(SourceN, SN, SPerc),
 	rounded_perc(TargetN, TN, TPerc),
-	retractall(stats_cache(_,_)),
+	retractall(stats_cache(URL-Strategy,_)),
 	assert(stats_cache(URL-Strategy, stats(MN, SN, TN, SPerc, TPerc))).
 
 rounded_perc(0, _, 0.0) :- !.
@@ -263,7 +263,7 @@ concept_count(Vocab, Strategy, Count) :-
 	expand_vocab(Strategy, Vocab, Scheme),
 	findall(C, vocab_member(C, Scheme), Cs),
 	length(Cs, Count),
-	retractall(stats_cache(_,_)),
+	retractall(stats_cache(Vocab-Strategy,_)),
 	assert(stats_cache(Vocab-Strategy, stats(Count))).
 
 
