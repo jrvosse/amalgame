@@ -21,9 +21,12 @@ provenance_graph(Strategy, Graph) :-
 provenance_graph(Strategy, Graph) :-
 	ground(Strategy),
 	rdf(Strategy, amalgame:publish_ns, NS),
-	gensym('provgraph', Local),
-	atomic_concat(NS, Local, Graph),
-	\+ rdf_graph(Graph),
+	(   atomic_concat(NS, opmv, Graph), \+ rdf_graph(Graph)
+	->  true
+	;   gensym('provgraph', Local),
+	    atomic_concat(NS, Local, Graph),
+	    \+ rdf_graph(Graph)
+	),
 	create_prov_graph(Strategy, Graph).
 
 create_prov_graph(Strategy, Graph) :-
