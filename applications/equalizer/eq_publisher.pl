@@ -56,7 +56,7 @@ http_eq_publish(Request) :-
 	absolute_file_name(L,BaseDir),!,
 	file_base_name(Alignment, AlignmentB),
 	atomic_list_concat([BaseDir, AlignmentB], '/', Dir),
-	atomic_list_concat(['file:/', BaseDir, Alignment], '/', FileDir),
+	atomic_list_concat(['file:/', BaseDir, AlignmentB], '/', FileDir),
 	http_absolute_location(alignment_results(AlignmentB/'void.ttl'), VoidLink, []),
 	save_mappings(Alignment, Dir, [status(Status)]),
 
