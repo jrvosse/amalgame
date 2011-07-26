@@ -77,6 +77,9 @@ html_node_props -->
 		    tr([td(label),
 			td(input([type(text), id(label)]))
 		       ]),
+		    tr([id(publish_ns)],[td(namespace),
+			td(input([type(text), id(namespace)], []))
+			]),
 		    tr([td(comment),
 			td(textarea([rows(1), id(comment)], []))
 		       ]),
