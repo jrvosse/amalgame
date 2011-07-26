@@ -36,6 +36,7 @@ http_eq_build(Request) :-
 				    [uri,
 				     description('URI of an alignment')])
 			]),
+	fix_publish_ns(Alignment),
 	html_page(Alignment).
 
 		 /*******************************
@@ -49,13 +50,13 @@ http_eq_build(Request) :-
 
 html_page(Alignment) :-
 	html_set_options([dialect(html)]),
-  	reply_html_page(equalizer(main),
+	reply_html_page(equalizer(main),
 			[ title(['Align vocabularies'])
 			],
 			[ \html_requires(css('eq.css')),
 			  \html_requires(css('builder.css')),
 			  \html_requires('http://yui.yahooapis.com/combo?3.3.0/build/cssreset/reset-min.css&3.3.0/build/cssgrids/grids-min.css&3.3.0/build/cssfonts/fonts-min.css&gallery-2011.02.23-19-01/build/gallery-node-accordion/assets/skins/sam/gallery-node-accordion.css'),
-  			  div(class('yui3-skin-sam yui-skin-sam'),
+			  div(class('yui3-skin-sam yui-skin-sam'),
 			      [ \html_eq_header(http_eq_build, Alignment),
 				div([id(main)],
 				    [ div([id(opm)],
@@ -79,13 +80,13 @@ yui_script(Alignment) -->
 	  findall(M-C, js_module(M,C), Modules),
 	  pairs_keys(Modules, Includes),
 	  js_alignment_nodes(Alignment, Nodes)
- 	},
- 	yui3([json([modules(json(Modules))])
+	},
+	yui3([json([modules(json(Modules))])
 	     ],
 	     Includes,
 	     [ \yui3_new(eq, 'Y.Builder',
 			 json([alignment(Alignment),
-  			       paths(json(Paths)),
+			       paths(json(Paths)),
 			       nodes(json(Nodes))
 			      ]))
 	     ]).
@@ -117,7 +118,7 @@ js_module(builder, json([fullpath(Path),
 				     'json-parse',
 				     'datasource-io','datasource-cache',
 				     'querystring-stringify-simple',
- 				     opmviz,controls,infobox])
+				     opmviz,controls,infobox])
 			  ])) :-
 	http_absolute_location(js('builder.js'), Path, []).
 js_module(opmviz, json([fullpath(Path),
@@ -134,3 +135,11 @@ js_module(controls, json([fullpath(Path),
 				    'gallery-node-accordion'])
 			])) :-
 	http_absolute_location(js('controls.js'), Path, []).
+
+fix_publish_ns(A) :-
+	% backward compatibility
+	(   rdf(A, amalgame:publish_ns, _)
+	->  true
+	;   setting(eq_publisher:default_namespace, NS),
+	    rdf_assert(A, amalgame:publish_ns, NS)
+	).
