@@ -140,6 +140,8 @@ node_prop(R, type, Type) :-
 node_prop(EDM, type, vocab) :-
 	is_edm_collection(EDM).
 
+node_prop(R, namespace, NS) :-
+	rdf(R, amalgame:publish_ns, NS).
 node_prop(R, status, Status) :-
 	rdf(R, amalgame:status, Status).
 node_prop(R, comment, Comment) :-
