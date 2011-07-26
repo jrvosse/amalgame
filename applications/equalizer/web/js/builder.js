@@ -64,7 +64,11 @@ YUI.add('builder', function(Y) {
 			this.after('nodesChange', function(o) {
 				this.controls.set("nodes", o.newVal);
 			}, this);
-			// Let's get some stuff
+			// Let's get started by selecting the strategy node
+			var strategy = this.get("alignment");
+			node = this.get("nodes")[strategy];
+			node.uri = strategy;
+			this.infobox.set("selected", node);
 			this._fetchGraph();
 		},
 		
@@ -74,6 +78,7 @@ YUI.add('builder', function(Y) {
 			});
 			//.plug({fn:Y.Plugin.DataSourceCache, cfg:{max:10}});
 			var alignment =	this.get('alignment');
+			this.set("selected", alignment);
 			this.opmviz = new Y.OPMViz({
 				datasource: DS,
 				alignment: alignment
@@ -150,8 +155,17 @@ YUI.add('builder', function(Y) {
 			Y.io(paths.updatenode, {
 				data:data,
 				on:{success:function(e,o) {
-					oSelf.set("nodes", Y.JSON.parse(o.responseText).nodes);
-					oSelf._fetchGraph();
+					var response = Y.JSON.parse(o.responseText);
+					oSelf.set("nodes", response.nodes);
+					if (data.alignment == response.alignment) {
+						oSelf._fetchGraph();
+					} else { // alignment changed name, we need to fully reload ...
+						oSelf.set("alignment", response.alignment);
+						var l = window.location;
+						var newURL = l.protocol + "//" + l.host + l.pathname + 
+							"?alignment=" + encodeURIComponent(response.alignment);
+						window.location.replace(newURL);
+					}
 				}}
 			})
 		},

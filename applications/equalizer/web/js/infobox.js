@@ -68,7 +68,7 @@ YUI.add('infobox', function(Y) {
 				content = this.get("srcNode");
 				
 			if(selected) {
-				var uri = selected.uri||alignment,
+				var uri = selected.uri,
 					link = selected.link||uri,
 					label = selected.label||uri,
 					type = selected.type||"",
