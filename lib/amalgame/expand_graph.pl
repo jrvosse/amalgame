@@ -151,9 +151,9 @@ del_prov_graphs :-
 	      ).
 
 del_materialized_mappings :-
-	% (   rdf_graph(void) -> rdf_unload(void); true),
 	findall(Id, (
 		     rdfs_individual_of(Id, amalgame:'Mapping'),
+		     \+ rdfs_individual_of(Id, amalgame:'EvaluatedMapping'),
 		     rdf_graph(Id)
 		    ), Finals),
 	forall(member(F, Finals),
@@ -438,12 +438,12 @@ evaluation_graph(Strategy, Mapping, EvalGraph) :-
 	format(atom(Comment), 'Manual evaluation of ~w', [Mapping]),
 
 	rdf_assert(EvalProcess, rdf:type, amalgame:'EvaluationProcess', Strategy),
-	rdf_assert(EvalProcess, rdfs:label, literal('Manual evaluation')),
+	rdf_assert(EvalProcess, rdfs:label, literal('Manual evaluation', Strategy)),
 	rdf_assert(EvalProcess, amalgame:input,	Mapping, Strategy),
 
 	rdf_assert(EvalGraph, rdf:type, amalgame:'EvaluatedMapping', Strategy),
-	rdf_assert(EvalGraph, rdfs:label, literal('Evaluation results')),
-	rdf_assert(EvalGraph, rdfs:comment, literal(Comment)),
+	rdf_assert(EvalGraph, rdfs:label, literal('Evaluation results'), Strategy),
+	rdf_assert(EvalGraph, rdfs:comment, literal(Comment), Strategy),
 	rdf_assert(EvalGraph, opmv:wasGeneratedBy, EvalProcess, Strategy),
 	rdf_assert(EvalGraph, amalgame:evaluationOf, Mapping, Strategy),
 
