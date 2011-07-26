@@ -24,6 +24,7 @@ YUI.add('opmviz', function(Y) {
 	
 	Y.extend(OPMViz, Y.Widget, {
 		initializer: function(config) {
+			this.set("active", this.get("alignment"));
 			this.publish("nodeSelect", {});
 		},
 		destructor : function() {},
