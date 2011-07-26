@@ -25,9 +25,6 @@
 :- http_handler(amalgame(load/url), http_eq_upload_url, []).
 :- http_handler(amalgame(load/data), http_eq_upload_data, []).
 
-:- setting(default_namespace, atom, 'http://example.com/',
-	   'Default namespace to use on alignment results. Can be changed later.').
-
 %%	http_eq(+Request)
 %
 %	Emit html page to start a new or load an existing alignment
@@ -288,7 +285,7 @@ http_eq_new(Request) :-
 %	Assert a new alignment graph.
 
 new_alignment(Schemes, Alignment) :-
-	setting(default_namespace, NS),
+	setting(eq_publisher:default_namespace, NS),
 	authorized(write(default, _)),
 	gensym(strategy, Local),
 	atomic_list_concat([NS,Local], Alignment),
