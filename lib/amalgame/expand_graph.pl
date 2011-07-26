@@ -323,7 +323,7 @@ materialize_if_needed(Id, Mapping) :-
 	->  Enabled = enabled
 	;   Enabled = disabled
 	),
-	voc_clear_stats(all),
+	// voc_clear_stats(all),
 	materialize_mapping_graph(Mapping, [graph(Id), evidence_graphs(Enabled)]).
 
 void_graph(Strategy, VoidGraph) :-
