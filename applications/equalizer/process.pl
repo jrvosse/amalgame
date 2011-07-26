@@ -220,8 +220,8 @@ update_node_prop(status=Status, URI, Alignment) :-
 	).
 
 change_ns_if_needed(NS, URI, Strategy, NewStrategy) :-
-	rdf(URI, amalgame:publish_ns, OldNS, Strategy),
-	(OldNS == NS
+	rdf(Strategy, amalgame:publish_ns, OldNS, Strategy),
+	(OldNS == NS, NS \= ''
 	-> NewStrategy = Strategy
 	;  rdf_retractall(URI, amalgame:publish_ns, OldNS, Strategy),
 	   rdf_assert(URI, amalgame:publish_ns, NS, Strategy),
@@ -267,33 +267,24 @@ process_retract(_, _).
 
 
 change_namespace(Old, New, Strategy, NewStrategy) :-
-	debug(now, 'Replace ~w by ~w for ~w', [Old, New, Strategy]),
 	(   sub_atom(Strategy, 0, Len, After, Old)
 	->  sub_atom(Strategy, Len, After, 0, Local),
 	    atom_concat(New, Local, NewStrategy)
 	;   NewStrategy = Strategy
 	),
 	findall(rdf(S,P,O), tainted_s_ns(S,P,O, Old, Strategy), Results),
-	length(Results, N),
-	debug(now, 'New strategy is ~w, tainted triples ~w', [NewStrategy, N]),
 	forall(member(T, Results), fix_s_ns(T, Old, New)),
-	rdf_transaction(
-			forall(rdf(S,P,O,Strategy),
+	rdf_transaction(forall(rdf(S,P,O,Strategy),
 			       rdf_update(S,P,O,graph(NewStrategy))
 			      )
 		       ).
-
-
 
 tainted_s_ns(S,P,O,Old,Strategy) :-
 	rdf(S,P,O,Strategy:_),
 	sub_atom(S, 0,_,_,Old).
 
 fix_s_ns(rdf(S,P,O), Old, New) :-
-	debug(now, '~w ~w ~w', [S,P,O]),
 	sub_atom(S,0,Len,After,Old),
 	sub_atom(S,Len,After,0, Local),
 	atom_concat(New,Local,NewS),
 	rdf_update(S,P,O, subject(NewS)).
-
-
