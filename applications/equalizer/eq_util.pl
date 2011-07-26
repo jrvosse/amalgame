@@ -130,7 +130,7 @@ node_prop(R, label, Label) :-
 	literal_text(Lit, Label).
 node_prop(R, type, Type) :-
 	(   rdfs_individual_of(R, amalgame:'AlignmentStrategy')
-	->  Type = alignment
+	->  Type = strategy
 	;   rdfs_individual_of(R, amalgame:'Mapping')
 	->  Type = mapping
 	;   rdfs_individual_of(R, opmv:'Process')

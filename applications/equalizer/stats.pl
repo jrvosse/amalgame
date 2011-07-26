@@ -28,7 +28,7 @@
 http_eq_nodeinfo(Request) :-
 	http_parameters(Request,
 			[ url(URL,
-			      [description('URL of a node (mapping,vocab,process)')]),
+			      [description('URL of a node (mapping,vocab,process,strategy)')]),
 			  alignment(Alignment,
 				    [description('URL of the alignment strategy')])
 		       ]),
@@ -48,7 +48,7 @@ http_eq_nodeinfo(Request) :-
 http_eq_info(Request) :-
 	http_parameters(Request,
 			[ url(URL,
-			      [description('URL of a node (mapping,vocab,process)')]),
+			      [description('URL of a node (mapping,vocab,process,strategy)')]),
 			  alignment(Strategy,
 				    [description('URL of the alignment strategy')])
 		       ]),

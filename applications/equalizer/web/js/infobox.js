@@ -93,7 +93,7 @@ YUI.add('infobox', function(Y) {
 					NODE_STATUS_ROW.addClass("hidden")
 				}
 			
-				if(type =='alignment') {
+				if(type =='alignment' || type=='strategy') {
 					NODE_NAMESPACE_ROW.removeClass("hidden");
 				} else {
 					NODE_NAMESPACE_ROW.addClass("hidden")
