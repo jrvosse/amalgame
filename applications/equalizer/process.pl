@@ -268,9 +268,11 @@ process_retract(_, _).
 
 change_namespace(Old, New, Strategy, NewStrategy) :-
 	debug(now, 'Replace ~w by ~w for ~w', [Old, New, Strategy]),
-	sub_atom(Strategy, 0, Len, After, Old),
-	sub_atom(Strategy, Len, After, 0, Local),
-	atom_concat(New, Local, NewStrategy),
+	(   sub_atom(Strategy, 0, Len, After, Old)
+	->  sub_atom(Strategy, Len, After, 0, Local),
+	    atom_concat(New, Local, NewStrategy)
+	;   NewStrategy = Strategy
+	),
 	findall(rdf(S,P,O), tainted_s_ns(S,P,O, Old, Strategy), Results),
 	length(Results, N),
 	debug(now, 'New strategy is ~w, tainted triples ~w', [NewStrategy, N]),
