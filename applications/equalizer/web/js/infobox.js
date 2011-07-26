@@ -8,6 +8,8 @@ YUI.add('infobox', function(Y) {
 		NODE_UPDATE = Y.one("#update"),
 		NODE_TYPE = Y.one("#type"),
 		NODE_URI = Y.one("#uri"),
+		NODE_NAMESPACE = Y.one("#namespace"),
+		NODE_NAMESPACE_ROW = Y.one("#publish_ns"),
 		NODE_LABEL = Y.one("#label"),
 		NODE_COMMENT = Y.one("#comment"),
 		NODE_STATUS_ROW = Y.one("#statusrow");
@@ -66,17 +68,19 @@ YUI.add('infobox', function(Y) {
 				content = this.get("srcNode");
 				
 			if(selected) {
-				var uri = selected.uri,
+				var uri = selected.uri||alignment,
 					link = selected.link||uri,
 					label = selected.label||uri,
 					type = selected.type||"",
 					comment = selected.comment||"",
+					namespace = selected.namespace||"",
 					status = selected.status;
-				
+			
 				this.emptyNode.addClass("hidden");
 				this.set("waiting", true);
 				NODE_LABEL.set("value", label);
 				NODE_COMMENT.set("value", comment);
+				Y.one('#namespace').set("value", namespace);
 				NODE_TYPE.setContent(type);
 				NODE_URI.setContent('<a href="'+link+'">'+uri+'</a>');
 				
@@ -88,7 +92,12 @@ YUI.add('infobox', function(Y) {
 				} else {
 					NODE_STATUS_ROW.addClass("hidden")
 				}
-				
+			
+				if(type =='alignment') {
+					NODE_NAMESPACE_ROW.removeClass("hidden");
+				} else {
+					NODE_NAMESPACE_ROW.addClass("hidden")
+				}
 				// hide the parameter form submit button in case we are not a process
 				if(type==="process") {
 					content.one('.control-submit').removeClass("hidden");
@@ -112,6 +121,7 @@ YUI.add('infobox', function(Y) {
 		_updateNode : function() {
 			var sel = this.get("selected"),
 				uri = sel.uri,
+				namespace = NODE_NAMESPACE.get("value"),
 				label = NODE_LABEL.get("value"),
 				comment = NODE_COMMENT.get("value"),
 				status = NODE_STATUS.get("options")
@@ -120,6 +130,7 @@ YUI.add('infobox', function(Y) {
 			var data = {
 				uri:uri,
 				label:label,
+				namespace:namespace,
 				status:status,
 				comment:comment
 			}
