@@ -158,6 +158,7 @@ del_materialized_mappings :-
 	findall(Id, (
 		     rdfs_individual_of(Id, amalgame:'Mapping'),
 		     \+ rdfs_individual_of(Id, amalgame:'EvaluatedMapping'),
+		     \+ rdfs_individual_of(Id, amalgame:'LoadedMapping'),
 		     rdf_graph(Id)
 		    ), Finals),
 	forall(member(F, Finals),
