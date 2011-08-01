@@ -37,7 +37,9 @@
 %          scheme(Scheme) or type(Class)
 
 expand_mapping(_Strategy, Id, Mapping) :-
-	rdfs_individual_of(Id, amalgame:'EvaluatedMapping'),
+	(   rdfs_individual_of(Id, amalgame:'EvaluatedMapping')
+	;   rdfs_individual_of(Id, amalgame:'LoadedMapping')
+	),
 	!,
 	findall(C, has_correspondence(C,Id), Mapping).
 
@@ -113,7 +115,9 @@ do_expand_process(Strategy, Process, Result) :-
 	% builder as an input mapping...
 	(   rdfs_subclass_of(Type, amalgame:'SelectPreLoaded')
 	->  option(name(PreloadedGraph), Options),
-	    rdf_assert(Process, opmv:used, PreloadedGraph, Strategy)
+	    rdf_assert(Process, opmv:used, PreloadedGraph, Strategy),
+	    rdf_assert(PreloadedGraph, rdf:type, amalgame:'LoadedMapping', Strategy),
+	    rdf_assert(PreloadedGraph, amalgame:status, amalgame:imported, Strategy)
 	;   true
 	).
 
