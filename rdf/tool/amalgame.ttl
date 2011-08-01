@@ -87,9 +87,9 @@ amalgame:Alignment a rdfs:Class ;
 amalgame:Mapping a rdfs:Class ;
 	rdfs:subClassOf amalgame:Alignment .
 
-amalgame:LoadedAlignment a rdfs:Class ;
-	rdfs:subClassOf amalgame:Alignment ;
-	rdfs:label "Loaded Alignment Graph"@en ;
+amalgame:LoadedMapping a rdfs:Class ;
+	rdfs:subClassOf amalgame:Mapping ;
+	rdfs:label "Loaded Mapping Graph"@en ;
 	rdfs:comment "An alignment loaded from file, e.g. not derived from another alignment"@en.
 
 amalgame:AmalgameAlignment a rdfs:Class ;
@@ -272,3 +272,26 @@ amalgame:maximalConfidence a rdf:Property, owl:FunctionalProperty ;
 	rdfs:comment "Mappings with confidence above this level have not been exported to this graph"@en ;
 	rdfs:domain amalgame:Provenance ;
 	rdfs:range xsd:float .
+
+amalgame:status a rdf:Property, owl:FunctionalProperty ;
+        rdfs:comment "Status of a Mapping within amalgame";
+	rdfs:domain amalgame:Mapping;
+	rdfs:range amalgame:Status .
+
+amalgame:Status a rdfs:Class, owl:Class ;
+        owl:oneOf ( amalgame:final
+		    amalgame:intermediate
+		    amalgame:discarded
+		    amalgame:imported ) .
+
+amalgame:final a amalgame:Status ;
+	rdfs:comment "Status indicating that a Mapping	does not need further refinement, e.g. it is of sufficient quality to be exported and used"@en .
+
+amalgame:imported a amalgame:Status ;
+	rdfs:comment "Status indicating that a Mapping has been imported into amalgame"@en .
+
+amalgame:intermediate a amalgame:Status ;
+	rdfs:comment "Status indicating that a Mapping has not insufficient quality to be useful as is, but is of potential interest as a basis for further processing."@en .
+
+amalgame:discarded a amalgame:Status ;
+	rdfs:comment "Status indicating that a Mapping has not insufficient quality to be useful, even for further processing, and can be discarded from the further analysis."@en .
