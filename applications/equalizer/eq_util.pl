@@ -221,9 +221,6 @@ mapping_counts(URL, Strategy, MN, SN, TN, SPerc, TPerc) :-
 	!.
 mapping_counts(URL, Strategy, MN, SN, TN, SPerc, TPerc) :-
 	expand_mapping(Strategy, URL, Mapping),
-	mapping_sources(URL, Strategy, InputS, InputT),
-	concept_count(InputS, Strategy, SourceN),
-	concept_count(InputT, Strategy, TargetN),
 
 	maplist(align_source, Mapping, Ss0),
 	maplist(align_target, Mapping, Ts0),
@@ -233,8 +230,13 @@ mapping_counts(URL, Strategy, MN, SN, TN, SPerc, TPerc) :-
 	length(Ss, SN),
 	length(Ts, TN),
 
-	rounded_perc(SourceN, SN, SPerc),
-	rounded_perc(TargetN, TN, TPerc),
+	(   mapping_sources(URL, Strategy, InputS, InputT)
+	->  concept_count(InputS, Strategy, SourceN),
+	    concept_count(InputT, Strategy, TargetN),
+	    rounded_perc(SourceN, SN, SPerc),
+	    rounded_perc(TargetN, TN, TPerc)
+	;   SPerc = 100, TPerc = 100
+	),
 	retractall(stats_cache(URL-Strategy,_)),
 	assert(stats_cache(URL-Strategy, stats(MN, SN, TN, SPerc, TPerc))).
 
