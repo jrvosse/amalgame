@@ -398,12 +398,12 @@ assert_from_list(Method, Name, Graph, Nr, [Rand|RandSet], [[E1,E2]|Maps]) :-
 	    ;	Method = random_alt_all
 	    ->	findall(E1-E2a-[source(G)|MapOptions],
 			(   has_map([E1,E2a], _, MapOptions, G:_),
-			    rdfs_individual_of(G, amalgame:'LoadedAlignment')
+			    rdfs_individual_of(G, amalgame:'LoadedMapping')
 			),
 			AltSourceMaps),
 		findall(E1a-E2-[source(G)|MapOptions],
 			(   has_map([E1a,E2], _, MapOptions, G:_),
-			    rdfs_individual_of(G, amalgame:'LoadedAlignment')
+			    rdfs_individual_of(G, amalgame:'LoadedMapping')
 			),
 			AltTargetMaps),
 		append(AltSourceMaps, AltTargetMaps, AltMapsDoubles),
