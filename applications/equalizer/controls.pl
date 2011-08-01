@@ -298,3 +298,4 @@ module_special_type(_, '').
 status_option(amalgame:final).
 status_option(amalgame:intermediate).
 status_option(amalgame:discarded).
+status_option(amalgame:imported).
