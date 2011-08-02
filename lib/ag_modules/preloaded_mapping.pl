@@ -17,7 +17,8 @@ matcher(Source, Target, Mapping, Options) :-
 	option(name(Graph), Options),
 	findall(Correspondence,
 		c_from_graph(Correspondence, Source, Target, Graph),
-		Mapping).
+		Mapping0),
+	sort(Mapping0, Mapping).
 
 
 c_from_graph(align(S,T,P), Source, Target, Graph) :-

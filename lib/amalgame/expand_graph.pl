@@ -41,7 +41,8 @@ expand_mapping(_Strategy, Id, Mapping) :-
 	;   rdfs_individual_of(Id, amalgame:'LoadedMapping')
 	),
 	!,
-	findall(C, has_correspondence(C,Id), Mapping).
+	findall(C, has_correspondence(C,Id), Mapping0),
+	sort(Mapping0, Mapping).
 
 expand_mapping(Strategy, Id, Mapping) :-
 	rdf_has(Id, opmv:wasGeneratedBy, Process, OutputType),
