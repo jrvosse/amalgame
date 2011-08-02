@@ -85,11 +85,11 @@ mapping_label(align(S, T, Prov), align(S,SL,T,TL,Prov)) :-
 
 mapping_data([], []).
 mapping_data([Align|As], [json(Data)|Os]) :-
-	Align = align(Source, SLabel, Target, TLabel, _Prov),
+	Align = align(Source, SLabel, Target, TLabel, [Prov|_]),
 	Data0 = [source=json([uri=Source, label=SLabel]),
 		 target=json([uri=Target, label=TLabel])
 		],
-	(   current_relation(Source, Target, Rel)
+	(   option(relation(Rel), Prov)
 	->  relation_label(Rel, RLabel),
 	    Data = [relation=json([uri=Rel, label=RLabel])|Data0]
 	;   Data = Data0
@@ -175,8 +175,8 @@ http_correspondence(Request) :-
 	print_html(HTML).
 
 html_correspondences([], _) --> !.
-html_correspondences([align(Source,Target,_Prov)|Cs], Relations) -->
-	{ current_relation(Source, Target, Relation)
+html_correspondences([align(Source,Target,[Prov|_])|Cs], Relations) -->
+	{ option(relation(Relation), Prov, '')
 	},
 	html_correspondence(Source, Target, Relation, Relations),
 	html_correspondences(Cs, Relations).
@@ -198,13 +198,6 @@ html_correspondence(Source, Target, Relation, Relations) -->
 			\html_resource_context(Target))
 		  ])
 	     ]).
-
-current_relation(S, T, R) :-
-	rdf(Cell, align:entity1, S),
-	rdf(Cell, align:entity2, T),
-	rdf(Cell, align:relation, R),
-	!.
-current_relation(_, _, '').
 
 html_resource_context('') --> !.
 html_resource_context(URI) -->
