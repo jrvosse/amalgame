@@ -9,6 +9,7 @@
 :- use_module(library(semweb/rdf_label)).
 :- use_module(user(user_db)).
 :- use_module(library(amalgame/expand_graph)).
+:- use_module(library(amalgame/ag_provenance)).
 :- use_module(eq_util).
 :- use_module(stats).
 
@@ -251,16 +252,20 @@ http_delete_node(Request) :-
 	js_alignment_nodes(Alignment, Nodes),
 	reply_json(json([nodes=json(Nodes)])).
 
-node_retract(URI, Alignment) :-
-	rdf_retractall(URI, _, _, Alignment),
-	forall(rdf(S,_,URI,Alignment),
-	       node_retract(S, Alignment)).
+node_retract(URI, Strategy) :-
+	provenance_graph(Strategy, ProvGraph),
+	rdf_retractall(URI, _, _, Strategy),
+	rdf_retractall(URI, _, _, ProvGraph),
+	forall(rdf(Subj,_,URI,Strategy),
+	       node_retract(Subj, Strategy)).
 
-process_retract(URI, Alignment) :-
+process_retract(URI, Strategy) :-
 	rdf_has(URI, opmv:wasGeneratedBy, P),
 	findall(S, rdf_has(S, opmv:wasGeneratedBy, P), [URI]),
+	provenance_graph(Strategy, ProvGraph),
 	!,
-	rdf_retractall(P, _, _, Alignment).
+	rdf_retractall(P, _, _, Strategy),
+	rdf_retractall(P, _, _, ProvGraph).
 process_retract(_, _).
 
 
