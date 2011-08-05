@@ -45,7 +45,7 @@ alpha(Strategy, Inputs, Out, Options) :-
 		(member(Id, Tail),
 		 expand_mapping(Strategy, Id, Mapping),
 		 columnize(Mapping, Reference, Finding, Finding_as_an_R_column, Same),
-		 debug(irr, 'ag_irr:alpha column to check: ~w', [Finding_as_an_R_column])
+		 debug(irr, 'ag_irr:alpha column to check: ~p\n~w', [Id, Finding_as_an_R_column])
 		),
 		NestedPairs),
 	pairs_keys_values(NestedPairs, Pairs, Sames),
