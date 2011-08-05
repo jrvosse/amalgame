@@ -39,6 +39,8 @@
 expand_mapping(_Strategy, Id, Mapping) :-
 	(   rdfs_individual_of(Id, amalgame:'EvaluatedMapping')
 	;   rdfs_individual_of(Id, amalgame:'LoadedMapping')
+	;   rdf(Id, opmv:wasGeneratedBy, Process),
+	    rdf(Process, rdf:type, amalgame:'SelectPreloaded')
 	),
 	!,
 	findall(C, has_correspondence(C,Id), Mapping0),
