@@ -1,8 +1,10 @@
 :- module(eq_analyser,
 	  []).
-
+:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_label)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
+:- use_module(library(http/http_json)).
 :- use_module(library(http/http_host)).
 :- use_module(library(http/http_path)).
 :- use_module(library(http/html_head)).
@@ -10,8 +12,8 @@
 :- use_module(library(http/js_write)).
 :- use_module(library(yui3_beta)).
 :- use_module(user(user_db)).
-:- use_module(library(semweb/rdf_label)).
 
+:- use_module(library(amalgame/irr)).
 :- use_module(eq_util).
 
 :- multifile
@@ -23,6 +25,7 @@ eq:menu_item(http_eq_analyse, 'analyse').
 % http handlers for this applications
 
 :- http_handler(amalgame(analyse), http_eq_analyse, []).
+:- http_handler(amalgame(analyse/agreement), http_agreement, []).
 
 %%	http_equalizer(+Request)
 %
@@ -46,14 +49,18 @@ html_page(Alignment, Mapping) :-
 	reply_html_page(equalizer(main),
 			[ title(['Align vocabularies'])
 			],
-			[ \html_requires(css('eq.css')),
-			  \html_requires(css('analyser.css')),
+			[
 			  \html_requires('http://yui.yahooapis.com/combo?3.3.0/build/cssreset/reset-min.css&3.3.0/build/cssgrids/grids-min.css&3.3.0/build/cssfonts/fonts-min.css'),
+			  \html_requires(css('eq.css')),
+			  \html_requires(css('analyser.css')),
+
 			   \html_eq_header(http_eq_analyse, Alignment),
 			  div(class('yui3-skin-sam yui-skin-sam'),
 			      [ div([id(main), class('yui3-g')],
 				    [ div([class('yui3-u'), id(mappings)],
 					  []),
+				      div([class('yui3-u'), id(agreement)],
+					  [\agreement_table]),
 				      div([class('yui3-u'), id(overlaps)],
 					  [])
 				    ])
@@ -63,24 +70,48 @@ html_page(Alignment, Mapping) :-
 				 ])
 			]).
 
+agreement_table -->
+	html(table([th([colspan(2)], 'Agreement statistics'),
+		    tr([td('alpha'),	 td([id(alpha),   class(agreement_stat)],[?])]),
+		    tr([td('# subjects'),td([id(subjects),class(agreement_stat)],[?])]),
+		    tr([td('# raters'),  td([id(raters),  class(agreement_stat)],[?])])
+		   ])).
+
+http_agreement(Request) :-
+	http_parameters(Request,
+			[
+			 mapping(Mapping,
+				 [description('Reference graph')]),
+			 strategy(Strategy,
+				   [description('Alignment strategy graph')])
+			]),
+	findall(M, rdf(M, rdf:type, amalgame:'Mapping'), Mappings),
+	(   Mapping == ''
+	->  Agreement = none
+	;   alpha(Strategy, Mappings, Results0, []),
+	    selectchk(encoding(E), Results0, Results),
+	    Agreement=json([encoding(json(E))|Results])
+	),
+	reply_json(Agreement).
 
 %%	yui_script(+Graph)
 %
 %	Emit YUI object.
 
 yui_script(Alignment, Mapping) -->
-	{ %findall(K-V, js_path(K, V), Paths),
-	  findall(M-C, js_module(M,C), Modules),
-	  pairs_keys(Modules, Includes),
-	  js_mappings(Alignment, Mappings)
+	{
+	 findall(M-C, js_module(M,C), Modules),
+	 pairs_keys(Modules, Includes),
+	 findall(K-V, js_path(K, V), Paths),
+	 js_mappings(Alignment, JSMappings)
 	},
 	yui3([json([modules(json(Modules))])
 	     ],
 	     Includes,
 	     [ \yui3_new(eq, 'Y.Analyser',
-			 json([alignment(Alignment),
-			      % paths(json(Paths)),
-			       mappings(Mappings),
+			 json([strategy(Alignment),
+			       paths(json(Paths)),
+			       mappings(JSMappings),
 			       selected(Mapping)
 			      ]))
 	     ]).
@@ -98,7 +129,8 @@ yui_script(Alignment, Mapping) -->
 
 js_module(gallery, 'gallery-2011.02.23-19-01').
 js_module(analyser, json([fullpath(Path),
-			   requires([node,event,
+			   requires([node,event,'json-parse', 'io-base',
+				     'datasource-io','datasource-jsonschema',
 				     mappinglist])
 			  ])) :-
 	http_absolute_location(js('analyser.js'), Path, []).
@@ -108,3 +140,9 @@ js_module(mappinglist, json([fullpath(Path),
 		       ])) :-
 	http_absolute_location(js('mappinglist.js'), Path, []).
 
+%%	js_path(+Key, +Server_Path)
+%
+%	Path to the server used in javascript.
+
+js_path(agreement, Path) :-
+	http_location_by_id(http_agreement, Path).

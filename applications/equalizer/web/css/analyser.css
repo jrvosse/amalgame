@@ -9,7 +9,7 @@
 }
 #overlaps {
 	width: 100%;
-	
+
 }
 
 /* mapping list */
@@ -28,3 +28,16 @@
 	color: #222;
 }
 
+.diag { color: green; }
+#agreement {
+  margin-left: -250px;
+  border: 1px solid #808080;
+}
+#encoding, #cm {
+  float:left;
+  border-top: 1px solid #404040;
+}
+#encoding {
+ margin-left: 10em;
+ font-size: 0.6em;
+}
