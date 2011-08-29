@@ -57,25 +57,25 @@ html_page(Alignment, Mapping) :-
 			   \html_eq_header(http_eq_analyse, Alignment),
 			  div(class('yui3-skin-sam yui-skin-sam'),
 			      [ div([id(main), class('yui3-g')],
-				    [ div([class('yui3-u'), id(mappings)],
-					  []),
-				      div([class('yui3-u'), id(agreement)],
-					  [\agreement_table]),
-				      div([class('yui3-u'), id(overlaps)],
-					  [])
+				    div([class('yui3-u')],
+				    [ div([class('box'), id(mappings)],
+					  [div([class(hd)],['Mappings'])]),
+				      div([class('box'), id(agreement)],
+					  [\agreement_table])
 				    ])
-			      ]),
+			      )]),
 			  script(type('text/javascript'),
 				 [ \yui_script(Alignment, Mapping)
 				 ])
 			]).
 
 agreement_table -->
-	html(table([th([colspan(2)], 'Agreement statistics'),
+	html([div([class(hd)],['Agreement statistics']),
+	      table([
 		    tr([td('alpha'),	 td([id(alpha),   class(agreement_stat)],[?])]),
 		    tr([td('# subjects'),td([id(subjects),class(agreement_stat)],[?])]),
 		    tr([td('# raters'),  td([id(raters),  class(agreement_stat)],[?])])
-		   ])).
+		   ])]).
 
 http_agreement(Request) :-
 	http_parameters(Request,

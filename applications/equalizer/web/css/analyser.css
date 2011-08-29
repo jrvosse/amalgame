@@ -1,15 +1,9 @@
 /* main layout */
 #main {
 	margin: 0 10px;
-	padding-left: 250px;
 }
 #mappings {
 	width: 25em;
-	margin-left: -250px;
-}
-#overlaps {
-	width: 100%;
-
 }
 
 /* mapping list */
@@ -30,14 +24,20 @@
 
 .diag { color: green; }
 #agreement {
-  margin-left: -250px;
-  border: 1px solid #808080;
+  margin-left: 0px;
+}
+#agreement td {
+ padding: .2em;
 }
 #encoding, #cm {
-  float:left;
-  border-top: 1px solid #404040;
 }
 #encoding {
- margin-left: 10em;
- font-size: 0.6em;
+}
+.box {
+    border: 1px solid #808080;
+    margin-bottom: 15px;
+}
+.box .hd {
+    background: url("http://yui.yahooapis.com/3.0.0/build/assets/skins/sam/sprite.png") repeat-x scroll 0 0 transparent;
+    padding: 5px;
 }
