@@ -116,7 +116,7 @@ create_encoding_table([NS:L-E|T]) :-
 	create_encoding_table(T).
 
 get_encoding_table(Encoding) :-
-	findall(R-E, encoding_table(R,E), Encoding).
+	findall(R-E, (encoding_table(R,E), R \= next_free_code), Encoding).
 encode_findings([], [], []).
 encode_findings([H|T], [RefHead|RefTail], [HeadResult|TailResults]) :-
 	encode_finding(H,  RefHead, HeadResult),
