@@ -56,7 +56,14 @@ html_page(Alignment) :-
 			],
 			[ \html_requires(css('eq.css')),
 			  \html_requires(css('builder.css')),
-			  \html_requires('http://yui.yahooapis.com/combo?3.3.0/build/cssreset/reset-min.css&3.3.0/build/cssgrids/grids-min.css&3.3.0/build/cssfonts/fonts-min.css&gallery-2011.02.23-19-01/build/gallery-node-accordion/assets/skins/sam/gallery-node-accordion.css'),
+			  \yui3_combo(yui3,
+				      ['cssreset/reset-min.css',
+				       'cssgrids/grids-min.css',
+				       'cssfonts/fonts-min.css'
+				      ]),
+			  \yui3_combo(gallery,
+				      ['gallery-2011.02.23-19-01/build/gallery-node-accordion/assets/skins/sam/gallery-node-accordion.css'
+				      ]),
 			  div(class('yui3-skin-sam yui-skin-sam'),
 			      [ \html_eq_header(http_eq_build, Alignment),
 				div([id(main)],

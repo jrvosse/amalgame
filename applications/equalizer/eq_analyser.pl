@@ -50,7 +50,11 @@ html_page(Alignment, Mapping) :-
 			[ title(['Align vocabularies'])
 			],
 			[
-			  \html_requires('http://yui.yahooapis.com/combo?3.3.0/build/cssreset/reset-min.css&3.3.0/build/cssgrids/grids-min.css&3.3.0/build/cssfonts/fonts-min.css'),
+			 \yui3_combo(yui3,
+				      ['cssreset/reset-min.css',
+				       'cssgrids/grids-min.css',
+				       'cssfonts/fonts-min.css'
+				      ]),
 			  \html_requires(css('eq.css')),
 			  \html_requires(css('analyser.css')),
 
@@ -78,6 +82,12 @@ agreement_table -->
 		   ])]).
 
 http_agreement(Request) :-
+	Ein = encoding([skos:closeMatch-1, skos:exactMatch-1,
+			skos:broadMatch-2, skos:narrowMatch-3,
+			skos:relatedMatch-0,
+			'http://purl.org/vocabularies/amalgame/evaluator#unrelated'-0,
+			'http://purl.org/vocabularies/amalgame/evaluator#unsure'-'NA',
+			default-4]),
 	http_parameters(Request,
 			[
 			 mapping(Mapping,
@@ -88,9 +98,9 @@ http_agreement(Request) :-
 	findall(M, rdf(M, rdf:type, amalgame:'Mapping'), Mappings),
 	(   Mapping == ''
 	->  Agreement = none
-	;   alpha(Strategy, Mappings, Results0, []),
-	    selectchk(encoding(E), Results0, Results),
-	    Agreement=json([encoding(json(E))|Results])
+	;   alpha(Strategy, Mappings, Results0, [Ein]),
+	    selectchk(encoding(Eout), Results0, Results),
+	    Agreement=json([encoding(json(Eout))|Results])
 	),
 	reply_json(Agreement).
 

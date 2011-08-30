@@ -47,7 +47,14 @@ html_page :-
 			[ title(['Amalgame - projects'])
 			],
 			[ \html_requires(css('selecter.css')),
-			  \html_requires('http://yui.yahooapis.com/combo?3.3.0/build/cssreset/reset-min.css&3.3.0/build/cssgrids/grids-min.css&3.3.0/build/cssfonts/fonts-min.css&gallery-2011.02.23-19-01/build/gallery-node-accordion/assets/skins/sam/gallery-node-accordion.css'),
+			  \yui3_combo(yui3,
+				      ['cssreset/reset-min.css',
+				       'cssgrids/grids-min.css',
+				       'cssfonts/fonts-min.css'
+				      ]),
+			  \yui3_combo(gallery,
+				      ['gallery-2011.02.23-19-01/build/gallery-node-accordion/assets/skins/sam/gallery-node-accordion.css'
+				      ]),
 			  div(class('yui-skin-sam yui3-skin-sam'),
 			      [ div(id(header), []),
 				div(id(main),
