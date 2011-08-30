@@ -3,12 +3,11 @@
 	margin: 0 10px;
 }
 #mappings {
-	width: 25em;
+	border: 1px solid #808080;
 }
 
 /* mapping list */
 .yui3-mappinglist-content {
-	border: 1px solid #808080;
 }
 .yui3-mappinglist .hd {
 	background: url("http://yui.yahooapis.com/3.0.0/build/assets/skins/sam/sprite.png") repeat-x scroll 0 0 transparent;
@@ -24,20 +23,14 @@
 
 .diag { color: green; }
 #agreement {
-  margin-left: 0px;
+	    margin-left: 1em;
+	    border: 1px solid #808080;
 }
+
 #agreement td {
  padding: .2em;
 }
-#encoding, #cm {
-}
-#encoding {
-}
-.box {
-    border: 1px solid #808080;
-    margin-bottom: 15px;
-}
-.box .hd {
+.hd {
     background: url("http://yui.yahooapis.com/3.0.0/build/assets/skins/sam/sprite.png") repeat-x scroll 0 0 transparent;
     padding: 5px;
 }

@@ -57,20 +57,20 @@ html_page(Alignment, Mapping) :-
 				      ]),
 			  \html_requires(css('eq.css')),
 			  \html_requires(css('analyser.css')),
-
-			   \html_eq_header(http_eq_analyse, Alignment),
+			 \html_eq_header(http_eq_analyse, Alignment),
 			  div(class('yui3-skin-sam yui-skin-sam'),
 			      [ div([id(main), class('yui3-g')],
-				    div([class('yui3-u')],
-				    [ div([class('box'), id(mappings)],
-					  [div([class(hd)],['Mappings'])]),
-				      div([class('box'), id(agreement)],
-					  [\agreement_table])
-				    ])
-			      )]),
-			  script(type('text/javascript'),
-				 [ \yui_script(Alignment, Mapping)
-				 ])
+				    [
+				     div([class('yui3-u'), id(mappings)],
+					 [div([class(hd)],['Mappings'])]),
+				     div([class('yui3-u'), id(agreement)],
+					 [\agreement_table])
+				    ]
+				   )
+			      ]
+			     ),
+			 script(type('text/javascript'),
+				[ \yui_script(Alignment, Mapping)])
 			]).
 
 agreement_table -->
