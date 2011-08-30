@@ -126,6 +126,8 @@ encode_finding(align(S,T,[P|_]), align(S,T,_), Encoding) :-
 	member(relation(R), P),
 	(   encoding_table(R,Encoding)
 	->  true
+	;   encoding_table(default, Encoding)
+	->  true
 	;   encoding_table(next_free_code, Encoding)
 	->  NextFreeCode is Encoding + 1,
 	    retractall(encoding_table(next_free_code, _)),
