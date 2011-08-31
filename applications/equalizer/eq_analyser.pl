@@ -98,7 +98,8 @@ http_agreement(Request) :-
 	findall(M, rdf(M, rdf:type, amalgame:'Mapping'), Mappings),
 	(   Mapping == ''
 	->  Agreement = none
-	;   alpha(Strategy, Mappings, Results0, [Ein]),
+	;   selectchk(Mapping, Mappings, OtherMappings),
+	    alpha(Strategy, [Mapping|OtherMappings], Results0, [Ein]),
 	    selectchk(encoding(Eout), Results0, Results),
 	    Agreement=json([encoding(json(Eout))|Results])
 	),
