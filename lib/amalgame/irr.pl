@@ -119,8 +119,17 @@ get_encoding_table(Encoding) :-
 	findall(R-E, (encoding_table(R,E), R \= next_free_code), Encoding).
 encode_findings([], [], []).
 encode_findings([H|T], [RefHead|RefTail], [HeadResult|TailResults]) :-
-	encode_finding(H,  RefHead, HeadResult),
-	encode_findings(T, RefTail, TailResults).
+	(   encode_finding(H,  RefHead, HeadResult)
+	->  encode_findings(T, RefTail, TailResults)
+	;   H @> RefHead
+	->  % Reference contains a mapping not in current list ...
+	    HeadResult = 'NA',
+	    encode_findings([H|T], RefTail, TailResults)
+	;   H @< RefHead
+	->  encode_findings(T, [RefHead|RefTail], [HeadResult|TailResults])
+	;   throw(encode_findings_error(H))
+	).
+
 
 encode_finding(align(S,T,[P|_]), align(S,T,_), Encoding) :-
 	member(relation(R), P),
