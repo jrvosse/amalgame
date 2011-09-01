@@ -4,6 +4,7 @@
 
 :- use_module(library('R')).
 :- use_module(expand_graph).
+:- use_module(library(semweb/rdf_db)).
 
 /* Inter-rater reliability metrics using R */
 :-dynamic encoding_table/2.
