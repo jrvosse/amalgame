@@ -88,7 +88,7 @@ YUI.add('infobox', function(Y) {
 				if(type=="mapping") {
 					NODE_STATUS_ROW.removeClass("hidden")
 					Node.getDOMNode(NODE_STATUS).selectedIndex = NODE_STATUS.get('options')
-						.indexOf(NODE_STATUS.one("option[value="+status+"]"));
+						.indexOf(NODE_STATUS.one("option[value='"+status+"']"));
 				} else {
 					NODE_STATUS_ROW.addClass("hidden")
 				}
