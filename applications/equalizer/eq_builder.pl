@@ -61,9 +61,6 @@ html_page(Alignment) :-
 				       'cssgrids/grids-min.css',
 				       'cssfonts/fonts-min.css'
 				      ]),
-			  \yui3_combo(gallery,
-				      ['gallery-2011.02.23-19-01/build/gallery-node-accordion/assets/skins/sam/gallery-node-accordion.css'
-				      ]),
 			  div(class('yui3-skin-sam yui-skin-sam'),
 			      [ \html_eq_header(http_eq_build, Alignment),
 				div([id(main)],

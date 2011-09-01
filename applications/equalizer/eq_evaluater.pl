@@ -55,8 +55,12 @@ html_page(Alignment, Mapping) :-
 			],
 			[ \html_requires(css('eq.css')),
 			  \html_requires(css('evaluater.css')),
-			  \html_requires('http://yui.yahooapis.com/combo?3.3.0/build/cssreset/reset-min.css&3.3.0/build/cssgrids/grids-min.css&3.3.0/build/cssfonts/fonts-min.css'),
 			  \html_requires(css('gallery-paginator.css')),
+			  \yui3_combo(yui3,
+				      ['cssreset/reset-min.css',
+				       'cssgrids/grids-min.css',
+				       'cssfonts/fonts-min.css'
+				      ]),
 			  \html_eq_header(http_eq_evaluate, Alignment),
 			  div(class('yui3-skin-sam yui-skin-sam'),
 			      [ div([id(content), class('yui3-g')],
