@@ -51,10 +51,11 @@ expand_mapping(Strategy, Id, Mapping) :-
 	rdf(Id, OutputType, Process, Strategy),
 	!,
 	with_mutex(Process, expand_process(Strategy, Process, Result)),
+	materialize_results_if_needed(Strategy, Process, Result),
 	select_result_mapping(Result, OutputType, Mapping),
 	length(Mapping, Count),
-	debug(ag_expand, 'Found ~w mappings for ~p', [Count, Id]),
-	materialize_if_needed(Id, Mapping).
+	debug(ag_expand, 'Found ~w mappings for ~p', [Count, Id]).
+
 
 %%	expand_vocab(+Strategy, +Id, -Concepts) is det.
 %
@@ -98,7 +99,7 @@ do_expand_process(Strategy, Process, Result) :-
 	debug(ag_expand, 'Output of process ~p (~p) computed in ~ws',
 	      [Process,Type,Time]),
 
-	% Work is done, but still lots of admin to do... caching first
+	% Work is done, but still lots of admin to do...
 	cache_expand_result(Time, Process, Strategy, Result),
 
 	% Provenance admin:
@@ -313,6 +314,18 @@ param_options(Type, Default, Options) :-
 	->  Options = [default(Default)|Type]
 	;   Options = [default(Default), Type]
 	).
+
+materialize_results_if_needed(Strategy, Process, Results) :-
+	findall(Id-RP,
+		(   rdf_has(Id, opmv:wasGeneratedBy, Process, RP),
+		    rdf(Id, RP, Process, Strategy)
+		),
+		Ids),
+	forall(member(Id-P, Ids),
+	       (   select_result_mapping(Results, P, Mapping),
+		   materialize_if_needed(Id, Mapping)
+	       )
+	      ).
 
 %%	materialize_if_needed(+Id, Mapping) is det.
 %
