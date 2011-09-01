@@ -58,11 +58,16 @@ match(align(S, T, Prov0), align(S, T, [Prov|Prov0]), Options) :-
 	),
 	option(steps(MaxSteps), Options),
 
-	ancestor(S, MaxSteps, AncS, R1, _Steps1),
-	ancestor(T, MaxSteps, AncT, R2, _Steps2),
+	ancestor(S, MaxSteps, AncS, R1, Steps1),
+	ancestor(T, MaxSteps, AncT, R2, Steps2),
 	has_correspondence(align(AncS,AncT,_), Graph),
 	Prov = [method(ancestor_match),
+		source_ancestor(AncS),
+		target_ancestor(AncT),
+		source_steps(Steps1),
+		target_steps(Steps2),
 		graph([R1,R2])
+
 	       ].
 	/* FIXME, see descendent match
 	has_map([AncS, AncT],_,O, Graph),
