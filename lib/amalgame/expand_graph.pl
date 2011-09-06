@@ -462,7 +462,7 @@ evaluation_graph(Strategy, Mapping, EvalGraph) :-
 	format(atom(Comment), 'Manual evaluation of ~w', [Mapping]),
 
 	rdf_assert(EvalProcess, rdf:type, amalgame:'EvaluationProcess', Strategy),
-	rdf_assert(EvalProcess, rdfs:label, literal('Manual evaluation', Strategy)),
+	rdf_assert(EvalProcess, rdfs:label, literal('Manual evaluation process'), Strategy),
 	rdf_assert(EvalProcess, amalgame:input,	Mapping, Strategy),
 
 	rdf_assert(EvalGraph, rdf:type, amalgame:'EvaluatedMapping', Strategy),
