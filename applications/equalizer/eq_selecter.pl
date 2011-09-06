@@ -31,7 +31,7 @@
 %	project.
 
 http_eq(_Request) :-
-	authorized(write(default, _)),
+	% authorized(write(default, _)),
 	html_page.
 
 find_schemes(Schemes) :-
@@ -76,11 +76,23 @@ html_page :-
 %
 
 html_new(Schemes) -->
+	{
+	 logged_on(User, anonymous),
+	 catch(check_permission(User, write(default,_)), _, fail),
+	 !
+	},
 	html_acc_item(new, 'new alignment project',
 		      [ form(action(location_by_id(http_eq_new)),
 			     [ \html_vocab_table(Schemes),
 			       \html_submit('Start')
 			     ])
+		      ]).
+
+html_new(_) -->
+	html_acc_item(new,
+		      'please login to access other functions',
+		      [
+		       div(a([], ['login button should go here']))
 		      ]).
 
 html_vocab_table(Vs) -->
@@ -141,13 +153,20 @@ html_open(Alignments) -->
 			       \html_submit('Start')
 			     ])
 		      ]).
+
 html_publish(Alignments) -->
+	{
+	 logged_on(User, anonymous),
+	 catch(check_permission(User, write(default,_)), _, fail),
+	 !
+	},
 	html_acc_item(publish, 'publish mapping results',
 		      [ form(action(location_by_id(http_eq_publish_form)),
 			     [ \html_alignment_table(Alignments),
 			       \html_submit('Publish')
 			     ])
 		      ]).
+html_publish(_) -->  !.
 
 html_alignment_table(Alignments) -->
 	html(table([thead(tr(\html_alignment_head)),
@@ -186,6 +205,11 @@ graph_label(Graph, Graph).
 
 
 html_import -->
+	{
+	 logged_on(User, anonymous),
+	 catch(check_permission(User, write(default,_)), _, fail),
+	 !
+	},
 	html_acc_item(import, 'upload strategy or clone execution trace',
 		      [ form(action(location_by_id(http_eq_upload_url)),
 			     [ 'URL: ',
@@ -206,6 +230,7 @@ html_import -->
 			     ])
 		      ]).
 
+html_import --> !.
 
 %%	html_submit(+Label)
 %
