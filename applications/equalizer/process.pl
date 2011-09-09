@@ -222,7 +222,7 @@ update_node_prop(status=Status, URI, Alignment) :-
 
 change_ns_if_needed(NS, URI, Strategy, NewStrategy) :-
 	rdf(Strategy, amalgame:publish_ns, OldNS, Strategy),
-	(OldNS == NS; NS == ''
+	((OldNS == NS; NS == '')
 	-> NewStrategy = Strategy
 	;  rdf_retractall(URI, amalgame:publish_ns, OldNS, Strategy),
 	   rdf_assert(URI, amalgame:publish_ns, NS, Strategy),
