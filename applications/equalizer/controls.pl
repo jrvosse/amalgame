@@ -281,8 +281,12 @@ module_input_type(_, '').
 %	control in the UI.
 
 module_special_type(M, subtract) :-
-	rdfs_subclass_of(M, amalgame:'Subtracter'),
+	(   rdfs_subclass_of(M, amalgame:'Subtracter');
+	    rdfs_subclass_of(M, amalgame:'AncestorMatcher');
+	    rdfs_subclass_of(M, amalgame:'DescendentMatcher')
+	),
 	!.
+
 module_special_type(M, merger) :-
 	rdfs_subclass_of(M, amalgame:'Merger'),
 	!.
