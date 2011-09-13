@@ -9,7 +9,8 @@
 	    is_edm_collection/1,
 	    mapping_counts/7,
 	    concept_count/3,
-	    flush_stats_cache/0
+	    flush_stats_cache/0,
+	    has_write_permission/0
 	  ]).
 
 :- use_module(library(http/html_write)).
@@ -27,6 +28,11 @@
 
 :- dynamic
 	stats_cache/2.
+
+has_write_permission :-
+	logged_on(User, anonymous),
+	catch(check_permission(User, write(default,_)), _, fail).
+
 
 flush_stats_cache :-
 	retractall(stats_cache(_,_)),
