@@ -81,7 +81,7 @@ YUI.add('controls', function(Y) {
 			for (var uri in nodes) {
 				var m = nodes[uri];
 				if(m.type == "mapping") {
-					HTML += '<div><input type="checkbox" name="exclude" value="'+uri+'">'
+					HTML += '<div><input type="checkbox" name="secondary_input" value="'+uri+'">'
 					+' <span>'+m.label+'</span></div>';
 				}
 			}

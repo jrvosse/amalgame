@@ -30,7 +30,11 @@ http_add_process(Request) :-
 			[ input(Input,
 				[uri,
 				 optional(true),
-				 description('URI of input mapping')]),
+				 description('URI of (primary) input mapping')]),
+			  secondary_input(SecInputs,
+				  [uri,
+				   zero_or_more,
+				   description('List of mappings used as aditional input (e.g by exclude or ancestor matching)')]),
 			  source(Source,
 				 [uri,
 				  optional(true),
@@ -39,9 +43,6 @@ http_add_process(Request) :-
 				 [uri,
 				  optional(true),
 				  description('URI of the target')]),
-			  exclude(Excludes,
-				  [uri,				   zero_or_more,
-				   description('List of mappings to exclude')]),
 			  process(Process,
 				  [uri,
 				   description('URI of the process')]),
@@ -53,11 +54,11 @@ http_add_process(Request) :-
 				  descrption('When set to true process is updated with new parameters')])
 			],
 			[form_data(Params0)]),
-	subtract(Params0, [input=_,source=_,target=_,process=_,alignment=_,exclude=_,update=_], Params),
+	subtract(Params0, [input=_,source=_,target=_,process=_,alignment=_,secondary_input=_,update=_], Params),
 	(   Update == true
 	->  update_process(Process, Alignment, Params)
 	;   ((nonvar(Source), nonvar(Target)) ; nonvar(Input))
-	->  new_process(Process, Alignment, Source, Target, Input, Excludes, Params)
+	->  new_process(Process, Alignment, Source, Target, Input, SecInputs, Params)
 	;   true
 	),
 	js_alignment_nodes(Alignment, Nodes),
@@ -81,18 +82,18 @@ clean_dependent_cache(_Process) :-
 	flush_stats_cache.
 
 %%	new_process(Process, +Alignment, ?Source, ?Target, ?Input,
-%%	?Excludes, +Params)
+%%	?SecInputs, +Params)
 %
 %	Create new amalgame process.
 
-new_process(Process, Alignment, Source, Target, Input, Excludes, Params) :-
+new_process(Process, Alignment, Source, Target, Input, SecInputs, Params) :-
 	rdf_bnode(URI),
 	rdf_transaction((
 			 assert_process(URI, Process, Alignment, Params),
 			 assert_user_provenance(URI, Alignment),
 			 assert_input(URI, Alignment, Source, Target, Input),
 			 assert_output(URI, Process, Alignment),
-			 assert_excludes(Excludes, URI, Alignment)
+			 assert_secondary_inputs(SecInputs, URI, Alignment)
 			)).
 
 assert_input(Process, Graph, Source, Target, _Input) :-
@@ -104,10 +105,10 @@ assert_input(Process, Graph, Source, Target, _Input) :-
 assert_input(Process, Graph, _Source, _Target, Input) :-
 	rdf_assert(Process, amalgame:input, Input, Graph).
 
-assert_excludes([], _, _).
-assert_excludes([URI|URIs], Process, Graph) :-
-	rdf_assert(Process, amalgame:exclude, URI, Graph),
-	assert_excludes(URIs, Process, Graph).
+assert_secondary_inputs([], _, _).
+assert_secondary_inputs([URI|URIs], Process, Graph) :-
+	rdf_assert(Process, amalgame:secondary_input, URI, Graph),
+	assert_secondary_inputs(URIs, Process, Graph).
 
 assert_process(Process, Type, Graph, Params) :-
 	process_label(Type, Label),
