@@ -109,36 +109,17 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 %	* S and T have different types, other than skos:Concept,
 %         and one is the subclass of the other.
 
-matching_types(S1, _) :- untyped(S1), true, !.
-matching_types(_ ,S2) :- untyped(S2), true, !.
 matching_types(S1, S2) :-
-	findall(Type,
-		(rdf(S1, rdf:type, Type),
-		 \+ rdf_equal(Type,  skos:'Concept')
-		), Types1),
-	findall(Type,
-		(rdf(S2, rdf:type, Type),
-		 \+ rdf_equal(Type,  skos:'Concept')
-		), Types2),
-	member(T1, Types1), member(T2, Types2),
-	(   T1 == T2
-	->  true
-	;   rdfs_subclass_of(T1, T2)
-	->  true
-	;   rdfs_subclass_of(T2, T1)
-	->  true
-	;   debug(ex_expand, 'Non matching types ~p/~p', [T1,T2]),
-	    false
-	),
-	!.
-
-%%	untyped(+C) is semidet.
-%
-%	C is considered untyped if skos:Concept is its only type.
-
-untyped(S) :-
-	ground(S),
-	rdf_equal(SkosConcept, skos:'Concept'),
-	findall(Type, rdf(S, rdf:type, Type),[SkosConcept]).
-
-
+	(   (rdf(S1, rdf:type, T1),  \+ rdf_equal(T1, skos:'Concept'))
+	->  ((rdf(S2, rdf:type, T2), \+ rdf_equal(T2, skos:'Concept'))
+	    ->  T1 == T2
+	    ->  true
+	    ;   rdfs_subclass_of(T1, T2)
+	    ->  true
+	    ;   rdfs_subclass_of(T2, T1)
+	    ->  true
+	    ;   debug(ex_expand, 'Non matching types ~p/~p', [T1,T2]),
+		false
+	    )
+	;   true)
+	,!.
