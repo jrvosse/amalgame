@@ -194,14 +194,17 @@ del_materialized_vocs :-
 exec_amalgame_process(Type, Process, Strategy, Module, Mapping, Time, Options) :-
 	rdfs_subclass_of(Type, amalgame:'Matcher'),
 	!,
+	findall(S, rdf(Process, amalgame:secondary_input, S), SecInputs),
+	maplist(expand_mapping(Strategy), SecInputs, SecInputNF),
+	flatten(SecInputNF, SecInput),
 	(   rdf(Process, amalgame:source, SourceId, Strategy),
 	    rdf(Process, amalgame:target, TargetId, Strategy)
 	->  expand_vocab(Strategy, SourceId, Source),
 	    expand_vocab(Strategy, TargetId, Target),
-	    timed_call(Module:matcher(Source, Target, Mapping0, Options), Time)
+	    timed_call(Module:matcher(Source, Target, Mapping0, [snd_input(SecInput)|Options]), Time)
 	;   rdf(Process, amalgame:input, InputId)
 	->  expand_mapping(Strategy, InputId, MappingIn),
-	    timed_call(Module:filter(MappingIn, Mapping0, Options), Time)
+	    timed_call(Module:filter(MappingIn, Mapping0, [snd_input(SecInput)|Options]), Time)
 	),
 	merge_provenance(Mapping0, Mapping).
 
@@ -212,7 +215,7 @@ exec_amalgame_process(Class, Process, Strategy, Module, Result, Time, Options) :
 	!,
 	once(rdf(Process, amalgame:input, Input, Strategy)),
 	expand_vocab(Strategy, Input, Vocab),
-	findall(S, rdf(Process, amalgame:exclude, S), Ss),
+	findall(S, rdf_has(Process, amalgame:secondary_input, S), Ss),
 	maplist(expand_mapping(Strategy), Ss, Expanded),
 	append(Expanded, Mapping),
 	timed_call(Module:exclude(Vocab, Mapping, Result, [NewVocOption|Options]), Time).
