@@ -31,7 +31,7 @@ eq:menu_item(http_eq_build, 'build').
 %	builder.
 
 http_eq_build(Request) :-
-	authorized(write(default, _)),
+	% authorized(write(default, _)),
 	http_parameters(Request,
 			[ alignment(Alignment,
 				    [uri,
@@ -84,7 +84,11 @@ yui_script(Alignment) -->
 	{ findall(K-V, js_path(K, V), Paths),
 	  findall(M-C, js_module(M,C), Modules),
 	  pairs_keys(Modules, Includes),
-	  js_alignment_nodes(Alignment, Nodes)
+	  js_alignment_nodes(Alignment, Nodes),
+	  (   has_write_permission
+	  ->  Read_only = false
+	  ;   Read_only = true
+	  )
 	},
 	yui3([json([modules(json(Modules))])
 	     ],
@@ -92,7 +96,8 @@ yui_script(Alignment) -->
 	     [ \yui3_new(eq, 'Y.Builder',
 			 json([alignment(Alignment),
 			       paths(json(Paths)),
-			       nodes(json(Nodes))
+			       nodes(json(Nodes)),
+			       readonly(Read_only)
 			      ]))
 	     ]).
 
