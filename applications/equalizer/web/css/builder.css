@@ -70,7 +70,6 @@
 	max-height: 150px;
     overflow: auto;
 }
-#controls input,
 #controls textarea {
 	width: 97%;
 }
