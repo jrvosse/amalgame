@@ -20,9 +20,11 @@
 
 :- http_handler(amalgame(opmviz), http_opmviz, []).
 
+:- setting(secondary_input, atom, hide, 'Show or hide arrows for amalgame:secondary_input').
+
 
 opmviz_options([edge_links(false),
- 		shape_hook(opm_shape),
+		shape_hook(opm_shape),
 		graph_attributes([])
 	       ]).
 
@@ -42,7 +44,7 @@ http_opmviz(Request) :-
 				 ]),
 			  graph(Graph,
 				 [description('URI from which we request the context')])
- 			]),
+			]),
 	(   Format \== html
 	->  reply_alignment_graph(Graph, Format)
 	;   opmviz_options(Options),
@@ -75,11 +77,11 @@ html_opmviz(Graph) -->
 
 html_opmviz(Graph) -->
 	{ http_link_to_id(http_opmviz, [graph(Graph),format(svg)], HREF)
- 	},
+	},
 	html([ object([ id(opmviz),
 			data(HREF),
 			type('image/svg+xml')
- 		      ],
+		      ],
 		      [])
 	     ]).
 
@@ -101,7 +103,12 @@ opm_graph_triple(Graph,S,P,O) :-
 
 is_opm_property(P) :-
 	rdfs_subproperty_of(P, opmv:used),
+	(   setting(secondary_input, hide)
+	->  \+ rdf_equal(amalgame:secondary_input, P)
+	;   true
+	),
 	!.
+
 is_opm_property(P) :-
 	rdfs_subproperty_of(P, opmv:wasGeneratedBy),
 	!.
@@ -117,7 +124,7 @@ is_opm_property(P) :-
 %	Defines graph node shape for different types of OPM resources.
 
 opm_shape(R, [shape(box),
- 	      style(filled),
+	      style(filled),
 	      fillcolor(Color),
 	      fontsize(10)]) :-
 	atom(R),
@@ -139,7 +146,7 @@ opm_shape(R, [shape(ellipse),
 	!,
 	artifact_color(R, Color).
 opm_shape(_R, [shape(box),
- 	       fontsize(10)]).
+	       fontsize(10)]).
 
 process_color(R, '#FFCC99') :-
 	rdfs_individual_of(R, amalgame:'Subtracter'),
