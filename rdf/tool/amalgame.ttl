@@ -55,6 +55,10 @@ amalgame:input
 amalgame:exclude
 	rdfs:domain opmv:Process ;
 	rdfs:range  amalgame:Alignment ;
+	rdfs:subPropertyOf amalgame:secondary_input .
+amalgame:secondary_input
+	rdfs:domain opmv:Process ;
+	rdfs:range  amalgame:Alignment ;
 	rdfs:subPropertyOf opmv:used .
 
 amalgame:selectedBy
