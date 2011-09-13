@@ -30,6 +30,7 @@
 %	Emit html page to start a new or load an existing alignment
 %	project.
 
+
 http_eq(_Request) :-
 	% authorized(write(default, _)),
 	html_page.
@@ -77,9 +78,7 @@ html_page :-
 
 html_new(Schemes) -->
 	{
-	 logged_on(User, anonymous),
-	 catch(check_permission(User, write(default,_)), _, fail),
-	 !
+	 has_write_permission, !
 	},
 	html_acc_item(new, 'new alignment project',
 		      [ form(action(location_by_id(http_eq_new)),
@@ -156,8 +155,7 @@ html_open(Alignments) -->
 
 html_publish(Alignments) -->
 	{
-	 logged_on(User, anonymous),
-	 catch(check_permission(User, write(default,_)), _, fail),
+	 has_write_permission,
 	 !
 	},
 	html_acc_item(publish, 'publish mapping results',
@@ -206,8 +204,7 @@ graph_label(Graph, Graph).
 
 html_import -->
 	{
-	 logged_on(User, anonymous),
-	 catch(check_permission(User, write(default,_)), _, fail),
+	 has_write_permission,
 	 !
 	},
 	html_acc_item(import, 'upload strategy or clone execution trace',
