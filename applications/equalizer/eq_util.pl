@@ -10,6 +10,7 @@
 	    mapping_counts/7,
 	    concept_count/3,
 	    flush_stats_cache/0,
+	    flush_stats_cache/2,
 	    has_write_permission/0
 	  ]).
 
@@ -35,8 +36,10 @@ has_write_permission :-
 
 
 flush_stats_cache :-
-	retractall(stats_cache(_,_)),
-	flush_expand_cache.
+	retractall(stats_cache(_,_)).
+
+flush_stats_cache(Process, Strategy) :-
+	retractall(stats_cache(Process-Strategy,_)).
 
 %%	html_eq_header(+Active, +Alignment)
 %
@@ -244,7 +247,7 @@ mapping_counts(URL, Strategy, MN, SN, TN, SPerc, TPerc) :-
 	    rounded_perc(TargetN, TN, TPerc)
 	;   SPerc = 100, TPerc = 100
 	),
-	retractall(stats_cache(URL-Strategy,_)),
+	flush_stats_cache(URL, Strategy),
 	assert(stats_cache(URL-Strategy, stats(MN, SN, TN, SPerc, TPerc))).
 
 rounded_perc(0, _, 0.0) :- !.
