@@ -104,6 +104,7 @@ YUI.add('builder', function(Y) {
 			this.infobox = new Y.InfoBox({
 				srcNode: NODE_INFO,
 				alignment: this.get("alignment"),
+				mappings: this.get("nodes"),
 				datasource: DS
 			});
 		},
