@@ -32,7 +32,6 @@ eq:menu_item(http_eq_analyse, 'analyse').
 %	Emit html page with for the alignment analyser.
 
 http_eq_analyse(Request) :-
-	authorized(write(default, _)),
 	http_parameters(Request,
 			[ alignment(Alignment,
 				    [uri, optional(true),
