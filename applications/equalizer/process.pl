@@ -58,9 +58,9 @@ http_add_process(Request) :-
 	findall(secondary_input=S,member(secondary_input=S, Params1), SecParams),
 	subtract(Params1, SecParams, Params),
 	(   Update == true
-	->  update_process(Process, Alignment, Params),
-	    rdf_retractall(Process, amalgame:secondary_input, _, Alignment),
-	    assert_secondary_inputs(SecInputs, Process, Alignment)
+	->  rdf_retractall(Process, amalgame:secondary_input, _, Alignment),
+	    assert_secondary_inputs(SecInputs, Process, Alignment),
+	    update_process(Process, Alignment, Params)
 	;   ((nonvar(Source), nonvar(Target)) ; nonvar(Input))
 	->  new_process(Process, Alignment, Source, Target, Input, SecInputs, Params)
 	;   true
@@ -76,14 +76,39 @@ http_add_process(Request) :-
 %	@TBD only remove cached results that depend on Process.
 
 update_process(Process, Graph, Params) :-
-	clean_dependent_cache(Process),
+	provenance_graph(Graph, ProvGraph),
+	clean_dependent_caches(Process, Graph, ProvGraph),
 	uri_query_components(Search, Params),
 	rdf_transaction((rdf_retractall(Process, amalgame:parameters, _),
 			 rdf_assert(Process, amalgame:parameters, literal(Search), Graph)
 			)).
 
-clean_dependent_cache(_Process) :-
-	flush_stats_cache.
+is_dependent_chk(Mapping, Process, Strategy) :-
+	rdf_has(Mapping, opmv:wasGeneratedBy, Process, RP),
+	rdf(Mapping, RP, Process, Strategy),
+	!.
+is_dependent_chk(Mapping, Process, Strategy) :-
+	rdf_has(Mapping, opmv:wasGeneratedBy, OtherProcess, RP1),
+	rdf(Mapping, RP1, OtherProcess, Strategy),
+	rdf_has(OtherProcess, opmv:used, OtherMapping, RP2),
+	rdf(OtherProcess, RP2, OtherMapping, Strategy),
+	is_dependent_chk(OtherMapping, Process, Strategy),!.
+
+
+clean_dependent_caches(Process, Strategy, ProvGraph) :-
+	flush_stats_cache(Process, Strategy),
+	flush_expand_cache(Process, Strategy),
+	remove_old_prov(Process, ProvGraph),
+	findall(DepProcess,
+		(rdf_has(Result, opmv:wasGeneratedBy, Process, RP1),
+		 rdf(Result, RP1, Process, Strategy),
+		 rdf_has(DepProcess, opmv:used, Result, RP2),
+		 rdf(DepProcess, RP2, Result, Strategy)
+		),
+		Deps),
+	forall(member(Dep, Deps),
+	       clean_dependent_caches(Dep, Strategy, ProvGraph)).
+
 
 %%	new_process(Process, +Alignment, ?Source, ?Target, ?Input,
 %%	?SecInputs, +Params)
@@ -110,9 +135,12 @@ assert_input(Process, Graph, _Source, _Target, Input) :-
 	rdf_assert(Process, amalgame:input, Input, Graph).
 
 assert_secondary_inputs([], _, _).
-assert_secondary_inputs([URI|URIs], Process, Graph) :-
-	rdf_assert(Process, amalgame:secondary_input, URI, Graph),
-	assert_secondary_inputs(URIs, Process, Graph).
+assert_secondary_inputs([URI|URIs], Process, Strategy) :-
+	(   is_dependent_chk(URI, Process, Strategy)
+	->  debug(eq, 'Not adding secondary input ~p, it will lead to cyclic dependency on process ~p', [URI, Process])
+	;   rdf_assert(Process, amalgame:secondary_input, URI, Strategy)
+	),
+	assert_secondary_inputs(URIs, Process, Strategy).
 
 assert_process(Process, Type, Graph, Params) :-
 	process_label(Type, Label),
