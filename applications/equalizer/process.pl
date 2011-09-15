@@ -54,9 +54,13 @@ http_add_process(Request) :-
 				  descrption('When set to true process is updated with new parameters')])
 			],
 			[form_data(Params0)]),
-	subtract(Params0, [input=_,source=_,target=_,process=_,alignment=_,secondary_input=_,update=_], Params),
+	subtract(Params0, [input=_,source=_,target=_,process=_,alignment=_,update=_], Params1),
+	findall(secondary_input=S,member(secondary_input=S, Params1), SecParams),
+	subtract(Params1, SecParams, Params),
 	(   Update == true
-	->  update_process(Process, Alignment, Params)
+	->  update_process(Process, Alignment, Params),
+	    rdf_retractall(Process, amalgame:secondary_input, _, Alignment),
+	    assert_secondary_inputs(SecInputs, Process, Alignment)
 	;   ((nonvar(Source), nonvar(Target)) ; nonvar(Input))
 	->  new_process(Process, Alignment, Source, Target, Input, SecInputs, Params)
 	;   true
@@ -69,7 +73,7 @@ http_add_process(Request) :-
 %
 %	Update the parameters of Process.
 %
-%	@TBD only removed cached results that depend on Process.
+%	@TBD only remove cached results that depend on Process.
 
 update_process(Process, Graph, Params) :-
 	clean_dependent_cache(Process),
