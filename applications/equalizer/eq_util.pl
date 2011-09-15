@@ -171,8 +171,10 @@ http:convert_parameter(uri, In, URI) :-
 	(   sub_atom(In, B, _, A, :),
 	    sub_atom(In, _, A, 0, Local),
 	    xml_name(Local)
-	->  sub_atom(In, 0, B, _, NS),
-	    rdf_global_id(NS:Local, URI)
+	->  ( (sub_atom(In, 0, B, _, NS), rdf_db:ns(NS,_))
+	    ->  rdf_global_id(NS:Local, URI)
+	    ;   URI=Local
+	    )
 	;   is_absolute_url(In)
 	->  URI = In
 	).
