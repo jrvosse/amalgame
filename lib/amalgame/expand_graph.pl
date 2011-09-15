@@ -145,10 +145,12 @@ flush_expand_cache :-
 	      ).
 
 flush_expand_cache(Id, Strategy) :-
-	expand_cache(Id-Strategy, _), % make sure Id is bounded to something in the cache
-	retractall(expand_cache(Id-Strategy, _)),
-	catch(rdf_unload(Id), _, true),
-	debug(ag_expand, 'flush cache and unloading graph for ~p', [Id]).
+	(   expand_cache(Id-Strategy, _) % make sure Id is bounded to something in the cache
+	->  retractall(expand_cache(Id-Strategy, _)),
+	    catch(rdf_unload(Id), _, true),
+	    debug(ag_expand, 'flush cache and unloading graph for ~p', [Id])
+	;   true
+	).
 
 del_prov_graphs :-
 	findall(P,provenance_graph(_,P), ProvGraphs),
