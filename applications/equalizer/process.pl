@@ -96,18 +96,24 @@ is_dependent_chk(Mapping, Process, Strategy) :-
 
 
 clean_dependent_caches(Process, Strategy, ProvGraph) :-
-	flush_stats_cache(Process, Strategy),
 	flush_expand_cache(Process, Strategy),
-	remove_old_prov(Process, ProvGraph),
+	findall(Result,
+		(   rdf_has(Result, opmv:wasGeneratedBy, Process, RP),
+		    rdf(Result, RP, Process, Strategy)
+		), Results),
+	forall(member(Result, Results),
+	       flush_stats_cache(Result, Strategy)
+	      ),
 	findall(DepProcess,
-		(rdf_has(Result, opmv:wasGeneratedBy, Process, RP1),
-		 rdf(Result, RP1, Process, Strategy),
-		 rdf_has(DepProcess, opmv:used, Result, RP2),
-		 rdf(DepProcess, RP2, Result, Strategy)
+		(   member(Result, Results),
+		    rdf_has(DepProcess, opmv:used, Result, RP),
+		    rdf(DepProcess, RP, Result, Strategy)
 		),
 		Deps),
 	forall(member(Dep, Deps),
-	       clean_dependent_caches(Dep, Strategy, ProvGraph)).
+	       clean_dependent_caches(Dep, Strategy, ProvGraph)),
+
+	remove_old_prov(Process, ProvGraph).
 
 
 %%	new_process(Process, +Alignment, ?Source, ?Target, ?Input,
