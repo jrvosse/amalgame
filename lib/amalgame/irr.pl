@@ -133,7 +133,8 @@ encode_findings([H|T], [RefHead|RefTail], [HeadResult|TailResults]) :-
 
 
 encode_finding(align(S,T,[P|_]), align(S,T,_), Encoding) :-
-	member(relation(R), P),
+	rdf_equal(Default, amalgame:unspecified),
+	option(relation(R), P, Default),
 	(   encoding_table(R,Encoding)
 	->  true
 	;   encoding_table(default, Encoding)
