@@ -117,10 +117,10 @@ mapping(Strategy, URI, Label) :-
 %
 %	Nodes contains all nodes in alignment with their OPM type.
 
-js_alignment_nodes(Alignment, Nodes) :-
-	findall(S, graph_resource(Alignment, S), Nodes0),
+js_alignment_nodes(Strategy, Nodes) :-
+	findall(S, graph_resource(Strategy, S), Nodes0),
 	sort(Nodes0, Nodes1),
-	maplist(node_data, Nodes1, Nodes).
+	maplist(node_data(Strategy), Nodes1, Nodes).
 
 graph_resource(Graph, R) :-
 	rdf(R,rdf:type,_,Graph).
@@ -131,13 +131,13 @@ graph_resource(Graph, R) :-
 graph_resource(Graph, R) :-
 	rdf(Graph, amalgame:includes, R).
 
-node_data(R, R=json(Props)) :-
-	findall(Type=Value, node_prop(R, Type, Value), Props).
+node_data(Strategy, R, R=json(Props)) :-
+	findall(Type=Value, node_prop(Strategy, R, Type, Value), Props).
 
-node_prop(R, label, Label) :-
+node_prop(_S, R, label, Label) :-
 	rdf_display_label(R, Lit),
 	literal_text(Lit, Label).
-node_prop(R, type, Type) :-
+node_prop(_S, R, type, Type) :-
 	(   rdfs_individual_of(R, amalgame:'AlignmentStrategy')
 	->  Type = strategy
 	;   rdfs_individual_of(R, amalgame:'Mapping')
@@ -146,19 +146,25 @@ node_prop(R, type, Type) :-
 	->  Type = process
 	;   Type = vocab
 	).
-node_prop(EDM, type, vocab) :-
+node_prop(_S, EDM, type, vocab) :-
 	is_edm_collection(EDM).
-node_prop(R, secondary_inputs, Inputs) :-
-	findall(I, rdf_has(R, amalgame:secondary_input, I), Inputs).
-node_prop(R, namespace, NS) :-
-	rdf(R, amalgame:publish_ns, NS).
-node_prop(R, status, Status) :-
-	rdf(R, amalgame:status, Status).
-node_prop(R, comment, Comment) :-
-	rdf(R, rdfs:comment, literal(Lit)),
+node_prop(S, R, secondary_inputs, Inputs) :-
+	findall(I,
+		(   rdf_has(R, amalgame:secondary_input, I, RP),
+		    rdf(R, RP, I, S)
+
+		), Inputs).
+node_prop(S, R, namespace, NS) :-
+	rdf(R, amalgame:publish_ns, NS, S).
+node_prop(S, R, status, Status) :-
+	rdf(R, amalgame:status, Status, S).
+node_prop(S, R, comment, Comment) :-
+	rdf(R, rdfs:comment, literal(Lit), S),
 	literal_text(Lit, Comment).
-node_prop(R, link, Link) :-
+node_prop(_, R, link, Link) :-
 	resource_link(R, Link).
+node_prop(S, Voc, count, Count) :-
+	stats_cache(Voc-S, stats(Count)).
 
 %%	http:convert_parameter(+Type, +In, -URI) is semidet.
 %
