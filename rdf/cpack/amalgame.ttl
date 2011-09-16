@@ -14,6 +14,7 @@
 <> a cpack:Application ;
 	cpack:packageName "amalgame" ;
 	dcterms:title "Amalgame concept alignment toolkit" ;
+	cpack:home <http://semanticweb.cs.vu.nl/amalgame/> ;
 	cpack:author [ a foaf:Person ;
 		       foaf:name "Jacco van Ossenbruggen" ;
 		       foaf:mbox "Jacco.van.Ossenbruggen@cs.vu.nl" ;
