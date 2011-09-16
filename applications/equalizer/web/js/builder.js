@@ -90,6 +90,7 @@ YUI.add('builder', function(Y) {
 			this.set("selected", alignment);
 			this.opmviz = new Y.OPMViz({
 				datasource: DS,
+				mappings: this.get("nodes"),
 				alignment: alignment
 			}).render(NODE_OPM);
 		},
