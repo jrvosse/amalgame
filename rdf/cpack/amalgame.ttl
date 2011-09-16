@@ -26,6 +26,8 @@
 	cpack:description
 """
 Amalgame provides a web-based interactive platform for creating, analyzing and evaluating vocabulary alignments.  It aims to support domain experts to make alignments interactively.  To realize this it focuses on simple alignment techniques which the user understand and knows how to use, and which are sufficiently fast to be used in an interactive session.  Amalgame keeps track of all the provenance related information, so that mapping experiments can be replicated later, and other users can explore the context that played a role in creating the mappings.  Amalgame is implemented by using common web technology on the client (e.g. HTML,CSS,AJAX and the YUI toolkit) and SWI-Prolog's ClioPatria platform on the server.
+
+This work was partially supported by the PrestoPRIME and EuropeanaConnect projects. 
 """.
 
 
