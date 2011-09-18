@@ -89,7 +89,7 @@ amalgame:MapMerger
     rdfs:subClassOf amalgame:Merger .
 
 amalgame:VocExclude
-    rdfs:label "subtract mappings"@en ;
+    rdfs:label "subtract mapped concepts"@en ;
     skos:definition "Subtract from a vocabulary the sources or targets from a given mapping to create a vocabulary with the unmapped concepts."@en ;
     rdfs:subClassOf amalgame:Subtracter ;
     rdfs:subClassOf amalgame:VocabSelecter .
