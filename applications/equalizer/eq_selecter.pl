@@ -192,7 +192,7 @@ html_scheme_labels([S|Ss]) -->
 
 html_graph_name(Graph) -->
 	{ graph_label(Graph, Label),
-	  resource_link(Graph,Link)
+	  http_link_to_id(http_eq_build, [alignment(Graph)], Link)
 	},
 	html(a([href(Link)],Label)).
 
