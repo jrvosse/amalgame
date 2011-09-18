@@ -380,7 +380,7 @@ save_mappings(Strategy, Dir, Options) :-
 
 	select_mappings_to_be_saved(Strategy, Mappings, Options),
 	forall(member(Mapping, Mappings),
-	       save_mapping(Mapping, Strategy, ProvGraph, [dir(Dir),Options])),
+	       save_mapping(Mapping, Strategy, ProvGraph, [dir(Dir)|Options])),
 
 	rdf_save_turtle(StratFile, [graph(Strategy)|Options]),
 	rdf_save_turtle(ProvFile,  [graph(ProvGraph)|Options]),
@@ -391,7 +391,7 @@ save_mappings(Strategy, Dir, Options) :-
 save_mapping(Id, Strategy, ProvGraph, Options) :-
 	(   \+ rdf_graph(Id)
 	->  expand_mapping(Strategy, Id, Mapping),
-	    materialize_mapping_graph(Mapping, [graph(Id)])
+	    materialize_mapping_graph(Mapping, [graph(Id)|Options])
 	;   true
 	),
 	rdf_equal(xsd:int, Int),
