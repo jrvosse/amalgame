@@ -41,11 +41,26 @@ partition_(target, [A|As], Sel, Dis, Und) :-
 	    Dis = DisRest
 	),
 	partition_(target, Rest, SelRest, DisRest, UndRest).
-
+partition_(source, [A|As], Sel, Dis, Und) :-
+	A = align(_,T,_),
+	same_target(As, T, Same, Rest),
+	(   hierarchy_related(Same, A, Parent, Dis0)
+	->  Sel = [Parent|SelRest],
+	    append(Dis0, DisRest, Dis),
+	    Und = UndRest
+	;   append([A|Same], UndRest, Und),
+	    Sel = SelRest,
+	    Dis = DisRest
+	),
+	partition_(sourc, Rest, SelRest, DisRest, UndRest).
 same_source([align(S,T,P)|As], S, [align(S,T,P)|Same], Rest) :-
 	!,
 	same_source(As, S, Same, Rest).
 same_source(As, _S, [], As).
+same_target([align(S,T,P)|As], T, [align(S,T,P)|Same], Rest) :-
+	!,
+	same_target(As, T, Same, Rest).
+same_target(As, _T, [], As).
 
 
 hierarchy_related([], G, G, []).
