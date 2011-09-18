@@ -13,6 +13,7 @@
 :- use_module(user(user_db)).
 
 :- use_module(library(amalgame/expand_graph)).
+:- use_module(library(amalgame/map)).
 
 :- use_module(eq_util).
 :- use_module(controls).
@@ -48,7 +49,10 @@ http_eq_publish(Request) :-
 			[ alignment(Alignment,
 				    [uri,
 				     description('URI of an alignment workflow')]),
-			  status(Status, [uri, description('amalgame:status value')])
+			  status(Status, [uri, description('amalgame:status value')]),
+			  default_relation(DefaultRelation,
+					   [uri,
+					    description('URI of the default mapping relation, to be used if no other relation has been assigned')])
 			]),
 
 	expand_file_search_path(alignment_results(.), L),
@@ -58,7 +62,7 @@ http_eq_publish(Request) :-
 	atomic_list_concat([BaseDir, AlignmentB], '/', Dir),
 	atomic_list_concat(['file:/', BaseDir, AlignmentB], '/', FileDir),
 	http_absolute_location(alignment_results(AlignmentB/'void.ttl'), VoidLink, []),
-	save_mappings(Alignment, Dir, [status(Status)]),
+	save_mappings(Alignment, Dir, [status(Status), default_relation(DefaultRelation)]),
 
 	reply_html_page(equalizer(main),
 			[ title(['Saved alignments'])
@@ -82,6 +86,7 @@ http_eq_publish(Request) :-
 html_page(Alignment) :-
 	html_set_options([dialect(html)]),
 	findall(R, status_option(R), StatusOptions),
+	supported_map_relations(MapRelations),
 	reply_html_page(equalizer(main),
 			[ title(['Align vocabularies'])
 			],
@@ -97,6 +102,11 @@ html_page(Alignment) :-
 						   [ option(value('all')),
 						     \html_options(StatusOptions)]),
 					    ' mappings.',
+					    br([]),
+					    'Default map relation: ',
+					    select([name(default_relation)],
+						   [option(value('none')),
+						   \html_options(MapRelations)]),
 					    button([type(submit)],'Go')
 					   ])
 				    ])
