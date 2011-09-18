@@ -276,10 +276,14 @@ materialize_mapping_graph(Input, Options) :-
         align_ensure_stats(all(Graph)).
 
 mat_alignment_graph([], _).
-mat_alignment_graph([align(S,T, P)|As], Options) :-
-        assert_cell(S, T, [prov(P)|Options]),
-        % option(graph(Graph), Options, test),
-        % rdf_assert(S, skos:exactMatch, T, Graph),
+mat_alignment_graph([align(S,T,P)|As], Options) :-
+        (   flatten(P, Pflat), member(relation(R), Pflat)
+	->  Relation = relation(R)
+	;   option(default_relation(R), Options)
+	->  Relation = relation(R)
+	;   Relation = foo(bar)
+	),
+        assert_cell(S, T, [prov(P), Relation |Options]),
         mat_alignment_graph(As, Options).
 
 assert_counts([],_).
