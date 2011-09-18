@@ -52,7 +52,7 @@ partition_(source, [A|As], Sel, Dis, Und) :-
 	    Sel = SelRest,
 	    Dis = DisRest
 	),
-	partition_(sourc, Rest, SelRest, DisRest, UndRest).
+	partition_(source, Rest, SelRest, DisRest, UndRest).
 same_source([align(S,T,P)|As], S, [align(S,T,P)|Same], Rest) :-
 	!,
 	same_source(As, S, Same, Rest).
