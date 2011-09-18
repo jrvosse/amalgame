@@ -192,7 +192,7 @@ output_type(_ProcessType, amalgame:'Mapping').
 
 
 process_label(P, Lit) :-
-	(   rdf_label(P, L)
+	(   rdf_display_label(P, L)
 	->  Lit = L
 	;   rdf_global_id(_:Local, P),
 	    Lit = literal(Local)

@@ -197,7 +197,7 @@ html_graph_name(Graph) -->
 	html(a([href(Link)],Label)).
 
 graph_label(Graph, Label) :-
-	rdf_label(Graph, Lit),
+	rdf_display_label(Graph, Lit),
 	literal_text(Lit, Label).
 graph_label(Graph, Graph).
 
