@@ -238,7 +238,7 @@ resource_alternative_labels(R, Label, Alt) :-
 	sort(Alt1, Alt).
 
 resource_label_text(R, L) :-
-	rdf_label(R, Lit),
+	rdf_display_label(R, Lit),
 	literal_text(Lit, L).
 
 %%	related_resources(+Resource, -Related)
