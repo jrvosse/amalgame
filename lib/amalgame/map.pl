@@ -1,6 +1,8 @@
 :- module(ag_map,
 	  [
-	   has_correspondence/2,
+	   has_correspondence/2,    % align/3, MappingGraph URI
+	   remove_correspondence/2, % align/3, MappingGraph URI
+
 	   assert_counts/2,        % +MapList, +ProvGraph
 	   materialize_mapping_graph/2, % +List, +Options
 	   merge_provenance/2,     % +List, -Merged
@@ -10,7 +12,6 @@
 	   has_map/4,              % ?Map, ?Format ?Options, ?Graph
 	   has_map/3,		   % ?Map, ?Format ?Graph
 	   has_map_chk/3,	   % ?Map, ?Format ?Graph
-	   retract_map/3 ,	   % +Map, +Format, +Graph
 	   supported_map_relations/1 % ?URIList
 	  ]
 	 ).
@@ -29,6 +30,7 @@ from the underlying formats.
 
 :- use_module(library(amalgame/edoal)).
 :- use_module(library(amalgame/alignment)).
+:- use_module(library(ag_util)).
 
 :- rdf_meta
 	mapping_props(t),
@@ -37,8 +39,7 @@ from the underlying formats.
 mapping_props([
 	       align:measure,
 	       align:relation,
-	       rdfs:comment,
-	       amalgame:provenance
+	       rdfs:comment
 	      ]).
 
 mapping_relation(skos, skos:mappingRelation).
@@ -76,18 +77,23 @@ map_iterator([E1,E2], GraphList) :-
         member(G, GraphList),
 	has_map([E1, E2], _, G).
 
-has_correspondence(align(E1,E2,[P]), Graph) :-
+has_correspondence(align(E1, E2, P), Graph) :-
 	has_map([E1, E2], _, Properties, Graph),
-	(   memberchk(method(_), Properties)
-	->  AddMethod = []
-	;   AddMethod = [method(preloaded)]
-	),
-	(   memberchk(graph(_), Properties)
-	->  AddGraph = []
-	;   AddGraph = [graph(Graph)]
-	),
-	append([AddGraph,AddMethod, Properties], P).
+	flatten(Properties, Pflat),
+	(   memberchk(method(_), Pflat)
+	->  P = Properties
+	;   P = [[method(preloaded), graph(Graph)]|Properties]
+	).
 
+
+remove_correspondence(align(E1, E2, Prov), Graph) :-
+	ground(Graph),
+	ground(E1),
+	ground(E2),
+	has_edoal_map_([E1, E2], Cell, Graph),
+	has_correspondence(align(E1, E2, Prov), Graph),
+	!,
+	remove_resource(Cell, Graph).
 
 %%	has_map(+Map, ?Format, ?Properties, -Graph) is non_det.
 %%%	has_map(+Map, ?Format, -Graph) is non_det.
@@ -111,7 +117,23 @@ has_map([E1, E2], edoal, Properties, Graph) :-
 		    rdf(Cell, Prop, Value, Graph),
 		    prop_to_term(Prop, Value, Term)
 		),
-		Properties).
+		DirectProperties0),
+	(   DirectProperties0 \= []
+	->  DirectProperties = [[method(direct) | DirectProperties]]
+	;   DirectProperties = []
+	),
+	findall(Bnode, rdf(Cell, amalgame:evidence, Bnode, Graph), Bnodes),
+	findall(Prov,
+		(   member(Bnode, Bnodes),
+		    findall(Term,
+			    (	rdf(Bnode, Prop, Value, Graph),
+				prop_to_term(Prop, Value, Term)
+			    ),
+			    Prov)
+		),
+		ProvList),
+	append(DirectProperties, ProvList, Properties).
+
 
 has_map([E1, E2], Format, [relation(RealProp)], Graph) :-
 	mapping_relation(Format,MappingProp),
@@ -188,6 +210,8 @@ prop_to_term(Prop, Value, Term) :-
 	;   NS:Local = amalgame:method
 	->  literal(Literal) = Value,
 	    term_to_atom(RealValue, Literal)
+	;   literal(RealValue) = Value
+	->  true
 	;   RealValue = Value
 	),
 	Term =.. [Local, RealValue],!.
