@@ -19,6 +19,7 @@
 :- use_module(library(amalgame/edoal)).
 :- use_module(library(amalgame/map)).
 :- use_module(library(ag_util)).
+:- use_module(eq_util).
 
 :- setting(rows_per_page, integer, 100,
 	   'Maximum number of mappings shown.').
@@ -116,7 +117,7 @@ http_data_evaluate(Request) :-
 			   relation(Relation,
 				    [description('Relation between source and target')]),
 			   mapping(Mapping,
-				   [description('Graph to store user actions')]),
+				   [description('URI of mapping being evaluated')]),
 			   alignment(Alignment,
 				     [description('Alignment strategy graph')]),
 			   comment(Comment,
@@ -125,15 +126,17 @@ http_data_evaluate(Request) :-
 			]),
 
 	evaluation_graph(Alignment, Mapping, Graph),
+	flush_stats_cache(Graph, Alignment),
 	Options = [user(User),
 		   relation(Relation),
 		   graph(Graph),
 		   comment(Comment)
 		  ],
-	rdf_display_label(Source, SLabel),
-	rdf_display_label(Target, TLabel),
 	mapping_relation(RLabel, Relation),
 	assert_cell(Source, Target, Options),
+
+	rdf_display_label(Source, SLabel),
+	rdf_display_label(Target, TLabel),
 	reply_json(json([source=json([uri=Source, label=SLabel]),
 			 target=json([uri=Target, label=TLabel]),
 			 relation=json([uri=Relation, label=RLabel])
