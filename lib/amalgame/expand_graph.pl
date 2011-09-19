@@ -464,6 +464,8 @@ evaluation_graph(Strategy, Mapping, EvalGraph) :-
 evaluation_graph(Strategy, Mapping, EvalGraph) :-
 	gensym(evaluation_process, EvalProcess),
 	gensym(evaluation_result, EvalGraph),
+	\+ rdf_graph(EvalGraph),
+
 	format(atom(Comment), 'Manual evaluation of ~w', [Mapping]),
 
 	rdf_assert(EvalProcess, rdf:type, amalgame:'EvaluationProcess', Strategy),
