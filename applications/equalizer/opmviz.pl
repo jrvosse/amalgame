@@ -20,7 +20,7 @@
 
 :- http_handler(amalgame(opmviz), http_opmviz, []).
 
-:- setting(secondary_input, atom, hide, 'Show or hide arrows for amalgame:secondary_input').
+:- setting(secondary_input, atom, show, 'Show or hide arrows for amalgame:secondary_input').
 
 
 opmviz_options([edge_links(false),
