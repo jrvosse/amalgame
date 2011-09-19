@@ -25,6 +25,11 @@
 
 eq:menu_item(http_eq_build, 'build').
 
+
+backward_compatibilty_fixes(Strategy) :-
+	fix_sec_inputs(Strategy),
+	fix_publish_ns(Strategy).
+
 %%	http_eq_build(+Request)
 %
 %	HTTP handler for web page with interactive vocabulary alignment
@@ -37,7 +42,7 @@ http_eq_build(Request) :-
 				    [uri,
 				     description('URI of an alignment')])
 			]),
-	fix_publish_ns(Alignment),
+	backward_compatibilty_fixes(Alignment),
 	html_page(Alignment).
 
 		 /*******************************
@@ -146,10 +151,22 @@ js_module(controls, json([fullpath(Path),
 			])) :-
 	http_absolute_location(js('controls.js'), Path, []).
 
-fix_publish_ns(A) :-
+fix_publish_ns(S) :-
 	% backward compatibility
-	(   rdf(A, amalgame:publish_ns, _,A)
+	(   rdf(S, amalgame:publish_ns, _,S)
 	->  true
 	;   setting(eq_publisher:default_namespace, NS),
-	    rdf_assert(A, amalgame:publish_ns, NS, A)
+	    rdf_assert(S, amalgame:publish_ns, NS, S)
 	).
+
+fix_sec_inputs(Strategy) :-
+	% backward compatibility
+	findall(rdf(S,RP,O),
+		(   rdf_has(S,amalgame:secondary_input, O, RP),
+		    rdf(S, RP, O, Strategy)
+		), Triples),
+	forall(member(rdf(S,P,O), Triples),
+	       (   rdf_retractall(S,P,O,Strategy),
+		   rdf_assert(S,amalgame:secondary_input, O, Strategy)
+	       )
+	      ).
