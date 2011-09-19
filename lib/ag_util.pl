@@ -8,6 +8,8 @@
 	    remove_resource/2 % +Resource, +Graph
 	  ]).
 
+:- use_module(library(semweb/rdf_db)).
+
 :- meta_predicate
         find_unique(-, 0, +, -).
 
