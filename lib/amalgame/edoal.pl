@@ -115,7 +115,7 @@ assert_cell(C1, C2, Options) :-
 	->  assert_provlist(Prov, Cell, Graph, Options)
 	;   true
 	),
-	% re-instated the method assserter for Anna's stratify needs ...
+	% re-instated the method asserter for Anna's stratify needs ...
 	(   option(method(MethodList), Options)
 	->  assert_methodlist(MethodList, Cell, Graph)
 	;   true
@@ -129,6 +129,10 @@ assert_methodlist([M|MethodList], Cell, Graph) :-
 
 
 assert_provlist([], _, _,_).
+assert_provlist([P|ProvList], Cell, Graph, Options) :-
+	memberchk(method(direct), P), !,
+	assert_provlist(ProvList, Cell, Graph, Options).
+
 assert_provlist([P|ProvList], Cell, Graph, Options) :-
 	rdf_bnode(B),
 	rdf_assert(Cell, amalgame:evidence, B, Graph),
@@ -146,6 +150,10 @@ assert_prov_elem(graph, ValueGraph, Subject, TargetGraph, Options) :-
 	    rdf_assert_triples(ValueGraph, Subject)
 	;   true
 	).
+assert_prov_elem(relation, Relation, Subject, Graph, _Options) :-
+	rdf_assert(Subject, align:relation, Relation, Graph).
+assert_prov_elem(user, User, Subject, Graph, _Options) :-
+	rdf_assert(Subject, amalgame:user, User, Graph).
 
 assert_prov_elem(Key, Value, Subject, Graph, _Options) :-
 	rdf_global_id(amalgame:Key, Property),
