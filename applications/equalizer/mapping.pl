@@ -50,7 +50,7 @@ http_data_mapping(Request) :-
 	setting(rows_per_page, RowsPerPage),
 	http_parameters(Request,
 			[ url(URL,
-			      [description('URL of mapping graph')]),
+			      [description('URL of mapping or evaluation graph')]),
 			  alignment(Strategy, [description('URL of strategy')]),
 			  sort(SortBy,
 			       [default(source),
@@ -63,6 +63,12 @@ http_data_mapping(Request) :-
 				 [default(0), number,
 				  description('first result that is returned')])
 		       ]),
+
+	(   rdfs_individual_of(URL, amalgame:'EvaluatedMapping')
+	->  expand_mapping(Strategy, URL, PreviousEvaluation)
+	;   evaluation_graph(Strategy, URL, Prev),
+	    expand_mapping(Strategy, Prev, PreviousEvaluation)
+	),
 	expand_mapping(Strategy, URL, Mapping0),
 	length(Mapping0, Count),
 	maplist(mapping_label, Mapping0, Mapping1),
@@ -70,7 +76,7 @@ http_data_mapping(Request) :-
 	sort_by_arg(Mapping1, SortKey, MSorted),
 	list_offset(MSorted, Offset, MOffset),
 	list_limit(MOffset, Limit, MLimit, _),
-	mapping_data(MLimit, Mapping),
+	mapping_data(MLimit, PreviousEvaluation, Mapping),
 	reply_json(json([url=URL,
 			 limit=Limit,
 			 offset=Offset,
@@ -84,18 +90,27 @@ mapping_label(align(S, T, Prov), align(S,SL,T,TL,Prov)) :-
 	resource_label_text(S, SL),
 	resource_label_text(T, TL).
 
-mapping_data([], []).
-mapping_data([Align|As], [json(Data)|Os]) :-
+mapping_data([], _, []).
+mapping_data([Align|As], PrevEval, [json(Data)|Os]) :-
 	Align = align(Source, SLabel, Target, TLabel, [Prov|_]),
 	Data0 = [source=json([uri=Source, label=SLabel]),
 		 target=json([uri=Target, label=TLabel])
 		],
-	(   option(relation(Rel), Prov)
-	->  relation_label(Rel, RLabel),
+	(   PrevEval = [Prev|PrevTail],
+	    Prev = align(Source, Target, PrevP),
+	    flatten(PrevP, PrevPflat)
+	->  option(relation(Rel), PrevPflat),
+	    NewPrev = PrevTail,
+	    relation_label(Rel, RLabel),
 	    Data = [relation=json([uri=Rel, label=RLabel])|Data0]
-	;   Data = Data0
+	;   option(relation(Rel), Prov)
+	->  NewPrev=PrevEval,
+	    relation_label(Rel, RLabel),
+	    Data = [relation=json([uri=Rel, label=RLabel])|Data0]
+	;   Data = Data0,
+	    NewPrev = PrevEval
 	),
-	mapping_data(As, Os).
+	mapping_data(As, NewPrev, Os).
 
 relation_label(R, Label) :-
 	mapping_relation(Label, R), !.
@@ -127,11 +142,20 @@ http_data_evaluate(Request) :-
 
 	evaluation_graph(Alignment, Mapping, Graph),
 	flush_stats_cache(Graph, Alignment),
-	Options = [user(User),
-		   relation(Relation),
+	(   has_correspondence(align(Source, Target, OldProv), Graph)
+	->  remove_correspondence(align(Source, Target, OldProv), Graph)
+	;   OldProv = [] % Fixme, we want to use the prov from Mapping here!
+	),
+	now_xsd(Now),
+	Options = [
 		   graph(Graph),
-		   comment(Comment)
+		   prov([[method(manual_evaluation),
+			 user(User),
+			 date(Now),
+			 comment(Comment),
+			 relation(Relation)]|OldProv])
 		  ],
+	debug(ag_expand, 'assert cell options: ~w', Options),
 	mapping_relation(RLabel, Relation),
 	assert_cell(Source, Target, Options),
 
@@ -317,6 +341,8 @@ html_scope(URI) -->
 	},
 	!,
 	html_item(scope, Txt).
+html_scope(_) --> !.
+
 
 html_related_list([]) --> !.
 html_related_list(Rs) -->
