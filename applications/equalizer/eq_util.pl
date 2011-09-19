@@ -10,7 +10,7 @@
 	    mapping_counts/7,
 	    concept_count/3,
 	    flush_stats_cache/0,
-	    flush_stats_cache/2,
+	    flush_stats_cache/2, % +Mapping, +Strategy
 	    has_write_permission/0
 	  ]).
 
@@ -38,8 +38,8 @@ has_write_permission :-
 flush_stats_cache :-
 	retractall(stats_cache(_,_)).
 
-flush_stats_cache(Process, Strategy) :-
-	retractall(stats_cache(Process-Strategy,_)).
+flush_stats_cache(Mapping, Strategy) :-
+	retractall(stats_cache(Mapping-Strategy,_)).
 
 %%	html_eq_header(+Active, +Alignment)
 %
