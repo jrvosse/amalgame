@@ -119,7 +119,7 @@ has_map([E1, E2], edoal, Properties, Graph) :-
 		),
 		DirectProperties0),
 	(   DirectProperties0 \= []
-	->  DirectProperties = [[method(direct) | DirectProperties]]
+	->  DirectProperties = [[method(direct) | DirectProperties0]]
 	;   DirectProperties = []
 	),
 	findall(Bnode, rdf(Cell, amalgame:evidence, Bnode, Graph), Bnodes),
