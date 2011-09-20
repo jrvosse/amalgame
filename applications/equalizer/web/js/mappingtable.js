@@ -118,7 +118,8 @@ YUI.add('mappingtable', function(Y) {
 		},
 		formatRelation : function(o) {
 			var label = o.value ? o.value.label : "";
-		return "<div class=relation>"+label+"</div>";
+			label = label?label:"";
+			return "<div class=relation>"+label+"</div>";
 		},
 
 		_onRowSelect : function(e) {
