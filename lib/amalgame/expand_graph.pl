@@ -387,12 +387,33 @@ save_mappings(Strategy, Dir, Options) :-
 	rdf_save_turtle(VoidFile,  [graph(VoidGraph)|Options]),
 	rdf_unload(VoidGraph).
 
+add_relation_if_needed(Mapping, Options) :-
+	rdf_graph(Mapping),
+	option(default_relation(Default), Options),
+	findall(Cell, (
+		      rdf(Mapping, align:map, Cell, Mapping),
+		      \+ rdf(Cell, align:relation, _, Mapping)
+		      ), Cells),
+	findall(Cell:Relation,
+		(   member(Cell,Cells),
+		    find_relation(Mapping, Cell, Default, Relation)
+		), CellRelationPairs),
+	forall(member(C:R, CellRelationPairs),
+	       rdf_assert(C, align:relation, R, Mapping)
+	      ).
+
+find_relation(Mapping, Cell, Default, Relation) :-
+	rdf(Cell, align:entity1, S, Mapping),
+	rdf(Cell, align:entity2, T, Mapping),
+	has_correspondence(align(S,T, P), Mapping),
+	flatten(P, Pflat),
+	option(relation(Relation), Pflat, Default).
 
 save_mapping(Id, Strategy, ProvGraph, Options) :-
 	(   \+ rdf_graph(Id)
 	->  expand_mapping(Strategy, Id, Mapping),
 	    materialize_mapping_graph(Mapping, [graph(Id)|Options])
-	;   true
+	;   add_relation_if_needed(Id, Options)
 	),
 	rdf_equal(xsd:int, Int),
 
