@@ -442,17 +442,17 @@ is_metadata_triple(S,P,literal(type(T,N)), _Graph) :-
 	rdf_has(S, amalgame:mappedTargetConcepts, literal(type(T,N))),
 	rdf_equal(P, void:distinctObjects).
 
-select_mappings_to_be_saved(Graph, Mappings, Options) :-
+select_mappings_to_be_saved(Strategy, Mappings, Options) :-
 	option(status(Status), Options, all),
 	(   Status == all
 	->  findall(Mapping,
 		    (	rdfs_individual_of(Mapping, amalgame:'Mapping'),
-			rdf(Mapping, rdf:type, _, Graph)
+			rdf(Mapping, rdf:type, _, Strategy)
 		    ),
 		    Mappings)
 	;   findall(Mapping,
 		    (	rdfs_individual_of(Mapping, amalgame:'Mapping'),
-			rdf(Mapping, rdf:type, _, Graph),
+			rdf(Mapping, rdf:type, _, Strategy),
 			rdf(Mapping, amalgame:status, Status)
 		    ), Mappings)
 	).
