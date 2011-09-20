@@ -407,7 +407,7 @@ find_relation(Mapping, Cell, Default, Relation) :-
 	rdf(Cell, align:entity2, T, Mapping),
 	has_correspondence(align(S,T, P), Mapping),
 	flatten(P, Pflat),
-	option(relation(Relation), Pflat, Default).
+	option(relation(Relation), Pflat, Default), !.
 
 save_mapping(Id, Strategy, ProvGraph, Options) :-
 	(   \+ rdf_graph(Id)
