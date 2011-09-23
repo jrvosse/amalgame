@@ -110,9 +110,9 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 %         and one is the subclass of the other.
 
 matching_types(S1, S2) :-
-	(   (rdf(S1, rdf:type, T1),  \+ rdf_equal(T1, skos:'Concept'))
-	->  ((rdf(S2, rdf:type, T2), \+ rdf_equal(T2, skos:'Concept'))
-	    ->  T1 == T2
+	(   (rdf(S1, rdf:type, T1), \+ rdf_equal(T1, skos:'Concept')),
+	    (rdf(S2, rdf:type, T2), \+ rdf_equal(T2, skos:'Concept'))
+	->  ( T1 == T2
 	    ->  true
 	    ;   rdfs_subclass_of(T1, T2)
 	    ->  true
@@ -121,5 +121,6 @@ matching_types(S1, S2) :-
 	    ;   debug(ex_expand, 'Non matching types ~p/~p', [T1,T2]),
 		false
 	    )
-	;   true)
+	;
+	true)
 	,!.
