@@ -130,25 +130,30 @@ opm_clear_process(Process) :-
 	rdf_retractall(Process, _, _, _),
 	rdf_retractall(_, _, Process, _).
 
-opm_program(Graph, Program):-
-	git_module_property('amalgame',   home_url(PackUrl)),
-	git_module_property('amalgame',   version(AG_version)),
-	git_module_property('ClioPatria', version(CP_version)),!,
+opm_program(Graph, Program)  :-
+	rdf_bnode(Program),
 	(  current_prolog_flag(version_git, PL_version)
 	-> true
 	;   current_prolog_flag(version, PL_version)
 	),
-	AG_git = 'http://eculture.cs.vu.nl/git/public/?p=econnect/amalgame.git&a=commit&h=',
-	format(atom(Program), '~w~w', [AG_git, AG_version]),
-	format(atom(AG), 'Amalgame: ~w', [AG_version]),
-	format(atom(CP), 'ClioPatria: ~w', [CP_version]),
-	format(atom(PL), 'SWI-Prolog: ~w', [PL_version]),
-	rdf_assert(Program, rdf:type,	opmvc:'Program', Graph),
-	rdf_assert(Program, rdfs:label, literal('Amalgame'), Graph),
-	rdf_assert(Program, opmvc:software, PackUrl, Graph),
-	rdf_assert(Program, opmvc:software, literal(AG), Graph),
-	rdf_assert(Program, opmvc:software, literal(CP), Graph),
-	rdf_assert(Program, opmvc:software, literal(PL), Graph).
+	findall(M-U-V,
+		(   git_module_property(M, home_url(U)),
+		    git_module_property(M, version(V))
+		),
+		MUVs
+	       ),
+	Prolog = 'swi-prolog'-'http://www.swi-prolog.org'-PL_version,
+	forall(member(M-U-V, [Prolog|MUVs]),
+	       (   rdf_bnode(B),
+	           rdf_assert(Program, opmvc:software, B, Graph),
+		   rdf_assert(B, 'http://usefulinc.com/ns/doap#revision',
+			      literal(V), Graph),
+		   rdf_assert(B, 'http://usefulinc.com/ns/doap#name',
+			      literal(M), Graph),
+		   rdf_assert(B, rdfs:seeAlso,
+			      literal(U), Graph)
+	       )
+	      ).
 
 opm_agent(Graph, Agent) :-
 	(
