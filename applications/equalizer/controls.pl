@@ -280,10 +280,11 @@ module_input_type(_, '').
 %	Type is set for modules that require additional javascript
 %	control in the UI.
 
-module_special_type(M, subtract) :-
+module_special_type(M, secinput) :-
 	(   rdfs_subclass_of(M, amalgame:'Subtracter');
 	    rdfs_subclass_of(M, amalgame:'AncestorMatcher');
-	    rdfs_subclass_of(M, amalgame:'DescendentMatcher')
+	    rdfs_subclass_of(M, amalgame:'DescendentMatcher');
+	    rdfs_subclass_of(M, amalgame:'RelatedMatcher')
 	),
 	!.
 

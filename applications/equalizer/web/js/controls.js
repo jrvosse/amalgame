@@ -55,7 +55,7 @@ YUI.add('controls', function(Y) {
 			Y.on("click", this._valueSet, NODE_SOURCE_BTN, this, "source");
 	      	Y.on("click", this._valueSet, NODE_TARGET_BTN, this, "target");
 			
-			// subtract modules need additional control to allow the mappings for exclusion
+			// secinput modules need additional control to allow the mappings for exclusion etc
 			this.after('nodesChange', this._setMappingSelecter, this);
 			this._setMappingSelecter();
 			
@@ -66,7 +66,7 @@ YUI.add('controls', function(Y) {
 		
 		_setMappingSelecter : function() {
 			var nodes = this.get("nodes");
-			Y.all(".subtract form").each( function(form) {
+			Y.all(".secinput form").each( function(form) {
 				var selecter = form.one('.mappingselect');
 				if(!selecter) {
 					selecter = Node.create('<div class="mappingselect"></div>');
@@ -174,7 +174,11 @@ YUI.add('controls', function(Y) {
 			} else if(type=="mapping") {
 				NODE_INPUT_BTN.removeAttribute("disabled");
 			}
-			
+			var nodes = this.get("nodes");
+			if (!nodes.value) {
+				Y.log(nodes);
+				Y.all(".secinput").addClass("disabled");
+			}
 			// enable matcher submit when both source and target have a value
 			if(NODE_INPUT.get("value")||
 				(NODE_SOURCE.get("value")&&NODE_TARGET.get("value"))) {
