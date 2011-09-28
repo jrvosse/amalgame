@@ -30,6 +30,15 @@
 :- dynamic
 	stats_cache/2.
 
+:- multifile
+	eq:menu_item/2.
+eq:menu_item(900=Handler, Label) :-
+	(   (logged_on(User, X), X \== User)
+	->  fail
+	;   Handler = cliopatria_openid:login_page,
+	    Label = '(please login to edit)'
+	).
+
 has_write_permission :-
 	logged_on(User, anonymous),
 	catch(check_permission(User, write(default,_)), _, fail).
@@ -46,7 +55,10 @@ flush_stats_cache(Mapping, Strategy) :-
 %	Emit page header with menu bar
 
 html_eq_header(Active, Alignment) -->
-	{ findall(Path-Label, eq:menu_item(Path, Label), Items)
+	{
+	  findall(Rank-(Path-Label), eq:menu_item(Rank=Path, Label), Items0),
+	  keysort(Items0, ItemsSorted),
+	  pairs_values(ItemsSorted, Items)
 	},
 	html(div(id(header),
 		 [ div(class(title),
@@ -65,7 +77,11 @@ html_menu_item(Handler, Label, Active, _Alignment) -->
 	!,
 	html(li(class(selected), span(Label))).
 html_menu_item(Handler, Label, _Active, Alignment) -->
-	{ http_link_to_id(Handler, [alignment(Alignment)], Link)
+	{ http_link_to_id(http_eq_build,
+			  [alignment(Alignment)], ReturnToAfterLogin),
+	  http_link_to_id(Handler, [
+				    'openid.return_to'(ReturnToAfterLogin),
+				    alignment(Alignment)], Link)
 	},
 	html(li(a(href(Link), Label))).
 

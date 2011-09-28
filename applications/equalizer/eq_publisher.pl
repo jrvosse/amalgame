@@ -28,7 +28,7 @@
 :- http_handler(amalgame(publish),      http_eq_publish, []).
 :- http_handler(amalgame(publish_form), http_eq_publish_form, []).
 
-eq:menu_item(http_eq_publish_form, 'publish').
+eq:menu_item(280=http_eq_publish_form, 'publish').
 
 %%	http_eq_publish_form(+Request)
 %

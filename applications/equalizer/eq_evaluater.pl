@@ -22,7 +22,7 @@ amalgame_module(amalgame:'EvaluationProcess').
 :- multifile
 	eq:menu_item/2.
 
-eq:menu_item(http_eq_evaluate, 'evaluate').
+eq:menu_item(210=http_eq_evaluate, 'evaluate').
 
 :- setting(rows_per_page, integer, 100,
 	   'Maximum number of mappings shown.').
