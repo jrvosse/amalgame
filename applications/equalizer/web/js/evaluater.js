@@ -1,9 +1,9 @@
 YUI.add('evaluater', function(Y) {
-	
+
 	var Lang = Y.Lang,
 		Node = Y.Node,
 		Plugin = Y.Plugin;
-	
+
 	var	NODE_MAPPING_LIST = Y.one("#mappinglist"),
 		NODE_MAPPING_TABLE = Y.one("#mappingtable"),
 		NODE_INFO = Y.one("#mappinginfo"),
@@ -11,7 +11,7 @@ YUI.add('evaluater', function(Y) {
 		NODE_SOURCE_ALL = Y.one("#allsources"),
 		NODE_TARGET_ALL = Y.one("#alltargets"),
 		NODE_DETAIL = Y.one("#detail");
-	
+
 	function Evaluater(config) {
 		Evaluater.superclass.constructor.apply(this, arguments);
 	}
@@ -29,7 +29,7 @@ YUI.add('evaluater', function(Y) {
 				mappinginfo:'/amalgame/private/info',
 				info:"/amalgame/private/correspondence",
 				evaluate:"/amalgame/data/evaluate"
-				
+
 			},
 			validator: function(val) {
 				return Lang.isObject(val)
@@ -60,28 +60,30 @@ YUI.add('evaluater', function(Y) {
 			}
 	    }
 	};
-	
+
 	Y.extend(Evaluater, Y.Base, {
-		
+
 		initializer: function(args) {
 			this._initInfo();
 			this._initList();
 			this._initTable();
 			this._initDetail();
-			
+
 			// bind the modules
+
 			this.mappinglist.on("mappingSelect", this._onMappingSelect, this);
+			this.mappinglist.on("wrapAround", this._onWrapAround, this);
 			this.mappingtable.on("rowSelect", this._onCorrespondenceSelect, this);
 			NODE_DETAIL.one(".submit").on("click", this._onSubmit, this);
 			NODE_DETAIL.one(".next").on("click", this._onSubmit, this, "next");
 			NODE_DETAIL.one(".prev").on("click", this._onSubmit, this, "prev");
 			NODE_DETAIL.one(".cancel").on("click", this._onCancel, this);
-			
+
 			NODE_SOURCE_ALL.on("click", this._fetchDetail, this);
 			NODE_TARGET_ALL.on("click", this._fetchDetail, this);
-			
+
 		},
-		
+
 		_initInfo : function() {
 			var selected = this.get("selected");
 			this.infoDS = new Y.DataSource.IO({
@@ -91,16 +93,16 @@ YUI.add('evaluater', function(Y) {
 				this._fetchInfo(selected);
 			}
 		},
-		
+
 		_initList : function() {
 			this.mappinglist = new Y.MappingList({
 				mappings:this.get("mappings"),
 				selected:this.get("selected")
 			}).render(NODE_MAPPING_LIST);
-		},	
-		
+		},
+
 		_initTable : function() {
-			// We define a datasource to simplify 
+			// We define a datasource to simplify
 			// access to the mappings later and add caching support
 			var DS = new Y.DataSource.IO({
 				source: this.get("paths").mapping
@@ -108,12 +110,12 @@ YUI.add('evaluater', function(Y) {
 			.plug(Plugin.DataSourceJSONSchema, {
 				schema: {
 					resultListLocator: "mapping",
-		      		resultFields: ["source", "target", "relation"],
-		      		metaFields: {
- 						totalNumberOfResults:"total"
+				resultFields: ["source", "target", "relation"],
+				metaFields: {
+						totalNumberOfResults:"total"
 					}
-		    	}
-		  	});
+			}
+			});
 
 			this.mappingtable = new Y.MappingTable({
 				srcNode: NODE_MAPPING_TABLE,
@@ -122,15 +124,15 @@ YUI.add('evaluater', function(Y) {
 				mapping:this.get("selected")
 			});
 		},
-		
+
 		_initDetail : function() {
 			this.detailOverlay = new Y.Overlay({
-        		srcNode:NODE_DETAIL,
-        		visible:false,
-        		width:"90%"
-    		}).render();
+			srcNode:NODE_DETAIL,
+			visible:false,
+			width:"90%"
+		}).render();
 		},
-				
+
 		_onMappingSelect : function(e) {
 			var uri = e.uri;
 			this.set("selected", uri);
@@ -138,41 +140,59 @@ YUI.add('evaluater', function(Y) {
 			this._fetchInfo(uri);
 			this.mappingtable.set("mapping", uri);
 		},
-		
+
 		_onCorrespondenceSelect : function(e) {
 			this._selectedRow = e.row;
 			this._source = e.sourceConcept.uri;
 			this._target = e.targetConcept.uri;
 			this._fetchDetail();
 		},
-			
+
 		_onSubmit : function(e, nav) {
 			e.preventDefault(e);
+			this.detailOverlay.set("visible", false);
 			var cs = this._getSelection();
 			var c = cs[0];
 			c.alignment = this.get("alignment");
 			c.mapping   = this.get("selected");
-			this._submitCorrespondence(c);
-			if(nav=="next") {
-				Y.log("next mapping");
-			} else if(nav=="prev") {
-				Y.log("prev mapping"); 
-			} else {
-				this.detailOverlay.set("visible", false);
+			if (c.relation) {
+			  this._submitCorrespondence(c);
+			}
+			var currentRow = this._selectedRow;
+			var nextRow = this.mappingtable.nextRow(currentRow);
+			var nextRecord =  this.mappingtable.nextRecord(currentRow);
+			if(nav=="prev") {
+			  nextRow = this.mappingtable.prevRow(currentRow);
+			  nextRecord =  this.mappingtable.prevRecord(currentRow);
+			}
+			if ( nav=="prev" || nav=="next") {
+			  currentRow.removeClass("yui3-datatable-selected");
+			  nextRow.addClass("yui3-datatable-selected");
+
+			  this._source = nextRecord.getValue("source").uri;
+			  this._target = nextRecord.getValue("target").uri;
+			  this._selectedRow = nextRow;
+			  this._fetchDetail();
 			}
 		},
-		
+
+		_onWrapAround : function(e) {
+				  Y.log("got wraparound event");
+				  window.scrollTo(e);
+		},
+
 		_onCancel : function(e) {
 			e.preventDefault(e);
 			this.detailOverlay.set("visible", false);
 		},
-				
+
 		_getSelection : function() {
 			var cs = [];
 			Y.all(".relations").each(function(node) {
 				var source = node.one("input[name=source]").get("value"),
 					target = node.one("input[name=target]").get("value"),
-					relation = node.one("input:checked").get("value"),
+					checked = node.one("input:checked"),
+					relation = checked?checked.get("value"):null,
 					comment = node.one("textarea[name=comment]").getContent();
 				cs.push({
 					source:source,
@@ -183,11 +203,11 @@ YUI.add('evaluater', function(Y) {
 			});
 			return cs;
 		},
-		
-		_submitCorrespondence : function(c) {	
+
+		_submitCorrespondence : function(c) {
 			var server = this.get("paths").evaluate,
 				row = this._selectedRow;
-				
+
 			Y.io(server, {
 				data:c,
 				on:{success:function(e,o) {
@@ -196,7 +216,7 @@ YUI.add('evaluater', function(Y) {
 				}}
 			});
 		},
-		
+
 		_fetchInfo : function(uri) {
 			if(uri) {
 				this.infoDS.sendRequest({
@@ -210,19 +230,19 @@ YUI.add('evaluater', function(Y) {
 				NODE_INFO.empty();
 			}
 		},
-		
+
 		_fetchDetail : function() {
 			var overlay = this.detailOverlay,
 				node = this._selectedRow,
 				server = this.get("paths").info;
 
-			// position the overlay bellow the currently selected row
+			// position the overlay below the currently selected row
 			overlay.set("width", node.get("offsetWidth"));
 			overlay.set("align", {
-    			node:node,
-    			points:[Y.WidgetPositionAlign.TR, Y.WidgetPositionAlign.BR]
-			});	
-			
+			node:node,
+			points:[Y.WidgetPositionAlign.TR, Y.WidgetPositionAlign.BR]
+			});
+
 			// call the server
 			var data = {
 				alignment:this.get("alignment"),
@@ -239,22 +259,22 @@ YUI.add('evaluater', function(Y) {
 						overlay.set("visible", true);
 					}
 				}
-			});		
+			});
 		}
 
-				
+
 /*
 						target.all(".moretoggle").on("click", function(e) {
-   							p = e.currentTarget.get("parentNode");
-   							p.all(".moretoggle").toggleClass("hidden");
-   							p.one(".morelist").toggleClass("hidden");
+							p = e.currentTarget.get("parentNode");
+							p.all(".moretoggle").toggleClass("hidden");
+							p.one(".morelist").toggleClass("hidden");
 						})
-*/				
-				
+*/
+
 	});
-	
+
 	Y.Evaluater = Evaluater;
-	
+
 }, '0.0.1', { requires: [
 	'node','event','anim','overlay','io-base',
 	'datasource-io','datasource-jsonschema',

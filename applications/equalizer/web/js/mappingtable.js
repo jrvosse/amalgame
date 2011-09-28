@@ -140,17 +140,39 @@ YUI.add('mappingtable', function(Y) {
 		},
 
 		nextRow : function(row) {
-			var rows = row.get("parentNode").all("tr"),
-				i = rows.indexOf(row),
-				next = rows.item(i++);
+			    var rows = row.get("parentNode").all("tr"),
+			        i = rows.indexOf(row);
 
-			var records = this.table.get("recordset"),
-				record = records.getRecord( next.get("id"));
-
-			return record;
-		}
-
-
+			    if (++i < rows.size()) {
+			      return rows.item(i);
+			    } else {
+			      var begin = rows.item(0);
+			      this.fire("wrapAround", begin.getXY());
+			      return row; // fix me
+			    }
+			  },
+		prevRow : function(row) {
+			    var rows = row.get("parentNode").all("tr"),
+			        i = rows.indexOf(row);
+			    if (--i >= 0) {
+			        return rows.item(i);
+			    } else {
+			      var end = rows.item(rows.size() - 1);
+			      this.fire("wrapAround", null);
+			      Y.log(end.getXY());
+			      return row; // fix me
+			    }
+			  },
+		nextRecord : function(row) {
+			       var next = this.nextRow(row),
+			         records = this.table.get("recordset");
+			         return records.getRecord(next.get("id"));
+			     },
+		prevRecord : function(row) {
+			       var prev = this.prevRow(row),
+			         records = this.table.get("recordset");
+			         return records.getRecord(prev.get("id"));
+			     },
 	});
 
 	Y.MappingTable = MappingTable;
