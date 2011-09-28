@@ -3,7 +3,9 @@
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
+:- use_module(library(semweb/rdf_label)).
 :- use_module(library(amalgame/vocabulary)).
+:- use_module(string_match_util).
 
 :- public amalgame_module/1.
 :- public filter/3.
@@ -13,12 +15,14 @@
 amalgame_module(amalgame:'ExactLabelMatcher').
 amalgame_module(amalgame:'ExactLabelFilter').
 
-parameter(sourcelabel, uri, P,
-	  'Property to get label of the source by') :-
-	rdf_equal(rdfs:label, P).
-parameter(targetlabel, uri, P,
-	  'Property to get the label of the target by') :-
-	rdf_equal(rdfs:label, P).
+parameter(sourcelabel, oneof(LabelProps), Default,
+	  '(Super)Property to get label of the source by') :-
+	rdf_equal(Default, rdfs:label),
+	label_list(LabelProps).
+parameter(targetlabel, oneof(LabelProps), Default,
+	  '(Super)Property to get the label of the target by') :-
+	rdf_equal(Default, rdfs:label),
+	label_list(LabelProps).
 parameter(language, atom, '', 'Language of source label').
 parameter(matchacross_lang, boolean, true,
 	  'Allow labels from different language to be matched').
@@ -59,8 +63,6 @@ align(Source, Target, Match, Options) :-
 	match(align(S,T,[]), Match, Options),
 	vocab_member(T, Target).
 
-
-
 match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options) :-
 	rdf_equal(rdfs:label, RdfsLabel),
 	option(sourcelabel(MatchProp1), Options, RdfsLabel),
@@ -100,27 +102,3 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 	;   matching_types(Source, Target)
 	).
 
-%%	matching_types(+S, +T) is semidet.
-%
-%	Fails if S and T have conflicting types.
-%       Succeeds if
-%	* S or T have no types other than skos:Concept, or,
-%	* S and T have equal types other than skos:Concept, or,
-%	* S and T have different types, other than skos:Concept,
-%         and one is the subclass of the other.
-
-matching_types(S1, S2) :-
-	(   (rdf(S1, rdf:type, T1), \+ rdf_equal(T1, skos:'Concept')),
-	    (rdf(S2, rdf:type, T2), \+ rdf_equal(T2, skos:'Concept'))
-	->  ( T1 == T2
-	    ->  true
-	    ;   rdfs_subclass_of(T1, T2)
-	    ->  true
-	    ;   rdfs_subclass_of(T2, T1)
-	    ->  true
-	    ;   debug(ex_expand, 'Non matching types ~p/~p', [T1,T2]),
-		false
-	    )
-	;
-	true)
-	,!.

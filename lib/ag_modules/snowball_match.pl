@@ -7,6 +7,7 @@
 :- use_module(library(lit_distance)).
 :- use_module(library(amalgame/vocabulary)).
 :- use_module(library(amalgame/candidate)).
+:- use_module(string_match_util).
 
 :- public amalgame_module/1.
 :- public parameter/4.
@@ -16,12 +17,14 @@
 amalgame_module(amalgame:'SnowballMatcher').
 amalgame_module(amalgame:'SnowballFilter').
 
-parameter(sourcelabel, uri, P,
-	  'Property to get label of the source by') :-
-	rdf_equal(rdfs:label, P).
-parameter(targetlabel, uri, P,
-	  'Property to get the label of the target by') :-
-	rdf_equal(rdfs:label, P).
+parameter(sourcelabel, oneof(LabelProps), Default,
+	  '(Super)Property to get label of the source by') :-
+	rdf_equal(Default, rdfs:label),
+	label_list(LabelProps).
+parameter(targetlabel, oneof(LabelProps), Default,
+	  '(Super)Property to get the label of the target by') :-
+	rdf_equal(Default, rdfs:label),
+	label_list(LabelProps).
 parameter(language, atom, '',
 	  'Language of source label').
 parameter(matchacross_lang, boolean, true,
@@ -63,13 +66,13 @@ align(Source, Target, Match, Options) :-
 	vocab_member(T, Target).
 
 align(Source, Target, Match, Options) :-
- 	prefix_candidate(Source, Target, Match0, Options),
+	prefix_candidate(Source, Target, Match0, Options),
 	match(Match0, Match, Options).
 
 match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options) :-
 	rdf_equal(rdfs:label,DefaultP),
-  	option(snowball_language(Snowball_Language), Options, dutch),
- 	option(sourcelabel(MatchProp1), Options, DefaultP),
+	option(snowball_language(Snowball_Language), Options, dutch),
+	option(sourcelabel(MatchProp1), Options, DefaultP),
 	option(targetlabel(MatchProp2), Options, DefaultP),
 	option(matchacross_lang(MatchAcross), Options, true),
 	option(language(Lang),Options, _),
@@ -98,8 +101,8 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 	;   literal_distance(SourceStem, TargetStem, Distance),
 	    Distance =< Edit_Distance
 	),
- 	Prov = [method(snowball),
- 		graph([rdf(Source, SourceProp, literal(lang(SourceLang, SourceLabel))),
+	Prov = [method(snowball),
+		graph([rdf(Source, SourceProp, literal(lang(SourceLang, SourceLabel))),
 		       rdf(Target, TargetProp, literal(lang(TargetLang, TargetLabel)))])
 	       ],
 	debug(align_result, 'snowball match: ~p ~p', [Source,Target]).

@@ -5,6 +5,7 @@
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(isub)).
 :- use_module(library(amalgame/vocabulary)).
+:- use_module(string_match_util).
 
 :- public filter/3.
 :- public matcher/4.
@@ -14,12 +15,14 @@
 amalgame_module(amalgame:'IsubMatcher').
 amalgame_module(amalgame:'IsubFilter').
 
-parameter(sourcelabel, uri, P,
-	  'Property to get label of the source by') :-
-	rdf_equal(rdfs:label, P).
-parameter(targetlabel, uri, P,
-	  'Property to get the label of the target by') :-
-	rdf_equal(rdfs:label, P).
+parameter(sourcelabel, oneof(LabelProps), Default,
+	  '(Super)Property to get label of the source by') :-
+	rdf_equal(Default, rdfs:label),
+	label_list(LabelProps).
+parameter(targetlabel, oneof(LabelProps), Default,
+	  '(Super)Property to get the label of the target by') :-
+	rdf_equal(Default, rdfs:label),
+	label_list(LabelProps).
 parameter(threshold, float, -1.0,
 	  'threshold edit distance').
 parameter(language, atom, '',
@@ -64,9 +67,9 @@ align(Source, Target, Match, Options) :-
 
 
 match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options) :-
- 	rdf_equal(skos:definition, DefaultProp),
+	rdf_equal(skos:definition, DefaultProp),
 	option(threshold(Threshold), Options, 0.0),
- 	option(sourcelabel(MatchProp1), Options, DefaultProp),
+	option(sourcelabel(MatchProp1), Options, DefaultProp),
 	option(targetlabel(MatchProp2), Options, DefaultProp),
 	(   rdf_has(Source, MatchProp1, SourceLit, SourceProp),
 	    rdf_has(Target, MatchProp2, TargetLit, TargetProp),
@@ -77,7 +80,7 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 	;   Similarity = 0
 	),
 	Similarity > Threshold,
- 	Prov = [method(isub),
+	Prov = [method(isub),
 		match(Similarity),
 		graph([rdf(Source, SourceProp, SourceLit),
 		       rdf(Target, TargetProp, TargetLit)])
