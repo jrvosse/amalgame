@@ -282,11 +282,21 @@ process_options(Process, Module, Options) :-
 	rdf(Process, amalgame:parameters, literal(ParamString)),
 	!,
 	module_options(Module, Options, Parameters),
-	parse_url_search(ParamString, Search),
+	parse_url_search(ParamString, Search0),
+	fix_non_expand_options(Search0, Search),
 	Request = [search(Search)] ,
 	http_parameters(Request, Parameters).
 process_options(_, _, []).
 
+fix_non_expand_options([],[]).
+fix_non_expand_options([Key=Value|Tail], [Key=FixedValue|Results]):-
+	(   \+ sub_atom(Value,0,_,_,'http:'),
+	    term_to_atom(NS:L, Value),
+	    rdf_global_id(NS:L,FixedValue)
+	->  true
+	;   FixedValue = Value
+	),
+	fix_non_expand_options(Tail, Results).
 
 %%	module_options(+Module, -Options, -Parameters)
 %
