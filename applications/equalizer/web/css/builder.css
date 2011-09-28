@@ -17,6 +17,8 @@
 	top: 35px;
 	width: 350px;
 	background-color: white;
+	height: 100%; 
+	overflow-y: scroll
 }
 /* controls */
 #controls .module-list {
