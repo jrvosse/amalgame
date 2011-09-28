@@ -1,6 +1,7 @@
 :- module(preloaded_matcher,[]).
 
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdfs)).
 :- use_module(library(amalgame/map)).
 :- use_module(library(amalgame/vocabulary)).
 
@@ -10,8 +11,9 @@
 
 amalgame_module(amalgame:'SelectPreLoaded').
 
-parameter(name, 'atom', 'no default',
-	  'url of named mapping graph').
+parameter(name, oneof(Loaded), 'no default',
+	  'url of named mapping graph') :-
+	findall(M, rdfs_individual_of(M, amalgame:'LoadedMapping'), Loaded).
 
 matcher(Source, Target, Mapping, Options) :-
 	option(name(Graph), Options),
