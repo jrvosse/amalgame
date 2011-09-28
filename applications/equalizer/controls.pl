@@ -13,6 +13,7 @@
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(http/html_write)).
 :- use_module(library(amalgame/amalgame_modules)).
+:- use_module(components(label)).
 
 :- rdf_meta
 	status_option(r).
@@ -256,8 +257,8 @@ oneof([], _) -->
 	[].
 oneof([H|T], Value) -->
 	(   {H == Value}
-	->  html([ option([selected(selected),value(H)], H) ])
-	;   html([ option([                   value(H)], H) ])
+	->  html([ option([selected(selected),value(H)], \turtle_label(H)) ])
+	;   html([ option([                   value(H)], \turtle_label(H)) ])
 	),
 	oneof(T, Value).
 
