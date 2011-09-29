@@ -32,7 +32,7 @@ partition_(_, [], [], [], []).
 partition_(target, [A|As], Sel, Dis, Und) :-
 	A = align(S,_,_),
 	same_source(As, S, Same, Rest),
-	(   hierarchy_related(Same, A, Parent, Dis0)
+	(   hierarchy_related(Same, target, A, Parent, Dis0)
 	->  Sel = [Parent|SelRest],
 	    append(Dis0, DisRest, Dis),
 	    Und = UndRest
@@ -44,7 +44,7 @@ partition_(target, [A|As], Sel, Dis, Und) :-
 partition_(source, [A|As], Sel, Dis, Und) :-
 	A = align(_,T,_),
 	same_target(As, T, Same, Rest),
-	(   hierarchy_related(Same, A, Parent, Dis0)
+	(   hierarchy_related(Same, source, A, Parent, Dis0)
 	->  Sel = [Parent|SelRest],
 	    append(Dis0, DisRest, Dis),
 	    Und = UndRest
@@ -63,8 +63,8 @@ same_target([align(S,T,P)|As], T, [align(S,T,P)|Same], Rest) :-
 same_target(As, _T, [], As).
 
 
-hierarchy_related([], G, G, []).
-hierarchy_related([A|As], G0, G, [A1|Rest]) :-
+hierarchy_related([], _, G, G, []).
+hierarchy_related([A|As], target, G0, G, [A1|Rest]) :-
 	A = align(_,T,_),
 	G0 = align(_,T0,_),
 	(   rdf_reachable(T, skos:broader, T0)
@@ -74,4 +74,16 @@ hierarchy_related([A|As], G0, G, [A1|Rest]) :-
 	->  G1 = A,
 	    A1 = G0
 	),
-	hierarchy_related(As, G1, G, Rest).
+	hierarchy_related(As, G1, target, G, Rest).
+
+hierarchy_related([A|As], source, G0, G, [A1|Rest]) :-
+	A = align(S,_,_),
+	G0 = align(S0,_,_),
+	(   rdf_reachable(S, skos:broader, S0)
+	->  G1 = G0,
+	    A1 = A
+	;   rdf_reachable(S0, skos:broader, S)
+	->  G1 = A,
+	    A1 = G0
+	),
+	hierarchy_related(As, source, G1, G, Rest).
