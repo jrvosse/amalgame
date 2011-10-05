@@ -129,7 +129,26 @@ new_process(Process, Alignment, Source, Target, Input, SecInputs, Params) :-
 			 assert_input(URI, Alignment, Source, Target, Input),
 			 assert_output(URI, Process, Alignment),
 			 assert_secondary_inputs(SecInputs, URI, Alignment)
-			)).
+			)),
+
+	(   setting(precompute_mapping, true)
+	->  precompute(URI, Alignment)
+	;   true).
+
+precompute(Process, Alignment) :-
+	rdf_has(Output, opmv:wasGeneratedBy, Process, RP),
+	rdf(Output, RP, Process, Alignment),
+	thread_create(
+	    (
+	    % Write debug output to server console, cannot write to client:
+	    set_stream(user_output, alias(current_output)),
+	    expand_mapping(Alignment, Output, _)
+	    ),
+	    _,
+	    [ detached(true) ]
+		     ).
+
+
 
 assert_input(Process, Graph, Source, Target, _Input) :-
 	nonvar(Source),
@@ -173,17 +192,7 @@ new_output(Type, Process, P, Graph) :-
 	\+ rdf(OutputURI, _, _),
 	rdf_assert(OutputURI, rdf:type, Type, Graph),
 	rdf_assert(OutputURI, amalgame:status, amalgame:intermediate, Graph),
-        rdf_assert(OutputURI, P, Process, Graph),
-	(   setting(precompute_mapping, true)
-	->  debug(eq, 'precompute ~w', [OutputURI]),
-	    thread_create((
-			  % Write debug output to server console,
-			  % cannot write to client:
-			  set_stream(user_output, alias(current_output)),
-			  expand_mapping(Graph, OutputURI, _)
-			  ), _, [ detached(true) ])
-	;   true
-	).
+        rdf_assert(OutputURI, P, Process, Graph).
 
 output_type(ProcessType, skos:'ConceptScheme') :-
 	rdfs_subclass_of(ProcessType, amalgame:'VocabSelecter'),
