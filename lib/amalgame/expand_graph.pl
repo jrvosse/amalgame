@@ -132,6 +132,9 @@ cache_expand_result(ExecTime, Process, Strategy, Result) :-
 	assert(expand_cache(Process-Strategy, Result)).
 cache_expand_result(_, _, _, _).
 
+user:message_hook(make(done(_)), _, _) :-
+	flush_expand_cache,
+	fail.
 %%	flush_expand_cache(+Id)
 %
 %	Retract all cached mappings.
