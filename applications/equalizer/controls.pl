@@ -257,12 +257,17 @@ oneof([], _) -->
 	[].
 oneof([H|T], Value) -->
 	(   {H == Value}
-	->  html([ option([selected(selected),value(H)], \turtle_label(H)) ])
-	;   html([ option([                   value(H)], \turtle_label(H)) ])
+	->  html([ option([selected(selected),value(H)], \mylabel(H)) ])
+	;   html([ option([                   value(H)], \mylabel(H)) ])
 	),
 	oneof(T, Value).
 
-
+mylabel(Value) -->
+	{ rdf_global_id(NS:Local, Value),!
+	},
+	html([NS, ':', Local]).
+mylabel(Value) -->
+	html(Value).
 %%	module_input_type(+ModuleURI, -InputType)
 %
 %	InpuType defines for which type of input the module can be
