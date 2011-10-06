@@ -133,8 +133,11 @@ cache_expand_result(ExecTime, Process, Strategy, Result) :-
 cache_expand_result(_, _, _, _).
 
 user:message_hook(make(done(_)), _, _) :-
+	debug(ag_expand, 'Flushing expand cache after running make/0', []),
+	retractall(current_program_uri(_)),
 	flush_expand_cache,
 	fail.
+
 %%	flush_expand_cache(+Id)
 %
 %	Retract all cached mappings.

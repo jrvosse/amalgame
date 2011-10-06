@@ -2,7 +2,8 @@
 		  opm_was_generated_by/4,       % +Process (cause), +Artifact (effect), +RDFGraph, +Options
 		  opm_include_dependency/2,     % +SourceGraph, +TargetGraph
 		  opm_clear_process/1,           % +Process (bnode)
-		  opm_assert_artefact_version/3
+		  opm_assert_artefact_version/3,
+		  current_program_uri/1
 		 ]).
 
 /* <module> OPM -- simple support for the OPM Provenance Model (OPM)
@@ -19,6 +20,9 @@
 :- use_module(library(opmvc_schema)).
 :- use_module(user(user_db)).
 :- use_module(library(http/http_session)).
+
+:- dynamic
+	current_program_uri/1.
 
 opm_include_dependency(Graph, Target) :-
 	opm_include_dependency([Graph], [], DepList),
@@ -130,8 +134,12 @@ opm_clear_process(Process) :-
 	rdf_retractall(Process, _, _, _),
 	rdf_retractall(_, _, Process, _).
 
+opm_program(_, Program) :-
+	current_program_uri(Program),!.
+
 opm_program(Graph, Program)  :-
 	rdf_bnode(Program),
+	assert(current_program_uri(Program)),
 	(  current_prolog_flag(version_git, PL_version)
 	-> true
 	;   current_prolog_flag(version, PL_version)
