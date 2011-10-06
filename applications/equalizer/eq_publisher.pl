@@ -60,19 +60,9 @@ http_eq_publish(Request) :-
 	absolute_file_name(L,BaseDir),!,
 	file_base_name(Alignment, AlignmentB),
 	atomic_list_concat([BaseDir, AlignmentB], '/', Dir),
-	atomic_list_concat(['file:/', BaseDir, AlignmentB], '/', FileDir),
-	http_absolute_location(alignment_results(AlignmentB/'void.ttl'), VoidLink, []),
 	save_mappings(Alignment, Dir, [status(Status), default_relation(DefaultRelation)]),
+	http_redirect(moved, alignment_results(AlignmentB), Request).
 
-	reply_html_page(equalizer(main),
-			[ title(['Saved alignments'])
-			],
-			[\html_requires(css('eq.css')),
-			 div([
-			      'Saved alignments in server directory ',
-			      a([href(VoidLink)], FileDir)
-			     ])
-			]).
 
 		 /*******************************
 		 *	      HTML		*
