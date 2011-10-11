@@ -47,9 +47,35 @@ YUI.add('controls', function(Y) {
 			// The control all have submit button that we bind here
 			NODE_CONTROLS.each(function(node) {
 			   node.one(".control-submit").on("click", this._onControlSubmit, this, node);
-			   // var overlaynode = Node.create("<div>foobar</div>");
-			   // Y.log(overlaynode);
-			   // node.overlay = new Y.Overlay({ bodyContent: "<div>foobar</div>", visible: true, zIndex: width:"50%" }).render();
+			   var explainNode=node.one("input[name=graphic]");
+			   if (explainNode) {
+			          node.one("div.desc").append("<div class='explain graphic'>(graphical explanation)</graphic>");
+				  var explainURI = explainNode.getAttribute('value');
+				  Y.log(explainURI);
+				  node.explain_overlay = new Y.Overlay(
+							   { bodyContent: "<img src='"+explainURI+"'/>",
+							     visible:false,
+							     zIndex:1,
+							     width:"100%"
+							   }).render();
+				  node.explain_overlay.on("click", function(e, node) {
+								     node.explain_overlay.set("visible", false);
+								   }, this, node);
+				  node.one("div.explain").on("click",
+							     function(e, node)
+							     {
+							       Y.log("explain activated");
+							       node.explain_overlay.set("visible", true);
+							       node.explain_overlay.set("align",
+											{
+											node:node,
+											points:["tl", "tl"]
+											});
+							     }, this, node);
+			   };
+
+
+
 			}, this);
 
 			// the match control has two additional buttons

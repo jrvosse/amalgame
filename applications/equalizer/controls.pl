@@ -171,7 +171,14 @@ html_module_items([[URI,Module]|Ms]) -->
 	html_module_items(Ms).
 
 module_form(URI, Params) -->
+	{
+	 (   amalgame_module_property(URI, explanation_graph(ExplainMe))
+	 ->  Explain = input([type(hidden), name(graphic), value(ExplainMe)])
+	 ;   Explain = ''
+	 )
+	},
 	html(form([input([type(hidden), name(process), value(URI)]),
+		   Explain,
 		   table(tbody(\html_parameter_form(Params))),
 		   div(class('control-buttons'),
 		       button(class('control-submit'), 'Go'))
