@@ -28,7 +28,7 @@ amalgame:SnowballMatcher
     skos:definition "A label matcher with similarity based on (snowball) stemming."@en ;
     rdfs:subClassOf amalgame:Matcher .
 
-amalgame:IsubMatcher        
+amalgame:IsubMatcher
     rdfs:label "string/similarity"@en ;
     skos:definition "An string similarity matcher based on the 'isub' metric introduced in 'A string metric for ontology alignment' by Giorgos Stoilos, 2005."@en ;
     rdfs:subClassOf amalgame:Matcher .
@@ -52,7 +52,7 @@ amalgame:AritySelect
     rdfs:label "arity"@en ;
     skos:definition "Select correspondence with a specific arity between source and target:\n 11 = unique source and target,\n N1 = unique target for a source,\n 1N = unique source for a target"@en ;
     rdfs:subClassOf amalgame:MappingSelecter .
-    
+
 amalgame:TokenAritySelect
     rdfs:label "token arity"@en ;
     skos:definition "Similar to plain arity selector, but now on the level of splitted compound labels"@en ;
@@ -75,7 +75,7 @@ amalgame:MostLabels
 
 amalgame:MostGeneric
     rdfs:label "most generic"@en ;
-    skos:definition "Select the most generic among alternatives for the same source/target (according to the provenance data.)"@en ;
+    skos:definition "Select the most generic among alternatives for the same source/target."@en ;
     rdfs:subClassOf amalgame:MappingSelecter .
 
 amalgame:SiblingSelecter
