@@ -49,11 +49,12 @@ YUI.add('controls', function(Y) {
 			   node.one(".control-submit").on("click", this._onControlSubmit, this, node);
 			   var explainNode=node.one("input[name=graphic]");
 			   if (explainNode) {
-			          node.one("div.desc").append("<div class='explain graphic'>(graphical explanation)</graphic>");
+			          node.one("div.desc").append("<a href='javascript:void' class='explain graphic'>(graphical explanation)</a>");
 				  var explainURI = explainNode.getAttribute('value');
 				  Y.log(explainURI);
 				  node.explain_overlay = new Y.Overlay(
-							   { bodyContent: "<img src='"+explainURI+"'/>",
+							   { bodyContent: "<img class='explain overlay' src='"+explainURI+"'/>",
+							     headerContent: "<div>Click to close</div>",
 							     visible:false,
 							     zIndex:1,
 							     width:"100%"
@@ -61,7 +62,7 @@ YUI.add('controls', function(Y) {
 				  node.explain_overlay.on("click", function(e, node) {
 								     node.explain_overlay.set("visible", false);
 								   }, this, node);
-				  node.one("div.explain").on("click",
+				  node.one("a.explain").on("click",
 							     function(e, node)
 							     {
 							       Y.log("explain activated");
@@ -69,7 +70,7 @@ YUI.add('controls', function(Y) {
 							       node.explain_overlay.set("align",
 											{
 											node:node,
-											points:["tl", "tl"]
+											points:["tl", "tr"]
 											});
 							     }, this, node);
 			   };

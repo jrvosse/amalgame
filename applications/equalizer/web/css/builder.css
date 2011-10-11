@@ -17,8 +17,8 @@
 	top: 35px;
 	width: 350px;
 	background-color: white;
-	height: 100%; 
-	overflow-y: scroll; 
+	height: 100%;
+	overflow-y: scroll;
 }
 /* controls */
 #controls .module-list {
@@ -154,3 +154,8 @@
 	/*fill: #DBEAFF;*/
 	stroke-width: 3px;
 }
+
+img.explain {
+	background-color: white;
+	border: 1pt black solid;
+	    }
