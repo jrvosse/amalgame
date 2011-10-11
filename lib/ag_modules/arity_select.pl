@@ -9,11 +9,11 @@
 
 amalgame_module(amalgame:'AritySelect').
 
-parameter(type, oneof(['11','1N','N1']), '11',
-	  'Type of arity to select:
-	  1-1 = unique source and target,
-	  N-1 = unique target for a source,
-	  1-N = unique source for a target').
+parameter(type, oneof(['source','target','both']), 'both',
+	  'Type of ambiguity to remove:
+	  both   = unique source and target,
+	  target = unique target for a source,
+	  source = unique source for a target').
 
 %%	selecter(+Mapping, -Selected, -Discarded, -Undecided, +Options)
 %
@@ -21,11 +21,11 @@ parameter(type, oneof(['11','1N','N1']), '11',
 %	a source and target concept.
 
 selecter(Mapping, Sel, Dis, [], Options) :-
-	(   option(type('11'), Options)
+	(   option(type('both'), Options)
 	->  select_1_1(Mapping, Sel, Dis)
-	;   option(type('N1'), Options)
+	;   option(type('target'), Options)
 	->  select_n_1(Mapping, Sel, Dis)
-	;   option(type('1N'), Options)
+	;   option(type('source'), Options)
 	->  select_1_n(Mapping, Sel, Dis)
 	).
 
@@ -69,13 +69,13 @@ same_source(As, _S, [], As).
 
 select_1_n(Mapping, Sel, Dis) :-
 	predsort(ag_map:compare_align(targetplus), Mapping, TargetSorted),
- 	select_1_n_(TargetSorted, Sel0, Dis0),
+	select_1_n_(TargetSorted, Sel0, Dis0),
 	sort(Sel0, Sel),
 	sort(Dis0, Dis).
 
 select_1_n_([], [], []).
 select_1_n_([align(S,T,P)|As], A1, A2) :-
- 	same_target(As, T, Same, Rest),
+	same_target(As, T, Same, Rest),
 	(   Same = []
 	->  A1 = [align(S,T,P)|A1Rest],
 	    A2 = A2Rest

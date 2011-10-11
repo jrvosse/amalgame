@@ -49,8 +49,8 @@ amalgame:RelatedMatcher
     rdfs:subClassOf amalgame:Matcher .
 
 amalgame:AritySelect
-    rdfs:label "arity"@en ;
-    skos:definition "Select correspondence with a specific arity between source and target:\n 11 = unique source and target,\n N1 = unique target for a source,\n 1N = unique source for a target"@en ;
+    rdfs:label "ambiguity remover"@en ;
+    skos:definition "Select only correspondence with a unique source, target or both"@en;
     rdfs:subClassOf amalgame:MappingSelecter .
 
 amalgame:TokenAritySelect

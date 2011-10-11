@@ -1,6 +1,7 @@
 :- module(eq_builder, []).
 
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdfs)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_host)).
@@ -28,6 +29,7 @@ eq:menu_item(200=http_eq_build, 'build').
 
 backward_compatibilty_fixes(Strategy) :-
 	fix_sec_inputs(Strategy),
+	fix_arity_params(Strategy),
 	fix_publish_ns(Strategy).
 
 %%	http_eq_build(+Request)
@@ -152,7 +154,7 @@ js_module(controls, json([fullpath(Path),
 	http_absolute_location(js('controls.js'), Path, []).
 
 fix_publish_ns(S) :-
-	% backward compatibility
+% backward compatibility
 	(   rdf(S, amalgame:publish_ns, _,S)
 	->  true
 	;   setting(eq_publisher:default_namespace, NS),
@@ -160,7 +162,7 @@ fix_publish_ns(S) :-
 	).
 
 fix_sec_inputs(Strategy) :-
-	% backward compatibility
+% backward compatibility
 	findall(rdf(S,RP,O),
 		(   rdf_has(S,amalgame:secondary_input, O, RP),
 		    rdf(S, RP, O, Strategy)
@@ -170,3 +172,22 @@ fix_sec_inputs(Strategy) :-
 		   rdf_assert(S,amalgame:secondary_input, O, Strategy)
 	       )
 	      ).
+
+fix_arity_params(Strategy) :-
+% backward compatibility
+	rdf_equal(amalgame:parameters, ParamProp),
+	findall(rdf(S,ParamProp,O),
+		(   rdf(S,ParamProp, literal(O), Strategy),
+		    rdfs_individual_of(S, amalgame:'AritySelect')
+		), ToBeFixed),
+	forall(member(rdf(S,P,O), ToBeFixed),
+	       (   rdf_retractall(S,P,literal(O),Strategy),
+		   arity_param_convert(O,NewO),
+		   rdf_assert(S,P,literal(NewO), Strategy)
+	       )
+	      ).
+arity_param_convert('type=11', 'type=both'):- !.
+arity_param_convert('type=1N', 'type=source'):- !.
+arity_param_convert('type=N1', 'type=target'):- !.
+arity_param_convert(X,X):- !.
+

@@ -49,7 +49,7 @@ YUI.add('controls', function(Y) {
 			   node.one(".control-submit").on("click", this._onControlSubmit, this, node);
 			   var explainNode=node.one("input[name=graphic]");
 			   if (explainNode) {
-			          node.one("div.desc").append("<a href='javascript:void' class='explain graphic'>(graphical explanation)</a>");
+			          node.one("div.desc").append("<span> </span><a href='javascript:void' class='explain graphic'>(graphical explanation)</a>");
 				  var explainURI = explainNode.getAttribute('value');
 				  Y.log(explainURI);
 				  node.explain_overlay = new Y.Overlay(
