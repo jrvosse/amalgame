@@ -6,6 +6,7 @@
 	]).
 
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdfs)).
 :- use_module(library(amalgame/opm)).
 :- use_module(library(amalgame/map)).
 
@@ -93,9 +94,12 @@ add_amalgame_opm(Strategy, Process, Results) :-
 remove_old_prov(Process, ProvGraph) :-
 	findall(Bnode,
 		(   rdf(Process, _, Bnode, ProvGraph),
-		    rdf_is_bnode(Bnode)
+		    rdf_is_bnode(Bnode),
+		    \+ (rdf(OtherProcess, _, Bnode, ProvGraph),
+			OtherProcess \= Process),
+		    \+ rdfs_individual_of(Bnode, opmvc:'Program')
 		),
 		Bnodes),
-	forall(member(B,Bnodes), rdf_retractall(B,_,_,ProvGraph)),
+	forall(member(B,Bnodes), remove_old_prov(B,ProvGraph)),
 	rdf_retractall(Process, _, _, ProvGraph),
 	rdf_retractall(_, _ ,Process, ProvGraph).
