@@ -140,6 +140,10 @@ opm_program(_, Program) :-
 opm_program(Graph, Program)  :-
 	rdf_bnode(Program),
 	assert(current_program_uri(Program)),
+	rdf_assert(Program, rdfs:label, literal('Amalgame alignment platform'), Graph),
+	rdf_assert(Program, rdf:type,   opmvc:'Program', Graph),
+	rdf_assert(Program, rdf:type,   opmv:'Agent', Graph),
+
 	(  current_prolog_flag(version_git, PL_version)
 	-> true
 	;   current_prolog_flag(version, PL_version)
@@ -161,7 +165,8 @@ opm_program(Graph, Program)  :-
 		   rdf_assert(B, rdfs:seeAlso,
 			      literal(U), Graph)
 	       )
-	      ).
+	      ),
+	!.
 
 opm_agent(Graph, Agent) :-
 	(
@@ -177,7 +182,7 @@ opm_agent(Graph, Agent) :-
 	   )
 	;
 	 rdf_bnode(Agent),
-	 UserName = 'software_api'
+	 UserName = 'anonymous user (not logged in)'
 	),
 
 	rdf_assert(Agent, rdfs:label, literal(UserName),  Graph),
