@@ -20,21 +20,18 @@
 :- asserta(user:file_search_path(js, eq(web/js))).
 :- asserta(user:file_search_path(icon, eq(web/icon))).
 :- asserta(user:file_search_path(alignment_results, web(alignment_results))).
+:- asserta(user:file_search_path(img, web(img))).
 
 :- multifile
 	http:location/3.		% Alias, Expansion, Options
 :- dynamic
 	http:location/3.		% Alias, Expansion, Options
 
-http:location(alignment_results,    root(alignment_results),    [ priority(-100) ]).
+http:location(alignment_results, root(alignment_results),    [ priority(-100) ]).
+http:location(img,		 root(img),                  [ priority(-100) ]).
 
-:- multifile
-	user:file_search_path/2.
-:- dynamic
-	user:file_search_path/2.
-
-user:file_search_path(alignment_results, library('http/web/alignment_results')).
 :- http_handler(alignment_results(.), serve_static(alignment_results), [prefix]).
+:- http_handler(img(.),               serve_static(img),               [prefix]).
 
 serve_static(Alias, Request) :-
 	memberchk(path(PathInfo), Request),
