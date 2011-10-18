@@ -43,7 +43,11 @@ serve_static(Alias, Request) :-
 	    sub_atom(PathInfo, Start, _, 0, Path)
 	),
 	Term =.. [Alias,Path],
-	(   absolute_file_name(Term, _, [file_type(directory), access(read), file_errors(fail)])
+	(   absolute_file_name(Term, _,
+			       [file_type(directory),
+				access(read),
+				file_errors(fail)
+			       ])
 	->  http_reply_dirindex(Term, [unsafe(true)], Request)
 	;   http_reply_file(Term, [], Request)
 	).
