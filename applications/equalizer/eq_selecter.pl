@@ -30,7 +30,6 @@
 %	Emit html page to start a new or load an existing alignment
 %	project.
 
-
 http_eq(_Request) :-
 	% authorized(write(default, _)),
 	html_page.
@@ -44,7 +43,7 @@ find_schemes(Schemes) :-
 html_page :-
 	findall(A-S, amalgame_alignment(A, S), Alignments),
 	find_schemes(ConceptSchemes),
-	reply_html_page(equalizer(start),
+	reply_html_page(cliopatria(main),
 			[ title(['Amalgame - projects'])
 			],
 			[ \html_requires(css('selecter.css')),
@@ -56,10 +55,11 @@ html_page :-
 			  div(class('yui-skin-sam yui3-skin-sam'),
 			      [ div(id(header), []),
 				div(id(main),
-				    [ h1('AMALGAME'),
+				    [
 				      div([id(content), class('yui3-accordion')],
-					  [ \html_new(ConceptSchemes),
+					  [
 					    \html_open(Alignments),
+					    \html_new(ConceptSchemes),
 					    \html_import,
 					    \html_publish(Alignments)
 					  ])
@@ -88,10 +88,15 @@ html_new(Schemes) -->
 		      ]).
 
 html_new(_) -->
+	{
+	 http_location_by_id(http_eq, This),
+	 http_link_to_id(cliopatria_openid:login_page,
+			 ['openid.return_to'(This)], Login)
+	},
 	html_acc_item(new,
 		      'please login to access other functions',
 		      [
-		       div(a([], ['login button should go here']))
+		       div(a([class(login), href(Login)], ['login']))
 		      ]).
 
 html_vocab_table(Vs) -->
@@ -146,7 +151,7 @@ html_vocab_rows([Scheme|Vs]) -->
 %
 
 html_open(Alignments) -->
-	html_acc_item(open, 'open alignment strategy',
+	html_acc_item(open, 'open loaded alignment strategy',
 		      [ form(action(location_by_id(http_eq_build)),
 			     [ \html_alignment_table(Alignments),
 			       \html_submit('Start')
