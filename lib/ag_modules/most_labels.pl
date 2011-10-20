@@ -9,8 +9,8 @@
 :- public parameter/4.
 
 parameter(type,
-	  oneof([source,target]), source,
-	  'Select best sources or best targets').
+	  oneof([source,target]), target,
+	  'source = select source with most matching labels for each target, target = select target with most matching labels for each source').
 
 amalgame_module(amalgame:'MostLabels').
 
@@ -19,7 +19,7 @@ amalgame_module(amalgame:'MostLabels').
 %
 
 selecter(AlignmentGraph, Sel, Disc, Und, Options) :-
-	option(type(SourceOrTarget), Options, source),
+	option(type(SourceOrTarget), Options, target),
 	(   SourceOrTarget = target
 	->  partition_(SourceOrTarget, AlignmentGraph, Sel, Disc, Und)
 	;   predsort(ag_map:compare_align(targetplus), AlignmentGraph, SortedAlignmentGraph),
@@ -50,10 +50,6 @@ partition_(source, [align(S,T,P)|As], Sel, Dis, Und) :-
 	),
 	partition_(source, Rest, SelRest, DisRest, UndRest).
 
-same_source([align(S,T,P)|As], S, [align(S,T,P)|Same], Rest) :-
-	!,
-	same_source(As, S, Same, Rest).
-same_source(As, _S, [], As).
 
 most_labels(As, Selected, Discarded) :-
 	group_label_count(As, Counts),

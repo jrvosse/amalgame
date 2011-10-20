@@ -58,12 +58,6 @@ select_n_1([align(S,T,P)|As], A1, A2) :-
 	),
 	select_n_1(Rest, A1Rest, A2Rest).
 
-same_source([align(S,T,P)|As], S, [align(S,T,P)|Same], Rest) :-
-	!,
-	same_source(As, S, Same, Rest).
-same_source(As, _S, [], As).
-
-
 %%	select_1_n(+Mapping, -Mapping_1_n, -Rest)
 %
 %	Mapping_1_n contains all correspondences where a target is
@@ -85,8 +79,3 @@ select_1_n_([align(S,T,P)|As], A1, A2) :-
 	    A1 = A1Rest
 	),
 	select_1_n_(Rest, A1Rest, A2Rest).
-
-same_target([align(S,T,P)|As], T, [align(S,T,P)|Same], Rest) :-
-	!,
-	same_target(As, T, Same, Rest).
-same_target(As, _T, [], As).

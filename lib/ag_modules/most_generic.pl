@@ -9,8 +9,7 @@
 
 parameter(type,
 	  oneof([target, source]), target,
-	  'target = select most general (broader) target for each source,
-	   source = select most general source for each target').
+	  'target = select most general (broader) target for each source, source = select most general source for each target').
 
 amalgame_module(amalgame:'MostGeneric').
 
@@ -19,7 +18,7 @@ amalgame_module(amalgame:'MostGeneric').
 %
 
 selecter(AlignmentGraph, Sel, Disc, Und, Options) :-
-	option(type(SourceOrTarget), Options, source),
+	option(type(SourceOrTarget), Options, target),
 	(   SourceOrTarget = target
 	->  partition_(SourceOrTarget, AlignmentGraph, Sel, Disc, Und)
 	;   predsort(ag_map:compare_align(targetplus), AlignmentGraph, SortedAlignmentGraph),
@@ -54,15 +53,6 @@ partition_(source, [A|As], Sel, Dis, Und) :-
 	    Dis = DisRest
 	),
 	partition_(source, Rest, SelRest, DisRest, UndRest).
-same_source([align(S,T,P)|As], S, [align(S,T,P)|Same], Rest) :-
-	!,
-	same_source(As, S, Same, Rest).
-same_source(As, _S, [], As).
-same_target([align(S,T,P)|As], T, [align(S,T,P)|Same], Rest) :-
-	!,
-	same_target(As, T, Same, Rest).
-same_target(As, _T, [], As).
-
 
 hierarchy_related([], _, G, G, []).
 hierarchy_related([A|As], target, G0, G, [A1|Rest]) :-

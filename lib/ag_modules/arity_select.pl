@@ -2,6 +2,7 @@
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(amalgame/map)).
+:- use_module(library(ag_util)).
 
 :- public amalgame_module/1.
 :- public selecter/5.
@@ -10,10 +11,7 @@
 amalgame_module(amalgame:'AritySelect').
 
 parameter(type, oneof(['source','target','both']), 'both',
-	  'Type of ambiguity to resolve:
-	  both   = select only correspondences with a unique source and target,
-	  target = require unique source for every target,
-	  source = require unique target for every source').
+	  'Type of ambiguity to resolve: both = select only correspondences with a unique source and target, target = require unique source for every target, source = require unique target for every source').
 
 %%	selecter(+Mapping, -Selected, -Discarded, -Undecided, +Options)
 %
@@ -56,12 +54,6 @@ select_n_1([align(S,T,P)|As], A1, A2) :-
 	),
 	select_n_1(Rest, A1Rest, A2Rest).
 
-same_source([align(S,T,P)|As], S, [align(S,T,P)|Same], Rest) :-
-	!,
-	same_source(As, S, Same, Rest).
-same_source(As, _S, [], As).
-
-
 %%	select_1_n(+Mapping, -Mapping_1_n, -Rest)
 %
 %	Mapping_1_n contains all correspondences where a target is
@@ -83,17 +75,6 @@ select_1_n_([align(S,T,P)|As], A1, A2) :-
 	    A1 = A1Rest
 	),
 	select_1_n_(Rest, A1Rest, A2Rest).
-
-same_target([align(S,T,P)|As], T, [align(S,T,P)|Same], Rest) :-
-	!,
-	same_target(As, T, Same, Rest).
-same_target(As, _T, [], As).
-
-
-
-
-
-
 
 
 

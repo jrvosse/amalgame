@@ -59,15 +59,6 @@ partition_(source, [A|As], Depth, Sel, Und) :-
 	),
 	partition_(source, Rest, Depth, SelRest, UndRest).
 
-same_source([align(S,T,P)|As], S, [align(S,T,P)|Same], Rest) :-
-	!,
-	same_source(As, S, Same, Rest).
-same_source(As, _S, [], As).
-same_target([align(S,T,P)|As], T, [align(S,T,P)|Same], Rest) :-
-	!,
-	same_target(As, T, Same, Rest).
-same_target(As, _T, [], As).
-
 siblings(_, [], _, _).
 siblings(target, [A|As], Parent, Depth) :-
 	A = align(_,T,_),

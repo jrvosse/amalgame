@@ -2,6 +2,9 @@
 	  [
 	   has_correspondence/2,    % align/3, MappingGraph URI
 	   remove_correspondence/2, % align/3, MappingGraph URI
+	   correspondence_source/2,
+	   correspondence_target/2,
+	   correspondence_evidence/2,
 
 	   assert_counts/2,        % +MapList, +ProvGraph
 	   materialize_mapping_graph/2, % +List, +Options
@@ -12,17 +15,21 @@
 	   has_map/4,              % ?Map, ?Format ?Options, ?Graph
 	   has_map/3,		   % ?Map, ?Format ?Graph
 	   has_map_chk/3,	   % ?Map, ?Format ?Graph
+	   same_source/4,          % +List, +Source, -Same, -Rest
+	   same_target/4,          % +List, +Target, -Same, -Rest
 	   supported_map_relations/1 % ?URIList
 	  ]
 	 ).
 
-/** <module> Amalgame map module
+/** <module> Amalgame correspondences (map) module
 
-This module contains predicates to deal with mappings while abstracting
-from the underlying formats.
+This module contains predicates to deal with correspondences while
+abstracting from the underlying formats. This should converge into a
+set of functions around sorted lists with
+align(Source,Target,EvidenceList) terms.
 
 @author Jacco van Ossenbruggen
-@license GPL
+@license LGPL
 */
 
 :- use_module(library(semweb/rdf_db)).
@@ -31,6 +38,71 @@ from the underlying formats.
 :- use_module(library(amalgame/edoal)).
 :- use_module(library(amalgame/alignment)).
 :- use_module(library(ag_util)).
+
+%%	correspondence_source(?C,?S) is det.
+%
+%	Unifies S with the source of correspondence C.
+
+correspondence_source(align(S,_,_), S).
+
+%%	correspondence_target(?C,?T) is det.
+%
+%	Unifies T with the target of correspondence C.
+%
+correspondence_target(align(_,T,_), T).
+
+%%	correspondence_evidence(?C,?E) is det.
+%
+%	Unifies E with the evidence list of correspondence C.
+
+correspondence_evidence(align(_,_,E), E).
+
+%%	same_source(+List, +Source, -Same, -Rest) is det.
+%
+%	Same contains all alignments from List that have Source as a
+%	source, Rest contains all alignments with a different source.
+%	List, Same and Rest are assumed to be the usual lists of
+%	amalgame's align(S,T,P), sorted on S.
+
+same_source([align(S,T,P)|As], S, [align(S,T,P)|Same], Rest) :-	!,  same_source(As, S, Same, Rest).
+same_source(As, _S, [], As).
+
+%%	same_target(+List, +Target, -Same, -Rest) is det.
+%
+%	Same contains all alignments from List that have Target as a
+%	target, Rest contains all alignments with a different target.
+%	List, Same and Rest are assumed to be the usual lists of
+%	amalgame's align(S,T,P), sorted on T.
+
+same_target([align(S,T,P)|As], T, [align(S,T,P)|Same], Rest) :-	!,  same_target(As, T, Same, Rest).
+same_target(As, _S, [], As).
+
+%%	has_correspondence(?C, +G) is nondet.
+%
+%	Is true if C unifies with a correspondece C in named graph G.
+
+has_correspondence(align(E1, E2, P), Graph) :-
+	has_map([E1, E2], _, Properties, Graph),
+	flatten(Properties, Pflat),
+	(   memberchk(method(_), Pflat)
+	->  P = Properties
+	;   P = [[method(preloaded), graph(Graph)]|Properties]
+	).
+
+%%	remove_correspondence(+C, +G) is semidet.
+%
+%	removes the first correspondence C from named graph G.
+%	G is assumed to be a RDF graph with EDOAL cells.
+
+remove_correspondence(align(E1, E2, Prov), Graph) :-
+	ground(Graph),
+	ground(E1),
+	ground(E2),
+	has_edoal_map_([E1, E2], Cell, Graph),
+	has_correspondence(align(E1, E2, Prov), Graph),
+	!,
+	remove_resource(Cell, Graph).
+
 
 :- rdf_meta
 	mapping_props(t),
@@ -77,23 +149,7 @@ map_iterator([E1,E2], GraphList) :-
         member(G, GraphList),
 	has_map([E1, E2], _, G).
 
-has_correspondence(align(E1, E2, P), Graph) :-
-	has_map([E1, E2], _, Properties, Graph),
-	flatten(Properties, Pflat),
-	(   memberchk(method(_), Pflat)
-	->  P = Properties
-	;   P = [[method(preloaded), graph(Graph)]|Properties]
-	).
 
-
-remove_correspondence(align(E1, E2, Prov), Graph) :-
-	ground(Graph),
-	ground(E1),
-	ground(E2),
-	has_edoal_map_([E1, E2], Cell, Graph),
-	has_correspondence(align(E1, E2, Prov), Graph),
-	!,
-	remove_resource(Cell, Graph).
 
 %%	has_map(+Map, ?Format, ?Properties, -Graph) is non_det.
 %%%	has_map(+Map, ?Format, -Graph) is non_det.
@@ -316,8 +372,8 @@ assert_counts([A-M|Tail], ProvGraph) :-
 	assert_counts(Tail, ProvGraph).
 
 assert_count(MapUri, MapList, ProvGraph) :-
-	maplist(align_source, MapList, Ss0),
-	maplist(align_target, MapList, Ts0),
+	maplist(correspondence_source, MapList, Ss0),
+	maplist(correspondence_target, MapList, Ts0),
 	sort(Ss0, Ss),
 	sort(Ts0, Ts),
 	length(Ss, SN),
@@ -330,5 +386,3 @@ assert_count(MapUri, MapList, ProvGraph) :-
 	rdf_assert(MapUri, amalgame:mappedTargetConcepts,
 		   literal(type('http://www.w3.org/2001/XMLSchema#int', TN)), ProvGraph).
 
-align_source(align(S,_,_), S).
-align_target(align(_,T,_), T).

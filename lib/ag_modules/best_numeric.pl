@@ -3,15 +3,15 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(amalgame/map)).
+:- use_module(library(ag_util)).
 
 :- public amalgame_module/1.
 :- public selecter/5.
 :- public parameter/4.
 
 parameter(type,
-	  oneof([source,target]), source,
-	  'Select best sources or best targets').
-
+	  oneof([source,target]), target,
+	  'source = best source for each target, target = best target for each source').
 
 amalgame_module(amalgame:'BestNumeric').
 
@@ -21,7 +21,7 @@ amalgame_module(amalgame:'BestNumeric').
 %
 
 selecter(AlignmentGraph, Sel, Disc, Und, Options) :-
-	option(type(SourceOrTarget), Options, source),
+	option(type(SourceOrTarget), Options, target),
 	(   SourceOrTarget = target
 	->  partition_(SourceOrTarget, AlignmentGraph, Sel, Disc, Und)
 	;   predsort(ag_map:compare_align(targetplus), AlignmentGraph, SortedAlignmentGraph),
@@ -47,12 +47,6 @@ partition_(SourceOrTarget, [align(S,T,P)|As], Sel, Dis, Und) :-
 	    Dis = DisRest
 	),
 	partition_(SourceOrTarget, Rest, SelRest, DisRest, UndRest).
-
-same_source([align(S,T,P)|As], S, [align(S,T,P)|Same], Rest) :-	!,  same_source(As, S, Same, Rest).
-same_source(As, _S, [], As).
-
-same_target([align(S,T,P)|As], T, [align(S,T,P)|Same], Rest) :-	!,  same_target(As, T, Same, Rest).
-same_target(As, _S, [], As).
 
 best_numeric(As, Selected, Discarded) :-
 	group_match(As, Counts0),
