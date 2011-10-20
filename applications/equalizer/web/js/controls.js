@@ -31,8 +31,10 @@ YUI.add('controls', function(Y) {
 
 	Y.extend(Controls, Y.Base, {
 		initializer: function(config) {
-			var instance = this,
-				content = this.get("srcNode");
+			var instance = this;
+			var content = this.get("srcNode");
+
+			this.explain_overlay = new Y.Overlay( { visible:false, zIndex:1, x:355, y:35 } ).render();
 
 			// the display of the control sets can be toggled
 			Y.all(".control-set .hd").on("click", function(e) {
@@ -47,36 +49,11 @@ YUI.add('controls', function(Y) {
 			// The control all have submit button that we bind here
 			NODE_CONTROLS.each(function(node) {
 			   node.one(".control-submit").on("click", this._onControlSubmit, this, node);
-			   var explainNode=node.one("input[name=graphic]");
-			   if (explainNode) {
-			          node.one("div.desc").append("<span> </span><a href='javascript:void' class='explain graphic'>(graphical explanation)</a>");
-				  var explainURI = explainNode.getAttribute('value');
-				  Y.log(explainURI);
-				  node.explain_overlay = new Y.Overlay(
-							   { bodyContent: "<img class='explain overlay' src='"+explainURI+"'/>",
-							     headerContent: "<div>Click to close</div>",
-							     visible:false,
-							     zIndex:1,
-							     width:"100%"
-							   }).render();
-				  node.explain_overlay.on("click", function(e, node) {
-								     node.explain_overlay.set("visible", false);
-								   }, this, node);
-				  node.one("a.explain").on("click",
-							     function(e, node)
-							     {
-							       Y.log("explain activated");
-							       node.explain_overlay.set("visible", true);
-							       node.explain_overlay.set("align",
-											{
-											node:node,
-											points:["tl", "tr"]
-											});
-							     }, this, node);
-			   };
-
-
-
+			   var desc =  node.one("div.desc");
+			   if (desc) {
+			     desc.on("mouseout",  function(e) { this.set("visible", false)}, this.explain_overlay);
+			     desc.on("mouseover", this._activate_explanation, this, node);
+			   }
 			}, this);
 
 			// the match control has two additional buttons
@@ -93,6 +70,20 @@ YUI.add('controls', function(Y) {
 			this.after('selectedChange', this._toggleControls, this);
 			this._toggleControls();
 		},
+
+		_activate_explanation : function (e, node) {
+			   var explainNode = node.one("input[name=graphic]");
+			   if (explainNode) {
+			     var exp = this.explain_overlay;
+			     var selectNode = node.one("select[name=type]");
+			     var selectedIndex = selectNode.get("selectedIndex");
+			     var selectType = selectNode.get("options").item(selectedIndex).getAttribute("value");
+			     var explainURI = explainNode.getAttribute('value') + '-' + selectType + ".png";
+			     Y.log(explainURI);
+			     exp.set("bodyContent", "<img class='explain overlay' src='"+explainURI+"'/>");
+			     exp.set("visible", true);
+			   };
+		 },
 
 		_setMappingSelecter : function() {
 			var nodes = this.get("nodes");

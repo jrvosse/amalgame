@@ -9,7 +9,7 @@
 :- public parameter/4.
 
 parameter(type,
-	  oneof(source,target), source,
+	  oneof([source,target]), source,
 	  'Select best sources or best targets').
 
 
@@ -73,4 +73,4 @@ group_match([Align|As], [Match-Align|Ts]) :-
 	% memberchk(method(M), P),
 	% memberchk(M, [jaccard, isub]),
 	memberchk(match(Match), P),
-  	group_match(As, Ts).
+	group_match(As, Ts).

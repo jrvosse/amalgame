@@ -10,10 +10,10 @@
 amalgame_module(amalgame:'AritySelect').
 
 parameter(type, oneof(['source','target','both']), 'both',
-	  'Type of ambiguity to remove:
-	  both   = unique source and target,
-	  target = unique target for a source,
-	  source = unique source for a target').
+	  'Type of ambiguity to resolve:
+	  both   = select only correspondences with a unique source and target,
+	  target = require unique source for every target,
+	  source = require unique target for every source').
 
 %%	selecter(+Mapping, -Selected, -Discarded, -Undecided, +Options)
 %
@@ -23,9 +23,9 @@ parameter(type, oneof(['source','target','both']), 'both',
 selecter(Mapping, Sel, Dis, [], Options) :-
 	(   option(type('both'), Options)
 	->  select_1_1(Mapping, Sel, Dis)
-	;   option(type('target'), Options)
-	->  select_n_1(Mapping, Sel, Dis)
 	;   option(type('source'), Options)
+	->  select_n_1(Mapping, Sel, Dis)
+	;   option(type('target'), Options)
 	->  select_1_n(Mapping, Sel, Dis)
 	).
 

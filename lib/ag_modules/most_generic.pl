@@ -8,8 +8,9 @@
 :- public parameter/4.
 
 parameter(type,
-	  oneof(target, source_not_implemented), target,
-	  'Select best sources or best targets').
+	  oneof([target, source]), target,
+	  'target = select most general (broader) target for each source,
+	   source = select most general source for each target').
 
 amalgame_module(amalgame:'MostGeneric').
 

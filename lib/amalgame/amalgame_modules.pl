@@ -90,12 +90,12 @@ amalgame_module_property(URI, desc(Desc)) :-
 amalgame_module_property(URI, explanation_graph(ExplainURI)) :-
 	!,
 	rdf_global_id(_:Local, URI),
-	atomic_concat('cpack/amalgame/web/img/', Local, Path),
-	absolute_file_name(Path, FullPath,
+	atomic_list_concat(['cpack/amalgame/web/img/', Local, '-*'], Path),
+	absolute_file_name(Path, _FullPath,
 			   [extensions([png, jpg]),
 			    file_errors(fail),
-			    access(read)
+			    access(read),
+			    expand(true)
 			   ]),
-	file_base_name(FullPath, Base),
-	http_absolute_location(img(Base), ExplainURI, []).
+	http_absolute_location(img(Local), ExplainURI, []).
 

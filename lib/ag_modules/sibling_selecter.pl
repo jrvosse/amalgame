@@ -8,8 +8,8 @@
 :- public parameter/4.
 
 parameter(type,
-	  oneof(target, tbd), target,
-	  'Select siblings from alternative targets').
+	  oneof([source, target]), target,
+	  'Select siblings from alternative targets (or sources)').
 
 parameter(depth,
 	  integer, 2,
@@ -39,7 +39,7 @@ partition_(target, [A|As], Depth, Sel, Und) :-
 	A = align(S,T,_),
 	same_source(As, S, Same, Rest),
 	(   rdf_reachable(T, skos:broader, Parent, Depth, _),
-	    siblings(Same, Parent, Depth)
+	    siblings(target, Same, Parent, Depth)
 	->  append([A|Same], SelRest, Sel),
 	    Und = UndRest
 	;   append([A|Same], UndRest, Und),
@@ -47,15 +47,37 @@ partition_(target, [A|As], Depth, Sel, Und) :-
 	),
 	partition_(target, Rest, Depth, SelRest, UndRest).
 
+partition_(source, [A|As], Depth, Sel, Und) :-
+	A = align(S,T,_),
+	same_target(As, T, Same, Rest),
+	(   rdf_reachable(S, skos:broader, Parent, Depth, _),
+	    siblings(source, Same, Parent, Depth)
+	->  append([A|Same], SelRest, Sel),
+	    Und = UndRest
+	;   append([A|Same], UndRest, Und),
+	    Sel = SelRest
+	),
+	partition_(source, Rest, Depth, SelRest, UndRest).
+
 same_source([align(S,T,P)|As], S, [align(S,T,P)|Same], Rest) :-
 	!,
 	same_source(As, S, Same, Rest).
 same_source(As, _S, [], As).
+same_target([align(S,T,P)|As], T, [align(S,T,P)|Same], Rest) :-
+	!,
+	same_target(As, T, Same, Rest).
+same_target(As, _T, [], As).
 
-siblings([], _, _).
-siblings([A|As], Parent, Depth) :-
+siblings(_, [], _, _).
+siblings(target, [A|As], Parent, Depth) :-
 	A = align(_,T,_),
 	rdf_reachable(T, skos:broader, Parent, Depth, _),
 	!,
-	siblings(As, Parent, Depth).
+	siblings(target, As, Parent, Depth).
+
+siblings(source, [A|As], Parent, Depth) :-
+	A = align(S,_,_),
+	rdf_reachable(S, skos:broader, Parent, Depth, _),
+	!,
+	siblings(source, As, Parent, Depth).
 

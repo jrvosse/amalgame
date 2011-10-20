@@ -9,7 +9,7 @@
 :- public parameter/4.
 
 parameter(type,
-	  oneof(source,target), source,
+	  oneof([source,target]), source,
 	  'Select best sources or best targets').
 
 amalgame_module(amalgame:'MostLabels').
