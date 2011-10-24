@@ -21,7 +21,7 @@
 :- multifile
 	eq:menu_item/2.
 
-:- setting(default_namespace, atom, 'http://example.com/',
+:- setting(default_namespace, atom, 'http://localhost/ns/', 
 	   'Default namespace to use on alignment results. Can be changed later.').
 
 % http handlers for this applications
