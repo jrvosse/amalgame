@@ -17,6 +17,7 @@
 :- use_module(opmviz).
 :- use_module(stats).
 :- use_module(eq_util).
+:- use_module(hints).
 
 :- multifile
 	eq:menu_item/2.
@@ -95,8 +96,7 @@ yui_script(Alignment) -->
 	  (   has_write_permission
 	  ->  Read_only = false
 	  ;   Read_only = true
-	  ),
-	  json_hint(Alignment, Hint)
+	  )
 	},
 	yui3([json([modules(json(Modules))])
 	     ],
@@ -105,8 +105,7 @@ yui_script(Alignment) -->
 			 json([alignment(Alignment),
 			       paths(json(Paths)),
 			       nodes(json(Nodes)),
-			       readonly(Read_only),
-			       hint(Hint)
+			       readonly(Read_only)
 			      ]))
 	     ]).
 
@@ -126,6 +125,8 @@ js_path(updatenode, Path) :-
 	http_location_by_id(http_update_node, Path).
 js_path(deletenode, Path) :-
 	http_location_by_id(http_delete_node, Path).
+js_path(hint, Path) :-
+	http_location_by_id(http_json_hint, Path).
 
 %%	js_module(+Key, +Module_Conf)
 %
