@@ -1,6 +1,6 @@
 :- module(eq_controls,
-	  [ html_controls//0,
-	    html_info_control//0,
+	  [ json_hint/2,
+	    html_controls//0,
 	    html_parameter_form//1,
 	    module_input_type/2,
 	    module_special_type/2,
@@ -12,13 +12,17 @@
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(http/html_write)).
+:- use_module(library(http/http_dispatch)).
+:- use_module(library(http/json)).
 :- use_module(library(amalgame/amalgame_modules)).
 :- use_module(components(label)).
+
+:- use_module(eq_util).
 
 :- rdf_meta
 	status_option(r).
 
-html_controls -->
+html_controls  -->
 	{ amalgame_modules_of_type(amalgame:'Selecter', Selecters),
 	  amalgame_modules_of_type(amalgame:'Matcher', Matchers)
 	},
@@ -62,7 +66,8 @@ html_info_control -->
 			     [div([id(properties)], []),
 			      div(class('control-buttons'),
 				  button(class('control-submit'), 'Update'))
-			     ])
+			     ]),
+			div([id(hint), class('hint help c')], 'No hints available.')
 		      ]),
 		  div([class('empty c')],
 		      ['select a node in the graph']),
@@ -145,6 +150,62 @@ html_source_target_select -->
 		       ])
 		   ])).
 
+json_hint(Strategy, Hint) :-
+	% If there are no mappings yet, advise an exact label match
+	\+ rdf(_, rdf:type, amalgame:'Mapping',Strategy),
+	!,
+	rdf_equal(Match, amalgame:'ExactLabelMatcher'),
+	rdf_display_label(Match, Label),
+	format(atom(Text), 'hint: maybe you\'d like to try a simple label Matcher like ~w to create your first mapping', [Label]),
+	rdf(Strategy, amalgame:includes, Voc1, Strategy),
+	rdf(Strategy, amalgame:includes, Voc2, Strategy),
+	Voc1 \== Voc2,
+	concept_count(Voc1, Strategy, Count1),
+	concept_count(Voc2, Strategy, Count2),
+	(   Count1 < Count2
+	->  Source = Voc1, Target = Voc2
+	;   Source = Voc2, Target = Voc1
+	),
+	Hint =	json([
+		    data(json([
+			     process(Match),
+			     source(Source),
+			     target(Target),
+			     alignment(Strategy)
+			      ])),
+		    text(Text)
+		     ]).
+
+json_hint(Strategy, Hint) :-
+	% if there are end-point mappings with ambiguous correspondences, advise an ambiguity remover
+	has_ambiguous_endpoint(Strategy, Mapping),
+	rdf_equal(Process, amalgame:'AritySelect'),
+	rdf_display_label(Process, PLabel),
+	rdf_display_label(Mapping, MLabel),
+	format(atom(Text), 'hint: maybe you\'d like to remove the ambiguity from node "~w" (~p) by running ~w', [MLabel, Mapping, PLabel]),
+	Hint =	json([
+		    data(json([
+			     process(Process),
+			     input(Mapping),
+			     alignment(Strategy)
+			      ])),
+		    text(Text)
+		     ]).
+
+json_hint(_, json([])).
+
+
+has_ambiguous_endpoint(Strategy, Mapping) :-
+	rdf_transaction(
+	    (
+	    rdf(Mapping, rdf:type, amalgame:'Mapping', Strategy), % We are looking for a Mapping
+	    \+ rdf(_Process, amalgame:input, Mapping, Strategy),  % that has not been used as an input yet,
+	    \+ ( rdf(Mapping, opmv:wasGeneratedBy, AmbRemover),	  % is not a result of arity select,
+		 rdfs_individual_of(AmbRemover, amalgame:'AritySelect')
+	       ),                                                  % and the nr of source and target mappings
+	    \+ mapping_counts(Mapping, Strategy, N, N, N, _, _)   %  differs from the total number of mappings
+	    )
+		       ).
 
 %%	html_modules(+Modules:uri-module)
 %

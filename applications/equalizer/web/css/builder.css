@@ -119,6 +119,7 @@
 }
 #infocontent {
 	border-top: 1px solid #CCC;
+	border-bottom: 1px solid #CCC;
 }
 #info .parameters {
 	border-top: 1px solid #CCC;
@@ -159,3 +160,12 @@ img.explain {
 	background-color: white;
 	border: 1pt black solid;
 	    }
+
+#exec_hint
+{
+ color: #0000EE; /* link color */
+}
+#exec_hint:hover
+{
+ cursor: pointer;
+}

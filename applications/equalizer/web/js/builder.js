@@ -23,6 +23,9 @@ YUI.add('builder', function(Y) {
 	        readonly : {
 			value: true
 		},
+		hint : {
+		       value: true
+		},
 		paths:{
 			value:{
 				opmgraph:'/amalgame/opmviz',
@@ -62,10 +65,16 @@ YUI.add('builder', function(Y) {
 				this.controls.on("submit", this._onControlSubmit, this);
 			        this.infobox.after("nodeChange", this._onNodeChange, this);
 			        this.infobox.after("deleteNode", this._onNodeDelete, this);
-                                Y.log('enabled  control submit handlers');
+				if (this.get('hint').text) {
+				  Y.one('#hint').setContent(this.get('hint').text);
+				  Y.one('#hint').appendChild('&nbsp;');
+				  Y.one('#hint').appendChild('(<a id="exec_hint">just do it</a>)');
+				  Y.one('#exec_hint').on("click", this._onExecHint, this);
+				};
+				Y.log('enabled  control submit handlers');
 			} else {
-                                Y.log('disabling  control submit handlers');
-			        Y.all('button').each(function(button) { button.setAttribute("disabled", true); });
+			  Y.one('#hint').setContent('hint:  please login to edit');
+			  Y.all('button').each(function(button) { button.setAttribute("disabled", true); });
                         };
 			// bind the modules together
 			this.opmviz.on("nodeSelect", this._onNodeSelect, this);
@@ -141,6 +150,7 @@ YUI.add('builder', function(Y) {
 		},
 
 		_onControlSubmit : function(o) {
+			Y.log(o);
 			var oSelf = this,
 				paths = this.get("paths"),
 				data = o.data;
@@ -198,7 +208,13 @@ YUI.add('builder', function(Y) {
 			})
 		},
 
+		_onExecHint : function(e) {
+				this.controls.fire("submit", {data:this.get('hint').data});
+				setTimeout(window.location.reload, 1000);  // FIXME get new hint from ajax call
+		},
+
 		_onNodeSelect : function(e) {
+			Y.log(this.get("nodes"));
 			var uri = e.uri,
 				node = this.get("nodes")[uri],
 				type = node.type,

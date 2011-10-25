@@ -51,12 +51,12 @@ http_eq_build(Request) :-
 		 *	      HTML		*
 		 *******************************/
 
-%%	html_page(+Alignment)
+%%	html_page(+Strategy)
 %
-%	Emit html page with layout for the alignment builder
+%	Emit html page with layout for the strategy builder
 %	application.
 
-html_page(Alignment) :-
+html_page(Strategy) :-
 	html_set_options([dialect(html)]),
 	reply_html_page(equalizer(main),
 			[ title(['Align vocabularies'])
@@ -69,7 +69,7 @@ html_page(Alignment) :-
 				       'cssfonts/fonts-min.css'
 				      ]),
 			  div(class('yui3-skin-sam yui-skin-sam'),
-			      [ \html_eq_header(http_eq_build, Alignment),
+			      [ \html_eq_header(http_eq_build, Strategy),
 				div([id(main)],
 				    [ div([id(opm)],
 					  []),
@@ -78,7 +78,7 @@ html_page(Alignment) :-
 				    ])
 			      ]),
 			  script(type('text/javascript'),
-				 [ \yui_script(Alignment)
+				 [ \yui_script(Strategy)
 				 ])
 			]).
 
@@ -95,7 +95,8 @@ yui_script(Alignment) -->
 	  (   has_write_permission
 	  ->  Read_only = false
 	  ;   Read_only = true
-	  )
+	  ),
+	  json_hint(Alignment, Hint)
 	},
 	yui3([json([modules(json(Modules))])
 	     ],
@@ -104,7 +105,8 @@ yui_script(Alignment) -->
 			 json([alignment(Alignment),
 			       paths(json(Paths)),
 			       nodes(json(Nodes)),
-			       readonly(Read_only)
+			       readonly(Read_only),
+			       hint(Hint)
 			      ]))
 	     ]).
 
