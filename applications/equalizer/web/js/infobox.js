@@ -108,16 +108,19 @@ YUI.add('infobox', function(Y) {
 				// the status row is only shown for mappings
 				if(type=="mapping") {
 					NODE_STATUS_ROW.removeClass("hidden")
-					Node.getDOMNode(NODE_STATUS).selectedIndex = NODE_STATUS.get('options')
-						.indexOf(NODE_STATUS.one("option[value='"+status+"']"));
+					Node.getDOMNode(NODE_STATUS).selectedIndex =
+							  NODE_STATUS.get('options')
+							    .indexOf(NODE_STATUS.one("option[value='"+status+"']"));
 				} else {
 					NODE_STATUS_ROW.addClass("hidden")
 				}
 
 				if(type =='alignment' || type=='strategy') {
-					NODE_NAMESPACE_ROW.removeClass("hidden");
+				        NODE_NAMESPACE_ROW.removeClass("hidden");
+					NODE_DELETE.setAttribute("disabled", true);
 				} else {
-					NODE_NAMESPACE_ROW.addClass("hidden")
+				        NODE_NAMESPACE_ROW.addClass("hidden");
+				        NODE_DELETE.removeAttribute("disabled", false);
 				}
 				// hide the parameter form submit button in case we are not a process
 				if(type==="process") {
