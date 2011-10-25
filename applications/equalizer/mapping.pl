@@ -89,8 +89,8 @@ sort_key(source, 2).
 sort_key(target, 4).
 
 mapping_label(align(S, T, Prov), align(S,SL,T,TL,Prov)) :-
-	resource_label_text(S, SL),
-	resource_label_text(T, TL).
+	rdf_display_label(S, SL),
+	rdf_display_label(T, TL).
 
 select_relation([], _, []).
 select_relation([Head|Tail], PreviousEval, [align(S,SL, T, TL, Relation)|Results]) :-
@@ -237,7 +237,7 @@ html_correspondence(Source, Target, Relation, Relations) -->
 
 html_resource_context('') --> !.
 html_resource_context(URI) -->
-	{ resource_label_text(URI, Label),
+	{ rdf_display_label(URI, Label),
 	  resource_alternative_labels(URI, Label, Alt),
 	  resource_tree(URI, Tree),
 	  related_resources(URI, Related)
@@ -269,13 +269,10 @@ html_relations([Rel-Label|Rs], Active) -->
 
 
 resource_alternative_labels(R, Label, Alt) :-
-	findall(L, resource_label_text(R, L), Ls),
+	findall(L, (rdf_label(R, L1), literal_text(L1,L)), Ls),
 	delete(Ls, Label, Alt1),
 	sort(Alt1, Alt).
 
-resource_label_text(R, L) :-
-	rdf_display_label(R, Lit),
-	literal_text(Lit, L).
 
 %%	related_resources(+Resource, -Related)
 %
