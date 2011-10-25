@@ -1,5 +1,6 @@
 :- module(eq_process,
-	  []).
+	  [
+	  ]).
 
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
@@ -54,7 +55,7 @@ http_add_process(Request) :-
 				  descrption('When set to true process is updated with new parameters')])
 			],
 			[form_data(Params0)]),
-	subtract(Params0, [input=_,source=_,target=_,process=_,alignment=_,update=_], Params1),
+	subtract(Params0, [input=_,source=_,target=_,process=_,alignment=_,update=_,graphic=_], Params1),
 	findall(secondary_input=S,member(secondary_input=S, Params1), SecParams),
 	subtract(Params1, SecParams, Params),
 	(   Update == true
@@ -123,13 +124,11 @@ clean_dependent_caches(Process, Strategy, ProvGraph) :-
 
 new_process(Process, Alignment, Source, Target, Input, SecInputs, Params) :-
 	rdf_bnode(URI),
-	rdf_transaction((
-			 assert_process(URI, Process, Alignment, Params),
-			 assert_user_provenance(URI, Alignment),
-			 assert_input(URI, Alignment, Source, Target, Input),
-			 assert_output(URI, Process, Alignment),
-			 assert_secondary_inputs(SecInputs, URI, Alignment)
-			)),
+	assert_process(URI, Process, Alignment, Params),
+	assert_user_provenance(URI, Alignment),
+	assert_input(URI, Alignment, Source, Target, Input),
+	assert_output(URI, Process, Alignment),
+	assert_secondary_inputs(SecInputs, URI, Alignment),
 
 	(   setting(precompute_mapping, true)
 	->  precompute(URI, Alignment)
@@ -189,7 +188,7 @@ new_output(Type, Process, P, Graph) :-
 	rdf(Graph, amalgame:publish_ns, NS),
 	gensym(dataset, Local),
 	atomic_concat(NS, Local, OutputURI),
-	\+ rdf(OutputURI, _, _),
+	\+ rdf(OutputURI, _, _), !,
 	rdf_assert(OutputURI, rdf:type, Type, Graph),
 	rdf_assert(OutputURI, amalgame:status, amalgame:intermediate, Graph),
         rdf_assert(OutputURI, P, Process, Graph).
