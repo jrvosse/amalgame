@@ -36,7 +36,7 @@ eq:menu_item(900=Handler, Label) :-
 	(   (logged_on(User, X), X \== User)
 	->  fail
 	;   Handler = cliopatria_openid:login_page,
-	    Label = '(please login to edit)'
+	    Label = 'login'
 	).
 
 has_write_permission :-
