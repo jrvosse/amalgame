@@ -61,20 +61,18 @@ http_add_process(Request) :-
 	(   Update == true
 	->  rdf_retractall(Process, amalgame:secondary_input, _, Alignment),
 	    assert_secondary_inputs(SecInputs, Process, Alignment),
-	    update_process(Process, Alignment, Params)
+	    update_process(Process, Alignment, Params), Focus = Process
 	;   ((nonvar(Source), nonvar(Target)) ; nonvar(Input))
-	->  new_process(Process, Alignment, Source, Target, Input, SecInputs, Params)
+	->  new_process(Process, Alignment, Source, Target, Input, SecInputs, Params, Focus)
 	;   true
 	),
 	js_alignment_nodes(Alignment, Nodes),
-	reply_json(json([nodes=json(Nodes)])).
+	reply_json(json([focus=Focus,nodes=json(Nodes)])).
 
 
 %%	update_process(+Process, +Alignment, +Params)
 %
 %	Update the parameters of Process.
-%
-%	@TBD only remove cached results that depend on Process.
 
 update_process(Process, Graph, Params) :-
 	provenance_graph(Graph, ProvGraph),
@@ -117,18 +115,21 @@ clean_dependent_caches(Process, Strategy, ProvGraph) :-
 	remove_old_prov(Process, ProvGraph).
 
 
-%%	new_process(Process, +Alignment, ?Source, ?Target, ?Input,
-%%	?SecInputs, +Params)
+%%	new_process(+Process, +Alignment, +Source, +Target, +Input,
+%%	+SecInputs, +Params)
 %
 %	Create new amalgame process.
 
-new_process(Process, Alignment, Source, Target, Input, SecInputs, Params) :-
+new_process(Process, Alignment, Source, Target, Input, SecInputs, Params, URI) :-
 	rdf_bnode(URI),
-	assert_process(URI, Process, Alignment, Params),
-	assert_user_provenance(URI, Alignment),
-	assert_input(URI, Alignment, Source, Target, Input),
-	assert_output(URI, Process, Alignment),
-	assert_secondary_inputs(SecInputs, URI, Alignment),
+	rdf_transaction( % this transaction is to make it MT safe
+	    (
+	    assert_process(URI, Process, Alignment, Params),
+	    assert_user_provenance(URI, Alignment),
+	    assert_input(URI, Alignment, Source, Target, Input),
+	    assert_output(URI, Process, Alignment),
+	    assert_secondary_inputs(SecInputs, URI, Alignment)
+	    )),
 
 	(   setting(precompute_mapping, true)
 	->  precompute(URI, Alignment)
