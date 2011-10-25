@@ -23,18 +23,8 @@ YUI.add('builder', function(Y) {
 	        readonly : {
 			value: true
 		},
-		hint : {
-		       value: true
-		},
 		paths:{
-			value:{
-				opmgraph:'/amalgame/opmviz',
-				addprocess:'/amalgame/data/addprocess',
-				nodeinfo:'/amalgame/private/nodeinfo',
-				info:'/amalgame/private/info',
-				updatenode:'/amalgame/data/updatenode',
-				deletenode:'/amalgame/data/deletenode'
-			},
+			value: {},
 			validator: function(val) {
 				return Lang.isObject(val)
 			}
@@ -56,37 +46,27 @@ YUI.add('builder', function(Y) {
 	Y.extend(Builder, Y.Base, {
 
 		initializer: function(args) {
+			this.readonly = (this.get('readonly') != "false"); // string/boolean
+
 			// initalize the different modules
 			this._initGraph();
-			this._initInfo();
 			this._initControls();
-			this.readonly = (this.get('readonly') != "false"); // string/boolean
+			this._initInfo();
+
 			if (!this.readonly) {
 				this.controls.on("submit", this._onControlSubmit, this);
-			        this.infobox.after("nodeChange", this._onNodeChange, this);
-			        this.infobox.after("deleteNode", this._onNodeDelete, this);
-				if (this.get('hint').text) {
-				  Y.one('#hint').setContent(this.get('hint').text);
-				  Y.one('#hint').appendChild('&nbsp;');
-				  Y.one('#hint').appendChild('(<a id="exec_hint">just do it</a>)');
-				  Y.one('#exec_hint').on("click", this._onExecHint, this);
-				};
-				Y.log('enabled  control submit handlers');
 			} else {
-			  Y.one('#hint').setContent('hint:  please login to edit');
+			  Y.one('#hint').setContent('Please login to make changes');
 			  Y.all('button').each(function(button) { button.setAttribute("disabled", true); });
                         };
-			// bind the modules together
+
 			this.opmviz.on("nodeSelect", this._onNodeSelect, this);
+			this.infobox.on("nodeSelect", this._onNodeSelect, this);
 
 			this.after('nodesChange', function(o) {
 				this.controls.set("nodes", o.newVal);
 			}, this);
-			// Let's get started by selecting the strategy node
-			var strategy = this.get("alignment");
-			node = this.get("nodes")[strategy];
-			node.uri = strategy;
-			this.infobox.set("selected", node);
+
 			this._fetchGraph();
 		},
 
@@ -94,13 +74,10 @@ YUI.add('builder', function(Y) {
 			var DS = new Y.DataSource.IO({
 				source: this.get("paths").nodeinfo
 			});
-			//.plug({fn:Y.Plugin.DataSourceCache, cfg:{max:10}});
-			var alignment =	this.get('alignment');
-			this.set("selected", alignment);
 			this.opmviz = new Y.OPMViz({
 				datasource: DS,
 				mappings: this.get("nodes"),
-				alignment: alignment
+				alignment: this.get("alignment")
 			}).render(NODE_OPM);
 		},
 
@@ -115,8 +92,19 @@ YUI.add('builder', function(Y) {
 				srcNode: NODE_INFO,
 				alignment: this.get("alignment"),
 				mappings: this.get("nodes"),
+				hint: this.get("paths").hint,
+				controls: this.controls,
+				readonly: this.readonly,
 				datasource: DS
 			});
+
+			this.infobox.after("nodeChange", this._onNodeChange, this);
+			this.infobox.after("deleteNode", this._onNodeDelete, this);
+
+			// Let's get started by selecting the strategy node
+			var strategy = this.get("nodes")[this.get("alignment")];
+			strategy.uri = this.get("alignment");
+			this.infobox.set("selected", strategy);
 		},
 
 		_initControls : function() {
@@ -150,7 +138,6 @@ YUI.add('builder', function(Y) {
 		},
 
 		_onControlSubmit : function(o) {
-			Y.log(o);
 			var oSelf = this,
 				paths = this.get("paths"),
 				data = o.data;
@@ -161,7 +148,9 @@ YUI.add('builder', function(Y) {
 			Y.io(paths.addprocess, {
 				data:data,
 				on:{success:function(e,o) {
-					oSelf.set("nodes", Y.JSON.parse(o.responseText).nodes);
+					var r =	Y.JSON.parse(o.responseText);
+					oSelf.set("nodes", r.nodes);
+					oSelf.opmviz.fire("nodeSelect", {uri:r.focus});
 					oSelf._fetchGraph();
 				}}
 			})
@@ -172,7 +161,6 @@ YUI.add('builder', function(Y) {
 				paths = this.get("paths"),
 				data = o.update;
 			data.alignment = this.get("alignment");
-
 			Y.io(paths.updatenode, {
 				data:data,
 				on:{success:function(e,o) {
@@ -208,23 +196,15 @@ YUI.add('builder', function(Y) {
 			})
 		},
 
-		_onExecHint : function(e) {
-				this.controls.fire("submit", {data:this.get('hint').data});
-				setTimeout(window.location.reload, 1000);  // FIXME get new hint from ajax call
-		},
-
 		_onNodeSelect : function(e) {
-			Y.log(this.get("nodes"));
-			var uri = e.uri,
-				node = this.get("nodes")[uri],
-				type = node.type,
-				label = node.label;
+			var uri = e.uri;
+			var node = this.get("nodes")[uri];
 			node.uri = uri;
-
 			this.set("selected", uri);
 			// update the controls and the info
 			this.controls.set("selected", node);
 			this.infobox.set("selected", node);
+			this.opmviz.set("active", uri);
 		}
 	});
 

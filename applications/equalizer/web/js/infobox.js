@@ -5,6 +5,7 @@ YUI.add('infobox', function(Y) {
 
 	var NODE_PROPS = Y.one("#properties"),
 		NODE_DELETE = Y.one("#delete"),
+		NODE_HINT = Y.one("#hint"),
 		NODE_UPDATE = Y.one("#update"),
 		NODE_TYPE = Y.one("#type"),
 		NODE_URI = Y.one("#uri"),
@@ -23,6 +24,8 @@ YUI.add('infobox', function(Y) {
 		srcNode: {
 			value: null
 		},
+		controls : { value: null },
+		readonly : { value: true },
 		waiting: {
 			value:false,
 			validator:function(val) {
@@ -38,6 +41,9 @@ YUI.add('infobox', function(Y) {
 		selected: {
 			value: null
 		},
+		hint : {
+		       value: null
+		       },
 		mappings : {
 			value: null
 		}
@@ -46,11 +52,7 @@ YUI.add('infobox', function(Y) {
 	Y.extend(InfoBox, Y.Base, {
 
 		initializer : function(config) {
-			var content = this.get("srcNode"),
-				selected = this.get("selected"),
-				uri = selected ? selected.uri : "",
-				label = selected ? selected.label : "",
-				type = selected ? selected.type : "input";
+			var content = this.get("srcNode");
 			this.bd = content.one('.bd');
 			this.loadingNode = content.one('.loading');
 			this.emptyNode = content.one('.empty');
@@ -144,12 +146,43 @@ YUI.add('infobox', function(Y) {
 						}
 						instance.set("waiting", false);
 					}}
-				})
+				});
+				if (!this.get("readonly")) this._createHint();
 			} else {
 				this.emptyNode.removeClass("hidden");
 			}
 		},
 
+		_createHint : function () {
+				var oSelf = this;
+				var data =
+				     { strategy: this.get("alignment"),
+				       focus: this.get("selected").uri
+				     };
+				Y.io(this.get("hint"),
+				     { data: data,
+				       on: {success: function(e,o) {
+						       var r = Y.JSON.parse(o.responseText);
+						       if (r.text) {
+							 NODE_HINT.setContent(r.text);
+						       } else {
+							 NODE_HINT.setContent('No hints available at this point');
+						       }
+
+						       if (r.data) {
+							 NODE_HINT.appendChild('&nbsp;');
+							 NODE_HINT.appendChild('(<a id="exec_hint">just do it</a>)');
+							 Y.one('#exec_hint').on("click", oSelf._onExecHint, oSelf, r.data);
+						       }
+						     }
+					   }
+				     });
+		},
+
+		_onExecHint : function(e, data) {
+				this.get("controls").fire("submit", {data: data});
+			      }
+,
 		_updateNode : function() {
 			var sel = this.get("selected"),
 				uri = sel.uri,
@@ -173,6 +206,8 @@ YUI.add('infobox', function(Y) {
 			var uri = this.get("selected").uri;
 			Y.log("delete: "+uri);
 			this.fire("deleteNode", {uri:uri});
+			this.fire("nodeSelect",  {uri:this.get("alignment")});
+			this.syncUI();
 		},
 
 		toggleLoading : function () {
