@@ -69,6 +69,18 @@ find_hint(Strategy, Focus, Hint) :-
 		    text(Text)
 		     ]).
 
+find_hint(Strategy, Focus, Hint) :-
+	% if focus node is unambigious and not been evaluated, this might be a good idea.
+	mapping_counts(Focus, Strategy, N,N,N,_,_),
+	format(atom(Text), 'hint: this dataset contains only unambigious mappings, that is good!  It has not yet been evaluated, however.  Manual inspection could help you decide if the quality is sufficiently good.', []),
+	Hint =	json([
+		    event(evaluate),
+		    data(json([
+			     mapping(Focus),
+			     alignment(Strategy)
+			      ])),
+		    text(Text)
+		     ]).
 
 find_hint(_, _, json([])).
 
