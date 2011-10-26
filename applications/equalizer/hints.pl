@@ -42,6 +42,7 @@ find_hint(Strategy, _Focus, Hint) :-
 	;   Source = Voc2, Target = Voc1
 	),
 	Hint =	json([
+		    event(submit),
 		    data(json([
 			     process(Match),
 			     source(Source),
@@ -51,14 +52,15 @@ find_hint(Strategy, _Focus, Hint) :-
 		    text(Text)
 		     ]).
 
-find_hint(Strategy, _Focus, Hint) :-
+find_hint(Strategy, Focus, Hint) :-
 	% if there are end-point mappings with ambiguous correspondences, advise an ambiguity remover
-	has_ambiguous_endpoint(Strategy, Mapping),
+	has_ambiguous_endpoint(Strategy, Focus, Mapping),
 	rdf_equal(Process, amalgame:'AritySelect'),
 	rdf_display_label(Process, PLabel),
 	rdf_display_label(Mapping, MLabel),
 	format(atom(Text), 'hint: maybe you\'d like to remove the ambiguity from node "~w" (~p) by running an ~w', [MLabel, Mapping, PLabel]),
 	Hint =	json([
+		    event(submit),
 		    data(json([
 			     process(Process),
 			     input(Mapping),
@@ -67,10 +69,11 @@ find_hint(Strategy, _Focus, Hint) :-
 		    text(Text)
 		     ]).
 
+
 find_hint(_, _, json([])).
 
 
-has_ambiguous_endpoint(Strategy, Mapping) :-
+has_ambiguous_endpoint(Strategy, _Focus, Mapping) :-
 	findall(Mapping,
 		(
 		rdf(Mapping, rdf:type, amalgame:'Mapping', Strategy), % We are looking for a Mapping
