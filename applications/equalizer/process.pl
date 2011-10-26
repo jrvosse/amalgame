@@ -22,7 +22,7 @@
 :- http_handler(amalgame(data/deletenode), http_delete_node, []).
 
 :- rdf_meta
-	new_output(r, r,r,r),
+	new_output(r,r,r,r,r),
 	output_type(r,r).
 
 http_add_process(Request) :-
@@ -116,18 +116,18 @@ clean_dependent_caches(Process, Strategy, ProvGraph) :-
 
 
 %%	new_process(+Process, +Alignment, +Source, +Target, +Input,
-%%	+SecInputs, +Params)
+%%	+SecInputs, +Params, -NewFocus)
 %
 %	Create new amalgame process.
 
-new_process(Process, Alignment, Source, Target, Input, SecInputs, Params, URI) :-
+new_process(Process, Alignment, Source, Target, Input, SecInputs, Params, Focus) :-
 	rdf_bnode(URI),
 	rdf_transaction( % this transaction is to make it MT safe
 	    (
 	    assert_process(URI, Process, Alignment, Params),
 	    assert_user_provenance(URI, Alignment),
 	    assert_input(URI, Alignment, Source, Target, Input),
-	    assert_output(URI, Process, Alignment),
+	    assert_output(URI, Process, Alignment, Focus),
 	    assert_secondary_inputs(SecInputs, URI, Alignment)
 	    )),
 
@@ -174,18 +174,19 @@ assert_process(Process, Type, Graph, Params) :-
 	rdf_assert(Process, rdfs:label, literal(Label), Graph),
 	rdf_assert(Process, amalgame:parameters, literal(Search), Graph).
 
-assert_output(Process, Type, Graph) :-
+assert_output(Process, Type, Graph, MainOutput) :-
 	rdfs_subclass_of(Type, amalgame:'MappingSelecter'),
 	!,
 	rdf_equal(amalgame:'Mapping', OutputClass),
-	new_output(OutputClass, Process, amalgame:selectedBy, Graph),
-	new_output(OutputClass, Process, amalgame:discardedBy, Graph),
-	new_output(OutputClass, Process, amalgame:undecidedBy, Graph).
-assert_output(Process, Type, Graph) :-
-	output_type(Type, OutputClass),
-	new_output(OutputClass, Process, opmv:wasGeneratedBy, Graph).
+	new_output(OutputClass, Process, amalgame:selectedBy,  Graph, MainOutput),
+	new_output(OutputClass, Process, amalgame:discardedBy, Graph, _),
+	new_output(OutputClass, Process, amalgame:undecidedBy, Graph, _).
 
-new_output(Type, Process, P, Graph) :-
+assert_output(Process, Type, Graph, MainOutput) :-
+	output_type(Type, OutputClass),
+	new_output(OutputClass, Process, opmv:wasGeneratedBy, Graph, MainOutput).
+
+new_output(Type, Process, P, Graph, OutputURI) :-
 	rdf(Graph, amalgame:publish_ns, NS),
 	gensym(dataset, Local),
 	atomic_concat(NS, Local, OutputURI),
