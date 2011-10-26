@@ -212,15 +212,16 @@ http_correspondence(Request) :-
 
 html_correspondences([], _) --> !.
 html_correspondences([align(Source,Target,[Prov|_])|Cs], Relations) -->
-	{ option(relation(Relation), Prov, '')
-	},
-	html_correspondence(Source, Target, Relation, Relations),
+	html_correspondence(Source, Target, Prov, Relations),
 	html_correspondences(Cs, Relations).
 
-html_correspondence(Source, Target, Relation, Relations) -->
+html_correspondence(Source, Target, Prov, Relations) -->
+	{ option(relation(Relation), Prov, '')
+	},
+
 	html([div(class('yui3-g'),
 		  [ div(class('yui3-u-2-5'),
-			\html_resource_context(Source)),
+			\html_resource_context(Source, Prov)),
 		    div(class('yui3-u-1-5'),
 			div(class(relations),
 			    [ input([type(hidden), name(source), value(Source)]),
@@ -231,14 +232,14 @@ html_correspondence(Source, Target, Relation, Relations) -->
 				  ])
 			    ])),
 		    div(class('yui3-u-2-5'),
-			\html_resource_context(Target))
+			\html_resource_context(Target, Prov))
 		  ])
 	     ]).
 
-html_resource_context('') --> !.
-html_resource_context(URI) -->
+html_resource_context('',_) --> !.
+html_resource_context(URI, Prov) -->
 	{ rdf_display_label(URI, Label),
-	  resource_alternative_labels(URI, Label, Alt),
+	  resource_alternative_labels(URI, Label, Prov, Alt),
 	  resource_tree(URI, Tree),
 	  related_resources(URI, Related)
 	},
@@ -268,10 +269,21 @@ html_relations([Rel-Label|Rs], Active) -->
 	html_relations(Rs, Active).
 
 
-resource_alternative_labels(R, Label, Alt) :-
+resource_alternative_labels(R, Label, Prov, Alt) :-
 	findall(L, (rdf_label(R, L1), literal_text(L1,L)), Ls),
-	delete(Ls, Label, Alt1),
-	sort(Alt1, Alt).
+	delete(Ls, Label, Alt0),
+	sort(Alt0, Alt1),
+	(   matching_label(R, Prov, MatchingLabel), selectchk(MatchingLabel, Alt1, Rest)
+	->  Alt = [match(MatchingLabel)|Rest]
+	;   Alt = Ls
+	).
+
+
+
+matching_label(S, Prov, MatchingLabel) :-
+	option(graph(Graph), Prov),
+	member(rdf(S,_P,O), Graph),
+	literal_text(O, MatchingLabel).
 
 
 %%	related_resources(+Resource, -Related)
@@ -328,10 +340,17 @@ html_alt_labels(Alt) -->
         html_label_list(Alt).
 
 html_label_list([L]) -->
-	html(L).
+	html_label(L).
 html_label_list([L|Ls]) -->
-	html([L, ', ']),
+	html_label(L),
+	html([', ']),
 	html_label_list(Ls).
+
+html_label(match(L)) -->
+	html(span([class(match), style('font-weight: bold')], L)).
+
+html_label(L) -->
+	html(L).
 
 html_definition(URI) -->
 	{ rdf_has(URI, skos:definition, Lit),
