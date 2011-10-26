@@ -18,6 +18,8 @@
 :- use_module(components(graphviz)).
 :- use_module(library(yui3)).
 
+:- use_module(eq_util).
+
 :- http_handler(amalgame(opmviz), http_opmviz, []).
 
 :- setting(secondary_input, atom, show, 'Show or hide arrows for amalgame:secondary_input').
@@ -99,7 +101,9 @@ opm_graph_triple(Graph,Scheme,P,Graph) :-
 	rdf(Graph,amalgame:includes,Scheme,Graph).
 opm_graph_triple(Graph,S,P,O) :-
 	rdf(S,P,O,Graph),
-	is_opm_property(P).
+	is_opm_property(P),
+	\+ empty_evaluation(Graph, S).
+
 
 is_opm_property(P) :-
 	rdfs_subproperty_of(P, opmv:used),
@@ -118,6 +122,17 @@ is_opm_property(P) :-
 is_opm_property(P) :-
 	rdfs_subproperty_of(P, opmv:wasTriggeredBy),
 	!.
+% filter out empty evaluations ...
+empty_evaluation(Strategy,M) :-
+	rdfs_individual_of(M, amalgame:'EvaluatedMapping'),
+	mapping_counts(M,Strategy,0,0,0,_,_), !.
+
+% and processes resulting in empty evals
+empty_evaluation(Strategy,Process) :-
+	rdfs_individual_of(Process, amalgame:'EvaluationProcess'),
+	rdf(Empty, opmv:wasGeneratedBy, Process, Strategy),
+	empty_evaluation(Strategy, Empty).
+
 
 %%	opm_shape(+Resource, -Shape)
 %
