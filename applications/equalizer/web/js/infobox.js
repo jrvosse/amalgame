@@ -172,15 +172,16 @@ YUI.add('infobox', function(Y) {
 						       if (r.data) {
 							 NODE_HINT.appendChild('&nbsp;');
 							 NODE_HINT.appendChild('(<a id="exec_hint">just do it</a>)');
-							 Y.one('#exec_hint').on("click", oSelf._onExecHint, oSelf, r.data);
+							 Y.one('#exec_hint').on("click",
+										oSelf._onExecHint, oSelf, r.data, r.event);
 						       }
 						     }
 					   }
 				     });
 		},
 
-		_onExecHint : function(e, data) {
-				this.get("controls").fire("submit", {data: data});
+		_onExecHint : function(e, data, event) {
+				this.get("controls").fire(event, {data: data});
 			      }
 ,
 		_updateNode : function() {
