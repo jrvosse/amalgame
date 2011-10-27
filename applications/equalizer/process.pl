@@ -188,6 +188,7 @@ assert_output(Process, Type, Graph, MainOutput) :-
 
 new_output(Type, Process, P, Graph, OutputURI) :-
 	rdf(Graph, amalgame:publish_ns, NS),
+	repeat,
 	gensym(dataset, Local),
 	atomic_concat(NS, Local, OutputURI),
 	\+ rdf(OutputURI, _, _), !,
@@ -224,15 +225,19 @@ http_update_node(Request) :-
 				    ]),
 			  uri(URI,
 				[uri,
-				 description('URI of input resource')])
+				 description('URI of input resource')]),
+			  publish_ns(PublishNS,
+				     [uri,
+				      description('Optional uri of new publication namespace'),
+				      default('same')
+				     ])
 			],
 			[form_data(Params)
 			]),
-	selectchk(namespace=NS, Params, Rest),
-	rdf_transaction(update_node_props(Rest, URI, Alignment)),
-	change_ns_if_needed(NS, URI, Alignment, NewAlignment),
+	rdf_transaction(update_node_props(Params, URI, Alignment)),
+	change_ns_if_needed(PublishNS, URI, Alignment, NewAlignment),
 	js_alignment_nodes(NewAlignment, Nodes),
-	reply_json(json([alignment=NewAlignment,nodes=json(Nodes)])).
+	reply_json(json([alignment=NewAlignment,nodes=json(Nodes), focus(URI)])).
 
 update_node_props([], _, _).
 update_node_props([T|Ts], URI, Alignment) :-
@@ -271,7 +276,7 @@ update_node_prop(status=Status, URI, Alignment) :-
 
 change_ns_if_needed(NS, URI, Strategy, NewStrategy) :-
 	rdf(Strategy, amalgame:publish_ns, OldNS, Strategy),
-	((OldNS == NS; NS == '')
+	((OldNS == NS; NS == 'same')
 	-> NewStrategy = Strategy
 	;  rdf_retractall(URI, amalgame:publish_ns, OldNS, Strategy),
 	   rdf_assert(URI, amalgame:publish_ns, NS, Strategy),
