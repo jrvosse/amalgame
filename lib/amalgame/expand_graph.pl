@@ -501,8 +501,10 @@ evaluation_graph(Strategy, Mapping, EvalGraph) :-
 
 evaluation_graph(Strategy, Mapping, EvalGraph) :-
 	gensym(evaluation_process, EvalProcess),
+	repeat,
 	gensym(evaluation_result, EvalGraph),
 	\+ rdf_graph(EvalGraph),
+	!,
 
 	format(atom(Comment), 'Manual evaluation of ~w', [Mapping]),
 

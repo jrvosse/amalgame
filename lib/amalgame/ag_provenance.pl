@@ -24,7 +24,7 @@ provenance_graph(Strategy, Graph) :-
 	rdf(Strategy, amalgame:publish_ns, NS),
 	(   atomic_list_concat([NS, opmv],  Graph), \+ rdf_graph(Graph)
 	->  true
-	;   gensym('provgraph', Local),
+	;   repeat, gensym('provgraph', Local),
 	    atomic_list_concat([NS, Local], Graph),
 	    \+ rdf_graph(Graph)
 	),
