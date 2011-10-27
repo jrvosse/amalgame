@@ -62,6 +62,9 @@ YUI.add('builder', function(Y) {
 
 			this.opmviz.on("nodeSelect", this._onNodeSelect, this);
 			this.infobox.on("nodeSelect", this._onNodeSelect, this);
+			this.infobox.after("nodeChange", this._onNodeChange, this);
+			this.infobox.after("deleteNode", this._onNodeDelete, this);
+			this.controls.on("nodeChange", this._onNodeChange, this);
 
 			this.after('nodesChange', function(o) {
 				this.controls.set("nodes", o.newVal);
@@ -97,9 +100,6 @@ YUI.add('builder', function(Y) {
 				readonly: this.readonly,
 				datasource: DS
 			});
-
-			this.infobox.after("nodeChange", this._onNodeChange, this);
-			this.infobox.after("deleteNode", this._onNodeDelete, this);
 
 			// Let's get started by selecting the strategy node
 			var strategy = this.get("nodes")[this.get("alignment")];
@@ -157,9 +157,10 @@ YUI.add('builder', function(Y) {
 		},
 
 		_onNodeChange : function(o) {
+			Y.log("nodeChange event caught (builder:onNodeChange)");
 			var oSelf = this,
 				paths = this.get("paths"),
-				data = o.update;
+				data = o.data;
 			data.alignment = this.get("alignment");
 			Y.io(paths.updatenode, {
 				data:data,
@@ -168,6 +169,9 @@ YUI.add('builder', function(Y) {
 					oSelf.set("nodes", response.nodes);
 					if (data.alignment == response.alignment) {
 						oSelf._fetchGraph();
+						Y.log("fire nodeSelect after update");
+						Y.log(response);
+						oSelf.opmviz.fire("nodeSelect", {uri:response.focus});
 					} else { // alignment changed name, we need to fully reload ...
 						oSelf.set("alignment", response.alignment);
 						var l = window.location;
@@ -197,6 +201,7 @@ YUI.add('builder', function(Y) {
 		},
 
 		_onNodeSelect : function(e) {
+				  Y.log(e);
 			var uri = e.uri;
 			var node = this.get("nodes")[uri];
 			node.uri = uri;

@@ -181,9 +181,11 @@ YUI.add('infobox', function(Y) {
 		},
 
 		_onExecHint : function(e, data, event) {
+				Y.log(event + ' fired with data:');
+				Y.log(data);
 				this.get("controls").fire(event, {data: data});
-			      }
-,
+			      },
+
 		_updateNode : function() {
 			var sel = this.get("selected"),
 				uri = sel.uri,
@@ -200,7 +202,7 @@ YUI.add('infobox', function(Y) {
 				status:status,
 				comment:comment
 			}
-			this.fire("nodeChange", {update:data});
+			this.fire("nodeChange", {data:data});
 		},
 
 		_deleteNode : function() {

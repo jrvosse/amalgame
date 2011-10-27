@@ -58,7 +58,7 @@ find_hint(Strategy, Focus, Hint) :-
 	rdf_equal(Process, amalgame:'AritySelect'),
 	rdf_display_label(Process, PLabel),
 	rdf_display_label(Mapping, MLabel),
-	format(atom(Text), 'hint: maybe you\'d like to remove the ambiguity from node "~w" (~p) by running an ~w', [MLabel, Mapping, PLabel]),
+	format(atom(Text), 'hint: maybe you\'d like to remove the ambiguity from node "~w" by running an ~w', [MLabel, PLabel]),
 	Hint =	json([
 		    event(submit),
 		    data(json([
@@ -68,16 +68,41 @@ find_hint(Strategy, Focus, Hint) :-
 			      ])),
 		    text(Text)
 		     ]).
+find_hint(Strategy, Focus, Hint) :-
+	% if focus node has been evaluated, maybe it can be get final status?
+	rdf(_, amalgame:evaluationOf, Focus, Strategy),
+	rdf(Focus, amalgame:status, Status, Strategy),
+	rdf_equal(FinalStatus, amalgame:final),
+	FinalStatus \== Status,
+	!,
+	rdf_global_id(_:Local, Status),
+	format(atom(Text), 'hint: this dataset has been evaluated, if the results were satisfactory, you might want to change the status from \'~p\' to \'final\'.', [Local]),
+	Hint = json([
+		   event(nodeChange),
+		   data(json([
+			    uri(Focus),
+			    alignment(Strategy),
+			    status(FinalStatus)
+			     ])),
+		   text(Text),
+		   focus(Focus)
+		    ]).
 
 find_hint(Strategy, Focus, Hint) :-
-	% if focus node is unambigious and not been evaluated, this might be a good idea.
-	mapping_counts(Focus, Strategy, N,N,N,_,_),
-	format(atom(Text), 'hint: this dataset contains only unambigious mappings, that is good!  It has not yet been evaluated, however.  Manual inspection could help you decide if the quality is sufficiently good.', []),
+	% if focus node is unambigious and not been evaluated,
+	% this might be a good idea to do.
+	\+ rdf(_, amalgame:evaluationOf, Focus, Strategy),
+	with_mutex(Focus, mapping_counts(Focus, Strategy, N,N,N,_,_)),
+	N > 0,
+	!,
+	format(atom(Text), 'hint: this dataset contains ~w unambigious mappings, that is good!  It has not yet been evaluated, however.  Manual inspection could help you decide if the quality is sufficiently good.', [N]),
+	http_link_to_id(http_eq_evaluate, [alignment(Strategy), mapping(Focus)],EvalPage),
 	Hint =	json([
 		    event(evaluate),
 		    data(json([
-			     mapping(Focus),
-			     alignment(Strategy)
+			     focus(Focus),
+			     alignment(Strategy),
+			     page(EvalPage)
 			      ])),
 		    text(Text)
 		     ]).
