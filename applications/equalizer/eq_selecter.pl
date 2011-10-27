@@ -316,11 +316,12 @@ http_eq_new(Request) :-
 %	Assert a new alignment graph.
 
 new_alignment(Schemes, Alignment) :-
-	setting(eq_publisher:default_namespace, NS),
 	authorized(write(default, _)),
-	gensym(strategy, Local),
+	setting(eq_publisher:default_namespace, NS),
+	repeat, gensym(strategy, Local),
 	atomic_list_concat([NS,Local], Alignment),
 	\+ rdf_graph(Alignment),
+	!,
 	rdf_transaction((rdf_assert(Alignment, rdf:type, amalgame:'AlignmentStrategy', Alignment),
 			 rdf_assert(Alignment, amalgame:publish_ns, NS, Alignment),
 			 assert_user_provenance(Alignment, Alignment),
