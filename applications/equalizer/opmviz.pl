@@ -125,7 +125,7 @@ is_opm_property(P) :-
 % filter out empty evaluations ...
 empty_evaluation(Strategy,M) :-
 	rdfs_individual_of(M, amalgame:'EvaluatedMapping'),
-	mapping_counts(M,Strategy,0,0,0,_,_), !.
+	with_mutex(M, mapping_counts(M,Strategy,0,0,0,_,_)), !.
 
 % and processes resulting in empty evals
 empty_evaluation(Strategy,Process) :-
