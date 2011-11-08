@@ -1,5 +1,5 @@
 :- module(eq_util,
-	  [ html_eq_header//2,
+	  [ html_eq_header//1,
 	    assert_user_provenance/2,
 	    amalgame_alignment/2,
 	    js_mappings/2,
@@ -54,7 +54,7 @@ flush_stats_cache(Mapping, Strategy) :-
 %
 %	Emit page header with menu bar
 
-html_eq_header(Active, Alignment) -->
+html_eq_header(Options) -->
 	{
 	  findall(Rank-(Path-Label), eq:menu_item(Rank=Path, Label), Items0),
 	  keysort(Items0, ItemsSorted),
@@ -63,25 +63,30 @@ html_eq_header(Active, Alignment) -->
 	html(div(id(header),
 		 [ div(class(title),
 		       a(href(location_by_id(http_eq)), 'Amalgame')),
-		   ul(\html_eq_menu(Items, Active, Alignment))
+		   ul(\html_eq_menu(Items, Options))
 		 ])).
 
-html_eq_menu([], _, _) --> !.
-html_eq_menu([Handler-Label|Is], Active, Alignment) -->
-	html_menu_item(Handler, Label, Active, Alignment),
-	html_eq_menu(Is, Active, Alignment).
+html_eq_menu([], _) --> !.
+html_eq_menu([Handler-Label|Is], Options) -->
+	html_menu_item(Handler, Label, Options),
+	html_eq_menu(Is, Options).
 
-html_menu_item(Handler, Label, Active, _Alignment) -->
-	{ Handler = Active
+html_menu_item(Handler, Label, Options) -->
+	{ option(active(Handler), Options)
 	},
 	!,
 	html(li(class(selected), span(Label))).
-html_menu_item(Handler, Label, _Active, Alignment) -->
-	{ http_link_to_id(http_eq_build,
-			  [alignment(Alignment)], ReturnToAfterLogin),
+html_menu_item(Handler, Label, Options) -->
+	{ option(strategy(Strategy), Options),
+	  option(focus(Focus), Options, Strategy),
+	  http_link_to_id(http_eq_build,
+			  [alignment(Strategy)], ReturnToAfterLogin),
 	  http_link_to_id(Handler, [
 				    'openid.return_to'(ReturnToAfterLogin),
-				    alignment(Alignment)], Link)
+				    focus(Focus),
+				    alignment(Strategy)
+				   ],
+			  Link)
 	},
 	html(li(a(href(Link), Label))).
 

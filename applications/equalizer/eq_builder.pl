@@ -43,10 +43,15 @@ http_eq_build(Request) :-
 	http_parameters(Request,
 			[ alignment(Alignment,
 				    [uri,
-				     description('URI of an alignment')])
+				     description('URI of an alignment')]),
+			  focus(Focus,
+				[uri,
+				 description('URI of current focus node'),
+				 default(Alignment)
+				])
 			]),
 	backward_compatibilty_fixes(Alignment),
-	html_page(Alignment).
+	html_page(Alignment, Focus).
 
 		 /*******************************
 		 *	      HTML		*
@@ -57,7 +62,7 @@ http_eq_build(Request) :-
 %	Emit html page with layout for the strategy builder
 %	application.
 
-html_page(Strategy) :-
+html_page(Strategy, Focus) :-
 	html_set_options([dialect(html)]),
 	reply_html_page(equalizer(main),
 			[ title(['Align vocabularies'])
@@ -70,7 +75,10 @@ html_page(Strategy) :-
 				       'cssfonts/fonts-min.css'
 				      ]),
 			  div(class('yui3-skin-sam yui-skin-sam'),
-			      [ \html_eq_header(http_eq_build, Strategy),
+			      [ \html_eq_header([
+				     active(http_eq_build),
+				     strategy(Strategy),
+				     focus(Focus)]),
 				div([id(main)],
 				    [ div([id(opm)],
 					  []),
@@ -79,7 +87,7 @@ html_page(Strategy) :-
 				    ])
 			      ]),
 			  script(type('text/javascript'),
-				 [ \yui_script(Strategy)
+				 [ \yui_script(Strategy, Focus)
 				 ])
 			]).
 
@@ -88,7 +96,7 @@ html_page(Strategy) :-
 %
 %	Emit YUI object.
 
-yui_script(Alignment) -->
+yui_script(Alignment, Focus) -->
 	{ findall(K-V, js_path(K, V), Paths),
 	  findall(M-C, js_module(M,C), Modules),
 	  pairs_keys(Modules, Includes),
@@ -105,6 +113,7 @@ yui_script(Alignment) -->
 			 json([alignment(Alignment),
 			       paths(json(Paths)),
 			       nodes(json(Nodes)),
+			       selected(Focus),
 			       readonly(Read_only)
 			      ]))
 	     ]).

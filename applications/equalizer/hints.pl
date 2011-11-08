@@ -97,7 +97,7 @@ find_hint(Strategy, Focus, Hint) :-
 	N > 0,
 	!,
 	format(atom(Text), 'hint: this dataset contains ~w unambigious mappings, that is good!  It has not yet been evaluated, however.  Manual inspection could help you decide if the quality is sufficiently good.', [N]),
-	http_link_to_id(http_eq_evaluate, [alignment(Strategy), mapping(Focus)],EvalPage),
+	http_link_to_id(http_eq_evaluate, [alignment(Strategy), focus(Focus)],EvalPage),
 	Hint =	json([
 		    event(evaluate),
 		    data(json([
@@ -109,7 +109,7 @@ find_hint(Strategy, Focus, Hint) :-
 		     ]).
 find_hint(Strategy, Focus, Hint) :-
 	is_known_to_be_disambiguous(Strategy, Focus, Mapping),
-	http_link_to_id(http_eq_evaluate, [alignment(Strategy), mapping(Mapping)],EvalPage),
+	http_link_to_id(http_eq_evaluate, [alignment(Strategy), focus(Mapping)],EvalPage),
 	format(atom(Text), '~w contains ambiguous mappings.  Maybe you can select the good ones after looking at what is causing the problem.', [Mapping]),
 	Hint =	json([
 		    event(evaluate),

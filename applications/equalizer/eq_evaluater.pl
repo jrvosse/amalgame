@@ -41,7 +41,7 @@ http_eq_evaluate(Request) :-
 			[ alignment(Alignment,
 				    [uri,
 				     description('URI of an alignment')]),
-			  mapping(Mapping,
+			  focus(Mapping,
 				  [uri, default(''),
 				   description('URI of initially selected mapping')
 				  ])
@@ -61,7 +61,10 @@ html_page(Alignment, Mapping) :-
 				       'cssgrids/grids-min.css',
 				       'cssfonts/fonts-min.css'
 				      ]),
-			  \html_eq_header(http_eq_evaluate, Alignment),
+			  \html_eq_header([active(http_eq_evaluate),
+					   strategy(Alignment),
+					   focus(Mapping)
+					  ]),
 			  div(class('yui3-skin-sam yui-skin-sam'),
 			      [ div([id(content), class('yui3-g')],
 				    [ div([class('yui3-u'), id(left)],

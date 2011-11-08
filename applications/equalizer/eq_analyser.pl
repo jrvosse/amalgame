@@ -54,9 +54,12 @@ html_page(Alignment, Mapping) :-
 				       'cssgrids/grids-min.css',
 				       'cssfonts/fonts-min.css'
 				      ]),
-			  \html_requires(css('eq.css')),
-			  \html_requires(css('analyser.css')),
-			 \html_eq_header(http_eq_analyse, Alignment),
+			 \html_requires(css('eq.css')),
+			 \html_requires(css('analyser.css')),
+			 \html_eq_header([active(http_eq_analyse),
+					 strategy(Alignment),
+					  focus(Mapping)
+					 ]),
 			  div(class('yui3-skin-sam yui-skin-sam'),
 			      [ div([id(main), class('yui3-g')],
 				    [
