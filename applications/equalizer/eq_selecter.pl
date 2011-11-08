@@ -136,7 +136,7 @@ html_vocab_rows([Scheme|Vs]) -->
 	},
 	html(tr([td(input([type(checkbox), autocomplete(off), class(option),
 			   name(scheme), value(Scheme)])),
-		 td(\html_graph_name(Scheme)),
+		 td(\html_scheme_name(Scheme)),
 		 td(class(count), ConceptCount),
 		 td(class(prefLabel), PrefCount),
 		 td(class(altLabel), AltCount),
@@ -185,7 +185,7 @@ html_alignment_head -->
 html_alignment_rows([]) --> !.
 html_alignment_rows([URI-Schemes|Gs]) -->
 	html(tr([td(input([type(radio), autocomplete(off), class(option), name(alignment), value(URI)])),
-		 td(\html_graph_name(URI)),
+		 td(\html_strategy_name(URI)),
 		 td(\html_scheme_labels(Schemes))
 		])),
 	html_alignment_rows(Gs).
@@ -195,9 +195,15 @@ html_scheme_labels([S|Ss]) -->
 	html(div(\turtle_label(S))),
 	html_scheme_labels(Ss).
 
-html_graph_name(Graph) -->
+html_strategy_name(Graph) -->
 	{ graph_label(Graph, Label),
 	  http_link_to_id(http_eq_build, [alignment(Graph)], Link)
+	},
+	html(a([href(Link)],Label)).
+
+html_scheme_name(Graph) -->
+	{ graph_label(Graph, Label),
+	  http_link_to_id(http_concept_finder, [scheme(Graph)], Link)
 	},
 	html(a([href(Link)],Label)).
 
