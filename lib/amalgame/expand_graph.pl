@@ -495,14 +495,19 @@ select_mappings_to_be_saved(Strategy, Mappings, Options) :-
 		    ), Mappings)
 	).
 
+%%
 evaluation_graph(Strategy, Mapping, EvalGraph) :-
 	rdf(EvalGraph, amalgame:evaluationOf, Mapping, Strategy),
 	!.
 
 evaluation_graph(Strategy, Mapping, EvalGraph) :-
+	repeat,
 	gensym(evaluation_process, EvalProcess),
+	\+ rdf_subject(EvalProcess),
+
 	repeat,
 	gensym(evaluation_result, EvalGraph),
+	\+ rdf_subject(EvalGraph),
 	\+ rdf_graph(EvalGraph),
 	!,
 
