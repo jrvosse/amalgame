@@ -71,6 +71,15 @@ YUI.add('builder', function(Y) {
 			}, this);
 
 			this._fetchGraph();
+
+			// Let's get started by selecting the strategy node
+			// if we have no selection
+			var selected = this.get("selected");
+			if (selected) {
+			  this.opmviz.fire("nodeSelect", {uri:selected});
+			} else {
+			  this.opmviz.fire("nodeSelect", {uri:this.get("alignment")});
+			};
 		},
 
 		_initGraph : function() {
@@ -101,10 +110,6 @@ YUI.add('builder', function(Y) {
 				datasource: DS
 			});
 
-			// Let's get started by selecting the strategy node
-			var strategy = this.get("nodes")[this.get("alignment")];
-			strategy.uri = this.get("alignment");
-			this.infobox.set("selected", strategy);
 		},
 
 		_initControls : function() {
@@ -201,7 +206,6 @@ YUI.add('builder', function(Y) {
 		},
 
 		_onNodeSelect : function(e) {
-				  Y.log(e);
 			var uri = e.uri;
 			var node = this.get("nodes")[uri];
 			node.uri = uri;
