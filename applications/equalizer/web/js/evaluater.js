@@ -82,6 +82,9 @@ YUI.add('evaluater', function(Y) {
 			NODE_SOURCE_ALL.on("click", this._fetchDetail, this);
 			NODE_TARGET_ALL.on("click", this._fetchDetail, this);
 
+			var selected = this.get("selected");
+			if (selected) this.mappinglist.fire('mappingSelect', {uri:selected});
+
 		},
 
 		_initInfo : function() {
@@ -121,7 +124,7 @@ YUI.add('evaluater', function(Y) {
 				srcNode: NODE_MAPPING_TABLE,
 				datasource:DS,
 				alignment: this.get("alignment"),
-				mapping:this.get("selected")
+				focus:this.get("selected")
 			});
 		},
 
