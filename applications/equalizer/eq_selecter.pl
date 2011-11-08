@@ -149,7 +149,12 @@ html_vocab_rows([Scheme|Vs]) -->
 %%	html_open(+Alignments)
 %
 %
-
+html_open([]) -->
+	html_acc_item(open,
+		      div([style('font-style: italic; color: gray')],
+			  'no strategies have been created yet'),
+		      []),
+	!.
 html_open(Alignments) -->
 	html_acc_item(open, 'open loaded alignment strategy',
 		      [ form(action(location_by_id(http_eq_build)),
@@ -157,7 +162,12 @@ html_open(Alignments) -->
 			       \html_submit('Start')
 			     ])
 		      ]).
-
+html_publish([]) -->
+	html_acc_item(open,
+		      div([style('font-style: italic; color: gray')],
+			  'no mappings have been created yet'),
+		      []),
+	!.
 html_publish(Alignments) -->
 	{
 	 has_write_permission,
