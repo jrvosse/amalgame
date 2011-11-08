@@ -522,6 +522,7 @@ evaluation_graph(Strategy, Mapping, EvalGraph) :-
 	rdf_assert(EvalGraph, rdfs:comment, literal(Comment), Strategy),
 	rdf_assert(EvalGraph, opmv:wasGeneratedBy, EvalProcess, Strategy),
 	rdf_assert(EvalGraph, amalgame:evaluationOf, Mapping, Strategy),
+	rdf_assert(EvalGraph, amalgame:status, amalgame:intermediate, Strategy),
 
 	Options = [was_derived_from([Mapping])],
 	provenance_graph(Strategy, ProvGraph),
