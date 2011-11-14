@@ -28,7 +28,7 @@
 %%	http_eq(+Request)
 %
 %	Emit html page to start a new or load an existing alignment
-%	project.
+%	strategy.
 
 http_eq(_Request) :-
 	% authorized(write(default, _)),
@@ -44,7 +44,7 @@ html_page :-
 	findall(A-S, amalgame_alignment(A, S), Alignments),
 	find_schemes(ConceptSchemes),
 	reply_html_page(cliopatria(main),
-			[ title(['Amalgame - projects'])
+			[ title(['Amalgame - strategies'])
 			],
 			[ \html_requires(css('selecter.css')),
 			  \yui3_combo(yui3,
@@ -80,7 +80,7 @@ html_new(Schemes) -->
 	{
 	 has_write_permission, !
 	},
-	html_acc_item(new, 'new alignment project',
+	html_acc_item(new, 'new alignment strategy',
 		      [ form(action(location_by_id(http_eq_new)),
 			     [ \html_vocab_table(Schemes),
 			       \html_submit('Start')
@@ -156,7 +156,7 @@ html_open([]) -->
 		      []),
 	!.
 html_open(Alignments) -->
-	html_acc_item(open, 'open loaded alignment strategy',
+	html_acc_item(open, 'open pre-loaded alignment strategy',
 		      [ form(action(location_by_id(http_eq_build)),
 			     [ \html_alignment_table(Alignments),
 			       \html_submit('Start')
@@ -173,7 +173,7 @@ html_publish(Alignments) -->
 	 has_write_permission,
 	 !
 	},
-	html_acc_item(publish, 'publish mapping results',
+	html_acc_item(publish, 'publish	alignment results',
 		      [ form(action(location_by_id(http_eq_publish_form)),
 			     [ \html_alignment_table(Alignments),
 			       \html_submit('Publish')
