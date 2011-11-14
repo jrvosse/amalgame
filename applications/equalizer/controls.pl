@@ -304,6 +304,9 @@ module_special_type(M, secinput) :-
 	    rdfs_subclass_of(M, amalgame:'RelatedMatcher')
 	),
 	!.
+module_special_type(M,preloaded) :-
+	rdfs_subclass_of(M, amalgame:'SelectPreLoaded'),
+	!.
 
 module_special_type(M, merger) :-
 	rdfs_subclass_of(M, amalgame:'Merger'),
