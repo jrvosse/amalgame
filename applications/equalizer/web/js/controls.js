@@ -93,9 +93,9 @@ YUI.add('controls', function(Y) {
 		_setMappingSelecter : function() {
 			var nodes = this.get("nodes");
 			Y.all(".secinput form").each( function(form) {
-				var selecter = form.one('.mappingselect');
+				var selecter = form.one('.secinput_selecter');
 				if(!selecter) {
-					selecter = Node.create('<div class="mappingselect"></div>');
+					selecter = Node.create('<div class="secinput_selecter"></div>');
 					form.prepend(selecter);
 				}
 				selecter.setContent(this.formatMappingList(nodes));
@@ -200,11 +200,15 @@ YUI.add('controls', function(Y) {
 			} else if(type=="mapping") {
 				NODE_INPUT_BTN.removeAttribute("disabled");
 			}
-			var nodes = this.get("nodes");
-			if (nodes.length < 1) {
+			var secSelecter = Y.one(".secinput_selecter").getContent();
+			if (!secSelecter) {
 			        Y.log("Disabling components requiring secondary inputs");
-				Y.log(nodes);
 				Y.all(".secinput").addClass("disabled");
+			}
+			var preloadedSelecter = Y.one(".preloaded select option")
+			if(!preloadedSelecter) {
+			  Y.log("Disabling components requiring preloaded input mappings");
+			  Y.all(".preloaded").addClass("disabled");
 			}
 			// enable matcher submit when both source and target have a value
 			if(NODE_INPUT.get("value")||
