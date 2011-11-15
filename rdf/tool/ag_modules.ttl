@@ -30,7 +30,7 @@ amalgame:SnowballMatcher
 
 amalgame:IsubMatcher
     rdfs:label "string/similarity"@en ;
-    skos:definition "An string similarity matcher based on the 'isub' metric introduced in 'A string metric for ontology alignment' by Giorgos Stoilos, 2005."@en ;
+    skos:definition "A string similarity matcher based on the 'isub' metric introduced in 'A string metric for ontology alignment' by Giorgos Stoilos, 2005."@en ;
     rdfs:subClassOf amalgame:Matcher .
 
 amalgame:AncestorMatcher
