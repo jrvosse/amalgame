@@ -6,6 +6,7 @@
 	   skos_label/2,
 	   skos_label/3,
 	   topconcepts/2,
+	   voc_languages/2,
 	   assert_voc_version/2,
 	   voc_get_computed_props/2,
 	   voc_clear_stats/1,
@@ -26,6 +27,9 @@
 
 :- use_module(library(amalgame/map)).
 :- use_module(library(amalgame/opm)).
+
+:- dynamic
+	voc_stats_cache/2.
 
 /** <module> Compute and store vocabulary-oriented statistics as RDF.
 
@@ -190,6 +194,12 @@ voc_ensure_stats(numberOfMappedConcepts(Voc)) :-
 	    assert_voc_props(Voc:[numberOfMappedConcepts(literal(type('http://www.w3.org/2001/XMLSchema#int', Count)))])
 	),!.
 
+voc_languages(Voc, L) :-
+	(   voc_stats_cache(Voc, languages(L))
+	->  true
+	;   find_languages_used(Voc, L),
+	    assert(voc_stats_cache(Voc, languages(L)))
+	).
 %%	assert_voc_version(+Voc, +TargetGraph) is det.
 %
 %	Assert version of Voc using RDF triples in named graph TargetGraph.
@@ -282,6 +292,23 @@ count_mapped_concepts(Voc, Count) :-
 	sort(Concepts, Sorted),
 	length(Sorted, Count),
 	print_message(informational, map(found, 'SKOS mapped concepts', Voc, Count)).
+
+find_languages_used(all, Langs) :-
+	findall(L,
+		(   rdfs_individual_of(Voc, skos:'ConceptScheme'),
+		    find_languages_used(Voc, L)
+		),
+		Ls),
+	flatten(Ls, Flat),
+	sort(Flat, Langs).
+
+find_languages_used(Voc, Langs) :-
+	setof(Lang, language_used(Voc, Lang), Langs).
+
+language_used(Voc, Lang) :-
+	rdf(Concept, skos:inScheme, Voc),
+	rdf(Concept, _, literal(lang(Lang, _))),
+	ground(Lang).
 
 voc_partition(Request, Voc, PartitionType, Partition) :-
 	findall(C, rdf(C, skos:inScheme, Voc), Concepts),
