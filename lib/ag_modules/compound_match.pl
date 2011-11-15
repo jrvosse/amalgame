@@ -80,10 +80,10 @@ match(align(Source, TargetScheme, []), Results, Options) :-
 
 	rdf_has(Source, MatchProp1, literal(lang(SourceLang, SourceLabel)), SourceProp),
 	rdf_tokenize_literal(SourceLabel, Tokens),
-	findall(Targets-Label-LabelAmbScore,
+	findall(Targets-Token-LabelAmbScore,
 		(   member(Token, Tokens),
-		    term_to_atom(Token, Label),
-		    match_label(Source, Label, Targets,
+		    atom(Token),
+		    match_label(Source, Token, Targets,
 				[scheme(TargetScheme), sourcelang(SourceLang)|Options]),
 		    length(Targets, LabelAmbScore)
 
