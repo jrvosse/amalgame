@@ -5,6 +5,8 @@
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(amalgame/vocabulary)).
+:- use_module(library(skos/vocabularies)).
+
 :- use_module(string_match_util).
 
 :- public amalgame_module/1.
@@ -23,7 +25,8 @@ parameter(targetlabel, oneof(LabelProps), Default,
 	  '(Super)Property to get the label of the target by') :-
 	rdf_equal(Default, rdfs:label),
 	label_list(LabelProps).
-parameter(language, atom, '', 'Language of source label').
+parameter(language, oneof(['any'|L]), 'any', 'Language of source label') :-
+	voc_languages(all, L).
 parameter(matchacross_lang, boolean, true,
 	  'Allow labels from different language to be matched').
 parameter(matchacross_type, boolean, true,
@@ -70,9 +73,9 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 	option(matchacross_lang(MatchAcross), Options, true),
 	option(matchacross_type(IgnoreType),  Options, true),
 	option(case_sensitive(CaseSensitive), Options, false),
-	option(language(Lang), Options, ''),
+	option(language(Lang), Options, 'any'),
 
-	(   Lang == ''
+	(   Lang == 'any'
 	->  var(SourceLang)
 	;   SourceLang = Lang
 	),

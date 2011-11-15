@@ -6,6 +6,7 @@
 :- use_module(library(snowball)).
 :- use_module(library(lit_distance)).
 :- use_module(library(amalgame/vocabulary)).
+:- use_module(library(skos/vocabularies)).
 :- use_module(library(amalgame/candidate)).
 :- use_module(string_match_util).
 
@@ -25,8 +26,8 @@ parameter(targetlabel, oneof(LabelProps), Default,
 	  '(Super)Property to get the label of the target by') :-
 	rdf_equal(Default, rdfs:label),
 	label_list(LabelProps).
-parameter(language, atom, '',
-	  'Language of source label').
+parameter(language, oneof(['any'|L]), 'any', 'Language of source label') :-
+	voc_languages(all, L).
 parameter(matchacross_lang, boolean, true,
 	  'Allow labels from different language to be matched').
 parameter(snowball_language, oneof(Languages), english,
@@ -76,10 +77,10 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 	option(sourcelabel(MatchProp1), Options, DefaultP),
 	option(targetlabel(MatchProp2), Options, DefaultP),
 	option(matchacross_lang(MatchAcross), Options, true),
-	option(language(Lang),Options, _),
+	option(language(Lang),Options, any),
 	option(edit_distance(Edit_Distance), Options, 0),
 
-	(   Lang == ''
+	(   Lang == 'any'
 	->  var(SourceLang)
 	;   SourceLang = Lang
 	),
