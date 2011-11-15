@@ -29,8 +29,9 @@ parameter(language, atom, '',
 	  'Language of source label').
 parameter(matchacross_lang, boolean, true,
 	  'Allow labels from different language to be matched').
-parameter(snowball_language, atom, dutch,
-	  'Language to use for stemmer').
+parameter(snowball_language, oneof(Languages), english,
+	  'Language to use for stemmer') :-
+	findall(Alg, snowball_current_algorithm(Alg), Languages).
 parameter(prefix, integer, 4,
 	  'Optmise performence by first generating candidates by matching the prefix.Input is an integer for the prefix length.').
 parameter(edit_distance, integer, 0,
