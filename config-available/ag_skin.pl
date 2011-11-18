@@ -36,6 +36,17 @@ cliopatria:resource_link(Voc, Link) :-
 	rdfs_individual_of(Voc, skos:'ConceptScheme'),
 	http_link_to_id(http_list_skos_voc, [voc(Voc)], Link).
 */
+cliopatria:display_link(TimeInstant, _Options) -->
+	{
+	 rdfs_individual_of(TimeInstant, time:'Instant'),
+	 rdf(TimeInstant, time:inXSDDateTime, literal(type(_, L))),
+	 sub_atom(L,St,_Wt,_Et,'T'),
+	 sub_atom(L,_Sp,_Wp,Ep,'+'), ST is St + 1, ET is Ep +1,
+	 sub_atom(L,0,St,_,DatePart),
+	 sub_atom(L,ST,_,ET,TimePart)
+	},
+	html(span(class('time:instant'), [TimePart, ' ',DatePart])).
+
 cliopatria:display_link(Cell, _Options) -->
 	{
 	 rdfs_individual_of(Cell, align:'Cell'),
