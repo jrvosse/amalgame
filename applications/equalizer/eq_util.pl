@@ -248,7 +248,8 @@ is_edm_collection_(EDM, Graph, Class) :-
 	atom_concat(Graph, '_Agent', EDM).
 
 
-%%	mapping_counts(+MappingURI, +Strategy, -MappingN, -SourceN, -TargetN)
+%%	mapping_counts(+MappingURI, +Strategy, ?MappingN, ?SourceN,
+%	?TargetN)
 %
 %	Counts for the mappings in MappingURI.
 %
@@ -257,8 +258,9 @@ is_edm_collection_(EDM, Graph, Class) :-
 %       @param TargetN is the number of target concepts mapped
 
 mapping_counts(URL, Strategy, MN, SN, TN, SPerc, TPerc) :-
-	stats_cache(URL-Strategy, stats(MN, SN, TN, SPerc, TPerc)),
-	!.
+	stats_cache(URL-Strategy, _),!,
+	stats_cache(URL-Strategy, stats(MN, SN, TN, SPerc, TPerc)).
+
 mapping_counts(URL, Strategy, MN, SN, TN, SPerc, TPerc) :-
 	expand_mapping(Strategy, URL, Mapping),
 
