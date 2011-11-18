@@ -39,13 +39,15 @@ cliopatria:resource_link(Voc, Link) :-
 cliopatria:display_link(TimeInstant, _Options) -->
 	{
 	 rdfs_individual_of(TimeInstant, time:'Instant'),
-	 rdf(TimeInstant, time:inXSDDateTime, literal(type(_, L))),
-	 sub_atom(L,St,_Wt,_Et,'T'),
-	 sub_atom(L,_Sp,_Wp,Ep,'+'), ST is St + 1, ET is Ep +1,
-	 sub_atom(L,0,St,_,DatePart),
-	 sub_atom(L,ST,_,ET,TimePart)
+	 rdf(TimeInstant, time:inXSDDateTime, literal(type(_, L)))
 	},
-	html(span(class('time:instant'), [TimePart, ' ',DatePart])).
+	format_xsd_timestamp(L).
+
+cliopatria:display_link(literal(type(XSD,L)), _Options) -->
+	{
+	 rdf_equal(XSD, xsd:date)
+	},
+	format_xsd_timestamp(L).
 
 cliopatria:display_link(Cell, _Options) -->
 	{
@@ -98,3 +100,23 @@ user:body(amalgame(search), Body) -->
 
 user:body(user(Style), Body) -->
         user:body(cliopatria(Style), Body).
+
+
+format_xsd_timestamp(L) -->
+	{
+	 sub_atom(L,St,_Wt,_Et,'T'),
+	 sub_atom(L,_Sp,_Wp,Ep,'+'), ST is St + 1, ET is Ep +1,
+	 sub_atom(L,0,St,_,DatePart),
+	 sub_atom(L,ST,_,ET,TimePart)
+	},
+	html(span(class('time:instant'), [TimePart, ' ',DatePart])).
+
+
+
+
+
+
+
+
+
+
