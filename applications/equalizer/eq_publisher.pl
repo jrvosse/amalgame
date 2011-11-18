@@ -21,7 +21,7 @@
 :- multifile
 	eq:menu_item/2.
 
-:- setting(default_namespace, atom, 'http://localhost/ns/', 
+:- setting(default_namespace, atom, 'http://localhost/ns/',
 	   'Default namespace to use on alignment results. Can be changed later.').
 
 % http handlers for this applications
@@ -40,9 +40,14 @@ http_eq_publish_form(Request) :-
 	http_parameters(Request,
 			[ alignment(Alignment,
 				    [uri,
-				     description('URI of an alignment workflow')])
+				     description('URI of an alignment workflow')]),
+			  focus(Focus,
+				[uri,
+				 description('URI of current focus node'),
+				 default(Alignment)
+				])
 			]),
-	html_page(Alignment).
+	html_page(Alignment, Focus).
 
 http_eq_publish(Request) :-
 	http_parameters(Request,
@@ -53,6 +58,7 @@ http_eq_publish(Request) :-
 			  default_relation(DefaultRelation,
 					   [uri,
 					    description('URI of the default mapping relation, to be used if no other relation has been assigned')])
+
 			]),
 
 	expand_file_search_path(alignment_results(.), L),
@@ -73,7 +79,7 @@ http_eq_publish(Request) :-
 %	Emit html page with layout for the alignment exporter
 %	application.
 
-html_page(Alignment) :-
+html_page(Alignment, Focus) :-
 	html_set_options([dialect(html)]),
 	findall(R, status_option(R), StatusOptions),
 	supported_map_relations(MapRelations),
@@ -83,7 +89,10 @@ html_page(Alignment) :-
 			[
 			  \html_requires(css('eq.css')),
 			 div(class('yui3-skin-sam yui-skin-sam'),
-			      [ \html_eq_header(http_eq_publish_form, Alignment),
+			      [ \html_eq_header(
+				     [active(http_eq_publish_form),
+				      focus(Focus),
+				      strategy(Alignment)]),
 				div([id(main)],
 				    [ form([id(export_form), action(location_by_id(http_eq_publish))],
 					   ['Publish ',
