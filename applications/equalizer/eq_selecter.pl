@@ -122,11 +122,13 @@ html_vocab_rows([Scheme|Vs]) -->
 	 ->  rdf(Scheme, amalgame:numberOfConcepts,   literal(type(_,ConceptCount))),
 	     rdf(Scheme, amalgame:numberOfPrefLabels, literal(type(_,PrefCount))),
 	     rdf(Scheme, amalgame:numberOfAltLabels, literal(type(_, AltCount))),
-	     rdf(Scheme, amalgame:numberOfMappedConcepts, literal(type(_, MappedCount)))
+	     rdf(Scheme, amalgame:numberOfMappedConcepts, literal(type(_, MappedCount))),
+	     voc_languages(Scheme, skos:prefLabel, PrefLangs),
+	     voc_languages(Scheme, skos:altLabel, AltLangs)
 	 ;   ConceptCount = 0,
-	     PrefCount = 0,
-	     AltCount = 0,
-	     MappedCount = 0
+	     PrefCount = 0, AltCount = 0,
+	     MappedCount = 0,
+	     PrefLangs=[], AltLangs=[]
 	 ),
 	 (   ConceptCount > 0
 	 ->  Perc is (100*MappedCount)/ConceptCount,
@@ -138,8 +140,10 @@ html_vocab_rows([Scheme|Vs]) -->
 			   name(scheme), value(Scheme)])),
 		 td(\html_scheme_name(Scheme)),
 		 td(class(count), ConceptCount),
-		 td(class(prefLabel), PrefCount),
-		 td(class(altLabel), AltCount),
+		 td([span(class(prefLabel), PrefCount),
+		     span(class(preflangs), [' (', \showlist(PrefLangs), ')'])]),
+		 td([span(class(altLabel), AltCount),
+		      span(class(altlangs), [' (', \showlist(AltLangs),  ')'])]),
 		 td(class(mapped), MappedCount),
 		 td(class(pmapped), MPercent)
 		])),
@@ -391,3 +395,7 @@ http_eq_upload_url(Request) :-
 build_redirect(Request, Graph) :-
 	http_link_to_id(http_eq_build, [alignment(Graph)], Redirect),
 	http_redirect(moved, Redirect, Request).
+
+showlist([]) --> !.
+showlist([H]) -->  html(H),!.
+showlist([H1,H2|Tail]) -->  html([H1,', ']), showlist([H2|Tail]).

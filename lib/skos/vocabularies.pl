@@ -7,6 +7,7 @@
 	   skos_label/3,
 	   topconcepts/2,
 	   voc_languages/2,
+	   voc_languages/3,
 	   assert_voc_version/2,
 	   voc_get_computed_props/2,
 	   voc_clear_stats/1,
@@ -28,9 +29,6 @@
 :- use_module(library(amalgame/map)).
 :- use_module(library(amalgame/opm)).
 
-:- dynamic
-	voc_stats_cache/2.
-
 /** <module> Compute and store vocabulary-oriented statistics as RDF.
 
 Currently supported statistical properties include:
@@ -48,6 +46,15 @@ See also http_clear_cache/1.
 
 @author Jacco van Ossenbruggen
 */
+
+
+:- dynamic
+	voc_stats_cache/2.
+
+:- rdf_meta
+	voc_languages(r,-),
+	voc_languages(r,r,-),
+	voc_languages_used(r,r,-).
 
 is_vocabulary(Voc, Format):-
         ground(Voc),!,
@@ -197,8 +204,15 @@ voc_ensure_stats(numberOfMappedConcepts(Voc)) :-
 voc_languages(Voc, L) :-
 	(   voc_stats_cache(Voc, languages(L))
 	->  true
-	;   find_languages_used(Voc, L),
+	;   voc_languages_used(Voc, L),
 	    assert(voc_stats_cache(Voc, languages(L)))
+	).
+
+voc_languages(Voc, P, L) :-
+	(   voc_stats_cache(Voc, P-languages(L))
+	->  true
+	;   voc_languages_used(Voc, P, L),
+	    assert(voc_stats_cache(Voc, P-languages(L)))
 	).
 %%	assert_voc_version(+Voc, +TargetGraph) is det.
 %
@@ -293,21 +307,35 @@ count_mapped_concepts(Voc, Count) :-
 	length(Sorted, Count),
 	print_message(informational, map(found, 'SKOS mapped concepts', Voc, Count)).
 
-find_languages_used(all, Langs) :-
+voc_languages_used(all, Langs) :-
 	findall(L,
 		(   rdfs_individual_of(Voc, skos:'ConceptScheme'),
-		    find_languages_used(Voc, L)
+		    voc_languages_used(Voc, L)
 		),
 		Ls),
 	flatten(Ls, Flat),
 	sort(Flat, Langs).
 
-find_languages_used(Voc, Langs) :-
-	setof(Lang, language_used(Voc, Lang), Langs).
+voc_languages_used(Voc, Langs) :-
+	(   setof(Lang, language_used(Voc, Lang), Langs)
+	->  true
+	;   Langs = []
+	).
+
+voc_languages_used(Voc, Prop, Langs) :-
+	(   setof(Lang, language_used(Voc, Prop, Lang), Langs)
+	->  true
+	;   Langs = []
+	).
 
 language_used(Voc, Lang) :-
 	rdf(Concept, skos:inScheme, Voc),
 	rdf(Concept, _, literal(lang(Lang, _))),
+	ground(Lang).
+
+language_used(Voc, Prop, Lang) :-
+	rdf(Concept, skos:inScheme, Voc),
+	rdf_has(Concept, Prop, literal(lang(Lang, _))),
 	ground(Lang).
 
 voc_partition(Request, Voc, PartitionType, Partition) :-
