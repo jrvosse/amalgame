@@ -30,6 +30,11 @@
 :- dynamic
 	stats_cache/2.
 
+user:message_hook(make(done(_)), _, _) :-
+	debug(ag_expand, 'Flushing stats cache after running make/0', []),
+	flush_stats_cache,
+	fail.
+
 :- multifile
 	eq:menu_item/2.
 eq:menu_item(900=Handler, Label) :-
