@@ -193,14 +193,22 @@ html_alignment_table(Alignments) -->
 html_alignment_head -->
 	html([th([]),
 	      th(name),
-	      th(includes)
+	      th(includes),
+	      th('created by')
 	     ]).
 
 html_alignment_rows([]) --> !.
 html_alignment_rows([URI-Schemes|Gs]) -->
+	{
+	 (   rdf(URI, dcterms:creator, Author, URI)
+	 ->  true
+	 ;   Author = anonymous
+	 )
+	},
 	html(tr([td(input([type(radio), autocomplete(off), class(option), name(alignment), value(URI)])),
 		 td(\html_strategy_name(URI)),
-		 td(\html_scheme_labels(Schemes))
+		 td(\html_scheme_labels(Schemes)),
+		 td(\turtle_label(Author))
 		])),
 	html_alignment_rows(Gs).
 
