@@ -174,7 +174,7 @@ amalgame_provenance(R, Alignment, Provenance) :-
 	findall(Key-Value, ag_prov(R, Alignment, Key, Value), Provenance0),
 	sort(Provenance0,Provenance).
 
-ag_prov(R, A, 'created by', \rdf_link(Agent)) :-
+ag_prov(R, A, 'defined by', \rdf_link(Agent)) :-
 	(   rdf_has(R, dc:creator, Agent, RealProp),
 	    rdf(R, RealProp, Agent, A)
 	->  true
@@ -193,7 +193,7 @@ ag_prov(R, _A, 'generated at', \rdf_link(TS)) :-
 	rdf_has(Process, opmv:wasEndedAt,TS).
 
 
-ag_prov(R, A, 'created at', V) :-
+ag_prov(R, A, 'defined at', \rdf_link(V)) :-
 	(   rdf_has(R, dc:date, V, RealProp),
 	    rdf(R, RealProp, V, A)
 	->  true
