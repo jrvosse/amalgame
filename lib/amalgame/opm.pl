@@ -1,7 +1,9 @@
 :-module(ag_opm, [
 		  opm_was_generated_by/4,       % +Process (cause), +Artifact (effect), +RDFGraph, +Options
 		  opm_include_dependency/2,     % +SourceGraph, +TargetGraph
-		  opm_clear_process/1           % +Process (bnode)
+		  opm_clear_process/1,           % +Process (bnode)
+		  opm_assert_artefact_version/3,
+		  current_program_uri/1
 		 ]).
 
 /* <module> OPM -- simple support for the OPM Provenance Model (OPM)
@@ -18,6 +20,9 @@
 :- use_module(library(opmvc_schema)).
 :- use_module(user(user_db)).
 :- use_module(library(http/http_session)).
+
+:- dynamic
+	current_program_uri/1.
 
 opm_include_dependency(Graph, Target) :-
 	opm_include_dependency([Graph], [], DepList),
@@ -88,11 +93,12 @@ opm_was_generated_by(Process, Artifacts, Graph, Options) :-
 	      ),
 	opm_program(Graph, Program),
 	opm_agent(Graph, Agent),
-	get_xml_dateTime(TimeStamp),
-	rdf_bnode(BN_TimeStamp),
-	rdf_assert(BN_TimeStamp, rdf:type, time:'Instant',  Graph),
-	rdf_assert(BN_TimeStamp, time:inXSDDateTime, literal(type(xsd:dateTime, TimeStamp)), Graph),
-	rdf_assert(Process, opmv:wasStartedAt,   BN_TimeStamp , Graph),
+	get_time(Now),
+	get_xml_dateTime(Now, NowXML),
+	rdf_bnode(BN_now),
+	rdf_assert(BN_now, rdf:type, time:'Instant',  Graph),
+	rdf_assert(BN_now, time:inXSDDateTime, literal(type(xsd:dateTime, NowXML)), Graph),
+	rdf_assert(Process, opmv:wasEndedAt,   BN_now , Graph),
 	rdf_assert(Process, opmv:wasPerformedBy, Program, Graph),
 	rdf_assert(Process, opmv:wasPerformedBy, Agent,   Graph),
 
@@ -128,25 +134,39 @@ opm_clear_process(Process) :-
 	rdf_retractall(Process, _, _, _),
 	rdf_retractall(_, _, Process, _).
 
-opm_program(Graph, Program):-
-	git_module_property('amalgame',   home_url(PackUrl)),
-	git_module_property('amalgame',   version(AG_version)),
-	git_module_property('ClioPatria', version(CP_version)),!,
+opm_program(_, Program) :-
+	current_program_uri(Program),!.
+
+opm_program(Graph, Program)  :-
+	rdf_bnode(Program),
+	assert(current_program_uri(Program)),
+	rdf_assert(Program, rdfs:label, literal('Amalgame alignment platform'), Graph),
+	rdf_assert(Program, rdf:type,   opmvc:'Program', Graph),
+	rdf_assert(Program, rdf:type,   opmv:'Agent', Graph),
+
 	(  current_prolog_flag(version_git, PL_version)
 	-> true
 	;   current_prolog_flag(version, PL_version)
 	),
-	AG_git = 'http://eculture.cs.vu.nl/git/public/?p=econnect/amalgame.git&a=commit&h=',
-	format(atom(Program), '~w~w', [AG_git, AG_version]),
-	format(atom(AG), 'Amalgame: ~w', [AG_version]),
-	format(atom(CP), 'ClioPatria: ~w', [CP_version]),
-	format(atom(PL), 'SWI-Prolog: ~w', [PL_version]),
-	rdf_assert(Program, rdf:type,	opmvc:'Program', Graph),
-	rdf_assert(Program, rdfs:label, literal('Amalgame'), Graph),
-	rdf_assert(Program, opmvc:software, PackUrl, Graph),
-	rdf_assert(Program, opmvc:software, literal(AG), Graph),
-	rdf_assert(Program, opmvc:software, literal(CP), Graph),
-	rdf_assert(Program, opmvc:software, literal(PL), Graph).
+	findall(M-U-V,
+		(   git_module_property(M, home_url(U)),
+		    git_module_property(M, version(V))
+		),
+		MUVs
+	       ),
+	Prolog = 'swi-prolog'-'http://www.swi-prolog.org'-PL_version,
+	forall(member(M-U-V, [Prolog|MUVs]),
+	       (   rdf_bnode(B),
+	           rdf_assert(Program, opmvc:software, B, Graph),
+		   rdf_assert(B, 'http://usefulinc.com/ns/doap#revision',
+			      literal(V), Graph),
+		   rdf_assert(B, 'http://usefulinc.com/ns/doap#name',
+			      literal(M), Graph),
+		   rdf_assert(B, rdfs:seeAlso,
+			      literal(U), Graph)
+	       )
+	      ),
+	!.
 
 opm_agent(Graph, Agent) :-
 	(
@@ -162,13 +182,33 @@ opm_agent(Graph, Agent) :-
 	   )
 	;
 	 rdf_bnode(Agent),
-	 UserName = 'software_api'
+	 UserName = 'anonymous user (not logged in)'
 	),
 
 	rdf_assert(Agent, rdfs:label, literal(UserName),  Graph),
 	rdf_assert(Agent, rdf:type,   opmv:'Agent',	  Graph).
 
-get_xml_dateTime(TimeStamp) :-
-	get_time(T),
+get_xml_dateTime(T, TimeStamp) :-
 	format_time(atom(TimeStamp), '%Y-%m-%dT%H-%M-%S%Oz', T).
 
+%%	opm_assert_artefact_version(+Artifact,+SourceGraph,+TargetGraph) is semidet.
+%
+%	Assert (git) version information about Artifact into the named
+%	graph TargetGraph. SourceGraph is the main named graph in which
+%	Artifact is defined.
+
+opm_assert_artefact_version(Artifact, SourceGraph, TargetGraph) :-
+	rdf_graph_property(SourceGraph, source(SourceFileURL)),
+	uri_file_name(SourceFileURL, Filename),
+	file_directory_name(Filename, Dirname),
+	register_git_module(Artifact, [directory(Dirname), home_url(Artifact)]),
+	(   git_module_property(Artifact, version(Version))
+	->  format(atom(VersionS),  'GIT version: ~w', [Version]),
+	    rdf_assert(Artifact, owl:versionInfo, literal(VersionS), TargetGraph)
+	;   (rdf_graph_property(SourceGraph, hash(Hash)),
+	     rdf_graph_property(SourceGraph, source_last_modified(LastModified)),
+	     format_time(atom(Mod), 'Last-Modified: %Y-%m-%dT%H-%M-%S%Oz', LastModified),
+	     rdf_assert(Artifact, owl:versionInfo, literal(Mod), TargetGraph),
+	     rdf_assert(Artifact, owl:versionInfo, literal(Hash), TargetGraph)
+	    )
+	).

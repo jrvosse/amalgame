@@ -6,7 +6,9 @@
 :- use_module(library(snowball)).
 :- use_module(library(lit_distance)).
 :- use_module(library(amalgame/vocabulary)).
+:- use_module(library(skos/vocabularies)).
 :- use_module(library(amalgame/candidate)).
+:- use_module(string_match_util).
 
 :- public amalgame_module/1.
 :- public parameter/4.
@@ -16,18 +18,21 @@
 amalgame_module(amalgame:'SnowballMatcher').
 amalgame_module(amalgame:'SnowballFilter').
 
-parameter(sourcelabel, uri, P,
-	  'Property to get label of the source by') :-
-	rdf_equal(rdfs:label, P).
-parameter(targetlabel, uri, P,
-	  'Property to get the label of the target by') :-
-	rdf_equal(rdfs:label, P).
-parameter(language, atom, '',
-	  'Language of source label').
+parameter(sourcelabel, oneof(LabelProps), Default,
+	  '(Super)Property to get label of the source by') :-
+	rdf_equal(Default, rdfs:label),
+	label_list(LabelProps).
+parameter(targetlabel, oneof(LabelProps), Default,
+	  '(Super)Property to get the label of the target by') :-
+	rdf_equal(Default, rdfs:label),
+	label_list(LabelProps).
+parameter(language, oneof(['any'|L]), 'any', 'Language of source label') :-
+	voc_languages(all, L).
 parameter(matchacross_lang, boolean, true,
 	  'Allow labels from different language to be matched').
-parameter(snowball_language, atom, dutch,
-	  'Language to use for stemmer').
+parameter(snowball_language, oneof(Languages), english,
+	  'Language to use for stemmer') :-
+	findall(Alg, snowball_current_algorithm(Alg), Languages).
 parameter(prefix, integer, 4,
 	  'Optmise performence by first generating candidates by matching the prefix.Input is an integer for the prefix length.').
 parameter(edit_distance, integer, 0,
@@ -63,19 +68,19 @@ align(Source, Target, Match, Options) :-
 	vocab_member(T, Target).
 
 align(Source, Target, Match, Options) :-
- 	prefix_candidate(Source, Target, Match0, Options),
+	prefix_candidate(Source, Target, Match0, Options),
 	match(Match0, Match, Options).
 
 match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options) :-
 	rdf_equal(rdfs:label,DefaultP),
-  	option(snowball_language(Snowball_Language), Options, dutch),
- 	option(sourcelabel(MatchProp1), Options, DefaultP),
+	option(snowball_language(Snowball_Language), Options, dutch),
+	option(sourcelabel(MatchProp1), Options, DefaultP),
 	option(targetlabel(MatchProp2), Options, DefaultP),
 	option(matchacross_lang(MatchAcross), Options, true),
-	option(language(Lang),Options, _),
+	option(language(Lang),Options, any),
 	option(edit_distance(Edit_Distance), Options, 0),
 
-	(   Lang == ''
+	(   Lang == 'any'
 	->  var(SourceLang)
 	;   SourceLang = Lang
 	),
@@ -88,18 +93,18 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 	rdf_has(Source, MatchProp1, literal(lang(SourceLang, SourceLabel)), SourceProp),
 
 	\+ Source == Target,
-	snowball(Snowball_Language, SourceLabel, SourceStem0),
-	downcase_atom(SourceStem0, SourceStem),
+	downcase_atom(SourceLabel, SourceLabel0),
+	snowball(Snowball_Language, SourceLabel0, SourceStem),
 	rdf_has(Target, MatchProp2, literal(lang(TargetLang, TargetLabel)), TargetProp),
-	snowball(Snowball_Language, TargetLabel, TargetStem0),
-	downcase_atom(TargetStem0, TargetStem),
+	downcase_atom(TargetLabel, TargetLabel0),
+	snowball(Snowball_Language, TargetLabel0, TargetStem),
 	(   Edit_Distance == 0
 	->  TargetStem == SourceStem
 	;   literal_distance(SourceStem, TargetStem, Distance),
 	    Distance =< Edit_Distance
 	),
- 	Prov = [method(snowball),
- 		graph([rdf(Source, SourceProp, literal(lang(SourceLang, SourceLabel))),
+	Prov = [method(snowball),
+		graph([rdf(Source, SourceProp, literal(lang(SourceLang, SourceLabel))),
 		       rdf(Target, TargetProp, literal(lang(TargetLang, TargetLabel)))])
 	       ],
 	debug(align_result, 'snowball match: ~p ~p', [Source,Target]).

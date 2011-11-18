@@ -1,127 +1,312 @@
-@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
-@prefix owl:     <http://www.w3.org/2002/07/owl#> .
-@prefix dct:     <http://purl.org/dc/terms/> .
-@prefix foaf:    <http://xmlns.com/foaf/0.1/> .
-@prefix void:    <http://rdfs.org/ns/void#> .
-@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
-@prefix doap:    <http://usefulinc.com/ns/doap#> .
-@prefix opmv:    <http://purl.org/net/opmv/ns#> .
-@prefix common:  <http://purl.org/net/opmv/types/common#> .
-@prefix sparql:  <http://purl.org/net/opmv/types/sparql#> .
-@prefix exp: 	 <http://localhost/my/wn3020/> .
-@prefix :   	 <http://purl.org/vocabularies/amalgame#> .
+@prefix     wn20: <http://www.w3.org/2006/03/wn/wn20/> .
+@prefix     skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix      xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix     rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix      rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix     wn30: <http://purl.org/vocabularies/princeton/wn30/> .
+@prefix amalgame: <http://purl.org/vocabularies/amalgame#> .
+@prefix     opmv: <http://purl.org/net/opmv/ns#> .
+@prefix  dcterms: <http://purl.org/dc/terms/> .
+@prefix   wn3020: <http://semanticweb.cs.vu.nl/lod/wn30/edoal/amalgame/> .
 
-# Final results as discussed in the paper:
+# Named toplevel resources (40)
 
-# Set 1a: 1-1 gloss matches
-exp:gloss11 a :Mapping ;
-    rdfs:label "F1a: Gloss mapping 1-1" ;
-    :selectedBy exp:glossselect11process .
+wn3020:ambigloss
+	a amalgame:Mapping ;
+	opmv:wasGeneratedBy wn3020:ambiglossmerger ;
+	amalgame:status amalgame:intermediate ;
+	rdfs:comment "Label mappings still to be disambiguated." ;
+	rdfs:label "I3: ambiguous source and target matches merged" .
 
-# Set 1b: 1-1 gloss + label matches
-exp:glosslabel11 a :Mapping ;
-    rdfs:label "F1b: Gloss label mapping 1-1" ;
-    :selectedBy exp:glosslabelselect11process .
+wn3020:ambigloss2
+	a amalgame:Mapping ;
+	opmv:wasGeneratedBy wn3020:ambiglossmerger2 ;
+	amalgame:status amalgame:intermediate ;
+	rdfs:comment "Merge of all ancestor/descendent matches." ;
+	rdfs:label "I4a: ambiguous source and target matches merged" .
 
-# Set 1c: 1-n gloss + label matches
-exp:glosslabelnm a :Mapping ;
-    rdfs:label "F1c: Gloss mapping N-M" ;
-    :discardedBy exp:glosslabelselect11process .
+wn3020:ambiglossmerger
+	a amalgame:MapMerger ;
+	amalgame:input wn3020:src_ambigloss ,
+		       wn3020:tar_ambigloss ;
+	amalgame:status amalgame:final ;
+	rdfs:comment "Merge all ambiguous maps from the previous two steps into one set." ;
+	rdfs:label "M3: ambiguous near gloss matches merger" .
 
-# Set 2a: 1-1 nogloss but label matches
-exp:label11 a :Mapping ;
-    rdfs:label "F2a: Label mapping 1-1" ;
-    :selectedBy exp:labelselect11process .
+wn3020:ambiglossmerger2
+	a amalgame:MapMerger ;
+	amalgame:input wn3020:ancestormatches ,
+		       wn3020:descendentmatches ,
+		       wn3020:src_ambigloss ,
+		       wn3020:tar_ambigloss ;
+	amalgame:status amalgame:intermediate ;
+	rdfs:comment "Merge results from previous steps." ;
+	rdfs:label "M4: 2nd ambiguous near gloss matches merger" .
 
-# Matching processes used to generate the (intermediate) results:
-exp:glossmatcher a :Exact_Label_Match ;
-    rdfs:label "P1a: Exact gloss match process" ;
-    :source <http://purl.org/vocabularies/princeton/wn30/> ;
-    :target <http://www.w3.org/2006/03/wn/wn20/> ;
-    :parameters "sourcelabel=http://www.w3.org/2004/02/skos/core%23definition&targetlabel=http://www.w3.org/2004/02/skos/core%23definition" .
+wn3020:ancestormatches
+	a amalgame:Mapping ;
+	opmv:wasGeneratedBy wn3020:ancmatcher ;
+	amalgame:status amalgame:intermediate ;
+	rdfs:comment "These are mappings with 1 or more mapped ancestors " ;
+	rdfs:label "I3a: near matches disambiguated with ancestor matches" .
 
-exp:glosslabelmatcher a :Exact_Label_Match ;
-    rdfs:label "P1b: Exact label match process to disamb. N to M gloss matches" ;
-    :input exp:gloss1N ;
-    :parameters "sourcelabel=http://www.w3.org/2004/02/skos/core%23altLabel&targetlabel=http://www.w3.org/2004/02/skos/core%23altLabel" .
+wn3020:ancmatcher
+	a amalgame:AncestorMatcher ;
+	amalgame:input wn3020:ambigloss ;
+	amalgame:parameters "steps=2" ;
+	rdfs:label "P3a: ancestor match to disambiguate near gloss matches" .
 
-exp:labelmatcher a :Exact_Label_Match ;
-    rdfs:label "P2a: Exact label match process on non-gloss matches" ;
-    :input exp:tobematched ;
-    :parameters "sourcelabel=http://www.w3.org/2004/02/skos/core%23altLabel&targetlabel=http://www.w3.org/2004/02/skos/core%23altLabel" .
+wn3020:descendentmatches
+	a amalgame:Mapping ;
+	opmv:wasGeneratedBy wn3020:descmatcher ;
+	amalgame:status amalgame:intermediate ;
+	rdfs:comment "These are mappings with 1 or more mapped decendents (could be empty set)" ;
+	rdfs:label "I3b: near matches disambiguated with descendentmatches" .
 
-exp:nearglossmatcher a :Isub_Match ;
-    rdfs:label "P2b: Near label match process on non-gloss matches" ;
-    :input exp:labelnm ;
-    :parameters "sourcelabel=http://www.w3.org/2004/02/skos/core%23definition&targetlabel=http://www.w3.org/2004/02/skos/core%23definition" .
+wn3020:descmatcher
+	a amalgame:DescendentMatcher ;
+	amalgame:input wn3020:ambigloss ;
+	amalgame:parameters "steps=2" ;
+	rdfs:label "P3a: descendent match to disambiguate near gloss matches" .
 
-# Selector processes used to generate the (intermediate) results:
-exp:glossselect11process a :Arity_select ;
-    rdfs:label "S1a: 1-1 selection process" ;
-    :input exp:gloss_mapping .
+wn3020:gloss11
+	a amalgame:Mapping ;
+	amalgame:selectedBy wn3020:glossselect11process ;
+	amalgame:status amalgame:final ;
+	rdfs:comment "Unambiguous gloss mappings, we assume these are all correct. In a few cases the labels do not match, but this is typically due to typo fixes or changing spelling conventions." ;
+	rdfs:label "F1a: Gloss mapping 1-1" .
 
-exp:glosslabelselect11process a :Arity_select ;
-    rdfs:label "S1b: 1-1 selection process" ;
-    :input exp:gloss_label_mapping .
+wn3020:gloss1N
+	a amalgame:Mapping ;
+	amalgame:discardedBy wn3020:glossselect11process ;
+	amalgame:status amalgame:intermediate ;
+	rdfs:comment "Many of these ambiguous gloss-based mappings are wrong, but this can be fixed easily by also matching on the labels" ;
+	rdfs:label "I1ab: Gloss mapping N-M" .
 
-exp:goodglosslabelmergeprocess a :Merge;
-    rdfs:label "M1: Merge good gloss and label matches process" ;
-    :input exp:gloss11 ;
-    :input exp:glosslabel11 ;
-    :input exp:glosslabelnm .
+wn3020:gloss_label_mapping
+	a amalgame:Mapping ;
+	opmv:wasGeneratedBy wn3020:glosslabelfilter ;
+	amalgame:status amalgame:intermediate ;
+	rdfs:comment "Concepts of which the gloss and the label matches.  I expected this to be all 1-1 mappings, but this is not the case!  This needs still more work..." ;
+	rdfs:label "I1b: Gloss+label mapping" .
 
-exp:goodglosslabelsourceexcludeprocess a :Voc_Exclude;
-    rdfs:label "E1: Exclude good gloss and label matches sources process" ;
-    :source <http://purl.org/vocabularies/princeton/wn30/> ;
-    :target <http://www.w3.org/2006/03/wn/wn20/> ;
-    :parameters "type=source" ;	   
-    :exclude exp:goodglosslabelmatches .
+wn3020:gloss_mapping
+	a amalgame:Mapping ;
+	opmv:wasGeneratedBy wn3020:glossmatcher ;
+	amalgame:status amalgame:intermediate ;
+	rdfs:comment "These are matches with identical glosses.\nSometimes different synsets share the same gloss, so this set needs further processing" ;
+	rdfs:label "I1aa: Gloss mapping" .
 
-exp:goodglosslabeltargetexcludeprocess a :Voc_Exclude;
-    rdfs:label "E2: Exclude good gloss and label matches target process" ;
-    :input exp:label_mapping ;
-    :parameters "type=target" ;	   
-    :exclude exp:goodglosslabelmatches .
+wn3020:glosslabel11
+	a amalgame:Mapping ;
+	amalgame:selectedBy wn3020:glosslabelselect11process ;
+	amalgame:status amalgame:final ;
+	rdfs:comment "These are the \"normal\" one to one mappings of synsets matching on both gloss and labels" ;
+	rdfs:label "F1b: Gloss label mapping 1-1" .
 
-exp:labelselect11process a :Arity_select ;
-    rdfs:label "S2a: 1-1 selection process" ;
-    :input exp:label_mapping_tf .
+wn3020:glosslabelfilter
+	a amalgame:ExactLabelMatcher ;
+	amalgame:input wn3020:gloss1N ;
+	amalgame:parameters "sourcelabel=http://www.w3.org/2004/02/skos/core%23altLabel&targetlabel=http://www.w3.org/2004/02/skos/core%23altLabel" ;
+	amalgame:status amalgame:intermediate ;
+	rdfs:comment "Run a label matcher as an extra check on the ambiguous gloss matching. Note that there is no need to type check because we run it on already typed-matched data only." ;
+	rdfs:label "P1b: Exact label filter to disambiguate N to M gloss matches" .
 
-# Intermediate mappings
-exp:gloss_mapping a :Mapping ;
-    rdfs:label "I1aa: Gloss mapping" ;
-    opmv:wasGeneratedBy exp:glossmatcher.
+wn3020:glosslabelnm
+	a amalgame:Mapping ;
+	amalgame:discardedBy wn3020:glosslabelselect11process ;
+	amalgame:status amalgame:final ;
+	rdfs:comment "These are the surprising results of matching both label and gloss and still end up with N-M mappings. Manual evaluation learns these are all cases where either source, target or both contains duplications.  So the mappings are correct and could be even useful to deal with these errors in Wordnet." ;
+	rdfs:label "F1c: Gloss mapping N-M" .
 
-exp:gloss_label_mapping a :Mapping ;
-    rdfs:label "I1b: Gloss+label mapping" ;
-    opmv:wasGeneratedBy exp:glosslabelmatcher.
+wn3020:glosslabelselect11process
+	a amalgame:AritySelect ;
+	amalgame:input wn3020:gloss_label_mapping ;
+	amalgame:parameters "type=11" ;
+	amalgame:status amalgame:intermediate ;
+	rdfs:comment "Lets see why the previous set did not contain only 1-1 mappings ... I'm curious!" ;
+	rdfs:label "S1b: 1-1 selection process" .
 
-exp:gloss1N a :Mapping ;
-    rdfs:label "I1ab: Gloss mapping N-M" ;
-    :discardedBy exp:glossselect11process .
+wn3020:glossmatcher
+	a amalgame:ExactLabelMatcher ;
+	amalgame:parameters "matchacross_type=false&sourcelabel=http://www.w3.org/2004/02/skos/core%23definition&targetlabel=http://www.w3.org/2004/02/skos/core%23definition" ;
+	amalgame:source <http://purl.org/vocabularies/princeton/wn30/> ;
+	amalgame:status amalgame:intermediate ;
+	amalgame:target <http://www.w3.org/2006/03/wn/wn20/> ;
+	rdfs:comment "We first run a match on glosses (skos:definition) to avoid too many homogeneous matches on the labels.\n\nNote that by using matchacross_type=false we avoid nouns being matched to verbs etc." ;
+	rdfs:label "P1a: Exact gloss match process" .
 
-exp:goodglosslabelmatches a :Mapping ;
-    rdfs:label "I2aa: Merge of all gloss-based labels we assume correct" ;
-    opmv:wasGeneratedBy exp:goodglosslabelmergeprocess.
+wn3020:glossnear
+	a amalgame:Mapping ;
+	opmv:wasGeneratedBy wn3020:nearglossmatcher ;
+	amalgame:status amalgame:intermediate ;
+	rdfs:comment "Same mapping as before, but with added similarity metrics on the glosses." ;
+	rdfs:label "I2c: Isub gloss match" .
 
-exp:tobematched a :Mapping ;
-    rdfs:label "I2ab: templates with still to be mapped source concepts, ignoring gloss-based labels we assume correct" ;
-    opmv:wasGeneratedBy exp:goodglosslabelsourceexcludeprocess.
+wn3020:glossselect11process
+	a amalgame:AritySelect ;
+	amalgame:input wn3020:gloss_mapping ;
+	amalgame:parameters "type=11" ;
+	amalgame:status amalgame:intermediate ;
+	rdfs:comment "Separate the 1-1 matches, which we consider to be OK, from the rest, that needs more work." ;
+	rdfs:label "S1a: 1-1 selection process" .
 
-exp:label_mapping a :Mapping ;
-    rdfs:label "I2ac: Label mapping of concepts we failed to match in step 1" ;
-    opmv:wasGeneratedBy exp:labelmatcher.
+wn3020:goodglosslabelsourceexcludeprocess
+	a amalgame:VocExclude ;
+	amalgame:exclude wn3020:gloss11 ,
+			 wn3020:glosslabel11 ,
+			 wn3020:glosslabelnm ;
+	amalgame:input <http://purl.org/vocabularies/princeton/wn30/> ;
+	amalgame:parameters "type=source" ;
+	amalgame:status amalgame:final ;
+	rdfs:comment "Create a set of all wn3.0 concepts that are not in one of our approved mappings yet." ;
+	rdfs:label "E1: Exclude good gloss and label matches from source" .
 
-exp:label_mapping_tf a :Mapping ;
-    rdfs:label "I2ad: Target-filtering of I2ac" ;
-    opmv:wasGeneratedBy exp:goodglosslabeltargetexcludeprocess.
+wn3020:goodglosslabeltargetexcludeprocess
+	a amalgame:VocExclude ;
+	amalgame:exclude wn3020:gloss11 ,
+			 wn3020:glosslabel11 ,
+			 wn3020:glosslabelnm ;
+	amalgame:input <http://www.w3.org/2006/03/wn/wn20/> ;
+	amalgame:parameters "type=target" ;
+	amalgame:status amalgame:final ;
+	rdfs:comment "Create a set of all wn2.0 concepts that are not in one of our approved mappings yet." ;
+	rdfs:label "E1: Exclude good gloss and label matches from target" .
 
-exp:labelnm a :Mapping ;
-    rdfs:label "I2ba: Label mapping N-M" ;
-    :discardedBy exp:labelselect11process .
+wn3020:label11
+	a amalgame:Mapping ;
+	amalgame:selectedBy wn3020:labelselect11process ;
+	amalgame:status amalgame:final ;
+	rdfs:comment "unambiguous label matches, we assume these to be OK." ;
+	rdfs:label "F2a: Label mapping 1-1" .
 
-exp:glossnear a :Mapping ;
-    rdfs:label "I2bb: Isub gloss match" ;
-    opmv:wasGeneratedBy exp:nearglossmatcher.
+wn3020:label_mapping
+	a amalgame:Mapping ;
+	opmv:wasGeneratedBy wn3020:labelfilter ;
+	amalgame:status amalgame:intermediate ;
+	rdfs:comment "Label matches, still containing many homonyms..." ;
+	rdfs:label "I2ac: Label mapping of concepts we failed to match in step 1" .
+
+wn3020:labelfilter
+	a amalgame:ExactLabelMatcher ;
+	amalgame:parameters "sourcelabel=http://www.w3.org/2004/02/skos/core%23altLabel&targetlabel=http://www.w3.org/2004/02/skos/core%23altLabel" ;
+	amalgame:source wn3020:sourceexcluded ;
+	amalgame:status amalgame:final ;
+	amalgame:target wn3020:targetexcluded ;
+	rdfs:comment "Run a simple label matcher, which we know will match many homonyms. Luckily it is only on a small (10%) subset of the set we started with." ;
+	rdfs:label "P2a: Exact label filter on non-gloss matches" .
+
+wn3020:labelnm
+	a amalgame:Mapping ;
+	amalgame:discardedBy wn3020:labelselect11process ;
+	amalgame:status amalgame:intermediate ;
+	rdfs:comment "Ambiguous label matches, we expect more than half of these to be wrong..." ;
+	rdfs:label "I2ba: Label mapping N-M" .
+
+wn3020:labelselect11process
+	a amalgame:AritySelect ;
+	amalgame:input wn3020:label_mapping ;
+	amalgame:parameters "type=11" ;
+	rdfs:label "S2a: 1-1 selection process" .
+
+wn3020:mostmarityselecter
+	a amalgame:AritySelect ;
+	amalgame:input wn3020:mostmethods ;
+	amalgame:parameters "type=11" ;
+	amalgame:status amalgame:final ;
+	rdfs:comment "Final arity check, just to be sure." ;
+	rdfs:label "S4b: 1-1 selection process" .
+
+wn3020:mostmethods
+	a amalgame:Mapping ;
+	amalgame:selectedBy wn3020:mostmethodsfilter ;
+	amalgame:status amalgame:intermediate ;
+	rdfs:label "I4b: sources disamb by most methods" .
+
+wn3020:mostmethods11
+	a amalgame:Mapping ;
+	amalgame:selectedBy wn3020:mostmarityselecter ;
+	amalgame:status amalgame:final ;
+	rdfs:comment "Label matches disamb. by ancestor and/or descendent matches." ;
+	rdfs:label "F4: one-to-one label matches disambiguated by selecting sources with most matching methods" .
+
+wn3020:mostmethodsfilter
+	a amalgame:MostMethods ;
+	amalgame:input wn3020:ambigloss2 ;
+	amalgame:status amalgame:intermediate ;
+	rdfs:comment "Select those mappings with the most other matching methods." ;
+	rdfs:label "S4a select sources with most matching methods" .
+
+wn3020:nearglossmatcher
+	a amalgame:IsubMatcher ;
+	amalgame:input wn3020:labelnm ;
+	amalgame:parameters "sourcelabel=http://www.w3.org/2004/02/skos/core%23definition&targetlabel=http://www.w3.org/2004/02/skos/core%23definition" ;
+	amalgame:status amalgame:intermediate ;
+	rdfs:comment "We run a string similarity metric to see if we can use this to disambiguate true matches from false homonym matches" ;
+	rdfs:label "P2b: Near label match process on non-gloss matches" .
+
+wn3020:sourceexcluded
+	a skos:ConceptScheme ;
+	opmv:wasGeneratedBy wn3020:goodglosslabelsourceexcludeprocess ;
+	amalgame:status amalgame:final ;
+	rdfs:comment "WN 3.0 concepts we have not been able to map so far." ;
+	rdfs:label "I2ab: source concepts, ignoring gloss-based labels we assume correct" .
+
+wn3020:src_ambigloss
+	a amalgame:Mapping ;
+	amalgame:status amalgame:intermediate ;
+	amalgame:undecidedBy wn3020:src_bestnearglossfilter ;
+	rdfs:comment "Ambiguous mappings we could not disamb. based on their gloss similarity." ;
+	rdfs:label "I2c2: ambiguous sources from near gloss matches" .
+
+wn3020:src_bestneargloss
+	a amalgame:Mapping ;
+	amalgame:selectedBy wn3020:src_bestnearglossfilter ;
+	amalgame:status amalgame:intermediate ;
+	rdfs:comment "Most false homonym matches have been removed by now, but we still have some sources mapped to more than one target..." ;
+	rdfs:label "I2c1: best sources from near gloss matches" .
+
+wn3020:src_bestnearglossfilter
+	a amalgame:BestNumeric ;
+	amalgame:input wn3020:glossnear ;
+	amalgame:parameters "type=source" ;
+	amalgame:status amalgame:intermediate ;
+	rdfs:comment "For each target, select the source with the best matching gloss (if any)" ;
+	rdfs:label "S2c select best sources from near gloss matches" .
+
+wn3020:tar_ambigloss
+	a amalgame:Mapping ;
+	amalgame:status amalgame:intermediate ;
+	amalgame:undecidedBy wn3020:tar_bestnearglossfilter ;
+	rdfs:comment "Ambiguous mappings we could not disamb. based on their gloss similarity." ;
+	rdfs:label "I2c3: ambiguous targets from near gloss matches" .
+
+wn3020:tar_bestgloss
+	a amalgame:Mapping ;
+	amalgame:selectedBy wn3020:tar_bestnearglossfilter ;
+	amalgame:status amalgame:final ;
+	rdfs:comment "removed both homonymous sources and targets, what is left we consider to be correct." ;
+	rdfs:label "F2c: best targets from best near gloss matched sources" .
+
+wn3020:tar_bestnearglossfilter
+	a amalgame:BestNumeric ;
+	amalgame:input wn3020:src_bestneargloss ;
+	amalgame:parameters "type=target" ;
+	amalgame:status amalgame:intermediate ;
+	rdfs:comment "For each source, select the target with the best matching gloss (if any)" ;
+	rdfs:label "S2c select best targets from near gloss matches" .
+
+wn3020:targetexcluded
+	a skos:ConceptScheme ;
+	opmv:wasGeneratedBy wn3020:goodglosslabeltargetexcludeprocess ;
+	amalgame:status amalgame:final ;
+	rdfs:comment "WN 2.0 concepts we have not been able to map so far." ;
+	rdfs:label "I2ab: target concepts, ignoring gloss-based labels we assume correct" .
+
+wn3020:wn3020
+	a amalgame:AlignmentStrategy ;
+	dcterms:creator <http://koli.ins.cwi.nl:3020/user/jrvosse> ;
+	dcterms:date "2011-04-29T16:44:19+00:00"^^xsd:date ;
+	amalgame:includes <http://purl.org/vocabularies/princeton/wn30/> ,
+			  <http://www.w3.org/2006/03/wn/wn20/> ;
+	rdfs:label "Amalgame Wordnet 3.0 to Wordnet 2.0 mappings" .

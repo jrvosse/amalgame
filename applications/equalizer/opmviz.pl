@@ -18,11 +18,15 @@
 :- use_module(components(graphviz)).
 :- use_module(library(yui3)).
 
+:- use_module(eq_util).
+
 :- http_handler(amalgame(opmviz), http_opmviz, []).
+
+:- setting(secondary_input, atom, show, 'Show or hide arrows for amalgame:secondary_input').
 
 
 opmviz_options([edge_links(false),
- 		shape_hook(opm_shape),
+		shape_hook(opm_shape),
 		graph_attributes([])
 	       ]).
 
@@ -42,7 +46,7 @@ http_opmviz(Request) :-
 				 ]),
 			  graph(Graph,
 				 [description('URI from which we request the context')])
- 			]),
+			]),
 	(   Format \== html
 	->  reply_alignment_graph(Graph, Format)
 	;   opmviz_options(Options),
@@ -75,11 +79,11 @@ html_opmviz(Graph) -->
 
 html_opmviz(Graph) -->
 	{ http_link_to_id(http_opmviz, [graph(Graph),format(svg)], HREF)
- 	},
+	},
 	html([ object([ id(opmviz),
 			data(HREF),
 			type('image/svg+xml')
- 		      ],
+		      ],
 		      [])
 	     ]).
 
@@ -97,11 +101,18 @@ opm_graph_triple(Graph,Scheme,P,Graph) :-
 	rdf(Graph,amalgame:includes,Scheme,Graph).
 opm_graph_triple(Graph,S,P,O) :-
 	rdf(S,P,O,Graph),
-	is_opm_property(P).
+	is_opm_property(P),
+	\+ empty_evaluation(Graph, S).
+
 
 is_opm_property(P) :-
 	rdfs_subproperty_of(P, opmv:used),
+	(   setting(secondary_input, hide)
+	->  \+ rdf_equal(amalgame:secondary_input, P)
+	;   true
+	),
 	!.
+
 is_opm_property(P) :-
 	rdfs_subproperty_of(P, opmv:wasGeneratedBy),
 	!.
@@ -111,20 +122,31 @@ is_opm_property(P) :-
 is_opm_property(P) :-
 	rdfs_subproperty_of(P, opmv:wasTriggeredBy),
 	!.
+% filter out empty evaluations ...
+empty_evaluation(Strategy,M) :-
+	rdfs_individual_of(M, amalgame:'EvaluatedMapping'),
+	with_mutex(M, mapping_counts(M,Strategy,0,0,0,_,_)), !.
+
+% and processes resulting in empty evals
+empty_evaluation(Strategy,Process) :-
+	rdfs_individual_of(Process, amalgame:'EvaluationProcess'),
+	rdf(Empty, opmv:wasGeneratedBy, Process, Strategy),
+	empty_evaluation(Strategy, Empty).
+
 
 %%	opm_shape(+Resource, -Shape)
 %
 %	Defines graph node shape for different types of OPM resources.
 
-opm_shape(R, [shape(octagon),
- 	      style(filled),
+opm_shape(R, [shape(box),
+	      style(filled),
 	      fillcolor(Color),
 	      fontsize(10)]) :-
 	atom(R),
 	rdfs_individual_of(R, opmv:'Process'),
 	!,
 	process_color(R, Color).
-opm_shape(R, [shape(box),
+opm_shape(R, [shape(ellipse),
 	      style(filled),
 	      fillcolor('#EEEEEE'),
 	      fontsize(10)]) :-
@@ -139,7 +161,7 @@ opm_shape(R, [shape(ellipse),
 	!,
 	artifact_color(R, Color).
 opm_shape(_R, [shape(box),
- 	       fontsize(10)]).
+	       fontsize(10)]).
 
 process_color(R, '#FFCC99') :-
 	rdfs_individual_of(R, amalgame:'Subtracter'),
@@ -149,6 +171,9 @@ process_color(R, '#99CCFF') :-
 	!.
 process_color(R, '#CC99FF') :-
 	rdfs_individual_of(R, amalgame:'Matcher'),
+	!.
+process_color(R, '#FF99CC') :-
+	rdfs_individual_of(R, amalgame:'EvaluationProcess'),
 	!.
 process_color(_, '#DDDDDD').
 

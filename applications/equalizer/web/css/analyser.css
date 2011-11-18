@@ -1,20 +1,13 @@
 /* main layout */
 #main {
 	margin: 0 10px;
-	padding-left: 250px;
 }
 #mappings {
-	width: 250px;
-	margin-left: -250px;
-}
-#overlaps {
-	width: 100%;
-	
+	border: 1px solid #808080;
 }
 
 /* mapping list */
 .yui3-mappinglist-content {
-	border: 1px solid #808080;
 }
 .yui3-mappinglist .hd {
 	background: url("http://yui.yahooapis.com/3.0.0/build/assets/skins/sam/sprite.png") repeat-x scroll 0 0 transparent;
@@ -28,3 +21,16 @@
 	color: #222;
 }
 
+.diag { color: green; }
+#agreement {
+	    margin-left: 1em;
+	    border: 1px solid #808080;
+}
+
+#agreement td {
+ padding: .2em;
+}
+.hd {
+    background: url("http://yui.yahooapis.com/3.0.0/build/assets/skins/sam/sprite.png") repeat-x scroll 0 0 transparent;
+    padding: 5px;
+}

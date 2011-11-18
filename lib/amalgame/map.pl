@@ -1,5 +1,12 @@
 :- module(ag_map,
 	  [
+	   has_correspondence/2,    % align/3, MappingGraph URI
+	   remove_correspondence/2, % align/3, MappingGraph URI
+	   correspondence_source/2,
+	   correspondence_target/2,
+	   correspondence_evidence/2,
+
+	   assert_counts/2,        % +MapList, +ProvGraph
 	   materialize_mapping_graph/2, % +List, +Options
 	   merge_provenance/2,     % +List, -Merged
 	   compare_align/4,        % +Type, ?Order, A1, A2
@@ -8,18 +15,21 @@
 	   has_map/4,              % ?Map, ?Format ?Options, ?Graph
 	   has_map/3,		   % ?Map, ?Format ?Graph
 	   has_map_chk/3,	   % ?Map, ?Format ?Graph
-	   retract_map/3 ,	   % +Map, +Format, +Graph
+	   same_source/4,          % +List, +Source, -Same, -Rest
+	   same_target/4,          % +List, +Target, -Same, -Rest
 	   supported_map_relations/1 % ?URIList
 	  ]
 	 ).
 
-/** <module> Amalgame map module
+/** <module> Amalgame correspondences (map) module
 
-This module contains predicates to deal with mappings while abstracting
-from the underlying formats.
+This module contains predicates to deal with correspondences while
+abstracting from the underlying formats. This should converge into a
+set of functions around sorted lists with
+align(Source,Target,EvidenceList) terms.
 
 @author Jacco van Ossenbruggen
-@license GPL
+@license LGPL
 */
 
 :- use_module(library(semweb/rdf_db)).
@@ -27,6 +37,72 @@ from the underlying formats.
 
 :- use_module(library(amalgame/edoal)).
 :- use_module(library(amalgame/alignment)).
+:- use_module(library(ag_util)).
+
+%%	correspondence_source(?C,?S) is det.
+%
+%	Unifies S with the source of correspondence C.
+
+correspondence_source(align(S,_,_), S).
+
+%%	correspondence_target(?C,?T) is det.
+%
+%	Unifies T with the target of correspondence C.
+%
+correspondence_target(align(_,T,_), T).
+
+%%	correspondence_evidence(?C,?E) is det.
+%
+%	Unifies E with the evidence list of correspondence C.
+
+correspondence_evidence(align(_,_,E), E).
+
+%%	same_source(+List, +Source, -Same, -Rest) is det.
+%
+%	Same contains all alignments from List that have Source as a
+%	source, Rest contains all alignments with a different source.
+%	List, Same and Rest are assumed to be the usual lists of
+%	amalgame's align(S,T,P), sorted on S.
+
+same_source([align(S,T,P)|As], S, [align(S,T,P)|Same], Rest) :-	!,  same_source(As, S, Same, Rest).
+same_source(As, _S, [], As).
+
+%%	same_target(+List, +Target, -Same, -Rest) is det.
+%
+%	Same contains all alignments from List that have Target as a
+%	target, Rest contains all alignments with a different target.
+%	List, Same and Rest are assumed to be the usual lists of
+%	amalgame's align(S,T,P), sorted on T.
+
+same_target([align(S,T,P)|As], T, [align(S,T,P)|Same], Rest) :-	!,  same_target(As, T, Same, Rest).
+same_target(As, _S, [], As).
+
+%%	has_correspondence(?C, +G) is nondet.
+%
+%	Is true if C unifies with a correspondece C in named graph G.
+
+has_correspondence(align(E1, E2, P), Graph) :-
+	has_map([E1, E2], _, Properties, Graph),
+	flatten(Properties, Pflat),
+	(   memberchk(method(_), Pflat)
+	->  P = Properties
+	;   P = [[method(preloaded), graph(Graph)]|Properties]
+	).
+
+%%	remove_correspondence(+C, +G) is semidet.
+%
+%	removes the first correspondence C from named graph G.
+%	G is assumed to be a RDF graph with EDOAL cells.
+
+remove_correspondence(align(E1, E2, Prov), Graph) :-
+	ground(Graph),
+	ground(E1),
+	ground(E2),
+	has_edoal_map_([E1, E2], Cell, Graph),
+	has_correspondence(align(E1, E2, Prov), Graph),
+	!,
+	remove_resource(Cell, Graph).
+
 
 :- rdf_meta
 	mapping_props(t),
@@ -35,10 +111,7 @@ from the underlying formats.
 mapping_props([
 	       align:measure,
 	       align:relation,
-	       rdfs:comment,
-	       % amalgame:method,
-	       % amalgame:match,
-	       amalgame:provenance
+	       rdfs:comment
 	      ]).
 
 mapping_relation(skos, skos:mappingRelation).
@@ -100,7 +173,23 @@ has_map([E1, E2], edoal, Properties, Graph) :-
 		    rdf(Cell, Prop, Value, Graph),
 		    prop_to_term(Prop, Value, Term)
 		),
-		Properties).
+		DirectProperties0),
+	(   DirectProperties0 \= []
+	->  DirectProperties = [[method(direct) | DirectProperties0]]
+	;   DirectProperties = []
+	),
+	findall(Bnode, rdf(Cell, amalgame:evidence, Bnode, Graph), Bnodes),
+	findall(Prov,
+		(   member(Bnode, Bnodes),
+		    findall(Term,
+			    (	rdf(Bnode, Prop, Value, Graph),
+				prop_to_term(Prop, Value, Term)
+			    ),
+			    Prov)
+		),
+		ProvList),
+	append(DirectProperties, ProvList, Properties).
+
 
 has_map([E1, E2], Format, [relation(RealProp)], Graph) :-
 	mapping_relation(Format,MappingProp),
@@ -177,6 +266,8 @@ prop_to_term(Prop, Value, Term) :-
 	;   NS:Local = amalgame:method
 	->  literal(Literal) = Value,
 	    term_to_atom(RealValue, Literal)
+	;   literal(RealValue) = Value
+	->  true
 	;   RealValue = Value
 	),
 	Term =.. [Local, RealValue],!.
@@ -265,9 +356,33 @@ materialize_mapping_graph(Input, Options) :-
         align_ensure_stats(all(Graph)).
 
 mat_alignment_graph([], _).
-mat_alignment_graph([align(S,T, P)|As], Options) :-
-        assert_cell(S, T, [prov(P)|Options]),
-        % option(graph(Graph), Options, test),
-        % rdf_assert(S, skos:exactMatch, T, Graph),
+mat_alignment_graph([align(S,T,P)|As], Options) :-
+        (   flatten(P, Pflat), member(relation(R), Pflat)
+	->  Relation = relation(R)
+	;   option(default_relation(R), Options)
+	->  Relation = relation(R)
+	;   Relation = foo(bar)
+	),
+        assert_cell(S, T, [prov(P), Relation |Options]),
         mat_alignment_graph(As, Options).
+
+assert_counts([],_).
+assert_counts([A-M|Tail], ProvGraph) :-
+	assert_count(A, M, ProvGraph),
+	assert_counts(Tail, ProvGraph).
+
+assert_count(MapUri, MapList, ProvGraph) :-
+	maplist(correspondence_source, MapList, Ss0),
+	maplist(correspondence_target, MapList, Ts0),
+	sort(Ss0, Ss),
+	sort(Ts0, Ts),
+	length(Ss, SN),
+	length(Ts, TN),
+	length(MapList, Count),
+	rdf_assert(MapUri, amalgame:count,
+		   literal(type('http://www.w3.org/2001/XMLSchema#int', Count)), ProvGraph),
+	rdf_assert(MapUri, amalgame:mappedSourceConcepts,
+		   literal(type('http://www.w3.org/2001/XMLSchema#int', SN)), ProvGraph),
+	rdf_assert(MapUri, amalgame:mappedTargetConcepts,
+		   literal(type('http://www.w3.org/2001/XMLSchema#int', TN)), ProvGraph).
 

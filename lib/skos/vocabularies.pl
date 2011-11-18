@@ -6,6 +6,9 @@
 	   skos_label/2,
 	   skos_label/3,
 	   topconcepts/2,
+	   voc_languages/2,
+	   voc_languages/3,
+	   assert_voc_version/2,
 	   voc_get_computed_props/2,
 	   voc_clear_stats/1,
 	   voc_ensure_stats/1,
@@ -43,6 +46,15 @@ See also http_clear_cache/1.
 
 @author Jacco van Ossenbruggen
 */
+
+
+:- dynamic
+	voc_stats_cache/2.
+
+:- rdf_meta
+	voc_languages(r,-),
+	voc_languages(r,r,-),
+	voc_languages_used(r,r,-).
 
 is_vocabulary(Voc, Format):-
         ground(Voc),!,
@@ -97,8 +109,12 @@ voc_get_computed_props(Voc, Props) :-
 	maplist(=.., Props, GraphProps).
 
 voc_clear_stats(all) :-
-	rdf_unload(amalgame_vocs),
-	print_message(informational, map(cleared, 'vocabulary statistics', amalgame_vocs, all)).
+	(   rdf_graph(amalgame_vocs)
+	->  rdf_unload(amalgame_vocs),
+	    print_message(informational, map(cleared, 'vocabulary statistics', amalgame_vocs, all))
+	;   true
+	).
+
 
 voc_clear_stats(Graph) :-
 	rdf_retractall(Graph, _, _, amalgame_vocs),
@@ -151,7 +167,7 @@ voc_ensure_stats(version(Voc)) :-
 	->  true
 	;   rdf(Voc, opmv:wasGeneratedBy, _)
 	->  true
-	;   assert_voc_version(Voc)
+	;   assert_voc_version(Voc, amalgame_vocs)
 	->  true
 	;   debug(info, 'Failed to ensure opm stats for ~', [Voc])
 	),!.
@@ -185,33 +201,37 @@ voc_ensure_stats(numberOfMappedConcepts(Voc)) :-
 	    assert_voc_props(Voc:[numberOfMappedConcepts(literal(type('http://www.w3.org/2001/XMLSchema#int', Count)))])
 	),!.
 
-assert_voc_version(Voc) :-
-	(   rdf(Voc, amalgame:subSchemeOf, SuperVoc)
-	->  assert_subvoc_version(Voc, SuperVoc)
-	;   assert_supervoc_version(Voc)
+voc_languages(Voc, L) :-
+	(   voc_stats_cache(Voc, languages(L))
+	->  true
+	;   voc_languages_used(Voc, L),
+	    assert(voc_stats_cache(Voc, languages(L)))
 	).
 
-assert_subvoc_version(Voc, SuperVoc) :-
+voc_languages(Voc, P, L) :-
+	(   voc_stats_cache(Voc, P-languages(L))
+	->  true
+	;   voc_languages_used(Voc, P, L),
+	    assert(voc_stats_cache(Voc, P-languages(L)))
+	).
+%%	assert_voc_version(+Voc, +TargetGraph) is det.
+%
+%	Assert version of Voc using RDF triples in named graph TargetGraph.
+
+assert_voc_version(Voc, TargetGraph) :-
+	(   rdf(Voc, amalgame:subSchemeOf, SuperVoc)
+	->  assert_subvoc_version(Voc, SuperVoc, TargetGraph)
+	;   assert_supervoc_version(Voc, TargetGraph)
+	).
+
+assert_subvoc_version(Voc, SuperVoc, TargetGraph) :-
 	voc_ensure_stats(version(SuperVoc)),
 	rdf_has(SuperVoc, owl:versionInfo, Version),
-	rdf_assert(Voc,   owl:versionInfo, Version, amalgame_vocs).
+	rdf_assert(Voc,   owl:versionInfo, Version, TargetGraph).
 
-assert_supervoc_version(Voc) :-
+assert_supervoc_version(Voc, TargetGraph) :-
 	rdf(_, skos:inScheme, Voc, SourceGraph:_),!,
-	rdf_graph_property(SourceGraph, source(SourceFileURL)),
-	uri_file_name(SourceFileURL, Filename),
-	file_directory_name(Filename, Dirname),
-	register_git_module(Voc, [directory(Dirname), home_url(Voc)]),
-	(   git_module_property(Voc, version(Version))
-	->  format(atom(VersionS),  'GIT version: ~w', [Version]),
-	    rdf_assert(Voc, owl:versionInfo, literal(VersionS), amalgame_vocs)
-	;   (rdf_graph_property(SourceGraph, hash(Hash)),
-	     rdf_graph_property(SourceGraph, source_last_modified(LastModified)),
-	     format_time(atom(Mod), 'Last-Modified: %Y-%m-%dT%H-%M-%S%Oz', LastModified),
-	     rdf_assert(Voc, owl:versionInfo, literal(Mod), amalgame_vocs),
-	     rdf_assert(Voc, owl:versionInfo, literal(Hash), amalgame_vocs)
-	    )
-	).
+	opm_assert_artefact_version(Voc, SourceGraph, TargetGraph).
 
 
 assert_voc_props([]).
@@ -278,7 +298,7 @@ count_altLabels(Voc, Count) :-
 count_mapped_concepts(Voc, Count) :-
 	findall(C,
 		(   rdf(C, skos:inScheme, Voc),
-		    (  	has_map_chk([C,_], _, _)
+		    (	has_map_chk([C,_], _, _)
 		    ;	has_map_chk([_,C], _, _)
 		    )
                 ),
@@ -286,6 +306,37 @@ count_mapped_concepts(Voc, Count) :-
 	sort(Concepts, Sorted),
 	length(Sorted, Count),
 	print_message(informational, map(found, 'SKOS mapped concepts', Voc, Count)).
+
+voc_languages_used(all, Langs) :-
+	findall(L,
+		(   rdfs_individual_of(Voc, skos:'ConceptScheme'),
+		    voc_languages_used(Voc, L)
+		),
+		Ls),
+	flatten(Ls, Flat),
+	sort(Flat, Langs).
+
+voc_languages_used(Voc, Langs) :-
+	(   setof(Lang, language_used(Voc, Lang), Langs)
+	->  true
+	;   Langs = []
+	).
+
+voc_languages_used(Voc, Prop, Langs) :-
+	(   setof(Lang, language_used(Voc, Prop, Lang), Langs)
+	->  true
+	;   Langs = []
+	).
+
+language_used(Voc, Lang) :-
+	rdf(Concept, skos:inScheme, Voc),
+	rdf(Concept, _, literal(lang(Lang, _))),
+	ground(Lang).
+
+language_used(Voc, Prop, Lang) :-
+	rdf(Concept, skos:inScheme, Voc),
+	rdf_has(Concept, Prop, literal(lang(Lang, _))),
+	ground(Lang).
 
 voc_partition(Request, Voc, PartitionType, Partition) :-
 	findall(C, rdf(C, skos:inScheme, Voc), Concepts),

@@ -1,38 +1,51 @@
 /* main layout */
 #content {
-	margin: 0 10px;
-	padding-left: 210px;
+	margin: .5em;
+	padding-left: 27.5em;
 }
 #left {
-	width: 200px;
-	margin-right: 10px;
-	margin-left: -210px;
+	width: 25em;
+	margin-left: -27.5em;
+	margin-right: 1em;
 }
 #main {
 	width: 100%;
 	
 }
 
-/* mapping list */
-.yui3-mappinglist-content {
+/* sidebar box */
+.box {
 	border: 1px solid #808080;
+	margin-bottom: 15px;
 }
-.yui3-mappinglist .hd {
+.box .hd {
 	background: url("http://yui.yahooapis.com/3.0.0/build/assets/skins/sam/sprite.png") repeat-x scroll 0 0 transparent;
     padding: 5px;
 }
+.box .bd {
+}
+
+/* mapping list */
 .yui3-mappinglist li {
 	padding: 2px 4px;
 }
-.yui3-mappinglist li.selected {
+.yui3-mappinglist tr.selected {
 	background-color: #3875D7;
 }
-.yui3-mappinglist li a {
+.yui3-mappinglist tr a {
 	text-decoration: none;
 	color: #222;
 }
-.yui3-mappinglist li.selected a {
+.yui3-mappinglist tr.selected a {
 	color: white;
+}
+
+/* mapping info */
+#mappinginfo {
+	padding: 5px;
+}
+#mappinginfo td {
+	padding: 2px;
 }
 
 /* mapping table */
@@ -68,10 +81,9 @@
 }
 
 /* resource info*/
-/* resource info */
-.resource-info-content {
-	padding: 6px 12px;
-	margin-bottom: 6px;
+.resource-info {
+    margin: 5px;
+    padding: 5px;
 }
 .resource-info .label {
 	font-size: 130%;
@@ -82,7 +94,6 @@
 }
 .resource-info .hd {
 	padding-top: 8px;
-	border-bottom: 1px solid #E2E2E2;
 }
 .resource-info .bd {
 	padding: 2px 4px;
@@ -123,32 +134,28 @@
 
 /* overlay */
 #detail {
-	border: 2px solid #CCCCCC;
-	background-color: #FFF;
-}
-#detail .yui3-widget-hd {
-	border-bottom: 1px solid #CCC;
-    padding: 5px 10px;
-	text-align: center;
-	opacity: 1;
+	border: 1px solid #808080;
+	background-color: #DDD;
 }
 #detail .yui3-widget-bd {
-	
-	padding: 5px 10px;
+	padding: 5px;
 }
 #detail .yui3-widget-ft {
-	border-bottom: 1px solid #CCC;
+	border-top: 1px solid #AAA;
     padding: 5px 10px;
 	text-align: right;
-	opacity: 1;
 }
-#relations li {
-	list-style: none;
-	display: inline;
+
+#detail .relations {
+	padding: 5px;
+}
+#detail .relation {
 	padding: 0 5px;
 }
-#relations label {
+#detail .relation label {
 	padding-left: 2px;
 }
-.controls {
+#detail .yui3-g {
+	border-top: 1px solid #CCC;
+	margin-bottom: 15px;
 }

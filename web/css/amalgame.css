@@ -3,8 +3,15 @@ body {
 	font-family: Arial;
 }
 
-div.menu { position: fixed; }
-#search_form { position: fixed; right: 0.5em; }
+div.menu { 
+	position: fixed; 
+	margin-right: 21em;
+}
+#search_form { 
+	position: fixed; 
+	right: 0.5em; 
+	width: 20.5em;
+}
 .content h1 {
 	font-size: 1.2em;
 }

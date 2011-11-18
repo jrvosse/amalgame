@@ -15,10 +15,14 @@
 :- use_module(stats).
 :- use_module(eq_util).
 
+:- public amalgame_module/1.
+
+amalgame_module(amalgame:'EvaluationProcess').
+
 :- multifile
 	eq:menu_item/2.
 
-eq:menu_item(http_eq_evaluate, 'evaluate').
+eq:menu_item(210=http_eq_evaluate, 'evaluate').
 
 :- setting(rows_per_page, integer, 100,
 	   'Maximum number of mappings shown.').
@@ -35,25 +39,36 @@ http_eq_evaluate(Request) :-
 	authorized(write(default, _)),
 	http_parameters(Request,
 			[ alignment(Alignment,
-				    [uri, optional(true),
-				     description('URI of an alignment')])
+				    [uri,
+				     description('URI of an alignment')]),
+			  focus(Mapping,
+				  [uri, default(''),
+				   description('URI of initially selected mapping')
+				  ])
 			]),
-	html_page(Alignment).
+	html_page(Alignment, Mapping).
 
-html_page(Alignment) :-
+html_page(Alignment, Mapping) :-
 	html_set_options([dialect(html)]),
-  	reply_html_page(equalizer(main),
+	reply_html_page(equalizer(main),
 			[ title(['Align vocabularies'])
 			],
 			[ \html_requires(css('eq.css')),
 			  \html_requires(css('evaluater.css')),
-			  \html_requires('http://yui.yahooapis.com/combo?3.3.0/build/cssreset/reset-min.css&3.3.0/build/cssgrids/grids-min.css&3.3.0/build/cssfonts/fonts-min.css&gallery-2011.02.23-19-01/build/gallery-node-accordion/assets/skins/sam/gallery-node-accordion.css'),
 			  \html_requires(css('gallery-paginator.css')),
-			   \html_eq_header(http_eq_evaluate, Alignment),
-   			  div(class('yui3-skin-sam yui-skin-sam'),
+			  \yui3_combo(yui3,
+				      ['cssreset/reset-min.css',
+				       'cssgrids/grids-min.css',
+				       'cssfonts/fonts-min.css'
+				      ]),
+			  \html_eq_header([active(http_eq_evaluate),
+					   strategy(Alignment),
+					   focus(Mapping)
+					  ]),
+			  div(class('yui3-skin-sam yui-skin-sam'),
 			      [ div([id(content), class('yui3-g')],
 				    [ div([class('yui3-u'), id(left)],
-					  div(id(mappinglist), [])),
+					  \html_sidebar),
 				      div([class('yui3-u'), id(main)],
 					  div([id(mappingtable)], []))
 				    ]),
@@ -61,32 +76,46 @@ html_page(Alignment) :-
 				   \html_overlay)
 			      ]),
 			  script(type('text/javascript'),
-				 [ \yui_script(Alignment)
+				 [ \yui_script(Alignment, Mapping)
 				 ])
 			]).
 
-html_overlay -->
- 	html(form([div(class('yui3-widget-hd'),
-		      [  'Correspondance'
- 		      ]),
-		   div(class('yui3-widget-bd'),
-		       [div(class(controls),
-			    [ 'include all correspondences with the same:',
-			      input([type(checkbox), id(msources), autocomplete(off)]),
-			      label(source),
-			      input([type(checkbox), id(msources), autocomplete(off)]),
-			      label(target)
-			    ]),
-			div([class(concepts), id(concepts)], [])
-		       ]),
-		       div(class('yui3-widget-ft'),
-			   [ div(class(controls), \html_controls)
-			   ])
-	     ])).
+html_sidebar -->
+	html([ div(class(box),
+		   [div(class(hd), 'Mappings'),
+		    div([id(mappinglist), class(bd)], [])
+		   ]),
+	       div(class(box),
+		   [div(class(hd), 'Info'),
+		    div([id(mappinginfo), class(bd)], [])
+		   ])
+	     ]).
 
-html_controls -->
-	html([ input([type(button), value(prev)]),
-	       input([type(submit), value(next)])
+html_overlay -->
+	html(form([div(class('yui3-widget-bd'),
+		       [ div([class(concepts), id(concepts)], [])
+		       ]),
+		   div(class('yui3-widget-ft'),
+		       [ div(class(controls),
+			     [ div(class(options), \html_options),
+			       div(class(buttons), \html_buttons)
+			     ])
+		       ])
+		  ])).
+
+html_options -->
+	html([ 'include all correspondences with the same: ',
+	       input([type(checkbox), id(allsources), autocomplete(off)]),
+	       label(' source'),
+	       input([type(checkbox), id(alltargets), autocomplete(off)]),
+	       label(' target')
+	     ]).
+
+html_buttons -->
+	html([ button([class(cancel)], cancel),
+	       button([class(submit)], submit),
+	       button([class(prev)], prev),
+	       button([class(next)], next)
 	     ]).
 
 
@@ -94,23 +123,20 @@ html_controls -->
 %
 %	Emit YUI object.
 
-yui_script(Alignment) -->
+yui_script(Alignment, Mapping) -->
 	{ findall(K-V, js_path(K, V), Paths),
 	  findall(M-C, js_module(M,C), Modules),
 	  pairs_keys(Modules, Includes),
-	  js_mappings(Alignment, Mappings),
-	  findall(json([uri=R,label=L]),
-		  mapping_relation(L,R),
-		  Relations)
- 	},
- 	yui3([json([modules(json(Modules))])
+	  js_mappings(Alignment, Mappings)
+	},
+	yui3([json([modules(json(Modules))])
 	     ],
 	     Includes,
 	     [ \yui3_new(eq, 'Y.Evaluater',
 			 json([alignment(Alignment),
-  			       paths(json(Paths)),
+			       paths(json(Paths)),
 			       mappings(Mappings),
-			       relations(Relations)
+			       selected(Mapping)
 			      ]))
 	     ]).
 
@@ -118,12 +144,14 @@ yui_script(Alignment) -->
 %
 %	Path to the server used in javascript.
 
-js_path(statistics, Path) :-
-	http_location_by_id(http_eq_info, Path).
 js_path(mapping, Path) :-
 	http_location_by_id(http_data_mapping, Path).
-%js_path(info, Path) :-
-%	http_location_by_id(http_correspondence, Path).
+js_path(evaluate, Path) :-
+	http_location_by_id(http_data_evaluate, Path).
+js_path(mappinginfo, Path) :-
+	http_location_by_id(http_eq_info, Path).
+js_path(info, Path) :-
+	http_location_by_id(http_correspondence, Path).
 
 %%	js_module(+Key, +Module_Conf)
 %
@@ -131,15 +159,16 @@ js_path(mapping, Path) :-
 
 js_module(gallery, 'gallery-2011.02.23-19-01').
 js_module(evaluater, json([fullpath(Path),
-			   requires([node, event,anim,
+			   requires([node,event,anim,
 				     'overlay','json-parse','io-base',
-				     'datasource-io','datasource-jsonschema','datasource-cache',
+				     'datasource-io','datasource-jsonschema',
 				     'querystring-stringify-simple',
 				     mappinglist,mappingtable])
 			  ])) :-
 	http_absolute_location(js('evaluater.js'), Path, []).
 js_module(mappinglist, json([fullpath(Path),
-			requires([node,event,widget])
+			requires([node,event,widget,
+				  history,querystring])
 		       ])) :-
 	http_absolute_location(js('mappinglist.js'), Path, []).
 js_module(mappingtable, json([fullpath(Path),

@@ -7,11 +7,11 @@
 @prefix     skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix     xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-amalgame:Process 
+amalgame:Process
     rdfs:label "process"@en ;
     skos:definition "Top class for all amalgame processes"@en ;
     rdfs:subClassOf opmv:Process .
-amalgame:Matcher 
+amalgame:Matcher
     rdfs:label "matcher"@en ;
     skos:definition "Component that creates a mapping given a source and target vocabulary"@en ;
     rdfs:range amalgame:Mapping ;
@@ -37,7 +37,7 @@ amalgame:Subtracter
     rdfs:domain skos:ConceptScheme ;
     rdfs:range skos:ConceptScheme ;
     rdfs:subClassOf amalgame:Process .
-amalgame:Merger 
+amalgame:Merger
     rdfs:label "merger"@en ;
     skos:definition "Component that creates a mapping by combining the correspondences from a number of mappings"@en ;
     rdfs:domain amalgame:Mapping ;
@@ -53,6 +53,10 @@ amalgame:input
 	rdfs:subPropertyOf opmv:used.
 
 amalgame:exclude
+	rdfs:domain opmv:Process ;
+	rdfs:range  amalgame:Alignment ;
+	rdfs:subPropertyOf amalgame:secondary_input .
+amalgame:secondary_input
 	rdfs:domain opmv:Process ;
 	rdfs:range  amalgame:Alignment ;
 	rdfs:subPropertyOf opmv:used .
@@ -72,6 +76,9 @@ amalgame:undecidedBy
 	rdfs:range opmv:Process ;
 	rdfs:subPropertyOf opmv:wasGeneratedBy.
 
+amalgame:evaluationOf
+	rdfs:subPropertyOf opmv:wasDerivedFrom.
+
 amalgame:NoAlignmentGraph a rdfs:Class ;
 	rdfs:label "No Alignment Graph"@en ;
 	rdfs:comment "The class of all Named Graphs in the repository containing no mappings and/or alignments."@en.
@@ -84,9 +91,9 @@ amalgame:Alignment a rdfs:Class ;
 amalgame:Mapping a rdfs:Class ;
 	rdfs:subClassOf amalgame:Alignment .
 
-amalgame:LoadedAlignment a rdfs:Class ;
-	rdfs:subClassOf amalgame:Alignment ;
-	rdfs:label "Loaded Alignment Graph"@en ;
+amalgame:LoadedMapping a rdfs:Class ;
+	rdfs:subClassOf amalgame:Mapping ;
+	rdfs:label "Loaded Mapping Graph"@en ;
 	rdfs:comment "An alignment loaded from file, e.g. not derived from another alignment"@en.
 
 amalgame:AmalgameAlignment a rdfs:Class ;
@@ -119,10 +126,10 @@ amalgame:PartitionedAlignment a rdfs:Class;
 	rdfs:label "Amalgame Partitioned"@en ;
 	rdfs:comment "A Named Graph that has been created by partitioning another named graph into one or more new graphs. The source graph is recorded by dcterms:source in the amalgame:provenance section."@en .
 
-amalgame:EvaluatedAlignment a rdfs:Class;
-	rdfs:subClassOf amalgame:DerivedAlignment ;
+amalgame:EvaluatedMapping a rdfs:Class;
+	rdfs:subClassOf amalgame:Mapping ;
 	rdfs:label "Amalgame Evaluation Results"@en ;
-	rdfs:comment "A Named Graph that has been created by manually evaluating another named graph into a new graph. The source graph is recorded by dcterms:source in the amalgame:provenance section."@en .
+	rdfs:comment "A Named Graph that has been created by manually evaluating another named graph into a new graph. The source graph is recorded by the amalgame:evaluationOf property."@en .
 
 amalgame:SelectionAlignment a rdfs:Class;
 	rdfs:subClassOf amalgame:DerivedAlignment ;
@@ -269,3 +276,26 @@ amalgame:maximalConfidence a rdf:Property, owl:FunctionalProperty ;
 	rdfs:comment "Mappings with confidence above this level have not been exported to this graph"@en ;
 	rdfs:domain amalgame:Provenance ;
 	rdfs:range xsd:float .
+
+amalgame:status a rdf:Property, owl:FunctionalProperty ;
+        rdfs:comment "Status of a Mapping within amalgame";
+	rdfs:domain amalgame:Mapping;
+	rdfs:range amalgame:Status .
+
+amalgame:Status a rdfs:Class, owl:Class ;
+        owl:oneOf ( amalgame:final
+		    amalgame:intermediate
+		    amalgame:discarded
+		    amalgame:imported ) .
+
+amalgame:final a amalgame:Status ;
+	rdfs:comment "Status indicating that a Mapping	does not need further refinement, e.g. it is of sufficient quality to be exported and used"@en .
+
+amalgame:imported a amalgame:Status ;
+	rdfs:comment "Status indicating that a Mapping has been imported into amalgame"@en .
+
+amalgame:intermediate a amalgame:Status ;
+	rdfs:comment "Status indicating that a Mapping has not insufficient quality to be useful as is, but is of potential interest as a basis for further processing."@en .
+
+amalgame:discarded a amalgame:Status ;
+	rdfs:comment "Status indicating that a Mapping has not insufficient quality to be useful, even for further processing, and can be discarded from the further analysis."@en .

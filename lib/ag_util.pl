@@ -4,8 +4,11 @@
 	    list_limit/4,
 	    sort_by_arg/3,
 	    sort_by_arg/4,
-	    group_by_arg/3
+	    group_by_arg/3,
+	    remove_resource/2 % +Resource, +Graph
 	  ]).
+
+:- use_module(library(semweb/rdf_db)).
 
 :- meta_predicate
         find_unique(-, 0, +, -).
@@ -112,3 +115,26 @@ args([A], Term, [Key]) :- !,
 args([A|As], Term, [Key|Ks]) :-
 	arg(A, Term, Key),
 	args(As, Term, Ks).
+
+%%	remove_resource(+Resource, +Graph) is det.
+%
+%	Remove all references to Resource from Graph,
+%	including (recursively) all blank nodes that
+%	Resource uniquely referred to.
+
+remove_resource(R, G) :-
+	ground(R),
+	ground(G),
+	findall(Blank,
+		(   rdf(R,_,Blank, G),
+		    rdf_is_bnode(Blank),
+		    \+ (rdf(R2, _, Blank, G), R2 \= R)
+		),
+		BlankNodes),
+	forall(member(B, BlankNodes),
+	       remove_resource(B, G)
+	      ),
+	rdf_retractall(R,_,_,G),
+	rdf_retractall(_,R,_,G),
+	rdf_retractall(_,_,R,G).
+

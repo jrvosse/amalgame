@@ -6,6 +6,12 @@
 
 :- public amalgame_module/1.
 :- public selecter/5.
+:- public parameter/4.
+
+parameter(type,
+	  oneof([target, source]), target,
+	  'target = select target with most labels for each source,
+	   source = select source with most labels for each target').
 
 amalgame_module(amalgame:'MostMethods').
 
@@ -30,12 +36,6 @@ partition_([align(S,T,P)|As], Sel, Dis, Und) :-
 	),
 	partition_(Rest, SelRest, DisRest, UndRest).
 
-same_source([align(S,T,P)|As], S, [align(S,T,P)|Same], Rest) :-
-	!,
-	same_source(As, S, Same, Rest).
-same_source(As, _S, [], As).
-
-
 most_methods(As, Selected, [A|T]) :-
 	group_method_count(As, Counts),
 	sort(Counts, [N-Selected,N1-A|T0]),
@@ -48,4 +48,4 @@ group_method_count([Align|As], [Count-Align|Ts]) :-
 	findall(M, (member(P,Provenance),memberchk(M,P)), Methods),
 	length(Methods, Count0),
 	Count is 1/Count0,
- 	group_method_count(As, Ts).
+	group_method_count(As, Ts).

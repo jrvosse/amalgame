@@ -15,25 +15,28 @@ parameter(type, oneof([source,target]), source,
 	  'Property to exclude matching sources or targets').
 
 exclude(Vocab, Mapping, scheme(NewScheme), Options) :-
-	rdf_bnode(NewScheme),
-	%rdf_assert(NewScheme, rdf:type, skos:'ConceptScheme', tmp),
- 	option(type(Type), Options),
- 	findall(C, vocab_member(C, Vocab), Concepts0),
-  	mapping_concepts(Type, Mapping, Exclude0),
+	option(type(Type), Options),
+	(   option(new_scheme(NewScheme), Options)
+	->  true
+	;   rdf_bnode(NewScheme)
+	),
+	findall(C, vocab_member(C, Vocab), Concepts0),
+	mapping_concepts(Type, Mapping, Exclude0),
 	sort(Concepts0, Concepts),
 	sort(Exclude0, Exclude),
 	ord_subtract(Concepts, Exclude, Rest),
 	rdf_transaction(forall(member(R,Rest),
-			       add_to_scheme(R, NewScheme))).
+			       add_to_scheme(R, NewScheme))),
+	rdf_assert(NewScheme, rdf:type, skos:'ConceptScheme', NewScheme).
 
 add_to_scheme(R, Scheme) :-
 	rdf(R, skos:inScheme, Scheme),
 	!.
 add_to_scheme(R, Scheme) :-
-	rdf_assert(R, skos:inScheme, Scheme, tmp).
+	rdf_assert(R, skos:inScheme, Scheme, Scheme).
 
 %	pairs_keys(Pairs, Rest),
-% 	ord_list_to_rbtree(Pairs, RestAssoc).
+%	ord_list_to_rbtree(Pairs, RestAssoc).
 
 mapping_concepts(source, Mapping, Concepts) :-
 	maplist(arg(1), Mapping, Concepts).

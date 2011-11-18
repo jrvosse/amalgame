@@ -13,8 +13,6 @@
 amalgame_module(amalgame:'AncestorMatcher').
 amalgame_module(amalgame:'AncestorFilter').
 
-parameter(graph, atom, 'DEFAULT_GRAPH',
-	  'named graph to query for ancestors, defaults to full repository').
 parameter(steps, integer, 1,
 	  'depth of search, defaults to 1, e.g. direct parents only').
 
@@ -22,18 +20,24 @@ parameter(steps, integer, 1,
 %
 %	Filter mappings based on exact matching of labels.
 
-filter([], [], _).
-filter([align(S,T,P)|Cs], [C|Mappings], Options) :-
+filter(In, Out, Options) :-
+	option(snd_input(SecList), Options),
+	findall(S-T-P, member(align(S,T,P), SecList), KeyValueList),
+	list_to_assoc(KeyValueList, BackgroundMatches),
+	filter_(In, BackgroundMatches, Out, Options).
+
+filter_([], _, [], _).
+filter_([align(S,T,P)|Cs], BackgroundMatches, [C|Mappings], Options) :-
 	(   T = scheme(_)
-	->  match(align(S,_,P), C, Options),
+	->  match(align(S,_,P), BackgroundMatches, C, Options),
 	    C=align(_,T2,_),
 	    vocab_member(T2, T)
-	;   match(align(S,T,P), C, Options)
+	;   match(align(S,T,P), BackgroundMatches, C, Options)
 	),
 	!,
-	filter(Cs, Mappings, Options).
-filter([_|Cs], Mappings, Options) :-
-	filter(Cs, Mappings, Options).
+	filter_(Cs, BackgroundMatches, Mappings, Options).
+filter_([_|Cs], BackgroundMatches, Mappings, Options) :-
+	filter_(Cs, BackgroundMatches, Mappings, Options).
 
 
 %%	matcher(+Source, +Target, -Mappings, +Options)
@@ -42,29 +46,36 @@ filter([_|Cs], Mappings, Options) :-
 %	Target.
 
 matcher(Source, Target, Mappings, Options) :-
-	findall(M, align(Source, Target, M, Options), Mappings0),
+	option(snd_input(SecList), Options),
+	list_to_assoc(SecList, BackgroundMatches),
+	findall(M, align(Source, Target, BackgroundMatches, M, Options), Mappings0),
 	sort(Mappings0, Mappings).
 
-align(Source, Target, Match, Options) :-
+align(Source, Target, BackgroundMatches, Match, Options) :-
 	vocab_member(S, Source),
 	vocab_member(T, Target),
-	match(align(S,T,[]), Match, Options).
+	match(align(S,T,[]), BackgroundMatches, Match, Options).
 
 
-match(align(S, T, Prov0), align(S, T, [Prov|Prov0]), Options) :-
-	(   option(graph(Graph), Options, 'DEFAULT_GRAPH'), Graph \== 'DEFAULT_GRAPH'
-	->  true
-	;   Graph = _
-	),
+match(align(S, T, Prov0), BackgroundMatches, align(S, T, [Prov|Prov0]), Options) :-
 	option(steps(MaxSteps), Options),
+	ancestor(S, MaxSteps, AncS, R1, Steps1),
+	ancestor(T, MaxSteps, AncT, R2, Steps2),
+	get_assoc(AncS-AncT, BackgroundMatches, _),
+	Prov = [method(ancestor_match),
+		source_ancestor(AncS),
+		target_ancestor(AncT),
+		source_steps(Steps1),
+		target_steps(Steps2),
+		graph([R1,R2])
 
-	ancestor(S, MaxSteps, AncS, R1, _Steps1),
-	ancestor(T, MaxSteps, AncT, R2, _Steps2),
+	       ].
+	/* FIXME, see descendent match
 	has_map([AncS, AncT],_,O, Graph),
 	memberchk(relation(AncMapRel), O),
 	Prov = [method(ancestor_match),
 		graph([R1,R2, rdf(AncS, AncMapRel, AncT)])
-	       ].
+	       ].*/
 
 ancestor(R, MaxSteps, Parent, rdf_reachable(R, Prop, Parent), Steps) :-
 	rdf_equal(skos:broader, Prop),

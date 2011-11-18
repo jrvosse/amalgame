@@ -84,46 +84,85 @@ assert_alignment(URI, Options) :-
 %
 
 assert_cell(C1, C2, Options) :-
-	rdf_equal(skos:closeMatch, CloseMatch),
-        option(graph(Graph), Options, align),
-	option(measure(M),   Options, 0.00001),
-	option(relation(R),  Options, CloseMatch),
+	option(graph(Graph), Options, align),
 	rdf_bnode(Cell),
 	rdf_assert(Cell, rdf:type, align:'Cell', Graph),
 	(var(C1) -> true; rdf_assert(Cell, align:entity1, C1, Graph)),
 	(var(C2) -> true; rdf_assert(Cell, align:entity2, C2, Graph)),
-	rdf_assert(Cell, align:measure, literal(M), Graph),
-	% Relation should be a literal according to the specs, but we do not like this ...
-	% rdf_assert(Cell, align:relation, literal(R), Graph),
-	rdf_assert(Cell, align:relation, R, Graph),
+
+	(   option(conform(strict), Options)
+	->  rdf_equal(skos:closeMatch, CloseMatch),
+	    option(measure(M),   Options, 0.00001),
+	    option(relation(R),  Options, CloseMatch),
+	    rdf_assert(Cell, align:measure, literal(M), Graph),
+	    rdf_assert(Cell, align:relation, literal(R), Graph)
+	;   (   option(measure(M), Options)
+	    ->	rdf_assert(Cell, align:measure, literal(M), Graph)
+	    ;	true
+	    ),
+	    (	option(relation(R), Options)
+	    ->	rdf_assert(Cell, align:relation, R, Graph)
+	    ;	true
+	    )
+	),
 
 	(   option(alignment(A), Options)
 	->  rdf_assert(A, align:map, Cell, Graph)
 	;   rdf_assert(Graph, align:map, Cell, Graph)
 	),
-	% Disable for now, gives weird results ...
+
 	(   option(prov(Prov), Options)
-	->  assert_provlist(Prov, Cell, Graph)
+	->  assert_provlist(Prov, Cell, Graph, Options)
+	;   true
+	),
+	% re-instated the method asserter for Anna's stratify needs ...
+	(   option(method(MethodList), Options)
+	->  assert_methodlist(MethodList, Cell, Graph)
 	;   true
 	).
 
-assert_provlist([], _, _).
-assert_provlist([P|ProvList], Cell, Graph) :-
+
+assert_methodlist([], _, _).
+assert_methodlist([M|MethodList], Cell, Graph) :-
+	rdf_assert(Cell, amalgame:method, M, Graph),
+	assert_methodlist(MethodList, Cell, Graph).
+
+
+assert_provlist([], _, _,_).
+assert_provlist([P|ProvList], Cell, Graph, Options) :-
+	memberchk(method(direct), P), !,
+	assert_provlist(ProvList, Cell, Graph, Options).
+
+assert_provlist([P|ProvList], Cell, Graph, Options) :-
 	rdf_bnode(B),
-	rdf_assert(Cell, amalgame:provenance, B, Graph),
+	rdf_assert(Cell, amalgame:evidence, B, Graph),
 	forall(member(ProvElem, P),
 	       (   ProvElem =.. [Key, Value],
-		   assert_prov_elem(Key, Value, B, Graph)
+		   assert_prov_elem(Key, Value, B, Graph, Options)
 	       )
 	      ),
-	assert_provlist(ProvList, Cell, Graph).
+	assert_provlist(ProvList, Cell, Graph, Options).
 
-assert_prov_elem(graph, _Value, Subject, Graph) :- !,
-	rdf_assert(Subject, amalgame:graph, literal('tbd'), Graph).
-assert_prov_elem(Key, Value, Subject, Graph) :-
+assert_prov_elem(graph, ValueGraph, Subject, TargetGraph, Options) :-
+	!,
+	(   option(evidence_graphs(enabled), Options)
+	->  rdf_assert(Subject, amalgame:evidenceGraph, Subject, TargetGraph),
+	    rdf_assert_triples(ValueGraph, Subject)
+	;   true
+	).
+assert_prov_elem(relation, Relation, Subject, Graph, _Options) :-
+	rdf_assert(Subject, align:relation, Relation, Graph).
+assert_prov_elem(user, User, Subject, Graph, _Options) :-
+	rdf_assert(Subject, amalgame:user, User, Graph).
+
+assert_prov_elem(Key, Value, Subject, Graph, _Options) :-
 	rdf_global_id(amalgame:Key, Property),
 	rdf_assert(Subject, Property, literal(Value), Graph).
 
+rdf_assert_triples([], _).
+rdf_assert_triples([rdf(S,P,O)|Tail], Graph) :-
+	rdf_assert(S,P,O,Graph),
+	rdf_assert_triples(Tail, Graph).
 
 %%	edoal_to_triples(+Request, +EdoalGraph, +SkosGraph, +Options) is
 %%	det.

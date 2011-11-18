@@ -19,6 +19,7 @@
 :- use_module(library(amalgame/edoal)).
 :- use_module(library(amalgame/map)).
 :- use_module(library(ag_util)).
+:- use_module(eq_util).
 
 :- setting(rows_per_page, integer, 100,
 	   'Maximum number of mappings shown.').
@@ -26,20 +27,20 @@
 % http handlers for this applications
 
 :- http_handler(amalgame(data/mapping), http_data_mapping, []).
-:- http_handler(amalgame(data/mappingevaluate), http_data_mapping_evaluate, []).
-:- http_handler(amalgame(private/resourcecontext), http_resource_context, []).
+:- http_handler(amalgame(data/evaluate), http_data_evaluate, []).
+:- http_handler(amalgame(private/correspondence), http_correspondence, []).
 
 %%	mapping_relation(+Id, +URI)
 %
 %	Available mapping relations.
 
-mapping_relation(exact, 'http://www.w3.org/2004/02/skos/core#exactMatch').
-mapping_relation(close, 'http://www.w3.org/2004/02/skos/core#closeMatch').
-mapping_relation(narrower, 'http://www.w3.org/2004/02/skos/core#narrowMatch').
-mapping_relation(broader, 'http://www.w3.org/2004/02/skos/core#broadMatch').
-mapping_relation(related, 'http://www.w3.org/2004/02/skos/core#related').
-mapping_relation(unrelated, 'http://purl.org/vocabularies/amalgame#unrelated').
-mapping_relation(unsure, 'http://purl.org/vocabularies/amalgame#unsure').
+mapping_relation(exact,     'http://www.w3.org/2004/02/skos/core#exactMatch').
+mapping_relation(close,     'http://www.w3.org/2004/02/skos/core#closeMatch').
+mapping_relation(narrower,  'http://www.w3.org/2004/02/skos/core#narrowMatch').
+mapping_relation(broader,   'http://www.w3.org/2004/02/skos/core#broadMatch').
+mapping_relation(related,   'http://www.w3.org/2004/02/skos/core#relatedMatch').
+mapping_relation(unrelated, 'http://purl.org/vocabularies/amalgame/evaluator#unrelated').
+mapping_relation(unsure,    'http://purl.org/vocabularies/amalgame/evaluator#unsure').
 
 %%	http_data_mapping(+Request)
 %
@@ -49,7 +50,8 @@ http_data_mapping(Request) :-
 	setting(rows_per_page, RowsPerPage),
 	http_parameters(Request,
 			[ url(URL,
-			      [description('URL of mapping graph')]),
+			      [description('URL of mapping or evaluation graph')]),
+			  alignment(Strategy, [description('URL of strategy')]),
 			  sort(SortBy,
 			       [default(source),
 				oneof([source,target]),
@@ -61,117 +63,228 @@ http_data_mapping(Request) :-
 				 [default(0), number,
 				  description('first result that is returned')])
 		       ]),
- 	expand_mapping(URL, Mapping0),
+
+	(   rdfs_individual_of(URL, amalgame:'EvaluatedMapping')
+	->  expand_mapping(Strategy, URL, PreviousEvaluation)
+	;   evaluation_graph(Strategy, URL, Prev),
+	    expand_mapping(Strategy, Prev, PreviousEvaluation)
+	),
+	expand_mapping(Strategy, URL, Mapping0),
 	length(Mapping0, Count),
- 	maplist(mapping_label, Mapping0, Mapping1),
+	maplist(mapping_label, Mapping0, Mapping1),
+	select_relation(Mapping1, PreviousEvaluation, Mapping2),
 	sort_key(SortBy, SortKey),
-	sort_by_arg(Mapping1, SortKey, MSorted),
- 	list_offset(MSorted, Offset, MOffset),
+	sort_by_arg(Mapping2, SortKey, MSorted),
+	list_offset(MSorted, Offset, MOffset),
 	list_limit(MOffset, Limit, MLimit, _),
 	mapping_data(MLimit, Mapping),
- 	reply_json(json([url=URL,
- 			 limit=Limit,
+
+	reply_json(json([url=URL,
+			 limit=Limit,
 			 offset=Offset,
- 			 mapping=Mapping,
+			 mapping=Mapping,
 			 total=Count])).
 
 sort_key(source, 2).
 sort_key(target, 4).
 
 mapping_label(align(S, T, Prov), align(S,SL,T,TL,Prov)) :-
-	resource_label_text(S, SL),
-	resource_label_text(T, TL).
+	rdf_display_label(S, SL),
+	rdf_display_label(T, TL).
+
+select_relation([], _, []).
+select_relation([Head|Tail], PreviousEval, [align(S,SL, T, TL, Relation)|Results]) :-
+	Head = align(S,SL,T,TL, Prov),
+	(   PreviousEval = [PHead|PTail],
+	    PHead = align(S, T, PrevP),
+	    flatten(PrevP, PrevPflat)
+	->  option(relation(Rel), PrevPflat),
+	    relation_label(Rel, RLabel),
+	    NewP = PTail,
+	    Relation = json([uri=Rel, label=RLabel])
+	;   option(relation(Rel), Prov)
+	->  relation_label(Rel, RLabel),
+	    NewP =  PreviousEval,
+	    Relation = json([uri=Rel, label=RLabel])
+	;   Relation =  nill,
+	    NewP = PreviousEval
+	),
+	select_relation(Tail ,NewP, Results).
+
 
 mapping_data([], []).
 mapping_data([Align|As], [json(Data)|Os]) :-
-	Align = align(Source, SLabel, Target, TLabel, _Prov),
-	Data0 = [source=json([uri=Source, label=SLabel]),
-		 target=json([uri=Target, label=TLabel])
-		],
- 	(   has_map([Source, Target], _, Properties, test), %@TBD check in right graph
-	    memberchk(relation(R), Properties)
-	->  relation_label(R, RLabel),
-	    Data = [relation=json([uri=R, label=RLabel])|Data0]
-	;   Data = Data0
-	),
- 	mapping_data(As, Os).
+	Align = align(Source, SLabel, Target, TLabel, Relation),
+	Data = [source=json([uri=Source, label=SLabel]),
+		target=json([uri=Target, label=TLabel]),
+		relation = Relation
+	       ],
+	mapping_data(As, Os).
 
 relation_label(R, Label) :-
 	mapping_relation(Label, R), !.
 relation_label(R, R).
 
 
-%%	http_data_mapping_evaluate(+Request)
+%%	http_data_evaluate(+Request)
 %
 %	Accept/reject a mapping.
 
-http_data_mapping_evaluate(Request) :-
+http_data_evaluate(Request) :-
 	logged_on(User0, anonymous),
 	user_property(User0, url(User)),
-	rdf_equal(skos:closeMatch, CloseMatch),
 	http_parameters(Request,
 			[  source(Source,
 				  [description('Source of mapping')]),
 			   target(Target,
 				  [descript('Target of mapping')]),
- 			   relation(Relation,
-				     [default(CloseMatch),
-				      description('Relation between source and target')]),
-			   graph(Graph,
-				 [description('Graph to store user actions')]),
+			   relation(Relation,
+				    [description('Relation between source and target')]),
+			   mapping(Mapping,
+				   [description('URI of mapping being evaluated')]),
+			   alignment(Alignment,
+				     [description('Alignment strategy graph')]),
 			   comment(Comment,
 				   [default(''),
 				    description('Explanation of action')])
 			]),
-	Options = [user(User),
-		   relation(Relation),
+
+	evaluation_graph(Alignment, Mapping, Graph),
+	flush_stats_cache(Graph, Alignment),
+	(   has_correspondence(align(Source, Target, OldProv), Graph)
+	->  remove_correspondence(align(Source, Target, OldProv), Graph)
+	;   OldProv = [] % Fixme, we want to use the prov from Mapping here!
+	),
+	now_xsd(Now),
+	Options = [
 		   graph(Graph),
-		   comment(Comment)
+		   prov([[method(manual_evaluation),
+			 user(User),
+			 date(Now),
+			 comment(Comment),
+			 relation(Relation)]|OldProv])
 		  ],
+	debug(ag_expand, 'assert cell options: ~w', Options),
+	mapping_relation(RLabel, Relation),
 	assert_cell(Source, Target, Options),
- 	reply_json(json([source=Source,
-			 target=Target,
- 			 relation=Relation])).
+
+	rdf_display_label(Source, SLabel),
+	rdf_display_label(Target, TLabel),
+	reply_json(json([source=json([uri=Source, label=SLabel]),
+			 target=json([uri=Target, label=TLabel]),
+			 relation=json([uri=Relation, label=RLabel])
+			])).
 
 
-%%	http_resource_context(+Request)
+%%	http_correspondence(+Request)
 %
 %	Returns	HTML with the Context in which the resource occurs
 
-http_resource_context(Request) :-
+http_correspondence(Request) :-
 	http_parameters(Request,
-			[ uri(URI,
-				 [description('URI from which we request the context')])
- 			]),
-	resource_label_text(URI, Label),
-	resource_alternative_labels(URI, Label, Alt),
-	resource_definition(URI, Def),
-	resource_scope(URI, Scope),
-	resource_tree(URI, Tree),
-	related_resources(URI, Related),
+			[ source(Source,
+				 [description('URI of the source concept')]),
+			  target(Target,
+				 [description('URI of the target concept')]),
+			  mapping(Mapping,
+				  [description('URI of the mapping')]),
+			  alignment(Strategy, [description('URL of strategy')]),
+			  allsource(AllSource,
+				 [boolean, default(false),
+				  description('Include all sources')]),
+			  alltarget(AllTarget,
+				 [boolean, default(false),
+				  description('Include all target')])
+			]),
+	findall(R-L, mapping_relation(L, R), Relations),
+	expand_mapping(Strategy, Mapping, Ms),
+	(   AllSource
+	->  A = align(Source,_,_)
+	;   AllTarget
+	->  A = align(_,Target,_)
+	;   A = align(Source,Target,_)
+	),
+	findall(A, member(A, Ms), Cs),
 	html_current_option(content_type(Type)),
-	phrase(html_resource_context(URI, Label, Alt, Def, Scope, Tree, Related), HTML),
+	phrase(html_correspondences(Cs, Relations), HTML),
 	format('Content-type: ~w~n~n', [Type]),
 	print_html(HTML).
 
-resource_definition(R, Def) :-
-	(   rdf_has(R, skos:definition, Lit)
-	->  literal_text(Lit, Def)
-	;   Def = []
-	).
-resource_scope(R, Scope) :-
-	(   rdf_has(R, skos:scopeNote, Lit)
-	->  literal_text(Lit, Scope)
-	;   Scope = []
-	).
-resource_alternative_labels(R, Label, Alt) :-
-	findall(L, resource_label_text(R, L), Ls),
-	delete(Ls, Label, Alt1),
- 	sort(Alt1, Alt).
+html_correspondences([], _) --> !.
+html_correspondences([align(Source,Target,[Prov|_])|Cs], Relations) -->
+	html_correspondence(Source, Target, Prov, Relations),
+	html_correspondences(Cs, Relations).
 
-resource_label_text(R, L) :-
-	rdf_label(R, Lit),
-	literal_text(Lit, L).
+html_correspondence(Source, Target, Prov, Relations) -->
+	{ option(relation(Relation), Prov, '')
+	},
+
+	html([div(class('yui3-g'),
+		  [ div(class('yui3-u-2-5'),
+			\html_resource_context(Source, Prov)),
+		    div(class('yui3-u-1-5'),
+			div(class(relations),
+			    [ input([type(hidden), name(source), value(Source)]),
+			      input([type(hidden), name(target), value(Target)]),
+			      ul(\html_relations(Relations, Relation)),
+			      div(['because: ',
+				   textarea([name(comment), rows(2)], [])
+				  ])
+			    ])),
+		    div(class('yui3-u-2-5'),
+			\html_resource_context(Target, Prov))
+		  ])
+	     ]).
+
+html_resource_context('',_) --> !.
+html_resource_context(URI, Prov) -->
+	{ rdf_display_label(URI, Label),
+	  resource_alternative_labels(URI, Label, Prov, Alt),
+	  resource_tree(URI, Tree),
+	  related_resources(URI, Related)
+	},
+	html(div(class('resource-info'),
+		 [div(class(label), Label),
+		  div(class(alt), \html_alt_labels(Alt)),
+		  div(class(uri),
+		      \rdf_link(URI, [resource_format(plain)])),
+		  \html_definition(URI),
+		  \html_scope(URI),
+		  \html_resource_tree(Tree),
+		  \html_related_list(Related)
+		 ])).
+
+html_relations([], _) --> !.
+html_relations([Rel-Label|Rs], Active) -->
+	{ (   Rel == Active
+	  ->  Checked = checked
+	  ;   Checked = ''
+	  )
+	},
+	html(li(class(relation),
+		 [input([type(radio), name(relation), value(Rel), Checked]),
+		  ' ',
+		  label(Label)
+		 ])),
+	html_relations(Rs, Active).
+
+
+resource_alternative_labels(R, Label, Prov, Alt) :-
+	findall(L, (rdf_label(R, L1), literal_text(L1,L)), Ls),
+	delete(Ls, Label, Alt0),
+	sort(Alt0, Alt1),
+	(   matching_label(R, Prov, MatchingLabel), selectchk(MatchingLabel, Alt1, Rest)
+	->  Alt = [match(MatchingLabel)|Rest]
+	;   Alt = Ls
+	).
+
+
+
+matching_label(S, Prov, MatchingLabel) :-
+	option(graph(Graph), Prov),
+	member(rdf(S,_P,O), Graph),
+	literal_text(O, MatchingLabel).
+
 
 %%	related_resources(+Resource, -Related)
 %
@@ -221,45 +334,51 @@ has_child(R, Rel, true) :-
 has_child(_, _, false).
 
 
-%%	html_resource_context(+Resource, +Label, +AlternativeLabels,
-%%	+Definition, +Scope, +Tree, +Related).
-%
-%	Emit html with info about a resource.
-
-html_resource_context(R, Label, Alt, Def, Scope, Tree, Related) -->
-	html(div(class('resource-info-content'),
-		 [div(class(label), Label),
-		  div(class(alt), \html_alt_labels(Alt)),
-		  div(class(uri),
-		      \rdf_link(R, [resource_format(plain)])),
-		  \html_desc(Def, definition),
-		  \html_desc(Scope, scope),
-		  \html_resource_tree(Tree),
-		  \html_related_list(Related)
-		 ])).
 
 html_alt_labels([]) --> !.
 html_alt_labels(Alt) -->
         html_label_list(Alt).
 
 html_label_list([L]) -->
-	html(L).
+	html_label(L).
 html_label_list([L|Ls]) -->
-	html([L, ', ']),
+	html_label(L),
+	html([', ']),
 	html_label_list(Ls).
 
-html_desc([], _) --> !.
-html_desc(Txt, Name) -->
-	html([div(class(hd), Name),
-	      div(class('bd '+Name), Txt)
-	     ]).
+html_label(match(L)) -->
+	html(span([class(match), style('font-weight: bold')], L)).
+
+html_label(L) -->
+	html(L).
+
+html_definition(URI) -->
+	{ rdf_has(URI, skos:definition, Lit),
+	  literal_text(Lit, Txt)
+	},
+	!,
+	html_item(definition, Txt).
+html_definition(_) --> !.
+
+html_scope(URI) -->
+	{ rdf_has(URI, skos:scopeNote, Lit),
+	  literal_text(Lit, Txt)
+	},
+	!,
+	html_item(scope, Txt).
+html_scope(_) --> !.
+
 
 html_related_list([]) --> !.
 html_related_list(Rs) -->
-	html([div(class(hd), related),
-	      div(class(bd),
-		  ul(\html_resource_list(Rs, 3)))
-	     ]).
+	html_item(related,
+		  \html_resource_list(Rs, 3)).
+
+html_item(Type, Body) -->
+	html(div(class(Type),
+		 [ div(class(hd), Type),
+		   div(class(bd), Body)
+		 ])).
 
 
 %%	html_resource_list(+Resources, +Max)

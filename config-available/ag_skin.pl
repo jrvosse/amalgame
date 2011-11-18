@@ -28,12 +28,27 @@
 		   requires([ css('amalgame.css')
 			    ])
 		 ]).
+/*
 cliopatria:resource_link(Alignment, Link) :-
 	rdfs_individual_of(Alignment, amalgame:'Alignment'),
 	http_link_to_id(http_list_alignment, [graph(Alignment)], Link).
 cliopatria:resource_link(Voc, Link) :-
 	rdfs_individual_of(Voc, skos:'ConceptScheme'),
 	http_link_to_id(http_list_skos_voc, [voc(Voc)], Link).
+*/
+cliopatria:display_link(TimeInstant, _Options) -->
+	{
+	 rdfs_individual_of(TimeInstant, time:'Instant'),
+	 rdf(TimeInstant, time:inXSDDateTime, literal(type(_, L)))
+	},
+	format_xsd_timestamp(L).
+
+cliopatria:display_link(literal(type(XSD,L)), _Options) -->
+	{
+	 rdf_equal(XSD, xsd:date)
+	},
+	format_xsd_timestamp(L).
+
 cliopatria:display_link(Cell, _Options) -->
 	{
 	 rdfs_individual_of(Cell, align:'Cell'),
@@ -85,3 +100,23 @@ user:body(amalgame(search), Body) -->
 
 user:body(user(Style), Body) -->
         user:body(cliopatria(Style), Body).
+
+
+format_xsd_timestamp(L) -->
+	{
+	 sub_atom(L,St,_Wt,_Et,'T'),
+	 sub_atom(L,_Sp,_Wp,Ep,'+'), ST is St + 1, ET is Ep +1,
+	 sub_atom(L,0,St,_,DatePart),
+	 sub_atom(L,ST,_,ET,TimePart)
+	},
+	html(span(class('time:instant'), [TimePart, ' ',DatePart])).
+
+
+
+
+
+
+
+
+
+

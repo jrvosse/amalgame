@@ -3,7 +3,11 @@
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
+:- use_module(library(semweb/rdf_label)).
 :- use_module(library(amalgame/vocabulary)).
+:- use_module(library(skos/vocabularies)).
+
+:- use_module(string_match_util).
 
 :- public amalgame_module/1.
 :- public filter/3.
@@ -13,13 +17,16 @@
 amalgame_module(amalgame:'ExactLabelMatcher').
 amalgame_module(amalgame:'ExactLabelFilter').
 
-parameter(sourcelabel, uri, P,
-	  'Property to get label of the source by') :-
-	rdf_equal(rdfs:label, P).
-parameter(targetlabel, uri, P,
-	  'Property to get the label of the target by') :-
-	rdf_equal(rdfs:label, P).
-parameter(language, atom, '', 'Language of source label').
+parameter(sourcelabel, oneof(LabelProps), Default,
+	  '(Super)Property to get label of the source by') :-
+	rdf_equal(Default, rdfs:label),
+	label_list(LabelProps).
+parameter(targetlabel, oneof(LabelProps), Default,
+	  '(Super)Property to get the label of the target by') :-
+	rdf_equal(Default, rdfs:label),
+	label_list(LabelProps).
+parameter(language, oneof(['any'|L]), 'any', 'Language of source label') :-
+	voc_languages(all, L).
 parameter(matchacross_lang, boolean, true,
 	  'Allow labels from different language to be matched').
 parameter(matchacross_type, boolean, true,
@@ -59,8 +66,6 @@ align(Source, Target, Match, Options) :-
 	match(align(S,T,[]), Match, Options),
 	vocab_member(T, Target).
 
-
-
 match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options) :-
 	rdf_equal(rdfs:label, RdfsLabel),
 	option(sourcelabel(MatchProp1), Options, RdfsLabel),
@@ -68,9 +73,9 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 	option(matchacross_lang(MatchAcross), Options, true),
 	option(matchacross_type(IgnoreType),  Options, true),
 	option(case_sensitive(CaseSensitive), Options, false),
-	option(language(Lang), Options, ''),
+	option(language(Lang), Options, 'any'),
 
-	(   Lang == ''
+	(   Lang == 'any'
 	->  var(SourceLang)
 	;   SourceLang = Lang
 	),
@@ -97,32 +102,6 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 
 	(   IgnoreType
 	->  true
-	;   match_type(Source, Target)
+	;   matching_types(Source, Target)
 	).
-
-
-match_type(S1, _) :- untyped(S1), true, !.
-match_type(_ ,S2) :- untyped(S2), true, !.
-match_type(S1, S2) :-
-	findall(Type,
-		(rdf(S1, rdf:type, Type),
-		 \+ rdf_equal(Type,  skos:'Concept')
-		), Types1),
-	findall(Type,
-		(rdf(S2, rdf:type, Type),
-		 \+ rdf_equal(Type,  skos:'Concept')
-		), Types2),
-	member(T1, Types1), member(T2, Types2),
-	(   T1 == T2
-	->  true
-	;   rdf_has(T1, skos:exactMatch, T2)
-	->  true
-	;   debug(ex_expand, 'Non matching types ~p/~p', [T1,T2]),
-	    false
-	),
-	!.
-
-untyped(S) :-
-	rdf_equal(SkosConcept, skos:'Concept'),
-	findall(Type, rdf(S, rdf:type, Type),[SkosConcept]).
 

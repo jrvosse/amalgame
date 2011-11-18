@@ -17,6 +17,8 @@
 	top: 35px;
 	width: 350px;
 	background-color: white;
+	height: 100%;
+	overflow-y: scroll;
 }
 /* controls */
 #controls .module-list {
@@ -52,10 +54,15 @@
 	border-top: 1px solid #CCC;
 	padding: 10px 0;
 }
-.control table {
+#controls table {
 	width: 100%;
 }
-.control-buttons {
+#controls th {
+	vertical-align: top;
+	white-space: nowrap;
+	padding-right: 10px;
+}
+#controls .control-buttons {
 	text-align: right;
 }
 .mappingselect {
@@ -64,6 +71,9 @@
     margin-bottom: 5px;
 	max-height: 150px;
     overflow: auto;
+}
+#controls textarea {
+	width: 97%;
 }
 
 /* control set */
@@ -107,14 +117,17 @@
 #info .hidden {
 	display: none;
 }
-#info td {
-	padding: 0 10px 5px 0;
-}
-#info th {
-	font-weight: bold;
-}
-#properties {
+#infocontent {
 	border-top: 1px solid #CCC;
+	border-bottom: 1px solid #CCC;
+}
+#info .parameters {
+	border-top: 1px solid #CCC;
+	margin-top: 5px;
+	padding-top: 5px;
+}
+#details td {
+	padding-bottom: 4px;
 }
 
 /* select */
@@ -139,6 +152,20 @@
 }
 .yui3-opmviz .selected ellipse,
 .yui3-opmviz .selected polygon {
-	fill: #DBEAFF;
-	stroke-width: 2px;
+	/*fill: #DBEAFF;*/
+	stroke-width: 3px;
+}
+
+img.explain {
+	background-color: white;
+	border: 1pt black solid;
+	    }
+
+#exec_hint
+{
+ color: #0000EE; /* link color */
+}
+#exec_hint:hover
+{
+ cursor: pointer;
 }

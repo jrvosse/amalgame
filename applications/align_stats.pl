@@ -52,7 +52,7 @@
 %	alignments in HTML.
 
 http_merge_alignments(Request) :-
-      	http_parameters(Request, [selected(Selected,[list(atom)])]),
+	http_parameters(Request, [selected(Selected,[list(atom)])]),
 	create_merge_graph(Selected, MergeGraph),
 	reply_html_page(cliopatria(default),
 			title('Merge results'),
@@ -66,7 +66,7 @@ http_merge_alignments(Request) :-
 %	current graph.
 
 http_stratify_alignment(Request) :-
-      	http_parameters(Request, [graph(MergeGraph,[])]),
+	http_parameters(Request, [graph(MergeGraph,[])]),
 	stratify_merge(MergeGraph),
 	reply_html_page(cliopatria(default),
 			[title('Alignments')
@@ -143,7 +143,11 @@ http_compute_overlaps(Request) :-
 
 http_materialize_graph(Request) :-
 	http_parameters(Request, [graph(Graph, []), target(Target, [])]),
-	expand_mapping(Graph, Mappings),
+	% hack to get strategy
+	rdf_has(Graph, opmv:wasGeneratedBy, Process, RealProp),
+	rdf(Graph, RealProp, Process, Strategy),
+	\+ rdfs_individual_of(Strategy, amalgame:'AlignmentTrace'),
+	expand_mapping(Strategy, Graph, Mappings),
 	materialize_mapping_graph(Mappings, [graph(Target)]),
 	align_clear_stats(graph(Target)),
 	align_ensure_stats(all(Target)),
@@ -162,8 +166,8 @@ http_include_opm_graph(Request) :-
 
 
 http_compute_stats(Request) :-
-	http_link_to_id(http_list_alignments, [], Link),
 	http_parameters(Request, [graph(all, [])]),
+	http_link_to_id(http_list_alignments, [], Link),
 	Title = 'Amalgame: computing key alignment statistics',
 	call_showing_messages(compute_stats,
 			      [head(title(Title)),
@@ -367,10 +371,8 @@ sample(Request, Method, Graph, Name, Size) :-
 	opm_was_generated_by(Process, Name, Name, [was_derived_from([Graph])]),
 
 	align_get_computed_props(Graph, SourceProps),
-	findall(member(M),
-		member(member(M), SourceProps),
-		Members),
-	assert_alignment_props(Name, Members, Name),
+	forall(member(member(M), SourceProps),
+	       rdf_assert(Name, amalgame:member, M, Name)),
 
 	findall(Map, has_map(Map, _, Graph), Maps),
 	length(Maps, Length),
@@ -396,12 +398,12 @@ assert_from_list(Method, Name, Graph, Nr, [Rand|RandSet], [[E1,E2]|Maps]) :-
 	    ;	Method = random_alt_all
 	    ->	findall(E1-E2a-[source(G)|MapOptions],
 			(   has_map([E1,E2a], _, MapOptions, G:_),
-			    rdfs_individual_of(G, amalgame:'LoadedAlignment')
+			    rdfs_individual_of(G, amalgame:'LoadedMapping')
 			),
 			AltSourceMaps),
 		findall(E1a-E2-[source(G)|MapOptions],
 			(   has_map([E1a,E2], _, MapOptions, G:_),
-			    rdfs_individual_of(G, amalgame:'LoadedAlignment')
+			    rdfs_individual_of(G, amalgame:'LoadedMapping')
 			),
 			AltTargetMaps),
 		append(AltSourceMaps, AltTargetMaps, AltMapsDoubles),
@@ -656,29 +658,23 @@ show_alignments([Graph|Tail], Number) -->
 	 http_link_to_id(http_compute_stats, [graph(Graph), stat(all)], MissingLink),
 	 MissingValue = a([href(MissingLink)],'?'),
 	 (   is_alignment_graph(Graph, Format) -> true; Format=empty),
-	 align_get_computed_props(Graph, Props),
-	 (   memberchk(count(literal(type(_,Count))), Props)
+	 (   align_stat(count(Count), Graph)
 	 ->  NewNumber is Number + Count
 	 ;   NewNumber = Number, Count = MissingValue
 	 ),
-	 (   memberchk(alignment(A), Props)
-	 ->  http_link_to_id(list_resource, [r(A)], AlignLink),
-	     FormatLink = a([href(AlignLink)], Format)
-	 ;   FormatLink = Format
-	 ),
-	 (   memberchk(source(SourceGraph), Props)
+	 (   align_stat(source(SourceGraph), Graph)
 	 ->  Source = \show_voc(SourceGraph)
 	 ;   Source = MissingValue
 	 ),
-	 (   memberchk(target(TargetGraph), Props)
+	 (   align_stat(target(TargetGraph), Graph)
 	 ->  Target = \show_voc(TargetGraph)
 	 ;   Target = MissingValue
 	 ),
-	 (   memberchk(mappedSourceConcepts(MSC), Props)
+	 (   align_stat(smapped(MSC), Graph)
 	 ->  SourcesMapped = literal(type(_,MSC))
 	 ;   SourcesMapped = MissingValue
 	 ),
-	 (   memberchk(mappedTargetConcepts(MTC), Props)
+	 (   align_stat(tmapped(MTC), Graph)
 	 ->  TargetsMapped = literal(type(_,MTC))
 	 ;   TargetsMapped = MissingValue
 	 )
@@ -691,7 +687,7 @@ show_alignments([Graph|Tail], Number) -->
 		 td([class(src_mapped),style('text-align: right')],SourcesMapped),
 		 td([class(target)], Target),
 		 td([class(target_mapped), style('text-align: right')],TargetsMapped),
-		 td([class(format)],FormatLink),
+		 td([class(format)],Format),
 		 td([class(count),style('text-align: right')],Count),
 		 td([class(graph)],div(\show_graph(Graph)))
 		])),
@@ -738,7 +734,7 @@ li_export_graph(Graph) -->
 li_export_graph(Graph) -->
 	{
 	 http_link_to_id(http_skos_export, [], ExportLink),
-	 % rdf_equal(skos:closeMatch, DefaultRelation),
+	 rdf_equal(skos:closeMatch, DefaultRelation),
 	 Override=no_override,
 	 supported_map_relations(MapRelations),
 	 Base=export,
@@ -760,7 +756,7 @@ li_export_graph(Graph) -->
 			      value(Graph)],[]),
 		       ' to export to a single triple format. Override provided map relation by: ',
 		       select([name(relation)],
-			      [\show_mapping_relations([Override|MapRelations], Override)])
+			      [\show_mapping_relations([Override|MapRelations], DefaultRelation)])
 		      ]
 		     ))).
 
@@ -866,7 +862,7 @@ li_select_from_graph(Graph) -->
 		     [input([type(hidden), name(graph), value(Graph)],[]),
 		      input([type(hidden), name(condition), value(confidence)],[]),
 		      input([type(submit), class(submit), value('Select')],[]),
-		      	       ' to graph ',
+			       ' to graph ',
 		       input([type(text), class(target),
 			      name(target), value(Target),
 			      size(25)],[]),
@@ -904,7 +900,7 @@ li_one_to_one(Graph) -->
 		     [input([type(hidden), name(graph), value(Graph)],[]),
 		      input([type(hidden), name(condition), value(one_to_one)],[]),
 		      input([type(submit), class(submit), value('Select')],[]),
-		      	       ' to graph ',
+			       ' to graph ',
 		       input([type(text), class(target),
 			      name(target), value(Target),
 			      size(25)],[]),
@@ -927,7 +923,7 @@ li_select_unique_labels(Graph) -->
 		     [input([type(hidden), name(graph), value(Graph)],[]),
 		      input([type(hidden), name(condition), value(unique_label)],[]),
 		      input([type(submit), class(submit), value('Select')],[]),
-		      	       ' to graph ',
+			       ' to graph ',
 		       input([type(text), class(target),
 			      name(target), value(Target),
 			      size(25)],[]),

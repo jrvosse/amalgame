@@ -11,8 +11,10 @@
 :- use_module(library(http/js_write)).
 :- use_module(library(yui3_beta)).
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(semweb/rdf_file_type)).
+:- use_module(library(skos/vocabularies)).
 :- use_module(user(user_db)).
 :- use_module(components(label)).
 :- use_module(eq_util).
@@ -26,29 +28,40 @@
 %%	http_eq(+Request)
 %
 %	Emit html page to start a new or load an existing alignment
-%	project.
+%	strategy.
 
 http_eq(_Request) :-
-	authorized(write(default, _)),
+	% authorized(write(default, _)),
 	html_page.
 
+find_schemes(Schemes) :-
+	findall(C, rdfs_individual_of(C, skos:'ConceptScheme'), Cs),
+	findall(G, is_edm_collection(G), Gs),
+	append(Cs, Gs, All),
+	sort(All, Schemes).
+
 html_page :-
-	findall(C, rdf(C, rdf:type, skos:'ConceptScheme'), Cs),
- 	findall(A-S, amalgame_alignment(A, S), Alignments),
-	sort(Cs, ConceptSchemes),
-   	reply_html_page(equalizer(start),
-			[ title(['Amalgame - projects'])
- 			],
+	findall(A-S, amalgame_alignment(A, S), Alignments),
+	find_schemes(ConceptSchemes),
+	reply_html_page(cliopatria(main),
+			[ title(['Amalgame - strategies'])
+			],
 			[ \html_requires(css('selecter.css')),
- 			  \html_requires('http://yui.yahooapis.com/combo?3.3.0/build/cssreset/reset-min.css&3.3.0/build/cssgrids/grids-min.css&3.3.0/build/cssfonts/fonts-min.css&gallery-2011.02.23-19-01/build/gallery-node-accordion/assets/skins/sam/gallery-node-accordion.css'),
- 			  div(class('yui-skin-sam yui3-skin-sam'),
+			  \yui3_combo(yui3,
+				      ['cssreset/reset-min.css',
+				       'cssgrids/grids-min.css',
+				       'cssfonts/fonts-min.css'
+				      ]),
+			  div(class('yui-skin-sam yui3-skin-sam'),
 			      [ div(id(header), []),
 				div(id(main),
-				    [ h1('AMALGAME'),
+				    [
 				      div([id(content), class('yui3-accordion')],
-					  [ \html_new(ConceptSchemes),
- 					    \html_open(Alignments),
-					    \html_import
+					  [
+					    \html_open(Alignments),
+					    \html_new(ConceptSchemes),
+					    \html_import,
+					    \html_publish(Alignments)
 					  ])
 				    ]),
 				script(type('text/javascript'),
@@ -64,11 +77,26 @@ html_page :-
 %
 
 html_new(Schemes) -->
-	html_acc_item(new, 'new alignment project',
+	{
+	 has_write_permission, !
+	},
+	html_acc_item(new, 'new alignment strategy',
 		      [ form(action(location_by_id(http_eq_new)),
 			     [ \html_vocab_table(Schemes),
 			       \html_submit('Start')
 			     ])
+		      ]).
+
+html_new(_) -->
+	{
+	 http_location_by_id(http_eq, This),
+	 http_link_to_id(cliopatria_openid:login_page,
+			 ['openid.return_to'(This)], Login)
+	},
+	html_acc_item(new,
+		      'please login to access other functions',
+		      [
+		       div(a([class(login), href(Login)], ['login']))
 		      ]).
 
 html_vocab_table(Vs) -->
@@ -78,33 +106,85 @@ html_vocab_table(Vs) -->
 
 html_vocab_head -->
 	html([th([]),
- 	      th(name),
-	      th('# concepts (estimate)')
- 	     ]).
+	      th(name),
+	      th('# concepts'),
+	      th('# prefLabels'),
+	      th('# altLabels'),
+	      th('# mapped'),
+	      th('(%)')
+	     ]).
 
 html_vocab_rows([]) --> !.
 html_vocab_rows([Scheme|Vs]) -->
-	{ rdf_estimate_complexity(_, skos:inScheme, Scheme, Count)
+% rdf_estimate_complexity(_, skos:inScheme, Scheme, Count)
+	{
+	 (   voc_ensure_stats(all(Scheme))
+	 ->  rdf(Scheme, amalgame:numberOfConcepts,   literal(type(_,ConceptCount))),
+	     rdf(Scheme, amalgame:numberOfPrefLabels, literal(type(_,PrefCount))),
+	     rdf(Scheme, amalgame:numberOfAltLabels, literal(type(_, AltCount))),
+	     rdf(Scheme, amalgame:numberOfMappedConcepts, literal(type(_, MappedCount))),
+	     voc_languages(Scheme, skos:prefLabel, PrefLangs),
+	     voc_languages(Scheme, skos:altLabel, AltLangs)
+	 ;   ConceptCount = 0,
+	     PrefCount = 0, AltCount = 0,
+	     MappedCount = 0,
+	     PrefLangs=[], AltLangs=[]
+	 ),
+	 (   ConceptCount > 0
+	 ->  Perc is (100*MappedCount)/ConceptCount,
+	     format(atom(MPercent), '(~2f%)', [Perc])
+	 ;   MPercent = -
+	 )
 	},
- 	html(tr([td(input([type(checkbox), autocomplete(off), class(option),
+	html(tr([td(input([type(checkbox), autocomplete(off), class(option),
 			   name(scheme), value(Scheme)])),
- 		 td(\html_graph_name(Scheme)),
-		 td(class(count), Count)
-  		])),
+		 td(\html_scheme_name(Scheme)),
+		 td(class(count), ConceptCount),
+		 td([span(class(prefLabel), PrefCount),
+		     span(class(preflangs), [' (', \showlist(PrefLangs), ')'])]),
+		 td([span(class(altLabel), AltCount),
+		      span(class(altlangs), [' (', \showlist(AltLangs),  ')'])]),
+		 td(class(mapped), MappedCount),
+		 td(class(pmapped), MPercent)
+		])),
 	html_vocab_rows(Vs).
 
 
 %%	html_open(+Alignments)
 %
 %
-
+html_open([]) -->
+	html_acc_item(open,
+		      div([style('font-style: italic; color: gray')],
+			  'no strategies have been created yet'),
+		      []),
+	!.
 html_open(Alignments) -->
-	html_acc_item(open, 'open alignment',
+	html_acc_item(open, 'open pre-loaded alignment strategy',
 		      [ form(action(location_by_id(http_eq_build)),
 			     [ \html_alignment_table(Alignments),
- 			       \html_submit('Start')
+			       \html_submit('Start')
 			     ])
 		      ]).
+html_publish([]) -->
+	html_acc_item(open,
+		      div([style('font-style: italic; color: gray')],
+			  'no mappings have been created yet'),
+		      []),
+	!.
+html_publish(Alignments) -->
+	{
+	 has_write_permission,
+	 !
+	},
+	html_acc_item(publish, 'publish	alignment results',
+		      [ form(action(location_by_id(http_eq_publish_form)),
+			     [ \html_alignment_table(Alignments),
+			       \html_submit('Publish')
+			     ])
+		      ]).
+html_publish(_) -->  !.
+
 html_alignment_table(Alignments) -->
 	html(table([thead(tr(\html_alignment_head)),
 		    tbody(\html_alignment_rows(Alignments))
@@ -113,15 +193,23 @@ html_alignment_table(Alignments) -->
 html_alignment_head -->
 	html([th([]),
 	      th(name),
-	      th(includes)
-  	     ]).
+	      th(includes),
+	      th('created by')
+	     ]).
 
 html_alignment_rows([]) --> !.
 html_alignment_rows([URI-Schemes|Gs]) -->
- 	html(tr([td(input([type(radio), autocomplete(off), class(option), name(alignment), value(URI)])),
-		 td(\html_graph_name(URI)),
-		 td(\html_scheme_labels(Schemes))
- 		])),
+	{
+	 (   rdf(URI, dcterms:creator, Author, URI)
+	 ->  true
+	 ;   Author = anonymous
+	 )
+	},
+	html(tr([td(input([type(radio), autocomplete(off), class(option), name(alignment), value(URI)])),
+		 td(\html_strategy_name(URI)),
+		 td(\html_scheme_labels(Schemes)),
+		 td(\turtle_label(Author))
+		])),
 	html_alignment_rows(Gs).
 
 html_scheme_labels([]) --> !.
@@ -129,19 +217,30 @@ html_scheme_labels([S|Ss]) -->
 	html(div(\turtle_label(S))),
 	html_scheme_labels(Ss).
 
-html_graph_name(Graph) -->
-	{ graph_label(Graph, Label)
+html_strategy_name(Graph) -->
+	{ graph_label(Graph, Label),
+	  http_link_to_id(http_eq_build, [alignment(Graph)], Link)
 	},
-	html(Label).
+	html(a([href(Link)],Label)).
+
+html_scheme_name(Graph) -->
+	{ graph_label(Graph, Label),
+	  http_link_to_id(http_concept_finder, [scheme(Graph)], Link)
+	},
+	html(a([href(Link)],Label)).
 
 graph_label(Graph, Label) :-
-	rdf_label(Graph, Lit),
+	rdf_display_label(Graph, Lit),
 	literal_text(Lit, Label).
 graph_label(Graph, Graph).
 
 
 html_import -->
-	html_acc_item(import, 'import alignment',
+	{
+	 has_write_permission,
+	 !
+	},
+	html_acc_item(import, 'upload strategy or clone execution trace',
 		      [ form(action(location_by_id(http_eq_upload_url)),
 			     [ 'URL: ',
 			       input([type(text), name(url), value('http://'),
@@ -161,6 +260,7 @@ html_import -->
 			     ])
 		      ]).
 
+html_import --> !.
 
 %%	html_submit(+Label)
 %
@@ -201,12 +301,12 @@ html_acc_item(Id, Label, Body) -->
 yui_script -->
 	{ findall(M-C, js_module(M,C), Modules),
 	  pairs_keys(Modules, Includes)
- 	},
- 	yui3([json([modules(json(Modules))])
+	},
+	yui3([json([modules(json(Modules))])
 	     ],
 	     Includes,
 	     [ \yui3_new(eq, 'Y.Selecter', [])
- 	     ]).
+	     ]).
 
 
 %%	js_module(+Key, +Module_Conf)
@@ -216,7 +316,7 @@ yui_script -->
 js_module(gallery, 'gallery-2011.02.23-19-01').
 js_module(selecter, json([fullpath(Path),
 				    requires([node,base,event,anim,
- 					      'gallery-node-accordion'])
+					      'gallery-node-accordion'])
 			  ])) :-
 	http_absolute_location(js('selecter.js'), Path, []).
 
@@ -245,8 +345,13 @@ http_eq_new(Request) :-
 
 new_alignment(Schemes, Alignment) :-
 	authorized(write(default, _)),
-	rdf_bnode(Alignment),
-	rdf_transaction((rdf_assert(Alignment, rdf:type, amalgame:'Alignment', Alignment),
+	setting(eq_publisher:default_namespace, NS),
+	repeat, gensym(strategy, Local),
+	atomic_list_concat([NS,Local], Alignment),
+	\+ rdf_graph(Alignment),
+	!,
+	rdf_transaction((rdf_assert(Alignment, rdf:type, amalgame:'AlignmentStrategy', Alignment),
+			 rdf_assert(Alignment, amalgame:publish_ns, NS, Alignment),
 			 assert_user_provenance(Alignment, Alignment),
 			 add_schemes(Schemes, Alignment))).
 
@@ -267,25 +372,38 @@ http_eq_upload_data(Request) :-
 			[ data(Data,
 			       [ description('RDF data to be loaded')
 			       ])
- 			]),
-	rdf_bnode(Graph),
- 	atom_to_memory_file(Data, MemFile),
+			]),
+	rdf_bnode(TmpGraph),
+	atom_to_memory_file(Data, MemFile),
 	setup_call_cleanup(open_memory_file(MemFile, read, Stream),
-			   rdf_guess_format_and_load(Stream, [graph(Graph)]),
+			   rdf_guess_format_and_load(Stream, [graph(TmpGraph)]),
 			   ( close(Stream),
 			     free_memory_file(MemFile)
 			   )),
-	build_redirect(Request, Graph).
+	rdf(Strategy, rdf:type, amalgame:'AlignmentStrategy', TmpGraph),!,
+	rdf_unload(Strategy), % Delete old strategies under the same name
+
+	% Copy entire strategy graph to keep original named graph:
+	findall(rdf(S,P,O), rdf(S,P,O,TmpGraph), Triples),
+	forall(member(rdf(S,P,O), Triples), rdf_assert(S,P,O,Strategy)),
+	rdf_unload(TmpGraph),
+	build_redirect(Request, Strategy).
 
 http_eq_upload_url(Request) :-
 	authorized(write(default, _)),
 	http_parameters(Request,
 			[ url(URL, [])
- 			]),
-	rdf_bnode(Graph),
+			]),
+	gensym(strategy, Local),
+	setting(default_namespace, NS),
+	atomic_list_concat(NS, Local, Graph),
 	rdf_load(URL, [graph(Graph)]),
 	build_redirect(Request, Graph).
 
 build_redirect(Request, Graph) :-
 	http_link_to_id(http_eq_build, [alignment(Graph)], Redirect),
 	http_redirect(moved, Redirect, Request).
+
+showlist([]) --> !.
+showlist([H]) -->  html(H),!.
+showlist([H1,H2|Tail]) -->  html([H1,', ']), showlist([H2|Tail]).
