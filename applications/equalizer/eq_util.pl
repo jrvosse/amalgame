@@ -253,8 +253,7 @@ is_edm_collection_(EDM, Graph, Class) :-
 	atom_concat(Graph, '_Agent', EDM).
 
 
-%%	mapping_counts(+MappingURI, +Strategy, ?MappingN, ?SourceN,
-%	?TargetN) is det.
+%%	mapping_counts(+MappingURI,+Strat,?MappingN,?SourceN,?TargetN) is det.
 %
 %	Counts for the mappings in MappingURI.
 %
