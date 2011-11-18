@@ -254,7 +254,7 @@ is_edm_collection_(EDM, Graph, Class) :-
 
 
 %%	mapping_counts(+MappingURI, +Strategy, ?MappingN, ?SourceN,
-%	?TargetN)
+%	?TargetN) is det.
 %
 %	Counts for the mappings in MappingURI.
 %
