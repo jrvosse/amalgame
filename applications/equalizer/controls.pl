@@ -23,7 +23,8 @@
 
 html_controls  -->
 	{ amalgame_modules_of_type(amalgame:'Selecter', Selecters),
-	  amalgame_modules_of_type(amalgame:'Matcher', Matchers)
+	  amalgame_modules_of_type(amalgame:'Matcher', Matchers),
+	  amalgame_modules_of_type(amalgame:'Analyzers', Analyzers)
 	},
 	html([\html_control_set(true,
 				'Current node',
@@ -35,8 +36,8 @@ html_controls  -->
 				'Matchers',
 				\html_match_control(Matchers)),
 	      \html_control_set(false,
-				'Overlap',
-				\html_overlap_control)
+				'Analyzers',
+				\html_analyzers_control(Analyzers))
 	     ]).
 
 html_control_set(Active, Header, Body) -->
@@ -54,11 +55,11 @@ html_control_set(Active, Header, Body) -->
 active_class(true, active).
 active_class(false, '').
 
-html_overlap_control -->
-	html(div(id(overlap), [
-			      ]
-		)
-	    ).
+html_analyzers_control(Modules) -->
+	html(div(id(analyzers),
+		 [ div(class(c),
+		   \html_modules(Modules))
+		 ])).
 
 html_info_control -->
 	html(div(id(info),
