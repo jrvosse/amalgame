@@ -19,6 +19,9 @@ amalgame:Matcher
 amalgame:Selecter
     rdfs:label "selecter"@en ;
     rdfs:subClassOf amalgame:Process .
+amalgame:Analyzer
+    rdfs:label "analyzer"@en ;
+    rdfs:subClassOf amalgame:Process .
 amalgame:MappingSelecter
     rdfs:label "selecter"@en ;
     skos:definition "Component that creates a new mapping by selecting a number of correspondences from an existing mapping"@en ;
@@ -43,6 +46,11 @@ amalgame:Merger
     rdfs:domain amalgame:Mapping ;
     rdfs:range amalgame:Mapping ;
     rdfs:subClassOf amalgame:Process .
+
+amalgame:Overlap
+    rdfs:label "overlap"@en ;
+    skos:definition "Component that analyzes a set of mappings by creating intersections and differences sets"@en ;
+    rdfs:subClassOf amalgame:Analyzer .
 
 amalgame:includes
         rdfs:domain skos:ConceptScheme ;

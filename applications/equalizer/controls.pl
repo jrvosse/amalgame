@@ -24,7 +24,7 @@
 html_controls  -->
 	{ amalgame_modules_of_type(amalgame:'Selecter', Selecters),
 	  amalgame_modules_of_type(amalgame:'Matcher', Matchers),
-	  amalgame_modules_of_type(amalgame:'Analyzers', Analyzers)
+	  amalgame_modules_of_type(amalgame:'Analyzer', Analyzers)
 	},
 	html([\html_control_set(true,
 				'Current node',

@@ -1,4 +1,4 @@
-:- module(new_overlap,
+:- module(overlap_analyzer,
 	  [ overlap/2
 	  ]).
 
@@ -7,6 +7,10 @@
 %:- use_module(library(amalgame/vocabulary)).
 
 :- use_module(library(amalgame/expand_graph)).
+
+:- public amalgame_module/1.
+
+amalgame_module(amalgame:'Overlap').
 
 test(Overlaps) :-
 	Strategy='http://localhost/ns/strategy1',

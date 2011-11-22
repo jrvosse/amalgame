@@ -26,3 +26,6 @@
 
 % Mergers
 :- use_module(library(ag_modules/map_merger)).
+
+% Analyzers
+:- use_module(library(ag_modules/ag_overlap)).
