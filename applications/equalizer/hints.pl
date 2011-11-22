@@ -144,7 +144,12 @@ needs_disambiguation(Strategy, Focus, Mapping) :-
 	member(Mapping, Endpoints),
 	\+ mapping_counts(Mapping, Strategy, N, N, N, _, _).   %  differs from the total number of mappings
 
-is_known_to_be_disambiguous(Strategy, _Focus, Mapping) :-
+is_known_to_be_disambiguous(Strategy, Focus, Focus) :-
+	rdf_has(Focus, amalgame:discardedBy, Process),
+	rdfs_individual_of(Process, amalgame:'AritySelect'),
+	is_endpoint(Strategy, Focus).
+
+is_known_to_be_disambiguous(Strategy, _, Mapping) :-
 	rdf_has(Mapping, amalgame:discardedBy, Process),
 	rdfs_individual_of(Process, amalgame:'AritySelect'),
 	is_endpoint(Strategy, Mapping).
@@ -156,12 +161,20 @@ is_known_to_be_disambiguous(Strategy, _Focus, Mapping) :-
 %	but not the input of some other
 %	process in Strategy.
 %
+
 is_endpoint(Strategy, Mapping) :-
 	rdf(Mapping, rdf:type, amalgame:'Mapping', Strategy),
-	 \+ rdf(_Process, amalgame:input, Mapping, Strategy).
+	 \+ rdf(_Process, amalgame:input, Mapping, Strategy),
+	 !.
 is_endpoint(Strategy, Mapping) :-
 	rdf(Mapping, rdf:type, amalgame:'Mapping', Strategy),
-	rdf(_Process, amalgame:x, foo).
+	forall(rdf(Process, amalgame:input, Mapping, Strategy),
+	       (   rdfs_individual_of(Process,amalgame:'EvaluationProcess'),
+		   rdf(EvalResults, opmv:wasGeneratedBy, Process, Strategy),
+		   \+ rdf_graph(EvalResults)
+	       )
+	      ).
+
 
 %%	is_result_of_process_type(?Mapping, ?Type) is nodet.
 %
