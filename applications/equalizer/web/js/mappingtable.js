@@ -4,9 +4,6 @@ YUI.add('mappingtable', function(Y) {
 		Node = Y.Node,
 		Widget = Y.Widget;
 
-	var NODE_SOURCE_INFO = Y.one("#sourceinfo"),
-		NODE_TARGET_INFO = Y.one("#targetinfo");
-
 	function MappingTable(config) {
 		MappingTable.superclass.constructor.apply(this, arguments);
 	}
@@ -89,7 +86,6 @@ YUI.add('mappingtable', function(Y) {
 				success: function(o) {
 					var records = o.response.results,
 						total = o.response.meta.totalNumberOfResults;
-
 					if(!recordsOnly) {
 						paginator.setPage(1, true);
 						paginator.setTotalRecords(total, true);
@@ -114,7 +110,7 @@ YUI.add('mappingtable', function(Y) {
 
 		formatResource : function(o) {
 			var label = o.value ? o.value.label : "";
-		return "<div class=resource>"+label+"</div>";
+			return "<div class=resource>"+label+"</div>";
 		},
 		formatRelation : function(o) {
 			var label = o.value ? o.value.label : "";

@@ -208,14 +208,13 @@ YUI.add('infobox', function(Y) {
 				status:status,
 				comment:comment
 			}
-			this.fire("nodeChange", {data:data});
+			this.fire("nodeUpdate", {data:data});
 		},
 
 		_deleteNode : function() {
 			var uri = this.get("selected").uri;
 			Y.log("delete: "+uri);
 			this.fire("deleteNode", {uri:uri});
-			this.fire("nodeSelect",  {uri:this.get("alignment")});
 			this.syncUI();
 		},
 

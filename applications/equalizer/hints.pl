@@ -79,7 +79,7 @@ find_hint(Strategy, Focus, Hint) :-
 	rdf_global_id(_:Local, Status),
 	format(atom(Text), 'hint: this dataset has been evaluated, if the results were satisfactory, you might want to change the status from \'~p\' to \'final\'.', [Local]),
 	Hint = json([
-		   event(nodeChange),
+		   event(nodeUpdate),
 		   data(json([
 			    uri(Focus),
 			    alignment(Strategy),

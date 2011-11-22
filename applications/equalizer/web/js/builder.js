@@ -7,7 +7,8 @@ YUI.add('builder', function(Y) {
 	var	NODE_OPM			= Y.one("#opm"),
 		NODE_CONTROLS		= Y.one("#controls"),
 		NODE_INFO			= Y.one("#info"),
-		NODE_SELECT		= Y.one("#select");
+		NODE_SELECT			= Y.one("#select");
+		
 
 	function Builder(config) {
 		Builder.superclass.constructor.apply(this, arguments);
@@ -20,7 +21,7 @@ YUI.add('builder', function(Y) {
 		selected : {
 			value: null
 		},
-	        readonly : {
+		readonly : {
 			value: true
 		},
 		paths:{
@@ -52,19 +53,20 @@ YUI.add('builder', function(Y) {
 			this._initGraph();
 			this._initControls();
 			this._initInfo();
+			this._initMapping();
 
 			if (!this.readonly) {
 				this.controls.on("submit", this._onControlSubmit, this);
 			} else {
 			  Y.one('#hint').setContent('Please login to make changes');
 			  Y.all('button').each(function(button) { button.setAttribute("disabled", true); });
-                        };
+			};
 
 			this.opmviz.on("nodeSelect", this._onNodeSelect, this);
-			this.infobox.on("nodeSelect", this._onNodeSelect, this);
-			this.infobox.after("nodeChange", this._onNodeChange, this);
 			this.infobox.after("deleteNode", this._onNodeDelete, this);
-			this.controls.on("nodeChange", this._onNodeChange, this);
+			this.infobox.after("nodeUpdate", this._onNodeUpdate, this);
+			this.controls.on("nodeUpdate", this._onNodeUpdate, this); // used for hints (generated on the server)
+			this.mapping.on("evalSubmit", this._updateNodes, this);
 
 			this.after('nodesChange', function(o) {
 				this.controls.set("nodes", o.newVal);
@@ -76,9 +78,9 @@ YUI.add('builder', function(Y) {
 			// if we have no selection
 			var selected = this.get("selected");
 			if (selected) {
-			  this.opmviz.fire("nodeSelect", {uri:selected});
+			  this._onNodeSelect({uri:selected});
 			} else {
-			  this.opmviz.fire("nodeSelect", {uri:this.get("alignment")});
+			  this._onNodeSelect({uri:this.get("alignment")});
 			};
 		},
 
@@ -120,6 +122,16 @@ YUI.add('builder', function(Y) {
 				nodes: this.get("nodes")
 			});
 		},
+		
+		_initMapping : function() {
+
+			this.mapping = new Y.Mapping({
+				paths: this.get("paths"),
+				alignment: this.get("alignment"),
+				mapping: this.get("selected")
+			});
+		},
+		
 
 		_fetchGraph : function(conf) {
 			var alignment = this.get("alignment"),
@@ -143,6 +155,23 @@ YUI.add('builder', function(Y) {
 			}
 		},
 
+		_updateNodes : function() {
+			var oSelf = this,
+				alignment = this.get("alignment"),
+				paths = this.get("paths");
+
+			Y.io(paths.graphnodes, {
+				data:{"alignment":alignment},
+				on:{success: function(e,o) {
+					var r =	Y.JSON.parse(o.responseText);
+					if(r.nodes) { // TBD check if nodes is changed
+						oSelf.set("nodes", r.nodes);
+						oSelf._fetchGraph();
+					}
+				}}
+			});
+		},
+
 		_onControlSubmit : function(o) {
 			var oSelf = this,
 				paths = this.get("paths"),
@@ -159,11 +188,11 @@ YUI.add('builder', function(Y) {
 					oSelf.opmviz.fire("nodeSelect", {uri:r.focus});
 					oSelf._fetchGraph();
 				}}
-			})
+			});
 		},
 
-		_onNodeChange : function(o) {
-			Y.log("nodeChange event caught (builder:onNodeChange)");
+		_onNodeUpdate : function(o) {
+			Y.log("nodeUpdate event caught (builder:onNodeUpdate)");
 			var oSelf = this,
 				paths = this.get("paths"),
 				data = o.data;
@@ -203,7 +232,8 @@ YUI.add('builder', function(Y) {
 					oSelf.set("nodes", Y.JSON.parse(o.responseText).nodes);
 					oSelf._fetchGraph();
 				}}
-			})
+			}),
+			this._onNodeSelect({uri:this.get("alignment")});
 		},
 
 		_onNodeSelect : function(e) {
@@ -215,15 +245,20 @@ YUI.add('builder', function(Y) {
 			this.controls.set("selected", node);
 			this.infobox.set("selected", node);
 			this.opmviz.set("active", uri);
+			if(node.type=="mapping") {
+				this.mapping.set("mapping", uri);
+			} else {
+				
+			}	
 		}
 	});
 
 	Y.Builder = Builder;
 
 }, '0.0.1', { requires: [
-	'node','event','anim','tabview',
-	'datasource-io','datasource-cache',
+	'node','event','anim','tabview','overlay',
+	'io-base','datasource-io','datasource-cache',
 	'querystring-stringify-simple',
-	'gallery-node-accordion'
+	'gallery-node-accordion','mappingtable'
 	]
 });

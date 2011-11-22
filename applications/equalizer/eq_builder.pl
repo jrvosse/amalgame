@@ -69,6 +69,7 @@ html_page(Strategy, Focus) :-
 			],
 			[ \html_requires(css('eq.css')),
 			  \html_requires(css('builder.css')),
+			  \html_requires(css('evaluater.css')),
 			  \yui3_combo(yui3,
 				      ['cssreset/reset-min.css',
 				       'cssgrids/grids-min.css',
@@ -80,17 +81,48 @@ html_page(Strategy, Focus) :-
 				     strategy(Strategy),
 				     focus(Focus)]),
 				div([id(main)],
-				    [ div([id(opm)],
-					  []),
+				    [ div(id(right),
+					  [ div([id(opm)], []),
+					    div([id(mappingtable)], [])
+					  ]),
 				      div([id(controls)],
 					  \html_controls)
-				    ])
+				    ]),
+				div(id(detail),
+				   \html_overlay)
 			      ]),
 			  script(type('text/javascript'),
 				 [ \yui_script(Strategy, Focus)
 				 ])
 			]).
 
+
+html_overlay -->
+	html(form([div(class('yui3-widget-bd'),
+		       [ div([class(concepts), id(concepts)], [])
+		       ]),
+		   div(class('yui3-widget-ft'),
+		       [ div(class(controls),
+			     [ div(class(options), \html_options),
+			       div(class(buttons), \html_buttons)
+			     ])
+		       ])
+		  ])).
+
+html_options -->
+	html([ 'include all correspondences with the same: ',
+	       input([type(checkbox), id(allsources), autocomplete(off)]),
+	       label(' source'),
+	       input([type(checkbox), id(alltargets), autocomplete(off)]),
+	       label(' target')
+	     ]).
+
+html_buttons -->
+	html([ button([class(cancel)], cancel),
+	       button([class(submit)], submit),
+	       button([class(prev)], prev),
+	       button([class(next)], next)
+	     ]).
 
 %%	yui_script(+Graph)
 %
@@ -134,10 +166,18 @@ js_path(updatenode, Path) :-
 	http_location_by_id(http_update_node, Path).
 js_path(deletenode, Path) :-
 	http_location_by_id(http_delete_node, Path).
+js_path(graphnodes, Path) :-
+	http_location_by_id(http_graph_nodes, Path).
 js_path(hint, Path) :-
 	http_location_by_id(http_json_hint, Path).
+%js_path(evaluate, Path) :-
+%	http_location_by_id(http_eq_evaluate , Path),
+js_path(mapping, Path) :-
+	http_location_by_id(http_data_mapping, Path).
 js_path(evaluate, Path) :-
-	http_location_by_id(http_eq_evaluate , Path).
+	http_location_by_id(http_data_evaluate, Path).
+js_path(cinfo, Path) :-
+	http_location_by_id(http_correspondence, Path).
 
 %%	js_module(+Key, +Module_Conf)
 %
@@ -149,7 +189,7 @@ js_module(builder, json([fullpath(Path),
 				     'json-parse', 'overlay',
 				     'datasource-io','datasource-cache',
 				     'querystring-stringify-simple',
-				     opmviz,controls,infobox])
+				     opmviz,controls,infobox,mapping])
 			  ])) :-
 	http_absolute_location(js('builder.js'), Path, []).
 js_module(opmviz, json([fullpath(Path),
@@ -166,6 +206,19 @@ js_module(controls, json([fullpath(Path),
 				    'gallery-node-accordion'])
 			])) :-
 	http_absolute_location(js('controls.js'), Path, []).
+js_module(mapping, json([fullpath(Path),
+			requires([node,event,
+				  mappingtable
+				 ])
+		       ])) :-
+	http_absolute_location(js('mapping.js'), Path, []).
+js_module(mappingtable, json([fullpath(Path),
+			      requires([node,event,
+					'datasource-jsonschema',
+					'gallery-paginator',
+					datatable,'datatable-sort'])
+			     ])) :-
+	http_absolute_location(js('mappingtable.js'), Path, []).
 
 fix_publish_ns(S) :-
 % backward compatibility

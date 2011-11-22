@@ -20,10 +20,15 @@
 :- http_handler(amalgame(data/addprocess), http_add_process, []).
 :- http_handler(amalgame(data/updatenode), http_update_node, []).
 :- http_handler(amalgame(data/deletenode), http_delete_node, []).
+:- http_handler(amalgame(data/graphnodes), http_graph_nodes, []).
 
 :- rdf_meta
 	new_output(r,r,r,r,r),
 	output_type(r,r).
+
+%%	http_add_process(+Request)
+%
+%
 
 http_add_process(Request) :-
 	authorized(write(default, _)),
@@ -68,6 +73,21 @@ http_add_process(Request) :-
 	),
 	js_alignment_nodes(Alignment, Nodes),
 	reply_json(json([focus=Focus,nodes=json(Nodes)])).
+
+%%	http_graph_nodes(+Request)
+%
+%
+
+http_graph_nodes(Request) :-
+	authorized(write(default, _)),
+	http_parameters(Request,
+			[ alignment(Alignment,
+				    [uri,
+				     description('URI of the alignment graph to which the process is added')])
+			]),
+	js_alignment_nodes(Alignment, Nodes),
+	reply_json(json([nodes=json(Nodes)])).
+
 
 
 %%	update_process(+Process, +Alignment, +Params)
