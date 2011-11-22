@@ -107,6 +107,7 @@ YUI.add('builder', function(Y) {
 				hint: this.get("paths").hint,
 				controls: this.controls,
 				readonly: this.readonly,
+				paths: this.get("paths"),
 				datasource: DS
 			});
 

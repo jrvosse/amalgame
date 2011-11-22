@@ -57,8 +57,10 @@ html_info_control -->
 		      [ div([id(details), class(c)],
 			    [\html_node_props,
 			     div(class('control-buttons'),
-				 [ button(id(delete), delete),
+				 [ button(id(evaluate), evaluate),
+				   button(id(delete), delete),
 				   button(id(update), update)
+
 				 ])
 			    ]),
 			form([id(infocontent), class('control c')],

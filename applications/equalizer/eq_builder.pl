@@ -136,6 +136,8 @@ js_path(deletenode, Path) :-
 	http_location_by_id(http_delete_node, Path).
 js_path(hint, Path) :-
 	http_location_by_id(http_json_hint, Path).
+js_path(evaluate, Path) :-
+	http_location_by_id(http_eq_evaluate , Path).
 
 %%	js_module(+Key, +Module_Conf)
 %

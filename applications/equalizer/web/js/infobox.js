@@ -5,8 +5,9 @@ YUI.add('infobox', function(Y) {
 
 	var NODE_PROPS = Y.one("#properties"),
 		NODE_DELETE = Y.one("#delete"),
-		NODE_HINT = Y.one("#hint"),
+		NODE_EVAL = Y.one("#evaluate"),
 		NODE_UPDATE = Y.one("#update"),
+		NODE_HINT = Y.one("#hint"),
 		NODE_TYPE = Y.one("#type"),
 		NODE_URI = Y.one("#uri"),
 		NODE_NAMESPACE = Y.one("#namespace"),
@@ -44,6 +45,7 @@ YUI.add('infobox', function(Y) {
 		hint : {
 		       value: null
 		       },
+		paths : { value: null },
 		mappings : {
 			value: null
 		}
@@ -60,6 +62,7 @@ YUI.add('infobox', function(Y) {
 
 			NODE_DELETE.on("click", this._deleteNode, this);
 			NODE_UPDATE.on("click", this._updateNode, this);
+			NODE_EVAL.on("click", this._evaluateNode, this);
 			this.after('waitingChange', this.toggleLoading, this);
 			this.after('selectedChange', this.syncUI, this);
 		},
@@ -117,12 +120,15 @@ YUI.add('infobox', function(Y) {
 					NODE_STATUS_ROW.addClass("hidden")
 				}
 
+				if (type == "mapping") { NODE_EVAL.removeClass("hidden"); }
+				else {  NODE_EVAL.addClass("hidden"); }
+
 				if(type =='alignment' || type=='strategy') {
 				        NODE_NAMESPACE_ROW.removeClass("hidden");
 					NODE_DELETE.setAttribute("disabled", true);
 				} else {
 				        NODE_NAMESPACE_ROW.addClass("hidden");
-				        NODE_DELETE.removeAttribute("disabled", false);
+				        NODE_DELETE.removeAttribute("disabled");
 				}
 				// hide the parameter form submit button in case we are not a process
 				if(type==="process") {
@@ -212,6 +218,16 @@ YUI.add('infobox', function(Y) {
 			this.fire("nodeSelect",  {uri:this.get("alignment")});
 			this.syncUI();
 		},
+
+		_evaluateNode : function() {
+			var uri = this.get("selected").uri;
+			var alignment = this.get("alignment");
+			var page = this.get("paths").evaluate+'?alignment='+alignment +
+					      "&focus="+ uri;
+			Y.log(page);
+			this.get("controls").fire("evaluate", {data:{page:page}});
+		},
+
 
 		toggleLoading : function () {
 			if(this.get("waiting")) {
