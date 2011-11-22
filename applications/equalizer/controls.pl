@@ -33,7 +33,10 @@ html_controls  -->
 				\html_select_control(Selecters)),
 	      \html_control_set(false,
 				'Matchers',
-				\html_match_control(Matchers))
+				\html_match_control(Matchers)),
+	      \html_control_set(false,
+				'Overlap',
+				\html_overlap_control)
 	     ]).
 
 html_control_set(Active, Header, Body) -->
@@ -50,6 +53,12 @@ html_control_set(Active, Header, Body) -->
 
 active_class(true, active).
 active_class(false, '').
+
+html_overlap_control -->
+	html(div(id(overlap), [
+			      ]
+		)
+	    ).
 
 html_info_control -->
 	html(div(id(info),
