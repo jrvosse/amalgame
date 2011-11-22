@@ -1,4 +1,4 @@
-:- module(ag_overlap,
+:- module(old_overlap,
 	  [
 	   precomputed_overlaps/1,
 	   create_merge_graph/2,     %+InputGraphList, -OutputGraph(URI)

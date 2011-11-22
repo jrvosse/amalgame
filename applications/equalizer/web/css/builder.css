@@ -160,7 +160,10 @@ img.explain {
 	background-color: white;
 	border: 1pt black solid;
 	    }
-
+#hint 
+{
+	background-color: #FFFFE2;
+}
 #exec_hint
 {
  color: #0000EE; /* link color */

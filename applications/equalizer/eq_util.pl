@@ -149,8 +149,13 @@ js_alignment_nodes(Strategy, Nodes) :-
 	sort(Nodes0, Nodes1),
 	maplist(node_data(Strategy), Nodes1, Nodes).
 
+is_empty_eval_graph(Eval) :-
+	   rdfs_individual_of(Eval, amalgame:'EvaluatedMapping'),
+	   \+ rdf_graph(Eval).
+
 graph_resource(Graph, R) :-
-	rdf(R,rdf:type,_,Graph).
+	rdf(R,rdf:type,_,Graph),
+	\+ is_empty_eval_graph(R).
 graph_resource(Graph, R) :-
 	rdf(_,amalgame:source,R,Graph).
 graph_resource(Graph, R) :-
