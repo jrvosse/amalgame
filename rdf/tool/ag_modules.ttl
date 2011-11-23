@@ -98,3 +98,13 @@ amalgame:TypeSelect
     rdfs:label "type"@en ;
     skos:definition "Select from a vocabulary the concepts of a specific type."@en ;
     rdfs:subClassOf amalgame:VocabSelecter .
+
+amalgame:Overlap
+    rdfs:label "overlap"@en ;
+    skos:definition "Component that analyzes a set of mappings by creating intersections and differences sets"@en ;
+    rdfs:subClassOf amalgame:Analyzer .
+
+amalgame:Evaluater
+    rdfs:label "evaluater"@en ;
+    skos:definition "Component that analyzes correspondences in a mappings by manual evaluation"@en ;
+    rdfs:subClassOf amalgame:Analyzer .
