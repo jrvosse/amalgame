@@ -57,9 +57,10 @@ active_class(false, '').
 
 html_analyzers_control(Modules) -->
 	html(div(id(analyzers),
-		 [ div(class(c),
-		   \html_modules(Modules))
-		 ])).
+		 [ div(class('bd hidden'),
+		       [
+			     \html_modules(Modules)
+		 ])])).
 
 html_info_control -->
 	html(div(id(info),
