@@ -33,6 +33,7 @@ YUI.add('infobox', function(Y) {
 				return Lang.isBoolean(val);
 			}
 		},
+		readonly: { value: true },
 		datasource: {
 			value: null
 		},
@@ -126,7 +127,7 @@ YUI.add('infobox', function(Y) {
 				if(type =='alignment' || type=='strategy') {
 				        NODE_NAMESPACE_ROW.removeClass("hidden");
 					NODE_DELETE.setAttribute("disabled", true);
-				} else {
+				} else if (!this.get('readonly')) {
 				        NODE_NAMESPACE_ROW.addClass("hidden");
 				        NODE_DELETE.removeAttribute("disabled");
 				}
