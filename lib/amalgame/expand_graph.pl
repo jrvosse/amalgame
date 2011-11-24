@@ -1,6 +1,8 @@
 :- module(expand_graph,
 	  [ expand_mapping/3,
 	    expand_vocab/3,
+	    expand_process/3,
+	    new_output/5,
 	    flush_expand_cache/0,
 	    flush_expand_cache/2,     % +Id, +Strategy
 	    process_options/3,
@@ -52,7 +54,7 @@ expand_mapping(Strategy, Id, Mapping) :-
 	!,
 	with_mutex(Process, expand_process(Strategy, Process, Result)),
 	materialize_results_if_needed(Strategy, Process, Result),
-	select_result_mapping(Result, OutputType, Mapping),
+	select_result_mapping(Id, Result, OutputType, Mapping),
 	length(Mapping, Count),
 	debug(ag_expand, 'Found ~w mappings for ~p', [Count, Id]).
 
@@ -108,7 +110,7 @@ do_expand_process(Strategy, Process, Result) :-
 	;   findall(URI-Mapping, % Result is one or more mappings
 		    (   rdf_has(URI, opmv:wasGeneratedBy, Process, OutputType),
 			rdf(URI, OutputType, Process, Strategy),
-			select_result_mapping(Result, OutputType, Mapping)
+			select_result_mapping(URI, Result, OutputType, Mapping)
 		    ),
 		    Artifacts),
 	    add_amalgame_opm(Strategy, Process, Artifacts)
@@ -251,7 +253,7 @@ exec_amalgame_process(Class, Process, Strategy, Module, Result, Time, Options) :
 	!,
 	findall(Input, rdf(Process, amalgame:secondary_input, Input, Strategy), Inputs),
 	% We need the ids, not the values in most analyzers
-	timed_call(Module:analyzer(Inputs, Strategy, Result, Options), Time).
+	timed_call(Module:analyzer(Inputs, Process, Strategy, Result, Options), Time).
 
 
 exec_amalgame_process(Class, Process,_,_, _, _, _) :-
@@ -265,14 +267,14 @@ timed_call(Goal, Time) :-
         Time is T1 - T0.
 
 
-%%	select_result_mapping(+ProcessResult, +OutputType, -Mapping)
+%%	select_result_mapping(+Id, +Result, +OutputType, -Mapping)
 %
-%	Mapping is part of ProcessResult as defined by OutputType.
+%	Mapping is part of (process) Result as defined by OutputType.
 %
 %	@param OutputType is an RDF property
 %	@error existence_error(mapping_select)
 
-select_result_mapping(select(Selected, Discarded, Undecided), OutputType, Mapping) :-
+select_result_mapping(_Id, select(Selected, Discarded, Undecided), OutputType, Mapping) :-
 	!,
 	(   rdf_equal(amalgame:selectedBy, OutputType)
 	->  Mapping = Selected
@@ -282,9 +284,24 @@ select_result_mapping(select(Selected, Discarded, Undecided), OutputType, Mappin
 	->  Mapping = Undecided
 	;   throw(error(existence_error(mapping_selector, OutputType), _))
 	).
-select_result_mapping(Mapping, P, Mapping) :-
+
+select_result_mapping(Id, overlap(List), P, Mapping) :-
+	rdf_equal(opmv:wasGeneratedBy, P),
+	member(Id:Mapping, List).
+
+select_result_mapping(_Id, Mapping, P, Mapping) :-
 	is_list(Mapping),
 	rdf_equal(opmv:wasGeneratedBy, P).
+
+new_output(Type, Process, P, Strategy, OutputURI) :-
+	rdf(Strategy, amalgame:publish_ns, NS),
+	repeat,
+	gensym(dataset, Local),
+	atomic_concat(NS, Local, OutputURI),
+	\+ rdf(OutputURI, _, _), !,
+	rdf_assert(OutputURI, rdf:type, Type, Strategy),
+	rdf_assert(OutputURI, amalgame:status, amalgame:intermediate, Strategy),
+        rdf_assert(OutputURI, P, Process, Strategy).
 
 %%	process_options(+Process, +Module, -Options)
 %
@@ -351,7 +368,7 @@ materialize_results_if_needed(Strategy, Process, Results) :-
 		),
 		Ids),
 	forall(member(Id-P, Ids),
-	       (   select_result_mapping(Results, P, Mapping),
+	       (   select_result_mapping(Id, Results, P, Mapping),
 		   materialize_if_needed(Id, Mapping)
 	       )
 	      ).

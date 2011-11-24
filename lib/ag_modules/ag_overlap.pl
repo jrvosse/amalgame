@@ -9,16 +9,24 @@
 :- use_module(library(amalgame/expand_graph)).
 
 :- public amalgame_module/1.
-:- public analyzer/4.
+:- public analyzer/5.
 
 amalgame_module(amalgame:'Overlap').
 
-analyzer(Inputs, Strategy,Result, _Options) :-
+analyzer(Inputs, Process, Strategy, overlap(Results), _Options) :-
 	maplist(expander(Strategy), Inputs, ExpandedInputs),
-	overlap(ExpandedInputs, Result).
+	overlap(ExpandedInputs, Overlaps),
+	maplist(create_overlap_output(Process, Strategy), Overlaps, Results).
 
 expander(Strategy, Id, Id:Expanded) :-
 	expand_mapping(Strategy, Id, Expanded).
+
+create_overlap_output(Process, Strategy, OverlapId:Mapping, OutputUri:Mapping) :-
+	rdf_equal(Type, amalgame:'Mapping'),
+	rdf_equal(Pred, 'opmv:wasGeneratedBy'),
+	new_output(Type, Process, Pred, Strategy, OutputUri),
+	format(atom(Label), 'Overlap: ~p', [OverlapId]),
+	rdf_assert(OutputUri, rdfs:label, literal(Label)).
 
 test(Overlaps) :-
 	Strategy='http://localhost/ns/strategy1',
@@ -51,7 +59,7 @@ overlap(MappingList, Overlaps) :-
 my_transpose_pairs([], []).
 my_transpose_pairs([(S:T)-L|Tail], [IDs-Es|Result]) :-
 	findall(Id, member((Id:align(S,T,_)), L), IDs),
-	findall(E,  member((_I:align(S,T,E)), L), Es),
+	findall(align(S,T,E),  member((_I:align(S,T,E)), L), Es),
 	my_transpose_pairs(Tail, Result).
 create_pairs([], []).
 create_pairs([Id:L1|T], [P1|PT]) :-

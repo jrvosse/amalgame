@@ -170,7 +170,9 @@ precompute(Process, Alignment) :-
 		     ).
 precompute(Process, Strategy) :-
 	rdf(Process, rdf:type, amalgame:'Overlap', Strategy),
-	!.
+	!,
+	with_mutex(Process, expand_process(Strategy, Process, Result)),
+	assert_overlap_output(Process, Strategy, Result).
 
 
 assert_input(Process, Graph, Source, Target, _Input) :-
@@ -208,20 +210,12 @@ assert_output(Process, Type, Graph, MainOutput) :-
 assert_output(_Process, Type, Graph, Graph) :-
 	rdfs_subclass_of(Type, amalgame:'Analyzer'),
 	!.
-
 assert_output(Process, Type, Graph, MainOutput) :-
 	output_type(Type, OutputClass),
 	new_output(OutputClass, Process, opmv:wasGeneratedBy, Graph, MainOutput).
 
-new_output(Type, Process, P, Graph, OutputURI) :-
-	rdf(Graph, amalgame:publish_ns, NS),
-	repeat,
-	gensym(dataset, Local),
-	atomic_concat(NS, Local, OutputURI),
-	\+ rdf(OutputURI, _, _), !,
-	rdf_assert(OutputURI, rdf:type, Type, Graph),
-	rdf_assert(OutputURI, amalgame:status, amalgame:intermediate, Graph),
-        rdf_assert(OutputURI, P, Process, Graph).
+assert_overlap_output(_Process, _Strategy, _Results) :-
+	true.
 
 output_type(ProcessType, skos:'ConceptScheme') :-
 	rdfs_subclass_of(ProcessType, amalgame:'VocabSelecter'),
