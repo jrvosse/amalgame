@@ -2,8 +2,7 @@
 	  [ overlap/2
 	  ]).
 
-%:- use_module(library(semweb/rdf_db)).
-%:- use_module(library(semweb/rdf_label)).
+:- use_module(library(semweb/rdf_db)).
 :- use_module(library(amalgame/vocabulary)).
 
 :- use_module(library(amalgame/expand_graph)).
@@ -21,9 +20,10 @@ analyzer(Inputs, Process, Strategy, overlap(Results), _Options) :-
 expander(Strategy, Id, Id:Expanded) :-
 	expand_mapping(Strategy, Id, Expanded).
 
-create_overlap_output(Process, Strategy, OverlapId-Mapping, OutputUri-Mapping) :-
+create_overlap_output(Process, Strategy, OverlapId-Mapping, OutputUri-MappingFlat) :-
 	rdf_equal(Type, amalgame:'Mapping'),
 	rdf_equal(Pred, opmv:wasGeneratedBy),
+	append(Mapping, MappingFlat),
 	new_output(Type, Process, Pred, Strategy, OutputUri),
 	format(atom(Label), 'Overlap: ~p', [OverlapId]),
 	rdf_assert(OutputUri, rdfs:label, literal(Label), Strategy).
