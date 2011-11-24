@@ -31,6 +31,7 @@
 %
 
 http_add_process(Request) :-
+	gtrace,
 	authorized(write(default, _)),
 	http_parameters(Request,
 			[ input(Input,
@@ -167,7 +168,9 @@ precompute(Process, Alignment) :-
 	    _,
 	    [ detached(true) ]
 		     ).
-
+precompute(Process, Strategy) :-
+	rdf(Process, rdf:type, amalgame:'Overlap', Strategy),
+	!.
 
 
 assert_input(Process, Graph, Source, Target, _Input) :-
@@ -201,6 +204,10 @@ assert_output(Process, Type, Graph, MainOutput) :-
 	new_output(OutputClass, Process, amalgame:selectedBy,  Graph, MainOutput),
 	new_output(OutputClass, Process, amalgame:discardedBy, Graph, _),
 	new_output(OutputClass, Process, amalgame:undecidedBy, Graph, _).
+
+assert_output(_Process, Type, Graph, Graph) :-
+	rdfs_subclass_of(Type, amalgame:'Analyzer'),
+	!.
 
 assert_output(Process, Type, Graph, MainOutput) :-
 	output_type(Type, OutputClass),
