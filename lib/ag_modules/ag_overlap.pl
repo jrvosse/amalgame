@@ -21,12 +21,12 @@ analyzer(Inputs, Process, Strategy, overlap(Results), _Options) :-
 expander(Strategy, Id, Id:Expanded) :-
 	expand_mapping(Strategy, Id, Expanded).
 
-create_overlap_output(Process, Strategy, OverlapId:Mapping, OutputUri:Mapping) :-
+create_overlap_output(Process, Strategy, OverlapId-Mapping, OutputUri-Mapping) :-
 	rdf_equal(Type, amalgame:'Mapping'),
-	rdf_equal(Pred, 'opmv:wasGeneratedBy'),
+	rdf_equal(Pred, opmv:wasGeneratedBy),
 	new_output(Type, Process, Pred, Strategy, OutputUri),
 	format(atom(Label), 'Overlap: ~p', [OverlapId]),
-	rdf_assert(OutputUri, rdfs:label, literal(Label)).
+	rdf_assert(OutputUri, rdfs:label, literal(Label), Strategy).
 
 test(Overlaps) :-
 	Strategy='http://localhost/ns/strategy1',
