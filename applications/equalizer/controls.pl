@@ -311,10 +311,11 @@ module_input_type(_, '').
 %	control in the UI.
 
 module_special_type(M, secinput) :-
-	(   rdfs_subclass_of(M, amalgame:'Subtracter');
-	    rdfs_subclass_of(M, amalgame:'AncestorMatcher');
-	    rdfs_subclass_of(M, amalgame:'DescendentMatcher');
-	    rdfs_subclass_of(M, amalgame:'RelatedMatcher')
+	(   rdfs_subclass_of(M, amalgame:'Subtracter')
+	;   rdfs_subclass_of(M, amalgame:'AncestorMatcher')
+	;   rdfs_subclass_of(M, amalgame:'DescendentMatcher')
+	;   rdfs_subclass_of(M, amalgame:'RelatedMatcher')
+	;   rdfs_subclass_of(M, amalgame:'Analyzer')
 	),
 	!.
 module_special_type(M,preloaded) :-
