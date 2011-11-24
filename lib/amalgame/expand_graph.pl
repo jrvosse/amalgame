@@ -287,7 +287,7 @@ select_result_mapping(_Id, select(Selected, Discarded, Undecided), OutputType, M
 
 select_result_mapping(Id, overlap(List), P, Mapping) :-
 	rdf_equal(opmv:wasGeneratedBy, P),
-	member(Id:Mapping, List).
+	member(Id-Mapping, List).
 
 select_result_mapping(_Id, Mapping, P, Mapping) :-
 	is_list(Mapping),
