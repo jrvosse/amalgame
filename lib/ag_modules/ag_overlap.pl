@@ -4,13 +4,21 @@
 
 %:- use_module(library(semweb/rdf_db)).
 %:- use_module(library(semweb/rdf_label)).
-%:- use_module(library(amalgame/vocabulary)).
+:- use_module(library(amalgame/vocabulary)).
 
 :- use_module(library(amalgame/expand_graph)).
 
 :- public amalgame_module/1.
+:- public analyzer/4.
 
 amalgame_module(amalgame:'Overlap').
+
+analyzer(Inputs, Strategy,Result, _Options) :-
+	maplist(expander(Strategy), Inputs, ExpandedInputs),
+	overlap(ExpandedInputs, Result).
+
+expander(Strategy, Id, Id:Expanded) :-
+	expand_mapping(Strategy, Id, Expanded).
 
 test(Overlaps) :-
 	Strategy='http://localhost/ns/strategy1',
