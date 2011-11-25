@@ -69,7 +69,6 @@ html_page(Strategy, Focus) :-
 			],
 			[ \html_requires(css('eq.css')),
 			  \html_requires(css('builder.css')),
-			  \html_requires(css('evaluater.css')),
 			  \yui3_combo(yui3,
 				      ['cssreset/reset-min.css',
 				       'cssgrids/grids-min.css',
@@ -80,13 +79,19 @@ html_page(Strategy, Focus) :-
 				     active(http_eq_build),
 				     strategy(Strategy),
 				     focus(Focus)]),
-				div([id(main)],
-				    [ div(id(right),
-					  [ div([id(opm)], []),
-					    div([id(mappingtable)], [])
-					  ]),
-				      div([id(controls)],
-					  \html_controls)
+				div([class('yui3-g'), id(layout)],
+				    [ div([class('yui3-u'), id(controls)],
+					  div(class(content),
+					      \html_controls)),
+				      div([class('yui3-u'), id(main)],
+					  [ div(id(graph),
+						div(class(content),
+						    div([id(opm)], []))),
+					    div([id(bottom)],
+						div(class(content),
+						    [ div(id(mappingtable), [])
+						]))
+					  ])
 				    ]),
 				div(id(detail),
 				   \html_overlay)
@@ -98,13 +103,16 @@ html_page(Strategy, Focus) :-
 
 
 html_overlay -->
-	html(form([div(class('yui3-widget-bd'),
+	html(form([div(class('yui3-widget-hd'),
+		       'Evaluate'
+		      ),
+		   div(class('yui3-widget-bd'),
 		       [ div([class(concepts), id(concepts)], [])
 		       ]),
 		   div(class('yui3-widget-ft'),
 		       [ div(class(controls),
-			     [ div(class(options), \html_options),
-			       div(class(buttons), \html_buttons)
+			     [ div(class(buttons), \html_buttons),
+			       div(class(options), \html_options)
 			     ])
 		       ])
 		  ])).
@@ -186,7 +194,7 @@ js_path(cinfo, Path) :-
 js_module(gallery, 'gallery-2011.02.23-19-01').
 js_module(builder, json([fullpath(Path),
 			   requires([node,event,
-				     'json-parse', 'overlay',
+				     'json-parse', 'overlay','resize',
 				     'datasource-io','datasource-cache',
 				     'querystring-stringify-simple',
 				     opmviz,controls,infobox,mapping])
