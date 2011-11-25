@@ -31,7 +31,6 @@
 %
 
 http_add_process(Request) :-
-	gtrace,
 	authorized(write(default, _)),
 	http_parameters(Request,
 			[ input(Input,
