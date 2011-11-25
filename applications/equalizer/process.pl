@@ -168,7 +168,7 @@ precompute(Process, Alignment) :-
 	    [ detached(true) ]
 		     ).
 precompute(Process, Strategy) :-
-	rdf(Process, rdf:type, amalgame:'Overlap', Strategy),
+	rdf(Process, rdf:type, amalgame:'OverlapComponent', Strategy),
 	!,
 	with_mutex(Process, expand_process(Strategy, Process, Result)),
 	assert_overlap_output(Process, Strategy, Result).
