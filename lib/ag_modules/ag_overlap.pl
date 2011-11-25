@@ -10,7 +10,7 @@
 :- public amalgame_module/1.
 :- public analyzer/5.
 
-amalgame_module(amalgame:'Overlap').
+amalgame_module(amalgame:'OverlapComponent').
 
 analyzer(Inputs, Process, Strategy, overlap(Results), _Options) :-
 	maplist(expander(Strategy), Inputs, ExpandedInputs),

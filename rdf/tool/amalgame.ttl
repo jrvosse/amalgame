@@ -47,11 +47,6 @@ amalgame:Merger
     rdfs:range amalgame:Mapping ;
     rdfs:subClassOf amalgame:Process .
 
-amalgame:Overlap
-    rdfs:label "overlap"@en ;
-    skos:definition "Component that analyzes a set of mappings by creating intersections and differences sets"@en ;
-    rdfs:subClassOf amalgame:Analyzer .
-
 amalgame:includes
         rdfs:domain skos:ConceptScheme ;
         rdfs:range amalgame:Alignment .
@@ -165,8 +160,8 @@ amalgame:DerivedConceptScheme a rdfs:Class;
 
 amalgame:member a rdf:Property ;
 	rdfs:label "overlap member"@en ;
-	rdfs:comment "Used to define the alignment graphs that define an Overlap."@en ;
-	rdfs:domain amalgame:Overlap ;
+	rdfs:comment "Used to define the alignment graphs that define an OverlapAlignment."@en ;
+	rdfs:domain amalgame:OverlapAlignment ;
 	rdfs:range amalgame:Alignment .
 
 amalgame:count a rdf:Property, owl:FunctionalProperty ;
@@ -188,17 +183,6 @@ amalgame:mappedSourceConcepts a rdf:Property, owl:FunctionalProperty ;
 amalgame:mappedTargetConcepts a rdf:Property, owl:FunctionalProperty ;
 	rdfs:domain amalgame:Alignment ;
 	rdfs:range xsd:int .
-
-amalgame:Overlap a rdfs:Class;
-	rdfs:subClassOf amalgame:Alignment ;
-	rdfs:label "Amalgame Overlap"@en ;
-	rdfs:comment "A Named Graph that describes the overlap of one or more other named graphs, these constituents are denoted by the amalgame:member property."@en .
-
-amalgame:member a rdf:Property ;
-	rdfs:label "overlap member"@en ;
-	rdfs:comment "Used to define the alignment graphs that define an Overlap."@en ;
-	rdfs:domain amalgame:Overlap ;
-	rdfs:range amalgame:Alignment .
 
 amalgame:count a rdf:Property, owl:FunctionalProperty ;
 	rdfs:label "total map count" ;
