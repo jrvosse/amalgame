@@ -24,6 +24,9 @@
 :- setting(default_namespace, atom, 'http://localhost/ns/',
 	   'Default namespace to use on alignment results. Can be changed later.').
 
+:- setting(default_namespace, NS),
+	rdf_register_ns(exp, NS).
+
 % http handlers for this applications
 :- http_handler(amalgame(publish),      http_eq_publish, []).
 :- http_handler(amalgame(publish_form), http_eq_publish_form, []).
