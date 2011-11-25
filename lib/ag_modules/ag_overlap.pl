@@ -25,8 +25,8 @@ create_overlap_output(Process, Strategy, OverlapId-Mapping, OutputUri-MappingFla
 	rdf_equal(Pred, opmv:wasGeneratedBy),
 	append(Mapping, MappingFlat),
 	new_output(Type, Process, Pred, Strategy, OutputUri),
-	format(atom(Label), 'Overlap: ~p', [OverlapId]),
-	rdf_assert(OutputUri, rdfs:label, literal(Label), Strategy).
+	format(atom(Label), 'Mappings found only in: ~p', [OverlapId]),
+	rdf_assert(OutputUri, rdfs:comment, literal(Label), Strategy).
 
 test(Overlaps) :-
 	Strategy='http://localhost/ns/strategy1',
