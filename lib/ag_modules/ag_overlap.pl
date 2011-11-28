@@ -15,35 +15,27 @@ amalgame_module(amalgame:'OverlapComponent').
 analyzer(Inputs, Process, Strategy, overlap(Results), _Options) :-
 	maplist(expander(Strategy), Inputs, ExpandedInputs),
 	overlap(ExpandedInputs, Overlaps),
-	maplist(create_overlap_output(Process, Strategy), Overlaps, Results).
+	maplist(ensure_overlap_output(Process, Strategy), Overlaps, Results).
 
 expander(Strategy, Id, Id:Expanded) :-
 	expand_mapping(Strategy, Id, Expanded).
 
-create_overlap_output(Process, Strategy, OverlapId-Mapping, OutputUri-MappingFlat) :-
-	rdf_equal(Type, amalgame:'Mapping'),
-	rdf_equal(Pred, opmv:wasGeneratedBy),
+ensure_overlap_output(Process, Strategy, OverlapId-Mapping, OutputUri-MappingFlat) :-
 	append(Mapping, MappingFlat),
-	new_output(Type, Process, Pred, Strategy, OutputUri),
-	format(atom(Label), 'Mappings found only in: ~p', [OverlapId]),
-	rdf_assert(OutputUri, rdfs:comment, literal(Label), Strategy).
+	(   output_exist(Process, Strategy, OverlapId, OutputUri)
+	->  true % output node already exists in the strategy graph, reuse this
+	;   rdf_equal(Type, amalgame:'Mapping'),
+	    rdf_equal(Pred, opmv:wasGeneratedBy),
+	    new_output(Type, Process, Pred, Strategy, OutputUri),
+	    format(atom(Label), 'Mappings found only in: ~p', [OverlapId]),
+	    rdf_assert(OutputUri, amalgame:overlap_set, literal(OverlapId), Strategy),
+	    rdf_assert(OutputUri, rdfs:comment, literal(Label), Strategy)
+	).
 
-test(Overlaps) :-
-	Strategy='http://localhost/ns/strategy1',
-	Id1='http://localhost/ns/dataset5',
-	Id2='http://localhost/ns/dataset6',
+output_exist(Process, Strategy, OverlapId, OutputUri) :-
+	rdf(OutputUri, opmv:wasGeneratedBy, Process, Strategy),
+	rdf(OutputUri, amalgame:overlap_set, literal(OverlapId), Strategy).
 
-	expand_mapping(Strategy, Id1, Mapping1),
-	expand_mapping(Strategy, Id2, Mapping2),
-
-	overlap([Id1:Mapping1, Id2:Mapping2], Overlaps),
-	print_overlaps(Overlaps).
-
-print_overlaps([]).
-print_overlaps([Key-Value|T]) :-
-	length(Value, ValueN),
-	format('~w: ~w~n', [Key, ValueN]),
-	print_overlaps(T).
 
 overlap(MappingList, Overlaps) :-
 	create_pairs(MappingList, Pairs),
