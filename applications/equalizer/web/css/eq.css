@@ -5,7 +5,7 @@ body {
 
 /* header */
 #header {
-	border-bottom: 1px solid #CCCCCC;
+	border-bottom: 2px solid #3875D7;
     padding: 5px 10px;
 	height: 19px;
 }
@@ -31,7 +31,7 @@ body {
 }
 #header a {
 	text-decoration: none;
-	color: #3875D7
+	color: #3875D7;
 }
 
 .mappinglist td {

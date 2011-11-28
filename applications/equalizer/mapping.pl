@@ -220,19 +220,18 @@ html_correspondence(Source, Target, Prov, Relations) -->
 	},
 
 	html([div(class('yui3-g'),
-		  [ div(class('yui3-u-2-5'),
+		  [ div(class('yui3-u-1-2'),
 			\html_resource_context(Source, Prov)),
-		    div(class('yui3-u-1-5'),
-			div(class(relations),
-			    [ input([type(hidden), name(source), value(Source)]),
-			      input([type(hidden), name(target), value(Target)]),
-			      ul(\html_relations(Relations, Relation)),
-			      div(['because: ',
-				   textarea([name(comment), rows(2)], [])
-				  ])
-			    ])),
-		    div(class('yui3-u-2-5'),
+		    div(class('yui3-u-1-2'),
 			\html_resource_context(Target, Prov))
+		  ]),
+	      div(class(relations),
+		  [ input([type(hidden), name(source), value(Source)]),
+		    input([type(hidden), name(target), value(Target)]),
+		    div(\html_relations(Relations, Relation)),
+		    div(class(comment), ['because: ',
+			 input([type(text), name(comment)], [])
+			])
 		  ])
 	     ]).
 
@@ -261,7 +260,7 @@ html_relations([Rel-Label|Rs], Active) -->
 	  ;   Checked = ''
 	  )
 	},
-	html(li(class(relation),
+	html(span(class(relation),
 		 [input([type(radio), name(relation), value(Rel), Checked]),
 		  ' ',
 		  label(Label)

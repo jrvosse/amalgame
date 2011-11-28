@@ -50,6 +50,7 @@ YUI.add('builder', function(Y) {
 			this.readonly = (this.get('readonly') != "false"); // string/boolean
 
 			// initalize the different modules
+			this._initLayout();
 			this._initGraph();
 			this._initControls();
 			this._initInfo();
@@ -82,6 +83,21 @@ YUI.add('builder', function(Y) {
 			} else {
 			  this._onNodeSelect({uri:this.get("alignment")});
 			};
+		},
+
+		_initLayout : function() {
+			// graph node is resizable in height
+			var resize = new Y.Resize({
+		        node: '#graph',
+				handles: 'b',
+				wrap: true
+		    }); 
+			resize.on("resize", this._onGraphResize, this);
+			resize.on("end", this._onGraphResize, this);
+			Y.on("windowresize", this._onWindowResize, this);
+			
+			// make controls and, graph-bottom fit in viewport
+			this._onWindowResize();
 		},
 
 		_initGraph : function() {
@@ -132,7 +148,32 @@ YUI.add('builder', function(Y) {
 			});
 		},
 		
-
+		// helper functions for resizing
+		_contentHeight : function() {
+			var winHeight = Y.DOM.winHeight(),
+				headerHeight = Y.one("#header").get("offsetHeight");
+			return (winHeight - headerHeight - 12);	
+		},
+		_onGraphResize : function(e) {
+			// the bottom node needs be update according to the remaining space
+			var bottomHeight = this._contentHeight()-(e.info.offsetHeight+10);
+			Y.one("#bottom").setStyle("height", bottomHeight);
+			
+			// resize sets fixed width, but we want a fluid width
+			Y.one("#graph").get("parentNode").setStyle("width", "100%"); 
+			Y.one("#graph").setStyle("width", "100%");
+		},
+		_onWindowResize : function() {
+			var contentHeight = this._contentHeight(),
+				graphHeight = contentHeight - (Y.one("#bottom").get("offsetHeight")+10);
+			Y.one("#graph").get("parentNode").setStyle("height", graphHeight); 
+			Y.one("#graph").setStyle("height", graphHeight);
+			Y.one("#graph").get("parentNode").setStyle("width", "100%"); 
+			Y.one("#graph").setStyle("width", "100%");
+			Y.one("#controls").setStyle("height", contentHeight);
+		},
+		
+		
 		_fetchGraph : function(conf) {
 			var alignment = this.get("alignment"),
 				paths = this.get("paths"),

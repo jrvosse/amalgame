@@ -80,7 +80,8 @@ YUI.add('mapping', function(Y) {
 			this.detailOverlay = new Y.Overlay({
 				srcNode:NODE_DETAIL,
 				visible:false,
-				width:"90%"
+				width:"80%",
+				centered:"#layout"
 			}).render();
 		},
 
@@ -139,7 +140,7 @@ YUI.add('mapping', function(Y) {
 					target = node.one("input[name=target]").get("value"),
 					checked = node.one("input:checked"),
 					relation = checked?checked.get("value"):null,
-					comment = node.one("textarea[name=comment]").getContent();
+					comment = node.one("input[name=comment]").getContent();
 				cs.push({
 					source:source,
 					target:target,
@@ -170,11 +171,11 @@ YUI.add('mapping', function(Y) {
 				server = this.get("paths").cinfo;
 
 			// position the overlay below the currently selected row
-			overlay.set("width", node.get("offsetWidth"));
-			overlay.set("align", {
-			node:node,
-			points:[Y.WidgetPositionAlign.TR, Y.WidgetPositionAlign.BR]
-			});
+			//overlay.set("width", node.get("offsetWidth"));
+			//overlay.set("align", {
+			//node:node,
+			//points:[Y.WidgetPositionAlign.TR, Y.WidgetPositionAlign.BR]
+			//});
 
 			// call the server
 			var data = {
