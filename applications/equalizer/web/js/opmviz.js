@@ -20,7 +20,7 @@ YUI.add('opmviz', function(Y) {
 		datasource: {
 			value: null
 		},
-		mappings: {
+		nodes: {
 			value: null
 		}
 	};
@@ -55,7 +55,7 @@ YUI.add('opmviz', function(Y) {
 			  svgnode.setAttribute("class", "selected");
 			}
 		
-			var node = oSelf.get('mappings')[id];
+			var node = oSelf.get('nodes')[id];
 			Y.log(node);
 			if (node && node.type == 'mapping' && node.stats) {
 			  oSelf._insert_info(svgnode, oSelf._layout_stats(node.stats));
