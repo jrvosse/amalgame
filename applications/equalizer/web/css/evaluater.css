@@ -80,17 +80,59 @@
 	text-align: center;
 }
 
-/* resource info*/
+/* detail view */
+#detail {
+	border: 1px solid #444;
+	background-color: #DDD;
+}
+#detail .yui3-widget-bd {
+	margin: 5px;
+}
+#detail .yui3-widget-ft {
+	margin: 5px;
+}
+#detail .relations {
+	text-align: center;
+}
+#detail .options {
+	text-align: right;
+}
+#detail .buttons {
+	text-align: right;
+	padding: 5px;
+}
+#detail .oquote,
+#detail .cquote {
+	display: none;
+}
+#detail .l_lang,
+#detail .lang {
+	color: #777;
+}
+#detail .relations {
+	padding: 5px;
+}
+#detail .relation {
+	padding: 0 5px;
+}
+#detail .relation label {
+	padding-left: 2px;
+}
+#detail .comment input {
+	width: 400px;
+}
 .resource-info {
-    margin: 5px;
+	height: 250px;
     padding: 5px;
+	overflow-y: scroll;
+	border: 1px solid #888;
+	background-color: #FFF;
 }
 .resource-info .label {
 	font-size: 130%;
 }
 .resource-info .uri a {
 	font-size: 85%;
-	color: #666;
 }
 .resource-info .hd {
 	padding-top: 8px;
@@ -99,7 +141,7 @@
 	padding: 2px 4px;
 }
 .resource-info .definition,
-.resource-info .scope {
+.resource-info .scope .bd {
 	color: #666;
 	font-size: 90%;
 }
@@ -132,30 +174,22 @@
 	display: none;
 }
 
-/* overlay */
-#detail {
-	border: 1px solid #808080;
-	background-color: #DDD;
+.evidence {
+	border-width: 0 1px 1px 1px;
+	border-style: solid;
+	border-color: #888;
+    background-color: white;
 }
-#detail .yui3-widget-bd {
-	padding: 5px;
+.evidence .method {
+	padding-left: 5px;
+}	
+.evidence .source {
+	text-align: left;
 }
-#detail .yui3-widget-ft {
-	border-top: 1px solid #AAA;
-    padding: 5px 10px;
+.evidence .target {
 	text-align: right;
 }
-
-#detail .relations {
-	padding: 5px;
-}
-#detail .relation {
-	padding: 0 5px;
-}
-#detail .relation label {
-	padding-left: 2px;
-}
-#detail .yui3-g {
-	border-top: 1px solid #CCC;
-	margin-bottom: 15px;
+.evidence .source object,
+.evidence .target object {
+	width: 95%;
 }

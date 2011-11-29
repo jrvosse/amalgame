@@ -97,8 +97,8 @@ html_overlay -->
 		       ]),
 		   div(class('yui3-widget-ft'),
 		       [ div(class(controls),
-			     [ div(class(options), \html_options),
-			       div(class(buttons), \html_buttons)
+			     [ div(class(buttons), \html_buttons),
+			       div(class(options), \html_options)
 			     ])
 		       ])
 		  ])).

@@ -68,21 +68,21 @@ match(align(S, T, Prov0), BackgroundMatches, align(S, T, [Prov|Prov0]), Options)
 		source_steps(Steps1),
 		target_steps(Steps2),
 		graph([R1,R2])
-
 	       ].
-	/* FIXME, see descendent match
+/*
 	has_map([AncS, AncT],_,O, Graph),
 	memberchk(relation(AncMapRel), O),
 	Prov = [method(ancestor_match),
 		graph([R1,R2, rdf(AncS, AncMapRel, AncT)])
 	       ].*/
 
-ancestor(R, MaxSteps, Parent, rdf_reachable(R, Prop, Parent), Steps) :-
+ancestor(R, MaxSteps, Parent, rdf(R, Prop, Parent), Steps) :-
 	rdf_equal(skos:broader, Prop),
 	rdf_reachable(R, Prop, Parent, MaxSteps, Steps),
 	\+ R == Parent.
-ancestor(R, MaxSteps, Parent, rdf_reachable(Parent, Prop, R), Steps) :-
-	rdf_equal(skos:narrower, Prop),
-	rdf_reachable(Parent, Prop, R, MaxSteps, Steps),
+ancestor(R, MaxSteps, Parent, rdf(R, Broader, Parent), Steps) :-
+	rdf_equal(skos:narrower, Narrower),
+	rdf_equal(skos:broader, Broader),
+	rdf_reachable(Parent, Narrower, R, MaxSteps, Steps),
 	\+ R == Parent,
-	\+ rdf_reachable(R, skos:broader, Parent).
+	\+ rdf_reachable(R, Broader, Parent).

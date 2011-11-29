@@ -196,7 +196,7 @@ YUI.add('evaluater', function(Y) {
 					target = node.one("input[name=target]").get("value"),
 					checked = node.one("input:checked"),
 					relation = checked?checked.get("value"):null,
-					comment = node.one("textarea[name=comment]").getContent();
+					comment = node.one("input[name=comment]").getContent();
 				cs.push({
 					source:source,
 					target:target,

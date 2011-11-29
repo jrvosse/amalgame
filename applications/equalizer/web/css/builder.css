@@ -149,6 +149,7 @@ body {
 #infocontent {
 	border-top: 1px solid #CCC;
 	border-bottom: 1px solid #CCC;
+	overflow: hidden;
 }
 #info .parameters {
 	border-top: 1px solid #CCC;
@@ -250,46 +251,38 @@ img.explain {
 	font-weight: bold;
 }	
 #detail .yui3-widget-bd {
-	margin: 6px 6px 0;
-	height: 315px;
+	margin: 5px;
 }
 #detail .yui3-widget-ft {
-	margin: 0 6px 6px;
+	margin: 5px;
 }
 #detail .relations {
-	height: 42px;
-	margin: 2px 0 1px;
-	padding: 5px;
-	background-color: white;
-	text-align: center;
+	display: none;
 }
-#detail .relation {
-	padding: 0 5px;
-}
-#detail .relation label {
-	padding-left: 2px;
-}
-#detail .comment {
-	padding-top: 5px;
-}
-#detail .comment input {
-	width: 400px;
+#detail .options {
+	display: none;
 }
 #detail .buttons {
 	text-align: right;
-	background-color: white;
 	padding: 5px;
-	margin: 1px 0;
 }
-#detail .options {
-	text-align: right;
-	padding: 1px 5px 0;
+#detail .buttons .submit {
+	display: none;
+}
+#detail .oquote,
+#detail .cquote {
+	display: none;
+}
+#detail .l_lang,
+#detail .lang {
+	color: #777;
 }
 
 .resource-info {
 	height: 250px;
     padding: 5px;
 	overflow-y: scroll;
+	border: 1px solid #888;
 	background-color: #FFF;
 }
 .resource-info .label {
@@ -297,7 +290,6 @@ img.explain {
 }
 .resource-info .uri a {
 	font-size: 85%;
-	color: #666;
 }
 .resource-info .hd {
 	padding-top: 8px;
@@ -306,7 +298,7 @@ img.explain {
 	padding: 2px 4px;
 }
 .resource-info .definition,
-.resource-info .scope {
+.resource-info .scope .bd {
 	color: #666;
 	font-size: 90%;
 }
@@ -338,5 +330,23 @@ img.explain {
 .resource-info .hidden {
 	display: none;
 }
- 
 
+.evidence {
+	border-width: 0 1px 1px 1px;
+	border-style: solid;
+	border-color: #888;
+    background-color: white;
+}
+.evidence .method {
+	padding-left: 5px;
+}	
+.evidence .source {
+	text-align: left;
+}
+.evidence .target {
+	text-align: right;
+}
+.evidence .source object,
+.evidence .target object {
+	width: 95%;
+}

@@ -13,6 +13,7 @@
 :- use_module(library(settings)).
 :- use_module(user(user_db)).
 :- use_module(components(label)).
+:- use_module(components(graphviz)).
 
 :- use_module(library(skos/vocabularies)).
 :- use_module(library(amalgame/expand_graph)).
@@ -151,9 +152,9 @@ http_data_evaluate(Request) :-
 
 	evaluation_graph(Alignment, Mapping, Graph),
 	flush_stats_cache(Graph, Alignment),
-	(   has_correspondence(align(Source, Target, OldProv), Graph)
-	->  remove_correspondence(align(Source, Target, OldProv), Graph)
-	;   OldProv = [] % Fixme, we want to use the prov from Mapping here!
+	(   has_correspondence(align(Source, Target, EvalProv), Graph)
+	->  remove_correspondence(align(Source, Target, EvalProv), Graph)
+	;   EvalProv = [] % Fixme, we want to use the prov from Mapping here!
 	),
 	now_xsd(Now),
 	Options = [
@@ -162,7 +163,7 @@ http_data_evaluate(Request) :-
 			 user(User),
 			 date(Now),
 			 comment(Comment),
-			 relation(Relation)]|OldProv])
+			 relation(Relation)]|EvalProv])
 		  ],
 	debug(ag_expand, 'assert cell options: ~w', Options),
 	mapping_relation(RLabel, Relation),
@@ -211,20 +212,23 @@ http_correspondence(Request) :-
 	print_html(HTML).
 
 html_correspondences([], _) --> !.
-html_correspondences([align(Source,Target,[Prov|_])|Cs], Relations) -->
-	html_correspondence(Source, Target, Prov, Relations),
+html_correspondences([align(Source,Target,Evidence)|Cs], Relations) -->
+	html_correspondence(Source, Target, Evidence, Relations),
 	html_correspondences(Cs, Relations).
 
-html_correspondence(Source, Target, Prov, Relations) -->
-	{ option(relation(Relation), Prov, '')
+html_correspondence(Source, Target, Evidence, Relations) -->
+	{ %option(relation(Relation), Prov, '')
+	  Relation = ''
 	},
-
 	html([div(class('yui3-g'),
 		  [ div(class('yui3-u-1-2'),
-			\html_resource_context(Source, Prov)),
+			\html_resource_context(Source, Evidence)),
 		    div(class('yui3-u-1-2'),
-			\html_resource_context(Target, Prov))
+			\html_resource_context(Target, Evidence))
 		  ]),
+	      div(class(evidences),
+		  \html_evidences(Evidence, Source, Target)
+		  ),
 	      div(class(relations),
 		  [ input([type(hidden), name(source), value(Source)]),
 		    input([type(hidden), name(target), value(Target)]),
@@ -235,6 +239,32 @@ html_correspondence(Source, Target, Prov, Relations) -->
 		  ])
 	     ]).
 
+html_evidences([],_,_) --> !.
+html_evidences([E|Es],Source,Target) -->
+	{ option(method(Method), E, ''),
+	  option(graph(Graph), E, [])
+	},
+	html(div(class(evidence),
+		 [ div(class(method), ['match: ', Method]),
+		   div(class('graph yui3-g'),
+		       [ div(class('source yui3-u-1-2'),
+			     \html_evidence_graph(Graph, Source, 'LR')),
+			 div(class('target yui3-u-1-2'),
+			     \html_evidence_graph(Graph, Target, 'RL'))
+		       ])
+		 ])),
+	html_evidences(Es,Source,Target).
+
+html_evidence_graph([],_,_) --> !.
+html_evidence_graph(Graph,Node,Layout) -->
+	graphviz_graph(evidence_graph(Graph,Node),
+		       [graph_attributes([rankdir(Layout)])]).
+
+evidence_graph(Graph, Node, NodeTriples) :-
+	T = rdf(Node, _, _), % FIX me, this should include more triples
+	findall(T, member(T, Graph), NodeTriples).
+
+
 html_resource_context('',_) --> !.
 html_resource_context(URI, Prov) -->
 	{ rdf_display_label(URI, Label),
@@ -243,10 +273,8 @@ html_resource_context(URI, Prov) -->
 	  related_resources(URI, Related)
 	},
 	html(div(class('resource-info'),
-		 [div(class(label), Label),
+		 [div(class(label), a([alt(URI), href(URI)], Label)),
 		  div(class(alt), \html_alt_labels(Alt)),
-		  div(class(uri),
-		      \rdf_link(URI, [resource_format(plain)])),
 		  \html_definition(URI),
 		  \html_scope(URI),
 		  \html_resource_tree(Tree),
@@ -268,21 +296,23 @@ html_relations([Rel-Label|Rs], Active) -->
 	html_relations(Rs, Active).
 
 
-resource_alternative_labels(R, Label, Prov, Alt) :-
-	findall(L, (rdf_label(R, L1), literal_text(L1,L)), Ls),
+resource_alternative_labels(R, Label, _Prov, Alt) :-
+	findall(L, (rdf_label(R, L)), Ls),
 	delete(Ls, Label, Alt0),
-	sort(Alt0, Alt1),
+	sort(Alt0, Alt).
+
+/*
 	(   matching_label(R, Prov, MatchingLabel), selectchk(MatchingLabel, Alt1, Rest)
 	->  Alt = [match(MatchingLabel)|Rest]
 	;   Alt = Ls
 	).
 
 
-
 matching_label(S, Prov, MatchingLabel) :-
 	option(graph(Graph), Prov),
 	member(rdf(S,_P,O), Graph),
 	literal_text(O, MatchingLabel).
+*/
 
 
 %%	related_resources(+Resource, -Related)
@@ -345,11 +375,11 @@ html_label_list([L|Ls]) -->
 	html([', ']),
 	html_label_list(Ls).
 
-html_label(match(L)) -->
-	html(span([class(match), style('font-weight: bold')], L)).
+%html_label(match(L)) -->
+%	html(span([class(match), style('font-weight: bold')], L)).
 
 html_label(L) -->
-	html(L).
+	turtle_label(L).
 
 html_definition(URI) -->
 	{ rdf_has(URI, skos:definition, Lit),
