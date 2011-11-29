@@ -120,16 +120,15 @@ YUI.add('opmviz', function(Y) {
 			infoNode.appendChild(document.createTextNode(HTML));
 			infoNode.setAttribute("class", "info");
 			infoNode.setAttribute("text-anchor", "middle");
-			infoNode.setAttribute("y",y+8);
+			infoNode.setAttribute("y",y+6);
 			infoNode.setAttribute("x",x);
 			infoNode.setAttribute("font-family","Times,serif");
-			infoNode.setAttribute("font-size", 10);
 			textNode.setAttribute("y",y-4);
 			target.appendChild(infoNode);
 		},
 
 		_layout_stats : function(stats) {
-			return 's:'+stats.sperc+'% t:'+stats.tperc+'%';
+			return stats.sperc+'% - '+stats.tperc+'%';
 		},
 
 		_fetchNodeStats : function(uri, target) {

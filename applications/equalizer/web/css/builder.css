@@ -174,11 +174,16 @@ body {
 .yui3-opmviz {
 	padding: 5px 5px 15px;
 }
+.yui3-opmviz .edge text {
+	font-size: 11px;
+}
 .yui3-opmviz .selected text {
 	font-weight: bold;
 }
-.yui3-opmviz .selected text.info {
+.yui3-opmviz .info,
+.yui3-opmviz .selected .info {
 	font-weight: normal;
+	font-size: 9px;
 }
 .yui3-opmviz .selected ellipse,
 .yui3-opmviz .selected polygon {
