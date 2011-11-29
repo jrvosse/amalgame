@@ -346,12 +346,11 @@ img.explain {
 	padding-left: 5px;
 }	
 .evidence .source {
-	text-align: left;
+	text-align: right;
 }
 .evidence .target {
-	text-align: right;
+	text-align: left;
 }
 .evidence .source object,
 .evidence .target object {
-	width: 95%;
 }

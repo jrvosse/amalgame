@@ -62,7 +62,8 @@ YUI.add('builder', function(Y) {
 			  Y.one('#hint').setContent('Please login to make changes');
 			  Y.all('button').each(function(button) { button.setAttribute("disabled", true); });
 			};
-
+			
+			
 			this.opmviz.on("nodeSelect", this._onNodeSelect, this);
 			this.infobox.after("deleteNode", this._onNodeDelete, this);
 			this.infobox.after("nodeUpdate", this._onNodeUpdate, this);
@@ -71,6 +72,16 @@ YUI.add('builder', function(Y) {
 
 			this.after('nodesChange', function(o) {
 				this.controls.set("nodes", o.newVal);
+			}, this);
+			
+			this.after("selectedChange", function(o) {
+				var selected = o.newVal,
+					node = this.get("nodes")[selected];
+					
+				this.opmviz.set("selected", selected);
+				this.infobox.set("selected", node);
+				this.controls.set("selected", node);
+				this.mapping.set("selected", node);
 			}, this);
 		},
 
@@ -193,7 +204,7 @@ YUI.add('builder', function(Y) {
 				on:{success:function(e,o) {
 					var r =	Y.JSON.parse(o.responseText);
 					oSelf.set("nodes", r.nodes);
-					oSelf.opmviz.set("selected", r.focus);
+					oSelf.set("selected", r.focus);
 					oSelf.opmviz.set("nodes", r.nodes);
 				}}
 			});
@@ -210,11 +221,9 @@ YUI.add('builder', function(Y) {
 				on:{success:function(e,o) {
 					var response = Y.JSON.parse(o.responseText);
 					oSelf.set("nodes", response.nodes);
+					oSelf.set("selected", response.focus);
 					if (data.alignment == response.alignment) {
 						oSelf.opmviz.set("nodes", response.nodes);
-						Y.log("fire nodeSelect after update");
-						Y.log(response);
-						oSelf.opmviz.fire("nodeSelect", {uri:response.focus});
 					} else { // alignment changed name, we need to fully reload ...
 						oSelf.set("alignment", response.alignment);
 						var l = window.location;
@@ -233,14 +242,9 @@ YUI.add('builder', function(Y) {
 					alignment:this.get("alignment"),
 					uri:o.uri
 				},
-				selected = this.get("alignment"),
-				node = this.get("nodes")[selected];
+				selected = this.get("alignment");
 				
 			this.set("selected", selected);	
-			this.opmviz.set("selected", selected);
-			this.infobox.set("selected", node);
-			this.controls.set("selected", node);
-			this.mapping.set("mapping", node);
 
 			Y.io(paths.deletenode, {
 				data:data,
@@ -248,19 +252,12 @@ YUI.add('builder', function(Y) {
 					var r = Y.JSON.parse(o.responseText);
 					oSelf.set("nodes", r.nodes);
 					oSelf.opmviz.set("nodes", r.nodes);
-					
 				}}
 			})
 		},
 
 		_onNodeSelect : function(e) {
-			var uri = e.uri;
-			var node = this.get("nodes")[uri];
-			// update the controls and the info
-			this.set("selected", uri);
-			this.controls.set("selected", node);
-			this.infobox.set("selected", node);
-			this.mapping.set("selected", node);
+			this.set("selected", e.uri);
 			this._updateNodes();
 		}
 	});

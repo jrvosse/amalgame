@@ -258,7 +258,8 @@ html_evidences([E|Es],Source,Target) -->
 html_evidence_graph([],_,_) --> !.
 html_evidence_graph(Graph,Node,Layout) -->
 	graphviz_graph(evidence_graph(Graph,Node),
-		       [graph_attributes([rankdir(Layout)])]).
+		       [shape_hook(evidence_shape),
+			graph_attributes([rankdir(Layout)])]).
 
 evidence_graph(Graph, Node, NodeTriples) :-
 	T = rdf(Node, _, _), % FIX me, this should include more triples
@@ -468,3 +469,19 @@ html_tree_children([]) --> !.
 html_tree_children([C|Cs]) -->
 	html_tree(C),
 	html_tree_children(Cs).
+
+
+
+
+%%	evidence_shape(+Resource, -Shape)
+%
+%	Defines graph node shape for different types of evidence
+%	resources.
+
+evidence_shape(literal(_),
+	       [shape(box),
+		style(filled),
+		fontsize(10)]) :-
+	!.
+evidence_shape(_,
+	       [fontsize(10)]).
