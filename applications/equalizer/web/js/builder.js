@@ -106,7 +106,7 @@ YUI.add('builder', function(Y) {
 			});
 			this.opmviz = new Y.OPMViz({
 				datasource: DS,
-				mappings: this.get("nodes"),
+				nodes: this.get("nodes"),
 				alignment: this.get("alignment")
 			}).render(NODE_OPM);
 		},
@@ -207,8 +207,8 @@ YUI.add('builder', function(Y) {
 					var r =	Y.JSON.parse(o.responseText);
 					if(r.nodes) { // TBD check if nodes is changed
 						oSelf.set("nodes", r.nodes);
-						opmviz.set("nodes", r.nodes);
 						oSelf._fetchGraph();
+						oSelf.opmviz.set("nodes", r.nodes);
 					}
 				}}
 			});
@@ -287,6 +287,7 @@ YUI.add('builder', function(Y) {
 			this.controls.set("selected", node);
 			this.infobox.set("selected", node);
 			this.opmviz.set("active", uri);
+			this._updateNodes();
 			if(node.type=="mapping") {
 				this.mapping.set("mapping", uri);
 			} else {
