@@ -65,7 +65,6 @@ http_add_process(Request) :-
 	subtract(Params1, SecParams, Params),
 	(   Update == true
 	->  rdf_retractall(Process, amalgame:secondary_input, _, Alignment),
-	    assert_secondary_inputs(SecInputs, Process, Alignment),
 	    update_process(Process, Alignment, Params), Focus = Process
 	;   ((nonvar(Source), nonvar(Target)) ; nonvar(Input))
 	->  new_process(Process, Alignment, Source, Target, Input, SecInputs, Params, Focus)
@@ -140,15 +139,15 @@ clean_dependent_caches(Process, Strategy, ProvGraph) :-
 %
 %	Create new amalgame process.
 
-new_process(Process, Alignment, Source, Target, Input, SecInputs, Params, Focus) :-
+new_process(Type, Alignment, Source, Target, Input, SecInputs, Params, Focus) :-
 	rdf_bnode(URI),
 	rdf_transaction( % this transaction is to make it MT safe
 	    (
-	    assert_process(URI, Process, Alignment, Params),
+	    assert_process(URI, Type, Alignment, Params),
 	    assert_user_provenance(URI, Alignment),
-	    assert_input(URI, Alignment, Source, Target, Input),
-	    assert_output(URI, Process, Alignment, Focus),
-	    assert_secondary_inputs(SecInputs, URI, Alignment)
+	    assert_input(URI, Type, Alignment, Source, Target, Input),
+	    assert_output(URI, Type, Alignment, Focus),
+	    assert_secondary_inputs(SecInputs, URI, Type, Alignment)
 	    )),
 
 	(   setting(precompute_mapping, true)
@@ -173,23 +172,30 @@ precompute(Process, Strategy) :-
 	with_mutex(Process, expand_process(Strategy, Process, Result)),
 	assert_overlap_output(Process, Strategy, Result).
 
+assert_input(_Process, Type, _Graph, _Source, _Target, _Input) :-
+	rdfs_subclass_of(Type, amalgame:'Analyzer'),
+	!.
 
-assert_input(Process, Graph, Source, Target, _Input) :-
+assert_input(Process, _Type, Graph, Source, Target, _Input) :-
 	nonvar(Source),
 	nonvar(Target),
 	!,
 	rdf_assert(Process, amalgame:source, Source, Graph),
 	rdf_assert(Process, amalgame:target, Target, Graph).
-assert_input(Process, Graph, _Source, _Target, Input) :-
+assert_input(Process, _Type, Graph, _Source, _Target, Input) :-
 	rdf_assert(Process, amalgame:input, Input, Graph).
 
-assert_secondary_inputs([], _, _).
-assert_secondary_inputs([URI|URIs], Process, Strategy) :-
+assert_secondary_inputs([], _, _, _).
+assert_secondary_inputs([URI|URIs], Process, Type, Strategy) :-
+	(   rdfs_subclass_of(Type, amalgame:'Analyzer')
+	->  rdf_equal(Pred, amalgame:input)
+	;   rdf_equal(Pred, amalgame:secondary_input)
+	),
 	(   is_dependent_chk(URI, Process, Strategy)
 	->  debug(eq, 'Not adding secondary input ~p, it will lead to cyclic dependency on process ~p', [URI, Process])
-	;   rdf_assert(Process, amalgame:secondary_input, URI, Strategy)
+	;   rdf_assert(Process, Pred, URI, Strategy)
 	),
-	assert_secondary_inputs(URIs, Process, Strategy).
+	assert_secondary_inputs(URIs, Process, Type, Strategy).
 
 assert_process(Process, Type, Graph, Params) :-
 	process_label(Type, Label),

@@ -251,7 +251,7 @@ exec_amalgame_process(Class, Process, Strategy, Module, Result, Time, Options) :
 exec_amalgame_process(Class, Process, Strategy, Module, Result, Time, Options) :-
 	rdfs_subclass_of(Class, amalgame:'Analyzer'),
 	!,
-	findall(Input, rdf(Process, amalgame:secondary_input, Input, Strategy), Inputs),
+	findall(Input, rdf(Process, amalgame:input, Input, Strategy), Inputs),
 	% We need the ids, not the values in most analyzers
 	timed_call(Module:analyzer(Inputs, Process, Strategy, Result, Options), Time).
 
