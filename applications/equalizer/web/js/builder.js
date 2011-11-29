@@ -207,6 +207,7 @@ YUI.add('builder', function(Y) {
 					var r =	Y.JSON.parse(o.responseText);
 					if(r.nodes) { // TBD check if nodes is changed
 						oSelf.set("nodes", r.nodes);
+						opmviz.set("nodes", r.nodes);
 						oSelf._fetchGraph();
 					}
 				}}
