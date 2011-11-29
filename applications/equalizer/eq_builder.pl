@@ -178,8 +178,8 @@ js_path(graphnodes, Path) :-
 	http_location_by_id(http_graph_nodes, Path).
 js_path(hint, Path) :-
 	http_location_by_id(http_json_hint, Path).
-%js_path(evaluate, Path) :-
-%	http_location_by_id(http_eq_evaluate , Path),
+js_path(eq_evaluate, Path) :-
+	http_location_by_id(http_eq_evaluate , Path).
 js_path(mapping, Path) :-
 	http_location_by_id(http_data_mapping, Path).
 js_path(evaluate, Path) :-

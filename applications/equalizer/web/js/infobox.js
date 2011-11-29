@@ -223,7 +223,7 @@ YUI.add('infobox', function(Y) {
 		_evaluateNode : function() {
 			var uri = this.get("selected").uri;
 			var alignment = this.get("alignment");
-			var page = this.get("paths").evaluate+'?alignment='+alignment +
+			var page = this.get("paths").eq_evaluate+'?alignment='+alignment +
 					      "&focus="+ uri;
 			Y.log(page);
 			this.get("controls").fire("evaluate", {data:{page:page}});
