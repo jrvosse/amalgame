@@ -11,7 +11,7 @@
 :- use_module(library(http/js_write)).
 :- use_module(library(yui3_beta)).
 :- use_module(user(user_db)).
-
+:- use_module(library(semweb/rdf_db)).
 :- use_module(library(amalgame/expand_graph)).
 :- use_module(library(amalgame/map)).
 
