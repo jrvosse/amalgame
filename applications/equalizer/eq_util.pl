@@ -197,7 +197,15 @@ node_prop(_, R, link, Link) :-
 	resource_link(R, Link).
 node_prop(S, Voc, count, Count) :-
 	stats_cache(Voc-S, stats(Count)).
-
+node_prop(S, Mapping, stats, Stats) :-
+	Stats = json([total=MN,
+		      sources=SN,
+		      targets=TN,
+		      sperc=SPerc,
+		      tperc=TPerc
+		     ]
+		    ),
+	stats_cache(Mapping-S, stats(MN, SN, TN, SPerc, TPerc)).
 %%	http:convert_parameter(+Type, +In, -URI) is semidet.
 %
 %	HTTP parameter conversion for the following types:

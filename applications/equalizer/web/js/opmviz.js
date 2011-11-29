@@ -19,6 +19,9 @@ YUI.add('opmviz', function(Y) {
 		},
 		datasource: {
 			value: null
+		},
+		mappings: {
+			value: null
 		}
 	};
 
@@ -40,17 +43,31 @@ YUI.add('opmviz', function(Y) {
 			}
 		},
 
-		syncUI : function() {
-			// put back the active selection
-			var active = this.get("active");
-			if(active) {
-				this.get("contentBox").all("a").each(function(node) {
-					if(node.getAttribute("xlink:href")==active) {
-						node.setAttribute("class", "selected");
-					}
-				})
+	      syncUI : function() {
+	          // put back the active selection
+	          var active = this.get("active");
+		  var oSelf = this;
+		  if(active) {
+		    this.get("contentBox").all("a").each(function(svgnode) {
+			var id=svgnode.getAttribute("xlink:href");
+	
+			if(id == active) {
+			  svgnode.setAttribute("class", "selected");
 			}
-		},
+		
+			var node = oSelf.get('mappings')[id];
+			Y.log(node);
+			if (node && node.type == 'mapping' && node.stats) {
+			  oSelf._insert_info(svgnode, oSelf._layout_stats(node.stats));
+			}
+			if (node && node.type == 'vocab' && node.count) {
+			  oSelf._insert_info(svgnode,node.count);
+			}
+
+
+		      })
+		  }
+	    },
 
 		setGraph : function(graph) {
 			this.get("contentBox").setContent(graph);
@@ -87,6 +104,10 @@ YUI.add('opmviz', function(Y) {
 			textNode.setAttribute("y",y-4);
 			target.appendChild(infoNode);
 		},
+
+	      _layout_stats : function(stats) {
+		return 's:'+stats.sperc+'% t:'+stats.tperc+'%';
+	      },
 
 		_fetchNodeStats : function(uri, target) {
 			var datasource = this.get("datasource");
