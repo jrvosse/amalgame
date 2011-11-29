@@ -6,8 +6,7 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_label)).
-
-:- use_module(eq_util).
+:- use_module(library(amalgame/expand_graph)).
 
 :- http_handler(amalgame(data/hint), http_json_hint, []).
 

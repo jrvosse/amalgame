@@ -18,7 +18,7 @@ analyzer(Inputs, Process, Strategy, overlap(Results), _Options) :-
 	maplist(ensure_overlap_output(Process, Strategy), Overlaps, Results).
 
 expander(Strategy, Id, Id:Expanded) :-
-	expand_mapping(Strategy, Id, Expanded).
+	expand_mapping(Strategy, Id, Expanded, _).
 
 ensure_overlap_output(Process, Strategy, OverlapId-Mapping, OutputUri-MappingFlat) :-
 	append(Mapping, MappingFlat),

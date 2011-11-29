@@ -147,7 +147,7 @@ http_materialize_graph(Request) :-
 	rdf_has(Graph, opmv:wasGeneratedBy, Process, RealProp),
 	rdf(Graph, RealProp, Process, Strategy),
 	\+ rdfs_individual_of(Strategy, amalgame:'AlignmentTrace'),
-	expand_mapping(Strategy, Graph, Mappings),
+	expand_mapping(Strategy, Graph, Mappings, _),
 	materialize_mapping_graph(Mappings, [graph(Target)]),
 	align_clear_stats(graph(Target)),
 	align_ensure_stats(all(Target)),

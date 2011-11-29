@@ -36,7 +36,7 @@ http_eq_nodeinfo(Request) :-
 	format('Content-type: ~w~n~n', [Type]),
 	(   rdfs_individual_of(URL, amalgame:'Mapping')
 	->  with_mutex(URL, mapping_counts(URL, Alignment, _MN, _SN, _TN, SPerc, TPerc)),
-	    format('s:~w\% t:~w\%', [SPerc,TPerc])
+	    format('~w\% - ~w\%', [SPerc,TPerc])
 	;   (   rdfs_individual_of(URL, skos:'ConceptScheme')
 	    ->	with_mutex(URL, concept_count(URL, Alignment, Count)),
 		format('~w', [Count])

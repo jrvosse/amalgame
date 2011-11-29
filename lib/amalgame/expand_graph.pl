@@ -1,13 +1,18 @@
 :- module(expand_graph,
-	  [ expand_mapping/3,
-	    expand_vocab/3,
+	  [ expand_mapping/4,
+	    expand_vocab/4,
 	    expand_process/3,
 	    new_output/5,
 	    flush_expand_cache/0,
 	    flush_expand_cache/2,     % +Id, +Strategy
 	    process_options/3,
 	    save_mappings/3,
-	    evaluation_graph/3
+	    evaluation_graph/3,
+	    mapping_counts/7,
+	    concept_count/3,
+	    stats_cache/2,
+	    flush_stats_cache/0,
+	    flush_stats_cache/2 % +Mapping, +Strategy
 	  ]).
 
 :- use_module(library(semweb/rdf_db)).
@@ -18,7 +23,7 @@
 :- use_module(library(amalgame/map)).
 :- use_module(library(amalgame/opm)).
 :- use_module(library(amalgame/ag_provenance)).
-
+:- use_module(library(amalgame/vocabulary)).
 :- use_module(library(skos/vocabularies)).
 
 :- dynamic
@@ -27,7 +32,7 @@
 :- setting(cache_time, float, 0.5,
 	   'Minimum execution time to cache results').
 
-%%	expand_mapping(+Strategy, +Id, -Result) is det.
+%%	expand_mapping(+Strategy, +Id, -Result, -Stats) is det.
 %
 %	Generate the Result corresponding to Id.
 %	We use a mutex so that the next thread will use the cached
@@ -38,7 +43,7 @@
 %          if Id is a Vocabulary Result is an assoc or one of
 %          scheme(Scheme) or type(Class)
 
-expand_mapping(_Strategy, Id, Mapping) :-
+expand_mapping(Strategy, Id, Mapping, Stats) :-
 	(   rdfs_individual_of(Id, amalgame:'EvaluatedMapping')
 	;   rdfs_individual_of(Id, amalgame:'LoadedMapping')
 	;   rdf(Id, opmv:wasGeneratedBy, Process),
@@ -46,9 +51,10 @@ expand_mapping(_Strategy, Id, Mapping) :-
 	),
 	!,
 	findall(C, has_correspondence(C,Id), Mapping0),
-	sort(Mapping0, Mapping).
+	sort(Mapping0, Mapping),
+	mapping_stats(Id, Mapping, Strategy, Stats).
 
-expand_mapping(Strategy, Id, Mapping) :-
+expand_mapping(Strategy, Id, Mapping, Stats) :-
 	rdf_has(Id, opmv:wasGeneratedBy, Process, OutputType),
 	rdf(Id, OutputType, Process, Strategy),
 	!,
@@ -56,22 +62,26 @@ expand_mapping(Strategy, Id, Mapping) :-
 	materialize_results_if_needed(Strategy, Process, Result),
 	select_result_mapping(Id, Result, OutputType, Mapping),
 	length(Mapping, Count),
-	debug(ag_expand, 'Found ~w mappings for ~p', [Count, Id]).
+	debug(ag_expand, 'Found ~w mappings for ~p', [Count, Id]),
+	mapping_stats(Id, Mapping, Strategy, Stats).
 
 
-%%	expand_vocab(+Strategy, +Id, -Concepts) is det.
+%%	expand_vocab(+Strategy, +Id, -Concepts, -Stats) is det.
 %
 %	Generate the Vocab according to Strategy.
 %	@param Id is URI of a conceptscheme or an identifier for a set
 %	of concepts derived by a vocabulary process,
 
-expand_vocab(Strategy, Id, Vocab) :-
+expand_vocab(Strategy, Id, Vocab, Stats) :-
 	rdf_has(Id, opmv:wasGeneratedBy, Process ,OutputType),
 	rdf(Id, OutputType, Process, Strategy),
 	!,
-	with_mutex(Process, expand_process(Strategy, Process, Vocab)).
+	with_mutex(Process, expand_process(Strategy, Process, Vocab)),
+	vocab_stats(Id, Vocab, Strategy, Stats).
 
-expand_vocab(_Strategy, Vocab, Vocab).
+expand_vocab(Strategy, Vocab, Vocab, Stats) :-
+	vocab_stats(Vocab, Vocab, Strategy, Stats).
+
 
 %%	expand_process(+Strategy, +Process, -Result)
 %
@@ -205,15 +215,15 @@ exec_amalgame_process(Type, Process, Strategy, Module, Mapping, Time, Options) :
 	rdfs_subclass_of(Type, amalgame:'Matcher'),
 	!,
 	findall(S, rdf(Process, amalgame:secondary_input, S), SecInputs),
-	maplist(expand_mapping(Strategy), SecInputs, SecInputNF),
+	maplist(expand_mapping(Strategy), SecInputs, SecInputNF, _),
 	flatten(SecInputNF, SecInput),
 	(   rdf(Process, amalgame:source, SourceId, Strategy),
 	    rdf(Process, amalgame:target, TargetId, Strategy)
-	->  expand_vocab(Strategy, SourceId, Source),
-	    expand_vocab(Strategy, TargetId, Target),
+	->  expand_vocab(Strategy, SourceId, Source, _),
+	    expand_vocab(Strategy, TargetId, Target, _),
 	    timed_call(Module:matcher(Source, Target, Mapping0, [snd_input(SecInput)|Options]), Time)
 	;   rdf(Process, amalgame:input, InputId)
-	->  expand_mapping(Strategy, InputId, MappingIn),
+	->  expand_mapping(Strategy, InputId, MappingIn, _),
 	    timed_call(Module:filter(MappingIn, Mapping0, [snd_input(SecInput)|Options]), Time)
 	),
 	merge_provenance(Mapping0, Mapping).
@@ -224,9 +234,9 @@ exec_amalgame_process(Class, Process, Strategy, Module, Result, Time, Options) :
 	NewVocOption = new_scheme(NewVocab),
 	!,
 	once(rdf(Process, amalgame:input, Input, Strategy)),
-	expand_vocab(Strategy, Input, Vocab),
+	expand_vocab(Strategy, Input, Vocab, _),
 	findall(S, rdf_has(Process, amalgame:secondary_input, S), Ss),
-	maplist(expand_mapping(Strategy), Ss, Expanded),
+	maplist(expand_mapping(Strategy), Ss, Expanded, _),
 	append(Expanded, Mapping),
 	timed_call(Module:exclude(Vocab, Mapping, Result, [NewVocOption|Options]), Time).
 exec_amalgame_process(Class, Process, Strategy, Module, Result, Time, Options) :-
@@ -234,19 +244,19 @@ exec_amalgame_process(Class, Process, Strategy, Module, Result, Time, Options) :
 	!,
 	Result = select(Selected, Discarded, Undecided),
 	once(rdf(Process, amalgame:input, InputId, Strategy)),
-	expand_mapping(Strategy, InputId, MappingIn),
+	expand_mapping(Strategy, InputId, MappingIn, _),
 	timed_call(Module:selecter(MappingIn, Selected, Discarded, Undecided, Options), Time).
 exec_amalgame_process(Class, Process, Strategy, Module, Result, Time, Options) :-
 	rdfs_subclass_of(Class, amalgame:'VocabSelecter'),
 	!,
 	once(rdf(Process, amalgame:input, Input, Strategy)),
-	expand_vocab(Strategy, Input, Vocab),
+	expand_vocab(Strategy, Input, Vocab, _),
 	timed_call(Module:selecter(Vocab, Result, Options), Time).
 exec_amalgame_process(Class, Process, Strategy, Module, Result, Time, Options) :-
 	rdfs_subclass_of(Class, amalgame:'Merger'),
 	!,
 	findall(Input, rdf(Process, amalgame:input, Input, Strategy), Inputs),
-	maplist(expand_mapping(Strategy), Inputs, Expanded),
+	maplist(expand_mapping(Strategy), Inputs, Expanded, _),
 	timed_call(Module:merger(Expanded, Result, Options), Time).
 exec_amalgame_process(Class, Process, Strategy, Module, Result, Time, Options) :-
 	rdfs_subclass_of(Class, amalgame:'Analyzer'),
@@ -452,7 +462,7 @@ find_relation(Mapping, Cell, Default, Relation) :-
 
 save_mapping(Id, Strategy, ProvGraph, Options) :-
 	(   \+ rdf_graph(Id)
-	->  expand_mapping(Strategy, Id, Mapping),
+	->  expand_mapping(Strategy, Id, Mapping, _),
 	    materialize_mapping_graph(Mapping, [graph(Id)|Options])
 	;   add_relation_if_needed(Id, Options)
 	),
@@ -561,3 +571,118 @@ delete_eval_graph_admin(Strategy, Mapping, EvalGraph) :-
 	rdf_retractall(EvalProcess, _, _, Strategy).
 
 
+		 /*******************************
+		 *               stats		*
+		 *******************************/
+
+:- dynamic
+	stats_cache/2.
+
+user:message_hook(make(done(_)), _, _) :-
+	debug(ag_expand, 'Flushing stats cache after running make/0', []),
+	flush_stats_cache,
+	fail.
+
+flush_stats_cache :-
+	retractall(stats_cache(_,_)).
+
+flush_stats_cache(Mapping, Strategy) :-
+	retractall(stats_cache(Mapping-Strategy,_)).
+
+
+%%	mapping_counts(+MappingURI,+Strat,?MappingN,?SourceN,?TargetN,?SourcePerc,?TargetPerc)
+%	is det.
+%
+%	Counts for the mappings in MappingURI.
+%
+%       @param MappingN is the number of total correspondences
+%       @param SourceN is the number of source concepts mapped
+%       @param TargetN is the number of target concepts mapped
+
+mapping_counts(URL, Strategy, MN, SN, TN, SPerc, TPerc) :-
+	stats_cache(URL-Strategy, _),!,
+	stats_cache(URL-Strategy, stats(MN, SN, TN, SPerc, TPerc)).
+mapping_counts(URL, Strategy, MN, SN, TN, SPerc, TPerc) :-
+	expand_mapping(Strategy, URL, _Mapping, stats(MN, SN, TN, SPerc, TPerc)).
+
+
+%%	mapping_stats(+URL, +Mapping, +Strategy, -Stats)
+%
+%	Stats are statistics for mapping.
+
+mapping_stats(URL, Mapping, Strategy, Stats) :-
+	maplist(align_source, Mapping, Ss0),
+	maplist(align_target, Mapping, Ts0),
+	sort(Ss0, Ss),
+	sort(Ts0, Ts),
+	length(Mapping, MN),
+	length(Ss, SN),
+	length(Ts, TN),
+	Stats = stats(MN, SN, TN, SPerc, TPerc),
+	(   mapping_sources(URL, Strategy, InputS, InputT)
+	->  concept_count(InputS, Strategy, SourceN),
+	    concept_count(InputT, Strategy, TargetN),
+	    rounded_perc(SourceN, SN, SPerc),
+	    rounded_perc(TargetN, TN, TPerc)
+	;   SPerc = 100, TPerc = 100
+	),
+	flush_stats_cache(URL, Strategy),
+	assert(stats_cache(URL-Strategy, Stats)).
+
+rounded_perc(0, _, 0.0) :- !.
+rounded_perc(_, 0, 0.0) :- !.
+rounded_perc(Total, V, Perc) :-
+	Perc0 is V/Total,
+	dyn_perc_round(Perc0, Perc, 100).
+
+dyn_perc_round(P0, P, N) :-
+	P1 is round(P0*N),
+	(   P1 == 0
+	->  N1 is N*10,
+	    dyn_perc_round(P0, P, N1)
+	;   P is P1/(N/100)
+	).
+
+%%	concept_count(+Vocab, +Strategy, -Count)
+%
+%	Count is the number of concepts in Vocab when expanded in Strategy
+
+concept_count(Vocab, Strategy, Count) :-
+	stats_cache(Vocab-Strategy, stats(Count)),
+	!.
+concept_count(Vocab, Strategy, Count) :-
+	expand_vocab(Strategy, Vocab, _Scheme, stats(Count)).
+
+vocab_stats(Vocab, Scheme, Strategy, stats(Count)) :-
+	findall(C, vocab_member(C, Scheme), Cs),
+	length(Cs, Count),
+	retractall(stats_cache(Vocab-Strategy,_)),
+	assert(stats_cache(Vocab-Strategy, stats(Count))).
+
+
+%%	mapping_sources(+MappingURI, Strategy, -Source, -Target)
+%
+%	Source and Target are the recursive source and target
+%	vocabularies of Mapping.
+
+mapping_sources(URL, Strategy, S, T) :-
+	rdf_has(URL, opmv:wasGeneratedBy, Process, RealProp),
+	rdf(URL, RealProp, Process, Strategy),
+	!,
+	(   rdf(Process, amalgame:source, S0, Strategy),
+	    rdf(Process, amalgame:target, T0, Strategy)
+	->  vocab_source(S0, Strategy, S),
+	    vocab_source(T0, Strategy, T)
+	;   rdf(Process, amalgame:input, Input, Strategy)
+	->  mapping_sources(Input, Strategy, S, T)
+	).
+
+vocab_source(V, Strategy, S) :-
+	rdf_has(V, opmv:wasGeneratedBy, Process, Strategy),
+	rdf_has(Process, amalgame:input, Input, Strategy),
+	!,
+	vocab_source(Input, Strategy, S).
+vocab_source(V, _S, V).
+
+align_source(align(S,_,_), S).
+align_target(align(_,T,_), T).

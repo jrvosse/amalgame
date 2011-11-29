@@ -17,7 +17,7 @@
 :- use_module(components(label)).
 :- use_module(components(graphviz)).
 :- use_module(library(yui3)).
-
+:- use_module(library(amalgame/expand_graph)).
 :- use_module(eq_util).
 
 :- http_handler(amalgame(opmviz), http_opmviz, []).
