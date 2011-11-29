@@ -18,7 +18,7 @@ YUI.add('mapping', function(Y) {
 		alignment : {
 			value: null
 		},
-		mapping : {
+ 		selected : {
 			value: null
 		},
 		paths:{
@@ -41,7 +41,7 @@ YUI.add('mapping', function(Y) {
 			this._initDetail();
 
 			// bind the modules
-			this.after("mappingChange", this._onMappingChange, this);
+			this.after("selectedChange", this._onSelectedChange, this);
 			this.mappingtable.on("rowSelect", this._onCorrespondenceSelect, this);
 			NODE_DETAIL.one(".submit").on("click", this._onSubmit, this);
 			NODE_DETAIL.one(".next").on("click", this._onSubmit, this, "next");
@@ -53,6 +53,9 @@ YUI.add('mapping', function(Y) {
 		},
 
 		_initTable : function() {
+			var selected = this.get("selected"),
+				mapping = (selected.type=="mapping") ? selected.uri : null;
+				
 			// We define a datasource to simplify
 			// access to the mappings later and add caching support
 			var DS = new Y.DataSource.IO({
@@ -72,7 +75,7 @@ YUI.add('mapping', function(Y) {
 				srcNode: NODE_MAPPING_TABLE,
 				datasource:DS,
 				alignment: this.get("alignment"),
-				mapping:this.get("mapping")
+				mapping:mapping
 			});
 		},
 
@@ -85,11 +88,11 @@ YUI.add('mapping', function(Y) {
 			}).render();
 		},
 
-		_onMappingChange : function() {
-			var mapping = this.get("mapping");
-			if(mapping) {
+		_onSelectedChange : function() {
+			var selected = this.get("selected");
+			if(selected.type=="mapping") {
 				this.detailOverlay.set("visible", false);
-				this.mappingtable.set("mapping", mapping);
+				this.mappingtable.set("mapping", selected.uri);
 			}	
 		},
 
@@ -106,7 +109,7 @@ YUI.add('mapping', function(Y) {
 			var cs = this._getSelection();
 			var c = cs[0];
 			c.alignment = this.get("alignment");
-			c.mapping   = this.get("mapping");
+			c.mapping   = this.get("selected").uri;
 			if (c.relation) {
 			  this._submitCorrespondence(c);
 			}
@@ -180,7 +183,7 @@ YUI.add('mapping', function(Y) {
 			// call the server
 			var data = {
 				alignment:this.get("alignment"),
-				mapping:this.get("mapping"),
+				mapping:this.get("selected").uri,
 				source: this._source,
 				target: this._target,
 				allsource: NODE_SOURCE_ALL.get("checked"),

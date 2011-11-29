@@ -72,17 +72,6 @@ YUI.add('builder', function(Y) {
 			this.after('nodesChange', function(o) {
 				this.controls.set("nodes", o.newVal);
 			}, this);
-
-			this._fetchGraph();
-
-			// Let's get started by selecting the strategy node
-			// if we have no selection
-			var selected = this.get("selected");
-			if (selected) {
-			  this._onNodeSelect({uri:selected});
-			} else {
-			  this._onNodeSelect({uri:this.get("alignment")});
-			};
 		},
 
 		_initLayout : function() {
@@ -101,17 +90,16 @@ YUI.add('builder', function(Y) {
 		},
 
 		_initGraph : function() {
-			var DS = new Y.DataSource.IO({
-				source: this.get("paths").nodeinfo
-			});
 			this.opmviz = new Y.OPMViz({
-				datasource: DS,
+				paths:this.get("paths"),
 				nodes: this.get("nodes"),
-				alignment: this.get("alignment")
+				alignment: this.get("alignment"),
+				selected: this.get("selected")
 			}).render(NODE_OPM);
 		},
 
 		_initInfo : function() {
+			var selected = this.get("nodes")[this.get("selected")];
 			// The infobox is part of the controls,
 			// but has some additional routines
 			var DS = new Y.DataSource.IO({
@@ -122,6 +110,7 @@ YUI.add('builder', function(Y) {
 				srcNode: NODE_INFO,
 				alignment: this.get("alignment"),
 				mappings: this.get("nodes"),
+				selected: selected,
 				hint: this.get("paths").hint,
 				controls: this.controls,
 				readonly: this.readonly,
@@ -132,19 +121,20 @@ YUI.add('builder', function(Y) {
 		},
 
 		_initControls : function() {
+			var selected = this.get("nodes")[this.get("selected")];
 			this.controls = new Y.Controls({
 				srcNode: NODE_CONTROLS,
-				selected: this.get("selected"),
+				selected: selected,
 				nodes: this.get("nodes")
 			});
 		},
 		
 		_initMapping : function() {
-
+			var selected = this.get("nodes")[this.get("selected")];
 			this.mapping = new Y.Mapping({
 				paths: this.get("paths"),
 				alignment: this.get("alignment"),
-				mapping: this.get("selected")
+				selected: selected
 			});
 		},
 		
@@ -172,29 +162,6 @@ YUI.add('builder', function(Y) {
 			Y.one("#graph").setStyle("width", "100%");
 			Y.one("#controls").setStyle("height", contentHeight);
 		},
-		
-		
-		_fetchGraph : function(conf) {
-			var alignment = this.get("alignment"),
-				paths = this.get("paths"),
-				opmviz = this.opmviz;
-
-			if(alignment) {
-				conf = conf ? conf : {};
-				conf.graph = alignment;
-
-				Y.io(paths.opmgraph, {
-					data:conf,
-					on:{success: function(e,o) {
-						// As the server returns an XML document, including doctype
-						// we first take out the actual svg element
-						var SVG = o.responseXML.lastChild;
-						opmviz.setGraph(SVG);
-						}
-					}
-				})
-			}
-		},
 
 		_updateNodes : function() {
 			var oSelf = this,
@@ -207,7 +174,6 @@ YUI.add('builder', function(Y) {
 					var r =	Y.JSON.parse(o.responseText);
 					if(r.nodes) { // TBD check if nodes is changed
 						oSelf.set("nodes", r.nodes);
-						oSelf._fetchGraph();
 						oSelf.opmviz.set("nodes", r.nodes);
 					}
 				}}
@@ -227,8 +193,8 @@ YUI.add('builder', function(Y) {
 				on:{success:function(e,o) {
 					var r =	Y.JSON.parse(o.responseText);
 					oSelf.set("nodes", r.nodes);
-					oSelf.opmviz.fire("nodeSelect", {uri:r.focus});
-					oSelf._fetchGraph();
+					oSelf.opmviz.set("selected", r.focus);
+					oSelf.opmviz.set("nodes", r.nodes);
 				}}
 			});
 		},
@@ -245,7 +211,7 @@ YUI.add('builder', function(Y) {
 					var response = Y.JSON.parse(o.responseText);
 					oSelf.set("nodes", response.nodes);
 					if (data.alignment == response.alignment) {
-						oSelf._fetchGraph();
+						oSelf.opmviz.set("nodes", response.nodes);
 						Y.log("fire nodeSelect after update");
 						Y.log(response);
 						oSelf.opmviz.fire("nodeSelect", {uri:response.focus});
@@ -266,33 +232,36 @@ YUI.add('builder', function(Y) {
 				data = {
 					alignment:this.get("alignment"),
 					uri:o.uri
-				};
+				},
+				selected = this.get("alignment"),
+				node = this.get("nodes")[selected];
+				
+			this.set("selected", selected);	
+			this.opmviz.set("selected", selected);
+			this.infobox.set("selected", node);
+			this.controls.set("selected", node);
+			this.mapping.set("mapping", node);
 
 			Y.io(paths.deletenode, {
 				data:data,
 				on:{success:function(e,o) {
-					oSelf.set("nodes", Y.JSON.parse(o.responseText).nodes);
-					oSelf._fetchGraph();
+					var r = Y.JSON.parse(o.responseText);
+					oSelf.set("nodes", r.nodes);
+					oSelf.opmviz.set("nodes", r.nodes);
+					
 				}}
-			}),
-			this._onNodeSelect({uri:this.get("alignment")});
+			})
 		},
 
 		_onNodeSelect : function(e) {
 			var uri = e.uri;
 			var node = this.get("nodes")[uri];
-			node.uri = uri;
-			this.set("selected", uri);
 			// update the controls and the info
+			this.set("selected", uri);
 			this.controls.set("selected", node);
 			this.infobox.set("selected", node);
-			this.opmviz.set("active", uri);
+			this.mapping.set("selected", node);
 			this._updateNodes();
-			if(node.type=="mapping") {
-				this.mapping.set("mapping", uri);
-			} else {
-				
-			}	
 		}
 	});
 

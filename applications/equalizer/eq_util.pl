@@ -166,6 +166,7 @@ graph_resource(Graph, R) :-
 node_data(Strategy, R, R=json(Props)) :-
 	findall(Type=Value, node_prop(Strategy, R, Type, Value), Props).
 
+node_prop(_, R, uri, R).
 node_prop(_S, R, label, Label) :-
 	rdf_display_label(R, Lit),
 	literal_text(Lit, Label).

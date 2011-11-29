@@ -66,6 +66,7 @@ YUI.add('infobox', function(Y) {
 			NODE_EVAL.on("click", this._evaluateNode, this);
 			this.after('waitingChange', this.toggleLoading, this);
 			this.after('selectedChange', this.syncUI, this);
+			this.syncUI();
 		},
 
 		formatMappingList : function(selected) {

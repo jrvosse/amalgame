@@ -11,13 +11,13 @@ YUI.add('opmviz', function(Y) {
 	}
 	OPMViz.NAME = "opmviz";
 	OPMViz.ATTRS = {
-		active: {
+		selected: {
 			value:null
 		},
 		alignment: {
 			value: null
 		},
-		datasource: {
+		paths: {
 			value: null
 		},
 		nodes: {
@@ -27,52 +27,76 @@ YUI.add('opmviz', function(Y) {
 
 	Y.extend(OPMViz, Y.Widget, {
 		initializer: function(config) {
-			this.set("active", this.get("alignment"));
+			this.infoDS = new Y.DataSource.IO({
+				source: this.get("paths").nodeinfo
+			});
 			this.publish("nodeSelect", {});
+			this._fetchGraph();
 		},
 		destructor : function() {},
 		renderUI : function() {},
 		bindUI : function() {
+			this.on("nodesChange", this._fetchGraph, this);
+			this._bindSVG();
+		},
+		_bindSVG : function () {
 			var contentBox = this.get("contentBox");
 			// Bind event handlers to the links in the graph
 			// and prevent the default behavior from xlink:href
-
 			if(contentBox.one("svg")) {
 				Y.Event.purgeElement(contentBox, true);
 				Y.delegate("click", this._onNodeSelect, "svg", "a", this);
 			}
 		},
 
-	      syncUI : function() {
-	          // put back the active selection
-	          var active = this.get("active");
-		  var oSelf = this;
-		  if(active) {
-		    this.get("contentBox").all("a").each(function(svgnode) {
-			var id=svgnode.getAttribute("xlink:href");
-	
-			if(id == active) {
-			  svgnode.setAttribute("class", "selected");
-			}
-		
-			var node = oSelf.get('nodes')[id];
-			Y.log(node);
-			if (node && node.type == 'mapping' && node.stats) {
-			  oSelf._insert_info(svgnode, oSelf._layout_stats(node.stats));
-			}
-			if (node && node.type == 'vocab' && node.count) {
-			  oSelf._insert_info(svgnode,node.count);
-			}
+		syncUI : function() {
+	         // put back the active selection
+			var selected = this.get("selected");
+			var oSelf = this;
+  			this.get("contentBox").all("a").each(function(svgnode) {
+				var id=svgnode.getAttribute("xlink:href");
 
+				if(id == selected) {
+ 					svgnode.setAttribute("class", "selected");
+				}
 
-		      })
-		  }
+				var node = oSelf.get('nodes')[id];
+				if (node && node.type == 'mapping' && node.stats) {
+ 					oSelf._insert_info(svgnode, oSelf._layout_stats(node.stats));
+				}
+				if (node && node.type == 'vocab' && node.count) {
+ 					oSelf._insert_info(svgnode,node.count);
+				}
+   			})
 	    },
+
+		
+		_fetchGraph : function(conf) {
+			var alignment = this.get("alignment"),
+				paths = this.get("paths"),
+				oSelf = this;
+
+			if(alignment) {
+				conf = conf ? conf : {};
+				conf.graph = alignment;
+
+				Y.io(paths.opmgraph, {
+					data:conf,
+					on:{success: function(e,o) {
+						// As the server returns an XML document, including doctype
+						// we first take out the actual svg element
+						var SVG = o.responseXML.lastChild;
+						oSelf.setGraph(SVG);
+						}
+					}
+				})
+			}
+		},
 
 		setGraph : function(graph) {
 			this.get("contentBox").setContent(graph);
 			this.syncUI();
-			this.bindUI();
+			this._bindSVG();
 		},
 
 		_onNodeSelect : function(e) {
@@ -80,12 +104,11 @@ YUI.add('opmviz', function(Y) {
 			var target = e.currentTarget,
 				uri = target.getAttribute("xlink:href");
 
-			this.set("active", uri);
+			this.set("selected", uri);
 			Y.log("selected: "+uri);
 			Y.all("svg a").removeAttribute("class", "selected");
 			target.setAttribute("class", "selected");
 			this._fetchNodeStats(uri, target);
-			this.fire("nodeSelect", {target:target, uri:uri});
 		},
 
 		_insert_info : function(target, HTML) {
@@ -105,25 +128,26 @@ YUI.add('opmviz', function(Y) {
 			target.appendChild(infoNode);
 		},
 
-	      _layout_stats : function(stats) {
-		return 's:'+stats.sperc+'% t:'+stats.tperc+'%';
-	      },
+		_layout_stats : function(stats) {
+			return 's:'+stats.sperc+'% t:'+stats.tperc+'%';
+		},
 
 		_fetchNodeStats : function(uri, target) {
-			var datasource = this.get("datasource");
-			var alignment = this.get('alignment');
+			var oSelf = this,
+				alignment = this.get('alignment');
 			var conf = {
 				'url':uri,
 				'alignment':alignment
 			};
-			datasource.sendRequest({
+			this.infoDS.sendRequest({
 				cfg: { scope: this },
 				request:'?'+Y.QueryString.stringify(conf),
 				callback:{success:function(o) {
 						var HTML = o.response.results[0].responseText;
 						if(HTML&&!target.one(".info")) {
-						  o.cfg.scope._insert_info(target, HTML);
+						  oSelf._insert_info(target, HTML);
 						}
+						oSelf.fire("nodeSelect", {target:target, uri:uri});
 					}
 				}
 			})
