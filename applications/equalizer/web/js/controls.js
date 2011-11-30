@@ -204,6 +204,9 @@ YUI.add('controls', function(Y) {
 			if (!secSelecter) {
 			        Y.log("Disabling components requiring secondary inputs");
 				Y.all(".secinput").addClass("disabled");
+			} else {
+			        Y.log("Enabling components requiring secondary inputs");
+				Y.all(".secinput").removeClass("disabled");
 			}
 			var preloadedSelecter = Y.one(".preloaded select option")
 			if(!preloadedSelecter) {
