@@ -22,6 +22,7 @@
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(amalgame/amalgame_modules)).
+:- use_module(library(amalgame/alignment)).
 :- use_module(library(amalgame/map)).
 :- use_module(library(amalgame/opm)).
 :- use_module(library(amalgame/ag_provenance)).
@@ -331,7 +332,8 @@ new_output(Type, Process, P, Strategy, OutputURI) :-
 	\+ rdf(OutputURI, _, _), !,
 	rdf_assert(OutputURI, rdf:type, Type, Strategy),
 	rdf_assert(OutputURI, amalgame:status, amalgame:intermediate, Strategy),
-        rdf_assert(OutputURI, P, Process, Strategy).
+        rdf_assert(OutputURI, P, Process, Strategy),
+	nickname(Strategy, OutputURI, _Nick).
 
 %%	process_options(+Process, +Module, -Options)
 %

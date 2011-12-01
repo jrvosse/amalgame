@@ -4,6 +4,7 @@
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(amalgame/vocabulary)).
+:- use_module(library(amalgame/alignment)).
 
 :- use_module(library(amalgame/expand_graph)).
 
@@ -27,9 +28,17 @@ ensure_overlap_output(Process, Strategy, OverlapId-Mapping, OutputUri-MappingFla
 	;   rdf_equal(Type, amalgame:'Mapping'),
 	    rdf_equal(Pred, opmv:wasGeneratedBy),
 	    new_output(Type, Process, Pred, Strategy, OutputUri),
-	    format(atom(Label), 'Mappings found only in: ~p', [OverlapId]),
+	    findall(Nick,
+		    (	member(Id, OverlapId),
+			nickname(Strategy,Id,Nick)
+		    ),
+		    Nicks),
+	    atomic_list_concat(Nicks, AllNicks),
+	    format(atom(Comment), 'Mappings found only in: ~p', [OverlapId]),
+	    format(atom(Label), 'Intersect: ~w', [AllNicks]),
 	    rdf_assert(OutputUri, amalgame:overlap_set, literal(OverlapId), Strategy),
-	    rdf_assert(OutputUri, rdfs:comment, literal(Label), Strategy)
+	    rdf_assert(OutputUri, rdfs:comment, literal(Comment), Strategy),
+	    rdf_assert(OutputUri, rdfs:label, literal(Label), Strategy)
 	).
 
 output_exist(Process, Strategy, OverlapId, OutputUri) :-

@@ -53,24 +53,28 @@ YUI.add('opmviz', function(Y) {
 	         // put back the active selection
 			var selected = this.get("selected");
 			var oSelf = this;
-  			this.get("contentBox").all("a").each(function(svgnode) {
+			this.get("contentBox").all("a").each(function(svgnode) {
 				var id=svgnode.getAttribute("xlink:href");
 
 				if(id == selected) {
- 					svgnode.setAttribute("class", "selected");
+					svgnode.setAttribute("class", "selected");
 				}
+
 
 				var node = oSelf.get('nodes')[id];
+				if (node.type == 'mapping' && node.abbrev) {
+				  svgnode.one('text').prepend(node.abbrev+':');
+				}
 				if (node && node.type == 'mapping' && node.stats) {
- 					oSelf._insert_info(svgnode, oSelf._layout_stats(node.stats));
+					oSelf._insert_info(svgnode, oSelf._layout_stats(node.stats));
 				}
 				if (node && node.type == 'vocab' && node.count) {
- 					oSelf._insert_info(svgnode,node.count);
+					oSelf._insert_info(svgnode,node.count);
 				}
-   			})
+			})
 	    },
 
-		
+
 		_fetchGraph : function(conf) {
 			var alignment = this.get("alignment"),
 				paths = this.get("paths"),
