@@ -7,7 +7,6 @@
 :- use_module(library(lit_distance)).
 :- use_module(library(amalgame/vocabulary)).
 :- use_module(library(skos/vocabularies)).
-:- use_module(library(amalgame/candidate)).
 :- use_module(string_match_util).
 
 :- public amalgame_module/1.
@@ -61,19 +60,14 @@ matcher(Source, Target, Mappings, Options) :-
 	sort(Mappings0, Mappings).
 
 align(Source, Target, Match, Options) :-
-	option(prefix(0), Options),
-	!,
 	vocab_member(S, Source),
 	match(align(S,T,[]), Match, Options),
 	vocab_member(T, Target).
 
-align(Source, Target, Match, Options) :-
-	prefix_candidate(Source, Target, Match0, Options),
-	match(Match0, Match, Options).
-
 match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options) :-
 	rdf_equal(rdfs:label,DefaultP),
-	option(snowball_language(Snowball_Language), Options, dutch),
+	option(snowball_language(Snowball_Language), Options, english),
+	option(prefix(PrefixLength), Options, 4),
 	option(sourcelabel(MatchProp1), Options, DefaultP),
 	option(targetlabel(MatchProp2), Options, DefaultP),
 	option(matchacross_lang(MatchAcross), Options, true),
@@ -95,7 +89,9 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 	\+ Source == Target,
 	downcase_atom(SourceLabel, SourceLabel0),
 	snowball(Snowball_Language, SourceLabel0, SourceStem),
-	rdf_has(Target, MatchProp2, literal(lang(TargetLang, TargetLabel)), TargetProp),
+	sub_atom(SourceStem, 0, PrefixLength, _, Prefix),
+
+	rdf_has(Target, MatchProp2, literal(prefix(Prefix), lang(TargetLang, TargetLabel)), TargetProp),
 	downcase_atom(TargetLabel, TargetLabel0),
 	snowball(Snowball_Language, TargetLabel0, TargetStem),
 	(   Edit_Distance == 0
@@ -104,6 +100,10 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 	    Distance =< Edit_Distance
 	),
 	Prov = [method(snowball),
+		prefix(Prefix),
+		source_stem(SourceStem),
+		target_stem(TargetStem),
+		literal_distance(Distance),
 		graph([rdf(Source, SourceProp, literal(lang(SourceLang, SourceLabel))),
 		       rdf(Target, TargetProp, literal(lang(TargetLang, TargetLabel)))])
 	       ],
