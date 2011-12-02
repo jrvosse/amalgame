@@ -9,6 +9,5 @@
 
 :- public amalgame_module/1.
 
-amalgame_module(amalgame:'Evaluater').
-
 % todo 
+% amalgame_module(amalgame:'Evaluater').
