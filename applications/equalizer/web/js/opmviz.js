@@ -11,14 +11,14 @@ YUI.add('opmviz', function(Y) {
 	}
 	OPMViz.NAME = "opmviz";
 	OPMViz.ATTRS = {
-		selected: {
-			value:null
-		},
 		alignment: {
 			value: null
 		},
 		paths: {
 			value: null
+		},
+		selected: {
+			value:null
 		},
 		nodes: {
 			value: null
@@ -31,14 +31,13 @@ YUI.add('opmviz', function(Y) {
 				source: this.get("paths").nodeinfo
 			});
 			this.publish("nodeSelect", {});
-			this._fetchGraph();
 		},
 		destructor : function() {},
 		renderUI : function() {},
 		bindUI : function() {
-			this.on("nodesChange", this._fetchGraph, this);
-			this._bindSVG();
+			this.after("nodesChange", this._onNodesChange, this);
 		},
+		
 		_bindSVG : function () {
 			var contentBox = this.get("contentBox");
 			// Bind event handlers to the links in the graph
@@ -50,107 +49,119 @@ YUI.add('opmviz', function(Y) {
 		},
 
 		syncUI : function() {
+			var oSelf = this,
+				alignment = this.get("alignment"),
+				paths = this.get("paths");
+
+			// check if nodes are updated
+			Y.io(paths.opmgraph, {
+				data:{"graph":alignment},
+				on:{success: function(e,o) {
+					// As the server returns an XML document, including doctype
+					// we first take out the actual svg element
+					var SVG = o.responseXML.lastChild;
+					oSelf.get("contentBox").setContent(SVG);
+					oSelf._bindSVG();
+					oSelf._updateNodes();
+					}
+				}
+			});
+		},
+		
+		_onNodesChange : function(o) {
+ 			if(this._nodesCompare(o.newVal, o.prevVal)) {
+				this._updateNodes();
+			} else {	
+				this.syncUI();
+			}
+		},
+		
+		_updateSelection : function() {
+			var selected = this.get("selected").uri;
+			this.get("contentBox").all("a").each(function(svgnode) {
+				var id=svgnode.getAttribute("xlink:href");
+				if(id == selected) {
+ 					svgnode.setAttribute("class", "selected");
+				} else {
+					svgnode.removeAttribute("class", "selected");
+				}
+			});
+		},
+		
+		_updateNodes : function() {
 	         // put back the active selection
-			var selected = this.get("selected");
-			var oSelf = this;
+			var selected = this.get("selected").uri,
+				nodes = this.get("nodes");
+			
   			this.get("contentBox").all("a").each(function(svgnode) {
 				var id=svgnode.getAttribute("xlink:href");
 
 				if(id == selected) {
  					svgnode.setAttribute("class", "selected");
 				}
-
-				var node = oSelf.get('nodes')[id];
+				var node = nodes[id];
+ 
 				if (node && node.type == 'mapping' && node.stats) {
- 					oSelf._insert_info(svgnode, oSelf._layout_stats(node.stats));
+ 					this._insert_info(svgnode, this._layout_stats(node.stats));
 				}
 				if (node && node.type == 'vocab' && node.count) {
- 					oSelf._insert_info(svgnode,node.count);
+ 					this._insert_info(svgnode, node.count);
 				}
-   			})
+   			}, this)
 	    },
-
-		
-		_fetchGraph : function(conf) {
-			var alignment = this.get("alignment"),
-				paths = this.get("paths"),
-				oSelf = this;
-
-			if(alignment) {
-				conf = conf ? conf : {};
-				conf.graph = alignment;
-
-				Y.io(paths.opmgraph, {
-					data:conf,
-					on:{success: function(e,o) {
-						// As the server returns an XML document, including doctype
-						// we first take out the actual svg element
-						var SVG = o.responseXML.lastChild;
-						oSelf.setGraph(SVG);
-						}
-					}
-				})
-			}
-		},
-
-		setGraph : function(graph) {
-			this.get("contentBox").setContent(graph);
-			this.syncUI();
-			this._bindSVG();
-		},
 
 		_onNodeSelect : function(e) {
 			e.preventDefault();
 			var target = e.currentTarget,
 				uri = target.getAttribute("xlink:href");
 
-			this.set("selected", uri);
 			Y.log("selected: "+uri);
 			Y.all("svg a").removeAttribute("class", "selected");
 			target.setAttribute("class", "selected");
-			this._fetchNodeStats(uri, target);
+			this.fire("nodeSelect", {target:target, uri:uri});
 		},
 
 		_insert_info : function(target, HTML) {
-			var textNode = target.one("text"),
-			  x = textNode.getAttribute("x"),
-			  y = parseInt(textNode.getAttribute("y")),
-			  infoNode = document.createElementNS(svgNS,"text");
+			var textNode = target.one("text");
 
-			infoNode.appendChild(document.createTextNode(HTML));
-			infoNode.setAttribute("class", "info");
-			infoNode.setAttribute("text-anchor", "middle");
-			infoNode.setAttribute("y",y+6);
-			infoNode.setAttribute("x",x);
-			infoNode.setAttribute("font-family","Times,serif");
-			textNode.setAttribute("y",y-4);
-			target.appendChild(infoNode);
+			if(target.one('.info')) {
+				target.one('.info').setContent(HTML);
+			} else {
+				var x = textNode.getAttribute("x"),
+					y = parseInt(textNode.getAttribute("y")),
+					infoNode = document.createElementNS(svgNS,"text");
+
+				infoNode.appendChild(document.createTextNode(HTML));
+				infoNode.setAttribute("class", "info");
+				infoNode.setAttribute("text-anchor", "middle");
+				infoNode.setAttribute("y",y+6);
+				infoNode.setAttribute("x",x);
+				infoNode.setAttribute("font-family","Times,serif");
+				textNode.setAttribute("y",y-4);
+				target.appendChild(infoNode);
+			}	
 		},
 
 		_layout_stats : function(stats) {
 			return stats.sperc+'% - '+stats.tperc+'%';
 		},
-
-		_fetchNodeStats : function(uri, target) {
-			var oSelf = this,
-				alignment = this.get('alignment');
-			var conf = {
-				'url':uri,
-				'alignment':alignment
-			};
-			this.infoDS.sendRequest({
-				cfg: { scope: this },
-				request:'?'+Y.QueryString.stringify(conf),
-				callback:{success:function(o) {
-						var HTML = o.response.results[0].responseText;
-						if(HTML&&!target.one(".info")) {
-						  oSelf._insert_info(target, HTML);
-						}
-						oSelf.fire("nodeSelect", {target:target, uri:uri});
-					}
+		
+		
+		_nodesCompare : function(n1, n2) {
+			n1a = Y.Object.keys(n1),
+			n2a = Y.Object.keys(n2);
+			if(n1a.length!==n2a.length) {
+				return false;
+			}
+			for (var i=0; i < n1a.length; i++) {
+				if(n1a[i] !== n2a[i]) {
+					return false;
 				}
-			})
+			}
+			return true;
 		}
+
+		
 	});
 
 	Y.OPMViz = OPMViz;

@@ -15,7 +15,6 @@
 :- use_module(controls).
 :- use_module(process).
 :- use_module(opmviz).
-:- use_module(stats).
 :- use_module(eq_util).
 :- use_module(hints).
 
@@ -164,18 +163,14 @@ yui_script(Alignment, Focus) -->
 
 js_path(opmgraph, Path) :-
 	http_link_to_id(http_opmviz, [format(svg)], Path).
-js_path(nodeinfo, Path) :-
-	http_location_by_id(http_eq_nodeinfo, Path).
-js_path(info, Path) :-
-	http_location_by_id(http_eq_info, Path).
 js_path(addprocess, Path) :-
 	http_location_by_id(http_add_process, Path).
 js_path(updatenode, Path) :-
 	http_location_by_id(http_update_node, Path).
 js_path(deletenode, Path) :-
 	http_location_by_id(http_delete_node, Path).
-js_path(graphnodes, Path) :-
-	http_location_by_id(http_graph_nodes, Path).
+js_path(nodes, Path) :-
+	http_location_by_id(http_nodes, Path).
 js_path(hint, Path) :-
 	http_location_by_id(http_json_hint, Path).
 js_path(eq_evaluate, Path) :-

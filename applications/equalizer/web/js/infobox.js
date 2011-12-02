@@ -25,29 +25,28 @@ YUI.add('infobox', function(Y) {
 		srcNode: {
 			value: null
 		},
-		controls : { value: null },
-		readonly : { value: true },
+		controls : { 
+			value: null
+		},
 		waiting: {
 			value:false,
 			validator:function(val) {
 				return Lang.isBoolean(val);
 			}
 		},
-		readonly: { value: true },
-		datasource: {
-			value: null
+		readonly: { 
+			value: true
 		},
 		alignment: {
 			value: null
 		},
-		selected: {
-			value: null
-		},
 		hint : {
 		       value: null
-		       },
-		paths : { value: null },
-		mappings : {
+		},
+		paths : { 
+			value: null
+		},
+		selected: {
 			value: null
 		}
 	};
@@ -64,32 +63,19 @@ YUI.add('infobox', function(Y) {
 			NODE_DELETE.on("click", this._deleteNode, this);
 			NODE_UPDATE.on("click", this._updateNode, this);
 			NODE_EVAL.on("click", this._evaluateNode, this);
-			this.after('waitingChange', this.toggleLoading, this);
+			
+			// this component does not update itself on nodeDelete,
+			// instead this is done via the nodesChange handler
+			//this.after('waitingChange', this.toggleLoading, this);
 			this.after('selectedChange', this.syncUI, this);
+			this.after('nodesChange', this._updateProps, this);
 			this.syncUI();
-		},
-
-		formatMappingList : function(selected) {
-			var HTML = "";
-			var nodes = this.get("mappings");
-			for (var uri in nodes) {
-				var m = nodes[uri];
-				if(m.type == "mapping") {
-					var index = selected.indexOf(uri);
-					var checked = (index == -1)?'':'checked';
-					HTML += '<div><input type="checkbox" name="secondary_input" value="'
-					+uri+'" ' +checked +' class="' + checked +'">'
-					+'<span>'+m.label+'</span></div>';
-				}
-			}
-
-			return HTML;
+			this._updateProps();
 		},
 
 		syncUI : function() {
-			var instance = this,
+			var oSelf = this,
 				selected = this.get("selected"),
-				datasource = this.get("datasource"),
 				alignment = this.get("alignment"),
 				content = this.get("srcNode");
 
@@ -100,12 +86,11 @@ YUI.add('infobox', function(Y) {
 					type = selected.type||"",
 					comment = selected.comment||"",
 					namespace = selected.namespace||"",
-					status = selected.status;
-				        sec_inputs = selected.secondary_inputs|| [];
-
+					status = selected.status,
+					sec_inputs = selected.secondary_inputs|| [];
 
 				this.emptyNode.addClass("hidden");
-				this.set("waiting", true);
+				//this.set("waiting", true);
 				NODE_LABEL.set("value", label);
 				NODE_COMMENT.set("value", comment);
 				Y.one('#namespace').set("value", namespace);
@@ -122,77 +107,66 @@ YUI.add('infobox', function(Y) {
 					NODE_STATUS_ROW.addClass("hidden")
 				}
 
-				if (type == "mapping") { NODE_EVAL.removeClass("hidden"); }
-				else {  NODE_EVAL.addClass("hidden"); }
+				if (type == "mapping") {
+					NODE_EVAL.removeClass("hidden");
+				} else {
+					NODE_EVAL.addClass("hidden");
+				}
 
 				if(type =='alignment' || type=='strategy') {
-				        NODE_NAMESPACE_ROW.removeClass("hidden");
+					NODE_NAMESPACE_ROW.removeClass("hidden");
 					NODE_DELETE.setAttribute("disabled", true);
 				} else if (!this.get('readonly')) {
-				        NODE_NAMESPACE_ROW.addClass("hidden");
-				        NODE_DELETE.removeAttribute("disabled");
+					NODE_NAMESPACE_ROW.addClass("hidden");
+					NODE_DELETE.removeAttribute("disabled");
 				}
+				
 				// hide the parameter form submit button in case we are not a process
 				if(type==="process") {
-				        content.one('.control-submit').removeClass("hidden");
+					content.one('.control-submit').removeClass("hidden");
 				} else {
 					content.one('.control-submit').addClass("hidden");
 				}
-				var conf = { 'url':uri, 'alignment':alignment };
-				datasource.sendRequest({
-					cfg: { scope: this },
-					request:'?' + Y.QueryString.stringify(conf),
-					callback:{success:function(o,cfg) {
-						var infobox = o.cfg.scope;
-						var HTML = o.response.results[0].responseText;
-						NODE_PROPS.setContent(HTML);
-						var paramnode = content.one('.parameters');
-						if (paramnode && sec_inputs.length > 0) {
-						  Y.log(sec_inputs.length);
-						  paramnode.prepend(infobox.formatMappingList(sec_inputs))
-						  paramnode.prepend('<div>Additional input mappings:</div>');
-						}
-						instance.set("waiting", false);
-					}}
-				});
+				
 				if (!this.get("readonly")) this._createHint();
+				this.bd.removeClass("hidden");
 			} else {
 				this.emptyNode.removeClass("hidden");
 			}
 		},
-
+				
 		_createHint : function () {
-				var oSelf = this;
-				var data =
-				     { strategy: this.get("alignment"),
-				       focus: this.get("selected").uri
-				     };
-				Y.io(this.get("hint"),
-				     { data: data,
-				       on: {success: function(e,o) {
-						       var r = Y.JSON.parse(o.responseText);
-						       if (r.text) {
-							 NODE_HINT.setContent(r.text);
-						       } else {
-							 NODE_HINT.setContent('No hints available at this point');
-						       }
+			var oSelf = this;
+			var data =
+			     { strategy: this.get("alignment"),
+			       focus: this.get("selected").uri
+			     };
+			Y.io(this.get("hint"),
+			     { data: data,
+			       on: {success: function(e,o) {
+					       var r = Y.JSON.parse(o.responseText);
+					       if (r.text) {
+						 NODE_HINT.setContent(r.text);
+					       } else {
+						 NODE_HINT.setContent('No hints available at this point');
+					       }
 
-						       if (r.data) {
-							 NODE_HINT.appendChild('&nbsp;');
-							 NODE_HINT.appendChild('(<a id="exec_hint">just do it</a>)');
-							 Y.one('#exec_hint').on("click",
-										oSelf._onExecHint, oSelf, r.data, r.event);
-						       }
-						     }
-					   }
-				     });
+					       if (r.data) {
+						 NODE_HINT.appendChild('&nbsp;');
+						 NODE_HINT.appendChild('(<a id="exec_hint">just do it</a>)');
+						 Y.one('#exec_hint').on("click",
+									oSelf._onExecHint, oSelf, r.data, r.event);
+					       }
+					     }
+				   }
+			});
 		},
 
 		_onExecHint : function(e, data, event) {
-				Y.log(event + ' fired with data:');
-				Y.log(data);
-				this.get("controls").fire(event, {data: data});
-			      },
+			Y.log(event + ' fired with data:');
+			Y.log(data);
+			this.get("controls").fire(event, {data: data});
+		},
 
 		_updateNode : function() {
 			var sel = this.get("selected"),
@@ -217,7 +191,8 @@ YUI.add('infobox', function(Y) {
 			var uri = this.get("selected").uri;
 			Y.log("delete: "+uri);
 			this.fire("deleteNode", {uri:uri});
-			this.syncUI();
+			// this component does not update itself on nodeDelete,
+			// instead this is done via the nodesChange handler
 		},
 
 		_evaluateNode : function() {
@@ -225,10 +200,8 @@ YUI.add('infobox', function(Y) {
 			var alignment = this.get("alignment");
 			var page = this.get("paths").eq_evaluate+'?alignment='+alignment +
 					      "&focus="+ uri;
-			Y.log(page);
 			this.get("controls").fire("evaluate", {data:{page:page}});
 		},
-
 
 		toggleLoading : function () {
 			if(this.get("waiting")) {
@@ -238,7 +211,54 @@ YUI.add('infobox', function(Y) {
 				this.loadingNode.addClass("hidden");
 				this.bd.removeClass("hidden");
 			}
+		},
+		
+		_updateProps : function() {
+			var HTML = "properties";
+			NODE_PROPS.setContent(HTML);
+			/*var paramnode = content.one('.parameters');
+			if (paramnode && sec_inputs.length > 0) {
+			  Y.log(sec_inputs.length);
+			  paramnode.prepend(this.formatMappingList(sec_inputs))
+			  paramnode.append('<div>Additional input mappings:</div>');
+			}
+			*/
 		}
+		
+		/*
+		formatMappingList : function(selected) {
+			var HTML = "";
+			var nodes = this.get("nodes");
+			for (var uri in nodes) {
+				var m = nodes[uri];
+				if(m.type == "mapping") {
+					var index = selected.indexOf(uri);
+					var checked = (index == -1)?'':'checked';
+					HTML += '<div><input type="checkbox" name="secondary_input" value="'
+					+uri+'" ' +checked +' class="' + checked +'">'
+					+'<span>'+m.label+'</span></div>';
+				}
+			}
+			return HTML;
+		},
+
+
+		var conf = { 'url':uri, 'alignment':alignment };
+		this.infoDS.sendRequest({
+			request:'?' + Y.QueryString.stringify(conf),
+			callback:{success:function(o,cfg) {
+				var HTML = o.response.results[0].responseText;
+				NODE_PROPS.setContent(HTML);
+				var paramnode = content.one('.parameters');
+				if (paramnode && sec_inputs.length > 0) {
+				  Y.log(sec_inputs.length);
+				  paramnode.prepend(oSelf.formatMappingList(sec_inputs))
+				  paramnode.prepend('<div>Additional input mappings:</div>');
+				}
+				oSelf.set("waiting", false);
+			}}
+		});
+		*/
 
 
 

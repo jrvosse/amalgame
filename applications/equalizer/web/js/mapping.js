@@ -31,7 +31,7 @@ YUI.add('mapping', function(Y) {
 			validator: function(val) {
 				return Lang.isObject(val)
 			}
-		},
+		}
 	};
 
 	Y.extend(Mapping, Y.Base, {
@@ -93,7 +93,10 @@ YUI.add('mapping', function(Y) {
 			if(selected.type=="mapping") {
 				this.detailOverlay.set("visible", false);
 				this.mappingtable.set("mapping", selected.uri);
-			}	
+				this.mappingtable.set("visible", true);
+			} else {
+				this.mappingtable.set("visible", false);
+			}
 		},
 
 		_onCorrespondenceSelect : function(e) {

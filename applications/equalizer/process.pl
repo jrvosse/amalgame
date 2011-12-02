@@ -12,7 +12,6 @@
 :- use_module(library(amalgame/expand_graph)).
 :- use_module(library(amalgame/ag_provenance)).
 :- use_module(eq_util).
-:- use_module(stats).
 
 :- setting(precompute_mapping, boolean, true,
 	   'When true mappings are computed in the background').
@@ -20,7 +19,7 @@
 :- http_handler(amalgame(data/addprocess), http_add_process, []).
 :- http_handler(amalgame(data/updatenode), http_update_node, []).
 :- http_handler(amalgame(data/deletenode), http_delete_node, []).
-:- http_handler(amalgame(data/graphnodes), http_graph_nodes, []).
+:- http_handler(amalgame(data/nodes), http_nodes, []).
 
 :- rdf_meta
 	new_output(r,r,r,r,r),
@@ -73,17 +72,26 @@ http_add_process(Request) :-
 	js_alignment_nodes(Alignment, Nodes),
 	reply_json(json([focus=Focus,nodes=json(Nodes)])).
 
-%%	http_graph_nodes(+Request)
+%%	http_nodes(+Request)
 %
-%
+%       Returns all nodes in Alignment strategy.
 
-http_graph_nodes(Request) :-
+http_nodes(Request) :-
 	authorized(write(default, _)),
 	http_parameters(Request,
 			[ alignment(Alignment,
 				    [uri,
-				     description('URI of the alignment graph to which the process is added')])
+				     description('URI of the alignment graph to which the process is added')]),
+			  selected(Selected,
+			      [uri,
+			       optional(true),
+			       description('URI of a node that should be expanded first')
+			      ])
 			]),
+	(   nonvar(Selected) % FIXME check what kind of focus node we hav
+	->  expand_mapping(Alignment, Selected, _, _)
+	;   true
+	),
 	js_alignment_nodes(Alignment, Nodes),
 	reply_json(json([nodes=json(Nodes)])).
 
@@ -161,7 +169,7 @@ precompute(Process, Alignment) :-
 	    (
 	    % Write debug output to server console, cannot write to client:
 	    set_stream(user_output, alias(current_output)),
-	    expand_mapping(Alignment, Output, _)
+	    expand_mapping(Alignment, Output, _, _)
 	    ),
 	    _,
 	    [ detached(true) ]
@@ -295,7 +303,7 @@ update_node_prop(status=Status, URI, Alignment) :-
 	(   rdf_equal(Status, amalgame:final)
 	->  thread_create((
 			  set_stream(user_output, alias(current_output)),
-			   expand_mapping(Alignment, URI, _)
+			   expand_mapping(Alignment, URI, _, _)
 			  ), _, [ detached(true) ])
 	;   true
 	).
