@@ -281,7 +281,6 @@ exec_amalgame_process(Class, Process, Strategy, Module, Result, Time, Options) :
 	% We need the ids, not the values in most analyzers
 	timed_call(Module:analyzer(Inputs, Process, Strategy, Result, Options), Time).
 
-
 exec_amalgame_process(Class, Process,_,_, _, _, _) :-
 	throw(error(existence_error(mapping_process, [Class, Process]), _)).
 

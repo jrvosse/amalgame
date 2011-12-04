@@ -5,8 +5,8 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(amalgame/vocabulary)).
 :- use_module(library(amalgame/alignment)).
-
 :- use_module(library(amalgame/expand_graph)).
+:- use_module(library(amalgame/map)).
 
 :- public amalgame_module/1.
 :- public analyzer/5.
@@ -21,12 +21,16 @@ analyzer(Inputs, Process, Strategy, overlap(Results), _Options) :-
 expander(Strategy, Id, Id:Expanded) :-
 	expand_mapping(Strategy, Id, Expanded, _).
 
-ensure_overlap_output(Process, Strategy, OverlapId-Mapping, OutputUri-MappingFlat) :-
+ensure_overlap_output(Process, Strategy, OverlapId-Mapping, OutputUri-MappingMerged) :-
 	append(Mapping, MappingFlat),
+	merge_provenance(MappingFlat, MappingMerged),
+
 	(   output_exist(Process, Strategy, OverlapId, OutputUri)
 	->  true % output node already exists in the strategy graph, reuse this
 	;   with_mutex(Strategy,
-		       create_overlap_outputs(Process, Strategy, OverlapId-Mapping, OutputUri-MappingFlat))
+		       create_overlap_outputs(Process, Strategy,
+					      OverlapId-Mapping,
+					      OutputUri-MappingMerged))
 	).
 
 create_overlap_outputs(Process, Strategy, OverlapId-Mapping, OutputUri-Mapping) :-
