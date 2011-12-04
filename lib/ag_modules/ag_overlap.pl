@@ -22,14 +22,14 @@ expander(Strategy, Id, Id:Expanded) :-
 	expand_mapping(Strategy, Id, Expanded, _).
 
 ensure_overlap_output(Process, Strategy, OverlapId-Mapping, OutputUri-MappingFlat) :-
+	append(Mapping, MappingFlat),
 	(   output_exist(Process, Strategy, OverlapId, OutputUri)
 	->  true % output node already exists in the strategy graph, reuse this
 	;   with_mutex(Strategy,
 		       create_overlap_outputs(Process, Strategy, OverlapId-Mapping, OutputUri-MappingFlat))
 	).
 
-create_overlap_outputs(Process, Strategy, OverlapId-Mapping, OutputUri-MappingFlat) :-
-	append(Mapping, MappingFlat),
+create_overlap_outputs(Process, Strategy, OverlapId-Mapping, OutputUri-Mapping) :-
 	rdf_equal(Type, amalgame:'Mapping'),
 	rdf_equal(Pred, opmv:wasGeneratedBy),
 	new_output(Type, Process, Pred, Strategy, OutputUri),
