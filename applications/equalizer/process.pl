@@ -140,6 +140,9 @@ clean_dependent_caches(Process, Strategy, ProvGraph) :-
 %	Create new amalgame process.
 
 new_process(Type, Alignment, Source, Target, Input, SecInputs, Params, Focus) :-
+	% hack needed till we have nested rdf transactions:
+	retractall(ag_alignment:nickname_cache(Alignment,_,_)),
+
 	rdf_bnode(URI),
 	rdf_transaction( % this transaction is to make it MT safe
 	    (
@@ -149,9 +152,6 @@ new_process(Type, Alignment, Source, Target, Input, SecInputs, Params, Focus) :-
 	    assert_output(URI, Type, Alignment, Focus),
 	    assert_secondary_inputs(SecInputs, URI, Type, Alignment)
 	    )),
-
-	% hack needed till we have nested rdf transactions:
-	retractall(ag_alignment:nickname_cache(Alignment,_,_)),
 
 	% precompute results to speed things up
 	(   setting(precompute_mapping, true)

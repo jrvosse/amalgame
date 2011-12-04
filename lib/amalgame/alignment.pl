@@ -278,8 +278,13 @@ coin_nickname(_Graph, Nick) :-
 	char_type(Nick, alpha),
 	\+ has_nickname(_, Nick),!.
 
+%%	nickname(+Strategy, +Graph, ?Nickname) is det.
+%
+%	Unifies Nickname with the nickname of Graph in Strategy.
+%	Creates Nickname if Graph does not have one yet.
+
 nickname(Strategy, Graph, Nick) :-
-	rdf(Graph,  amalgame:nickname, literal(Nick), Strategy).
+	rdf(Graph,  amalgame:nickname, literal(Nick), Strategy),!.
 nickname(Strategy, Graph, Nick) :-
 	nickname_cache(Strategy, Graph, Nick), !.
 nickname(Strategy, Graph, Nick) :-
