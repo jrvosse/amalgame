@@ -29,7 +29,7 @@ ensure_overlap_output(Process, Strategy, OverlapId-Mapping, OutputUri-MappingMer
 	->  true % output node already exists in the strategy graph, reuse this
 	;   with_mutex(Strategy,
 		       create_overlap_outputs(Process, Strategy,
-					      OverlapId-Mapping,
+					      OverlapId-MappingMerged,
 					      OutputUri-MappingMerged))
 	).
 
