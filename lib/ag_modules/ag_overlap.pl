@@ -22,24 +22,28 @@ expander(Strategy, Id, Id:Expanded) :-
 	expand_mapping(Strategy, Id, Expanded, _).
 
 ensure_overlap_output(Process, Strategy, OverlapId-Mapping, OutputUri-MappingFlat) :-
-	append(Mapping, MappingFlat),
 	(   output_exist(Process, Strategy, OverlapId, OutputUri)
 	->  true % output node already exists in the strategy graph, reuse this
-	;   rdf_equal(Type, amalgame:'Mapping'),
-	    rdf_equal(Pred, opmv:wasGeneratedBy),
-	    new_output(Type, Process, Pred, Strategy, OutputUri),
-	    findall(Nick,
-		    (	member(Id, OverlapId),
-			nickname(Strategy,Id,Nick)
-		    ),
-		    Nicks),
-	    atomic_list_concat(Nicks, AllNicks),
-	    format(atom(Comment), 'Mappings found only in: ~p', [OverlapId]),
-	    format(atom(Label), 'Intersect: ~w', [AllNicks]),
-	    rdf_assert(OutputUri, amalgame:overlap_set, literal(OverlapId), Strategy),
-	    rdf_assert(OutputUri, rdfs:comment, literal(Comment), Strategy),
-	    rdf_assert(OutputUri, rdfs:label, literal(Label), Strategy)
+	;   with_mutex(Strategy,
+		       create_overlap_outputs(Process, Strategy, OverlapId-Mapping, OutputUri-MappingFlat))
 	).
+
+create_overlap_outputs(Process, Strategy, OverlapId-Mapping, OutputUri-MappingFlat) :-
+	append(Mapping, MappingFlat),
+	rdf_equal(Type, amalgame:'Mapping'),
+	rdf_equal(Pred, opmv:wasGeneratedBy),
+	new_output(Type, Process, Pred, Strategy, OutputUri),
+	findall(Nick,
+		(	member(Id, OverlapId),
+			nickname(Strategy,Id,Nick)
+		),
+		Nicks),
+	atomic_list_concat(Nicks, AllNicks),
+	format(atom(Comment), 'Mappings found only in: ~p', [OverlapId]),
+	format(atom(Label), 'Intersect: ~w', [AllNicks]),
+	rdf_assert(OutputUri, amalgame:overlap_set, literal(OverlapId), Strategy),
+	rdf_assert(OutputUri, rdfs:comment, literal(Comment), Strategy),
+	rdf_assert(OutputUri, rdfs:label, literal(Label), Strategy).
 
 output_exist(Process, Strategy, OverlapId, OutputUri) :-
 	rdf(OutputUri, opmv:wasGeneratedBy, Process, Strategy),

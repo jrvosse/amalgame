@@ -150,6 +150,10 @@ new_process(Type, Alignment, Source, Target, Input, SecInputs, Params, Focus) :-
 	    assert_secondary_inputs(SecInputs, URI, Type, Alignment)
 	    )),
 
+	% hack needed till we have nested rdf transactions:
+	retractall(ag_alignment:nickname_cache(Alignment,_,_)),
+
+	% precompute results to speed things up
 	(   setting(precompute_mapping, true)
 	->  precompute(URI, Alignment)
 	;   true).
@@ -161,7 +165,7 @@ precompute(Process, Alignment) :-
 	    (
 	    % Write debug output to server console, cannot write to client:
 	    set_stream(user_output, alias(current_output)),
-	    expand_mapping(Alignment, Output, _)
+	    expand_mapping(Alignment, Output, _, _)
 	    ),
 	    _,
 	    [ detached(true) ]
