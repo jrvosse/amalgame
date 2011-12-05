@@ -107,11 +107,12 @@ html_overlay -->
 		       'Correspondence details'
 		      ),
 		   div(class('yui3-widget-bd'),
-		       [ div([class(concepts), id(concepts)], [])
+		       [ div(class('buttons up'), \html_buttons),
+			 div([class(concepts), id(concepts)], [])
 		       ]),
 		   div(class('yui3-widget-ft'),
 		       [ div(class(controls),
-			     [ div(class(buttons), \html_buttons),
+			     [ div(class('buttons bottom'), \html_buttons),
 			       div(class(options), \html_options)
 			     ])
 		       ])
