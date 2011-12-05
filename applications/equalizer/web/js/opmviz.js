@@ -107,7 +107,7 @@ YUI.add('opmviz', function(Y) {
  					this._insert_info(svgnode, this._layout_stats(node.stats));
 				}
 				if (node.type == 'mapping' && node.abbrev) {
-				  svgnode.one('text').prepend(node.abbrev+':');
+				  svgnode.one('text').setContent(node.abbrev+':'+node.label);
 				}
 				if (node && node.type == 'vocab' && node.count) {
  					this._insert_info(svgnode, node.count);
