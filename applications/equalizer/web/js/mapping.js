@@ -43,10 +43,10 @@ YUI.add('mapping', function(Y) {
 			// bind the modules
 			this.after("selectedChange", this._onSelectedChange, this);
 			this.mappingtable.on("rowSelect", this._onCorrespondenceSelect, this);
-			NODE_DETAIL.one(".submit").on("click", this._onSubmit, this);
-			NODE_DETAIL.one(".next").on("click", this._onSubmit, this, "next");
-			NODE_DETAIL.one(".prev").on("click", this._onSubmit, this, "prev");
-			NODE_DETAIL.one(".cancel").on("click", this._onCancel, this);
+			NODE_DETAIL.all(".submit").on("click", this._onSubmit, this);
+			NODE_DETAIL.all(".next").on("click", this._onSubmit, this, "next");
+			NODE_DETAIL.all(".prev").on("click", this._onSubmit, this, "prev");
+			NODE_DETAIL.all(".cancel").on("click", this._onCancel, this);
 
 			NODE_SOURCE_ALL.on("click", this._fetchDetail, this);
 			NODE_TARGET_ALL.on("click", this._fetchDetail, this);
