@@ -3,14 +3,16 @@
 	    expand_vocab/4,
 	    expand_process/3,
 	    new_output/5,
-	    flush_expand_cache/0,
-	    flush_expand_cache/2,     % +Id, +Strategy
 	    process_options/3,
 	    save_mappings/3,
 	    evaluation_graph/3,
 	    mapping_counts/7,
 	    concept_count/3,
+
+	    clean_repository/0,
 	    stats_cache/2,
+	    flush_expand_cache/0,
+	    flush_expand_cache/2,     % +Id, +Strategy
 	    flush_stats_cache/0,
 	    flush_stats_cache/2 % +Mapping, +Strategy
 	  ]).
@@ -20,6 +22,7 @@
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(amalgame/amalgame_modules)).
+:- use_module(library(amalgame/alignment)).
 :- use_module(library(amalgame/map)).
 :- use_module(library(amalgame/opm)).
 :- use_module(library(amalgame/ag_provenance)).
@@ -143,6 +146,24 @@ cache_expand_result(ExecTime, Process, Strategy, Result) :-
 	!,
 	assert(expand_cache(Process-Strategy, Result)).
 cache_expand_result(_, _, _, _).
+
+clean_repository :-
+	debug(ag_expand, 'Deleting all graphs made by amalgame', []),
+	findall(G, is_amalgame_graph(G), Gs),
+	forall(member(G, Gs),
+	       (   debug(ag_expand, 'Deleting named graph ~p', [G]),
+		   rdf_unload(G)
+	       )
+	      ).
+
+is_amalgame_graph(G) :-
+	rdf_graph(G),
+	(   rdf(G, amalgame:strategy, _) % G is provenance graph
+	;   rdfs_individual_of(G, amalgame:'AlignmentStrategy')
+	;   once(rdf(G, align:map, _, G))	 % G is mapping graph
+	;   G == amalgame
+	;   G == amalgame_vocs
+	).
 
 user:message_hook(make(done(_)), _, _) :-
 	debug(ag_expand, 'Flushing expand cache after running make/0', []),
@@ -311,7 +332,8 @@ new_output(Type, Process, P, Strategy, OutputURI) :-
 	\+ rdf(OutputURI, _, _), !,
 	rdf_assert(OutputURI, rdf:type, Type, Strategy),
 	rdf_assert(OutputURI, amalgame:status, amalgame:intermediate, Strategy),
-        rdf_assert(OutputURI, P, Process, Strategy).
+        rdf_assert(OutputURI, P, Process, Strategy),
+	nickname(Strategy, OutputURI, _Nick).
 
 %%	process_options(+Process, +Module, -Options)
 %

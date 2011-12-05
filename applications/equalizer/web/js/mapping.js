@@ -84,7 +84,7 @@ YUI.add('mapping', function(Y) {
 				srcNode:NODE_DETAIL,
 				visible:false,
 				width:"80%",
-				centered:"#layout"
+				align:{points:[Y.WidgetPositionAlign.TC, Y.WidgetPositionAlign.TC]}
 			}).render();
 		},
 

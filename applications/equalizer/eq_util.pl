@@ -18,6 +18,7 @@
 :- use_module(user(user_db)).
 :- use_module(cliopatria(components/label)).
 :- use_module(library(amalgame/expand_graph)).
+:- use_module(library(amalgame/alignment)).
 
 
 :- multifile
@@ -175,6 +176,9 @@ node_prop(S, R, comment, Comment) :-
 	literal_text(Lit, Comment).
 node_prop(_, R, link, Link) :-
 	resource_link(R, Link).
+node_prop(S, R, abbrev, Nick) :-
+	rdfs_individual_of(R, amalgame:'Mapping'),
+	nickname(S,R,Nick).
 node_prop(S, Voc, count, Count) :-
 	stats_cache(Voc-S, stats(Count)).
 node_prop(S, Mapping, stats, Stats) :-

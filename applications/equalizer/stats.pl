@@ -127,9 +127,9 @@ html_form(Params, URI) -->
 amalgame_info(URL, Strategy, Stats) :-
 	rdfs_individual_of(URL, amalgame:'Mapping'),
 	!,
-	Stats = ['total mappings'-MN,
-		 'mapped source concepts'-SN,
-		 'mapped target concepts'-TN
+	Stats = ['total matches'-MN,
+		 'matched source concepts'-SN,
+		 'matched target concepts'-TN
 		],
 	with_mutex(URL, mapping_counts(URL, Strategy, MN, SN0, TN0, SPerc, TPerc)),
 	concat_atom([SN0, ' (',SPerc,'%)'], SN),

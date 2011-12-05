@@ -103,7 +103,7 @@ html_page(Strategy, Focus) :-
 
 html_overlay -->
 	html(form([div(class('yui3-widget-hd'),
-		       'Evaluate'
+		       'Correspondence details'
 		      ),
 		   div(class('yui3-widget-bd'),
 		       [ div([class(concepts), id(concepts)], [])

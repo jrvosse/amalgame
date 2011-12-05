@@ -94,15 +94,20 @@ YUI.add('opmviz', function(Y) {
 				nodes = this.get("nodes");
 			
   			this.get("contentBox").all("a").each(function(svgnode) {
+
 				var id=svgnode.getAttribute("xlink:href");
 
 				if(id == selected) {
- 					svgnode.setAttribute("class", "selected");
+					svgnode.setAttribute("class", "selected");
 				}
+
 				var node = nodes[id];
  
 				if (node && node.type == 'mapping' && node.stats) {
  					this._insert_info(svgnode, this._layout_stats(node.stats));
+				}
+				if (node.type == 'mapping' && node.abbrev) {
+				  svgnode.one('text').prepend(node.abbrev+':');
 				}
 				if (node && node.type == 'vocab' && node.count) {
  					this._insert_info(svgnode, node.count);

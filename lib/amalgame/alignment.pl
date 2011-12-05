@@ -2,7 +2,8 @@
 	 [
 	  is_alignment_graph/2,
 	  find_graphs/2,
-	  nickname/2,
+	  nickname/2, % deprecated
+	  nickname/3,
 	  split_alignment/4,
 	  select_from_alignment/5,
 
@@ -273,6 +274,18 @@ nickname(Graph, Nick) :-
 coin_nickname(_Graph, Nick) :-
 	char_type(Nick, alpha),
 	\+ has_nickname(_, Nick),!.
+
+has_nickname(Strategy, Graph,Nick) :-
+	rdf(Graph, amalgame:nickname, literal(Nick), Strategy).
+nickname(Strategy, Graph, Nick) :-
+	has_nickname(Strategy, Graph,Nick), !.
+nickname(Strategy, Graph, Nick) :-
+	coin_nickname(Strategy, Graph, Nick),
+	rdf_assert(Graph, amalgame:nickname, literal(Nick), Strategy).
+coin_nickname(Strategy, _Graph, Nick) :-
+	char_type(Nick, alpha),
+	\+ has_nickname(Strategy, _OtherGraph, Nick),!.
+
 
 split_alignment(Request, SourceGraph, Condition, SplittedGraphs) :-
 	has_map(_,Format,SourceGraph),!,
