@@ -202,8 +202,7 @@ js_module(builder, json([fullpath(Path),
 			  ])) :-
 	http_absolute_location(js('builder.js'), Path, []).
 js_module(opmviz, json([fullpath(Path),
-			requires([node,event,widget,io,
-				 'gallery-svg'])
+			requires([node,event,widget,io])
 		       ])) :-
 	http_absolute_location(js('opmviz.js'), Path, []).
 js_module(infobox, json([fullpath(Path),
