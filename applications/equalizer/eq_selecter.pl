@@ -162,7 +162,8 @@ html_open([]) -->
 html_open(Alignments) -->
 	html_acc_item(open, 'open pre-loaded alignment strategy',
 		      [ form(action(location_by_id(http_eq_build)),
-			     [ \html_alignment_table(Alignments),
+			     [ \html_alignment_table(Alignments,
+						    [linkto(http_eq_build)]),
 			       \html_submit('Start')
 			     ])
 		      ]).
@@ -175,19 +176,25 @@ html_publish([]) -->
 html_publish(Alignments) -->
 	{
 	 has_write_permission,
+	 L=http_eq_publish_form,
 	 !
 	},
 	html_acc_item(publish, 'publish	alignment results',
-		      [ form(action(location_by_id(http_eq_publish_form)),
-			     [ \html_alignment_table(Alignments),
+		      [ form(action(location_by_id(L)),
+			     [ \html_alignment_table(Alignments, [linkto(L)]),
 			       \html_submit('Publish')
 			     ])
 		      ]).
 html_publish(_) -->  !.
 
-html_alignment_table(Alignments) -->
+
+%%	html_alignment_table(+Graphs, +Options)
+%
+%	Emit HTML table with alignment graph properties.
+
+html_alignment_table(Alignments, Options) -->
 	html(table([thead(tr(\html_alignment_head)),
-		    tbody(\html_alignment_rows(Alignments))
+		    tbody(\html_alignment_rows(Alignments, Options))
 		   ])).
 
 html_alignment_head -->
@@ -197,8 +204,8 @@ html_alignment_head -->
 	      th('created by')
 	     ]).
 
-html_alignment_rows([]) --> !.
-html_alignment_rows([URI-Schemes|Gs]) -->
+html_alignment_rows([],_) --> !.
+html_alignment_rows([URI-Schemes|Gs], Options) -->
 	{
 	 (   rdf(URI, dcterms:creator, Author, URI)
 	 ->  true
@@ -206,20 +213,21 @@ html_alignment_rows([URI-Schemes|Gs]) -->
 	 )
 	},
 	html(tr([td(input([type(radio), autocomplete(off), class(option), name(alignment), value(URI)])),
-		 td(\html_strategy_name(URI)),
+		 td(\html_strategy_name(URI, Options)),
 		 td(\html_scheme_labels(Schemes)),
 		 td(\turtle_label(Author))
 		])),
-	html_alignment_rows(Gs).
+	html_alignment_rows(Gs, Options).
 
 html_scheme_labels([]) --> !.
 html_scheme_labels([S|Ss]) -->
 	html(div(\turtle_label(S))),
 	html_scheme_labels(Ss).
 
-html_strategy_name(Graph) -->
+html_strategy_name(Graph, Options) -->
 	{ graph_label(Graph, Label),
-	  http_link_to_id(http_eq_build, [alignment(Graph)], Link)
+	  option(linkto(LinkTo), Options, http_eq_build),
+	  http_link_to_id(LinkTo, [alignment(Graph)], Link)
 	},
 	html(a([href(Link)],Label)).
 
@@ -285,13 +293,6 @@ html_acc_item(Id, Label, Body) -->
 		   div(class('yui3-accordion-item-bd'),
 		       Body)
 		 ])).
-
-%%	html_alignment_table(+Graphs)
-%
-%	Emit HTML table with alignment graph properties.
-
-
-
 
 
 %%	yui_script
