@@ -107,11 +107,12 @@ YUI.add('controls', function(Y) {
 			for (var uri in nodes) {
 				var m = nodes[uri];
 				if(m.type == "mapping") {
+				        Y.log(m);
 					var status = m.status?m.status:'unspecified';
 					var checked=status.match('final')?'checked':''
 					HTML += '<div><input type="checkbox" name="secondary_input" value="'
 					+uri+'" ' +checked +' class="' + checked +'">'
-					+'<span>'+m.label+'</span></div>';
+					+'<span class="mapping_label">'+m.abbrev+':'+m.label+'</span></div>';
 				}
 			}
 			return HTML;
