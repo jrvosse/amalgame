@@ -123,6 +123,11 @@ is_opm_property(P) :-
 	rdfs_subproperty_of(P, opmv:wasTriggeredBy),
 	!.
 % filter out empty evaluations ...
+
+empty_evaluation(Strategy,M) :-
+	rdfs_individual_of(M, amalgame:'Mapping'),
+	stats_cache(M-Strategy, stats(0,0,0,_,_)),!.
+
 empty_evaluation(Strategy,M) :-
 	rdfs_individual_of(M, amalgame:'EvaluatedMapping'),
 	with_mutex(M, mapping_counts(M,Strategy,0,0,0,_,_)), !.
