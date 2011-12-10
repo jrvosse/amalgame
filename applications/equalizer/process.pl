@@ -284,6 +284,14 @@ update_node_prop(label=Label, URI, Alignment) :-
 	->  true
 	;   rdf_assert(URI, rdfs:label, literal(Label), Alignment)
 	).
+
+update_node_prop(abbrev=Abbrev, URI, Alignment) :-
+	rdf_retractall(URI, amalgame:nickname, _),
+	(   Abbrev == ''
+	->  true
+	;   rdf_assert(URI, amalgame:nickname, literal(Abbrev), Alignment)
+	).
+
 update_node_prop(comment=Comment, URI, Alignment) :-
 	rdf_retractall(URI, rdfs:comment, _),
 	(   Comment == ''

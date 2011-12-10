@@ -92,8 +92,9 @@ html_node_props -->
 	html(table([tr([td(id(type), []),
 			td(id(uri), [])
 		       ]),
-		    tr([td(label),
-			td(input([type(text), id(label)]))
+		    tr([td([span(class(abbrev),'abbrev/'), label ]),
+			td([input([type(text), class(abbrev), id(abbrev), maxlength(1), style('width:1em')]),
+			    input([type(text), id(label)])])
 		       ]),
 		    tr([id(publish_ns)],[td(namespace),
 			td(input([type(text), id(namespace)], []))

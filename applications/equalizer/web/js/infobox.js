@@ -13,6 +13,7 @@ YUI.add('infobox', function(Y) {
 		NODE_NAMESPACE = Y.one("#namespace"),
 		NODE_NAMESPACE_ROW = Y.one("#publish_ns"),
 		NODE_LABEL = Y.one("#label"),
+		NODE_ABBREV = Y.one("#abbrev"),
 		NODE_COMMENT = Y.one("#comment"),
 		NODE_STATUS_ROW = Y.one("#statusrow");
 		NODE_STATUS = Y.one("#status");
@@ -99,6 +100,7 @@ YUI.add('infobox', function(Y) {
 					label = selected.label||uri,
 					type = selected.type||"",
 					comment = selected.comment||"",
+					abbrev = selected.abbrev||"?",
 					namespace = selected.namespace||"",
 					status = selected.status;
 				        sec_inputs = selected.secondary_inputs|| [];
@@ -108,6 +110,7 @@ YUI.add('infobox', function(Y) {
 				this.set("waiting", true);
 				NODE_LABEL.set("value", label);
 				NODE_COMMENT.set("value", comment);
+				NODE_ABBREV.set("value", abbrev);
 				Y.one('#namespace').set("value", namespace);
 				NODE_TYPE.setContent(type);
 				NODE_URI.setContent('<a href="'+link+'">'+uri+'</a>');
@@ -122,12 +125,21 @@ YUI.add('infobox', function(Y) {
 					NODE_STATUS_ROW.addClass("hidden")
 				}
 
-				if (type == "mapping") { NODE_EVAL.removeClass("hidden"); }
-				else {  NODE_EVAL.addClass("hidden"); }
+				if (type == "mapping") {
+				  NODE_EVAL.removeClass("hidden");
+				  NODE_ABBREV.removeClass("hidden");
+				  Y.all('span.abbrev').removeClass("hidden");
+				}
+				else {
+				       NODE_EVAL.addClass("hidden");
+				       NODE_ABBREV.addClass("hidden");
+				       Y.all('span.abbrev').addClass("hidden");
+				     }
 
 				if(type =='alignment' || type=='strategy') {
 				        NODE_NAMESPACE_ROW.removeClass("hidden");
 					NODE_DELETE.setAttribute("disabled", true);
+
 				} else if (!this.get('readonly')) {
 				        NODE_NAMESPACE_ROW.addClass("hidden");
 				        NODE_DELETE.removeAttribute("disabled");
@@ -148,7 +160,6 @@ YUI.add('infobox', function(Y) {
 						NODE_PROPS.setContent(HTML);
 						var paramnode = content.one('.parameters');
 						if (paramnode && sec_inputs.length > 0) {
-						  Y.log(sec_inputs.length);
 						  paramnode.prepend(infobox.formatMappingList(sec_inputs))
 						  paramnode.prepend('<div>Additional input mappings:</div>');
 						}
@@ -200,12 +211,14 @@ YUI.add('infobox', function(Y) {
 				namespace = NODE_NAMESPACE.get("value"),
 				label = NODE_LABEL.get("value"),
 				comment = NODE_COMMENT.get("value"),
+				abbrev = NODE_ABBREV.get("value"),
 				status = NODE_STATUS.get("options")
 					.item(NODE_STATUS.get("selectedIndex")).get("value");
 
 			var data = {
 				uri:uri,
 				label:label,
+				abbrev:abbrev,
 				namespace:namespace,
 				status:status,
 				comment:comment
