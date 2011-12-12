@@ -75,14 +75,14 @@ http_add_process(Request) :-
 
 %%	http_graph_nodes(+Request)
 %
-%
+%	Return current nodes in strategy/alignment specified,
+%	for each node properties and available statistics are provided.
 
 http_graph_nodes(Request) :-
-	authorized(write(default, _)),
 	http_parameters(Request,
 			[ alignment(Alignment,
 				    [uri,
-				     description('URI of the alignment graph to which the process is added')])
+				     description('URI of the strategy graph')])
 			]),
 	js_alignment_nodes(Alignment, Nodes),
 	reply_json(json([nodes=json(Nodes)])).
