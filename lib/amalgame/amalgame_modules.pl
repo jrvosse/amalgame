@@ -3,13 +3,15 @@
 	    amalgame_module_id/2,         % +URI, -Module
 	    amalgame_modules_of_type/2,   % +Class, -Modules
 	    amalgame_module_parameters/2, % +Module, -Parameters
-	    amalgame_module_property/2	  % +URI, ?Term
+	    amalgame_module_property/2,	  % +URI, ?Term,
+	    process_options/3
 	  ]).
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(http/http_path)).
+:- use_module(library(http/http_parameters)).
 
 :- rdf_meta
 	amalgame_module_property(r,?),
@@ -99,3 +101,60 @@ amalgame_module_property(URI, explanation_graph(ExplainURI)) :-
 			   ]),
 	http_absolute_location(img(Local), ExplainURI, []).
 
+%%	process_options(+Process, +Module, -Options)
+%
+%	Options are the instantiated parameters for Module based on the
+%	parameters string in Process.
+
+process_options(Process, Module, Options) :-
+	rdf(Process, amalgame:parameters, literal(ParamString)),
+	!,
+	module_options(Module, Options, Parameters),
+	parse_url_search(ParamString, Search0),
+	fix_not_expanded_options(Search0, Search),
+	Request = [search(Search)] ,
+	http_parameters(Request, Parameters).
+process_options(_, _, []).
+
+fix_not_expanded_options([''],[]).
+fix_not_expanded_options([],[]).
+fix_not_expanded_options([Key=Value|Tail], [Key=FixedValue|Results]):-
+	(   \+ sub_atom(Value,0,_,_,'http:'),
+	    term_to_atom(NS:L, Value),
+	    rdf_global_id(NS:L,FixedValue)
+	->  true
+	;   FixedValue = Value
+	),
+	fix_not_expanded_options(Tail, Results).
+
+%%	module_options(+Module, -Options, -Parameters)
+%
+%	Options  are  all  option  clauses    defined   for  Module.
+%	Parameters is a specification list for http_parameters/3.
+%	Module:parameter is called as:
+%
+%	    parameter(Name, Properties, Description)
+%
+%	Name is the name of the	the option, The Properties are as
+%	supported by http_parameters/3.	Description is used by the help
+%	system.
+
+module_options(Module, Options, Parameters) :-
+	current_predicate(Module:parameter/4),
+	!,
+	findall(O-P,
+		( call(Module:parameter, Name, Type, Default, _Description),
+		  O =.. [Name, Value],
+		  param_options(Type, Default, ParamOptions),
+		  P =.. [Name, Value, ParamOptions]
+		),
+		Pairs),
+	pairs_keys_values(Pairs, Options, Parameters).
+module_options(_, _, []).
+
+
+param_options(Type, Default, Options) :-
+	(   is_list(Type)
+	->  Options = [default(Default)|Type]
+	;   Options = [default(Default), Type]
+	).

@@ -10,7 +10,9 @@
 :- use_module(library(semweb/rdf_label)).
 :- use_module(user(user_db)).
 :- use_module(library(amalgame/expand_graph)).
+:- use_module(library(amalgame/caching)).
 :- use_module(library(amalgame/ag_provenance)).
+:- use_module(library(amalgame/alignment)).
 :- use_module(eq_util).
 :- use_module(stats).
 
@@ -37,7 +39,7 @@ http_add_process(Request) :-
 				[uri,
 				 optional(true),
 				 description('URI of (primary) input mapping')]),
-			  secondary_input(SecInputs,
+			  secondary_input(SecInputs0,
 				  [uri,
 				   zero_or_more,
 				   description('List of mappings used as aditional input (e.g by exclude or ancestor matching)')]),
@@ -60,6 +62,7 @@ http_add_process(Request) :-
 				  descrption('When set to true process is updated with new parameters')])
 			],
 			[form_data(Params0)]),
+	sort(SecInputs0, SecInputs),
 	subtract(Params0, [input=_,source=_,target=_,process=_,alignment=_,update=_,graphic=_], Params1),
 	findall(secondary_input=S,member(secondary_input=S, Params1), SecParams),
 	subtract(Params1, SecParams, Params),
@@ -145,12 +148,11 @@ new_process(Type, Alignment, Source, Target, Input, SecInputs, Params, Focus) :-
 
 	rdf_bnode(URI),
 	rdf_transaction( % this transaction is to make it MT safe
-	    (
-	    assert_process(URI, Type, Alignment, Params),
-	    assert_user_provenance(URI, Alignment),
-	    assert_input(URI, Type, Alignment, Source, Target, Input),
-	    assert_output(URI, Type, Alignment, Focus),
-	    assert_secondary_inputs(SecInputs, URI, Type, Alignment)
+	    (	assert_process(URI, Type, Alignment, Params),
+		assert_user_provenance(URI, Alignment),
+		assert_input(URI, Type, Alignment, Source, Target, Input),
+		assert_secondary_inputs(SecInputs, URI, Type, Alignment),
+		assert_output(URI, Type, Alignment, SecInputs, Focus)
 	    )),
 
 	% precompute results to speed things up
@@ -161,23 +163,14 @@ new_process(Type, Alignment, Source, Target, Input, SecInputs, Params, Focus) :-
 precompute(Process, Alignment) :-
 	rdf_has(Output, opmv:wasGeneratedBy, Process, RP),
 	rdf(Output, RP, Process, Alignment),
-	thread_create(
-	    (
-	    % Write debug output to server console, cannot write to client:
-	    set_stream(user_output, alias(current_output)),
-	    expand_mapping(Alignment, Output, _, _)
+	thread_create( % Write debug output to server console, cannot write to client:
+	    (	set_stream(user_output, alias(current_output)),
+		expand_mapping(Alignment, Output, _, _)
 	    ),
-	    _,
-	    [ detached(true) ]
-		     ).
-precompute(Process, Strategy) :-
-	rdf(Process, rdf:type, amalgame:'OverlapComponent', Strategy),
-	!,
-	with_mutex(Process, expand_process(Strategy, Process, Result)),
-	assert_overlap_output(Process, Strategy, Result).
+	    _,[ detached(true) ]).
 
 assert_input(_Process, Type, _Graph, _Source, _Target, _Input) :-
-	rdfs_subclass_of(Type, amalgame:'Analyzer'),
+	rdfs_subclass_of(Type, amalgame:'OverlapComponent'),
 	!.
 
 assert_input(Process, _Type, Graph, Source, Target, _Input) :-
@@ -191,7 +184,7 @@ assert_input(Process, _Type, Graph, _Source, _Target, Input) :-
 
 assert_secondary_inputs([], _, _, _).
 assert_secondary_inputs([URI|URIs], Process, Type, Strategy) :-
-	(   rdfs_subclass_of(Type, amalgame:'Analyzer')
+	(   rdfs_subclass_of(Type, amalgame:'OverlapComponent')
 	->  rdf_equal(Pred, amalgame:input)
 	;   rdf_equal(Pred, amalgame:secondary_input)
 	),
@@ -208,7 +201,7 @@ assert_process(Process, Type, Graph, Params) :-
 	rdf_assert(Process, rdfs:label, literal(Label), Graph),
 	rdf_assert(Process, amalgame:parameters, literal(Search), Graph).
 
-assert_output(Process, Type, Graph, MainOutput) :-
+assert_output(Process, Type, Graph, _, MainOutput) :-
 	rdfs_subclass_of(Type, amalgame:'MappingSelecter'),
 	!,
 	rdf_equal(amalgame:'Mapping', OutputClass),
@@ -216,15 +209,48 @@ assert_output(Process, Type, Graph, MainOutput) :-
 	new_output(OutputClass, Process, amalgame:discardedBy, Graph, _),
 	new_output(OutputClass, Process, amalgame:undecidedBy, Graph, _).
 
-assert_output(_Process, Type, Graph, Graph) :-
-	rdfs_subclass_of(Type, amalgame:'Analyzer'),
-	!.
-assert_output(Process, Type, Graph, MainOutput) :-
+assert_output(Process, Type, Strategy, SecInputs, Strategy) :-
+	rdfs_subclass_of(Type, amalgame:'OverlapComponent'),
+	!,
+	rdf_equal(amalgame:'Mapping', OutputClass),
+	oset_power(SecInputs, [[]|PowSet]),
+	forall(member(InSet0, PowSet),
+	       (   sort(InSet0, InSet),
+		   new_output(OutputClass, Process, opmv:wasGeneratedBy, Strategy, OutputUri),
+		   findall(Nick,
+			   (	member(Id, InSet),
+				nickname(Strategy,Id,Nick)
+			   ),
+			   Nicks),
+		   atomic_list_concat(Nicks, AllNicks),
+		   format(atom(Comment), 'Mappings found only in: ~p', [InSet]),
+		   format(atom(Label), 'Intersect: ~w', [AllNicks]),
+		   rdf_assert(OutputUri, amalgame:overlap_set, literal(InSet), Strategy),
+		   rdf_assert(OutputUri, rdfs:comment, literal(Comment), Strategy),
+		   rdf_assert(OutputUri, rdfs:label, literal(Label), Strategy)
+	       )
+	      ).
+
+
+
+assert_output(Process, Type, Graph, _, MainOutput) :-
 	output_type(Type, OutputClass),
 	new_output(OutputClass, Process, opmv:wasGeneratedBy, Graph, MainOutput).
 
 assert_overlap_output(_Process, _Strategy, _Results) :-
 	true.
+
+new_output(Type, Process, P, Strategy, OutputURI) :-
+	rdf(Strategy, amalgame:publish_ns, NS),
+	repeat,
+	gensym(dataset, Local),
+	atomic_concat(NS, Local, OutputURI),
+	\+ rdf(OutputURI, _, _), !,
+	rdf_assert(OutputURI, rdf:type, Type, Strategy),
+	rdf_assert(OutputURI, amalgame:status, amalgame:intermediate, Strategy),
+        rdf_assert(OutputURI, P, Process, Strategy),
+	nickname(Strategy, OutputURI, _Nick).
+
 
 output_type(ProcessType, skos:'ConceptScheme') :-
 	rdfs_subclass_of(ProcessType, amalgame:'VocabSelecter'),
@@ -305,10 +331,10 @@ update_node_prop(status=Status, URI, Alignment) :-
 	;   rdf_assert(URI, amalgame:status, Status, Alignment)
 	),
 	(   rdf_equal(Status, amalgame:final)
-	->  thread_create((
-			  set_stream(user_output, alias(current_output)),
-			   expand_mapping(Alignment, URI, _)
-			  ), _, [ detached(true) ])
+	->  thread_create(
+		(   set_stream(user_output, alias(current_output)),
+		    expand_mapping(Alignment, URI, _, _)
+		), _, [ detached(true) ])
 	;   true
 	).
 

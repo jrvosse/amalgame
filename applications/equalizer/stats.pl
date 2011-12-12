@@ -9,6 +9,7 @@
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(amalgame/amalgame_modules)).
+:- use_module(library(amalgame/ag_stats)).
 :- use_module(library(amalgame/expand_graph)).
 :- use_module(cliopatria(components/label)).
 

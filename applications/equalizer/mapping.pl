@@ -16,9 +16,12 @@
 :- use_module(components(graphviz)).
 
 :- use_module(library(skos/vocabularies)).
-:- use_module(library(amalgame/expand_graph)).
+:- use_module(library(amalgame/caching)).
+:- use_module(library(amalgame/amalgame_modules)).
+:- use_module(library(amalgame/ag_evaluation)).
 :- use_module(library(amalgame/edoal)).
 :- use_module(library(amalgame/map)).
+:- use_module(library(amalgame/expand_graph)).
 :- use_module(library(ag_util)).
 :- use_module(eq_util).
 
