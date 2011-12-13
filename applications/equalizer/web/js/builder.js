@@ -28,7 +28,10 @@ YUI.add('builder', function(Y) {
 			}
 		},
 		selected : {
-			value: null
+			value:{},
+			validator: function(val) {
+				return Lang.isObject(val)
+			}
 		},
 		nodes:{
 			value:{},
@@ -50,6 +53,7 @@ YUI.add('builder', function(Y) {
 			this._initInfo();
 			this._initMapping();
 
+			// handlers for the controls
 			if (!this.readonly) {
 				this.controls.on("submit", this._onControlSubmit, this);
 			} else {
@@ -57,26 +61,30 @@ YUI.add('builder', function(Y) {
 			  Y.all('button').each(function(button) { button.setAttribute("disabled", true); });
 			};
 			
-			this.opmviz.on("nodeSelect", this._onNodeSelect, this);
+			// handlers for the infobox
 			this.infobox.after("deleteNode", this._onNodeDelete, this);
 			this.infobox.after("nodeUpdate", this._onNodeUpdate, this);
-			this.controls.on("nodeUpdate", this._onNodeUpdate, this); // used for hints (generated on the server)
-			this.mapping.on("evalSubmit", this._updateNodes, this);
+			this.infobox.on("evaluate", this._onEvaluate, this);
+			this.infobox.on("submit", this._onControlSubmit, this); // used for hints
+			
+			// handlers for graph and mapping
+			this.opmviz.on("nodeSelect", this._onNodeSelect, this);
+			this.mapping.on("evalSubmit", this._updateNodes, this);			
 
-			this.after('nodesChange', function(o) {
+			// handlers for changes on attributes
+			// federate them to the components
+			this.on('nodesChange', function(o) {
 				var nodes = o.newVal;
+				this.infobox.set("nodes", nodes); 
 				this.controls.set("nodes", nodes);
-				this.infobox.set("nodes", nodes);
-				this.opmviz.set("nodes", nodes);	
 			}, this);
 			
-			this.after("selectedChange", function(o) {
-				var selectedNode = this.get("nodes")[o.newVal];
-				
-				this.infobox.set("selected", selectedNode);	
-				this.controls.set("selected", selectedNode);
-				this.opmviz.set("selected", selectedNode);
-				this.mapping.set("selected", selectedNode);
+			this.on("selectedChange", function(o) {
+				var selected = o.newVal;
+				this.opmviz.set("selected", selected);
+				this.infobox.set("selected", selected);	
+				this.controls.set("selected", selected);
+				this.mapping.set("selected", selected);
 			}, this);
 		},
 
@@ -96,44 +104,37 @@ YUI.add('builder', function(Y) {
 		},
 
 		_initGraph : function() {
-			var selected = this.get("nodes")[this.get("selected")];
 			this.opmviz = new Y.OPMViz({
 				paths:this.get("paths"),
-				nodes: this.get("nodes"),
 				alignment: this.get("alignment"),
-				selected: selected
+				selected: this.get("selected")
 			}).render(NODE_OPM);
 		},
 
 		_initInfo : function() {
-			var selected = this.get("nodes")[this.get("selected")];
 			this.infobox = new Y.InfoBox({
 				srcNode: NODE_INFO,
 				alignment: this.get("alignment"),
 				nodes: this.get("nodes"),
-				selected: selected,
-				hint: this.get("paths").hint,
-				controls: this.controls,
+				selected: this.get("selected"),
 				readonly: this.readonly,
 				paths: this.get("paths")
 			});
 		},
 
 		_initControls : function() {
-			var selected = this.get("nodes")[this.get("selected")];
 			this.controls = new Y.Controls({
 				srcNode: NODE_CONTROLS,
-				selected: selected,
+				selected: this.get("selected"),
 				nodes: this.get("nodes")
 			});
 		},
 		
 		_initMapping : function() {
-			var selected = this.get("nodes")[this.get("selected")];
 			this.mapping = new Y.Mapping({
 				paths: this.get("paths"),
 				alignment: this.get("alignment"),
-				selected: selected
+				selected: this.get("selected")
 			});
 		},
 		
@@ -152,7 +153,7 @@ YUI.add('builder', function(Y) {
 			Y.one("#graph").get("parentNode").setStyle("width", "100%"); 
 			Y.one("#graph").setStyle("width", "100%");
 		},
-		_onWindowResize : function() {
+		_onWindowResize : function(e) {
 			var contentHeight = this._contentHeight(),
 				graphHeight = contentHeight - (Y.one("#bottom").get("offsetHeight")+10);
 			Y.one("#graph").get("parentNode").setStyle("height", graphHeight); 
@@ -176,10 +177,8 @@ YUI.add('builder', function(Y) {
 				data:data,
 				on:{success:function(e,o) {
 					var r =	Y.JSON.parse(o.responseText);
-					// we must first update the nodes
-					oSelf.set("nodes", r.nodes);
 					oSelf.set("selected", r.focus);
-					oSelf._fetchStats(r.focus);
+					oSelf.set("nodes", r.nodes);
 				}}
 			});
 		},
@@ -188,14 +187,14 @@ YUI.add('builder', function(Y) {
 			var oSelf = this,
 				paths = this.get("paths"),
 				data = o.data;
-			
 			data.alignment = this.get("alignment");
+			
 			Y.io(paths.updatenode, {
 				data:data,
 				on:{success:function(e,o) {
 					var r = Y.JSON.parse(o.responseText);
-					oSelf.set("nodes", r.nodes);
 					oSelf.set("selected", r.focus);
+					oSelf.set("nodes", r.nodes);
 					if (!data.alignment == r.alignment) {
 						// alignment changed name, we need to fully reload ...
 						var l = window.location;
@@ -210,49 +209,36 @@ YUI.add('builder', function(Y) {
 		_onNodeDelete : function(o) {
 			var oSelf = this,
 				paths = this.get("paths"),
-				alignment = this.get("alignment"),
-				data = {
-					alignment:alignment,
-					uri:o.uri
-				};
-			
-			// the strategy node (alignment) becomes the new focus	
-			this.set("selected", alignment);
+				alignment = this.get("alignment");
 
 			// inform the server and update the nodes
 			Y.io(paths.deletenode, {
-				data:data,
+				data:{
+					alignment:alignment,
+					uri:o.uri
+				},
 				on:{success:function(e,o) {
 					var r = Y.JSON.parse(o.responseText);
+					oSelf.set("selected", r.focus);
 					oSelf.set("nodes", r.nodes);
 				}}
 			})
 		},
 
 		_onNodeSelect : function(e) {
-			var selected = e.uri;			
-			this.set("selected", selected);			
-			this._fetchStats(selected);
+			var selected = this.get("nodes")[e.uri];
+			this.set("selected", selected);
 		},
 		
-		_fetchStats : function(selected) {
-			var oSelf = this,
-				paths = this.get("paths"),
-				alignment = this.get("alignment");
-				
-			Y.io(paths.nodes, {
-				data:{
-					"alignment":alignment,
-					"selected":selected
-				},
-				on:{success: function(e,o) {
-					var r =	Y.JSON.parse(o.responseText);
-					if(r.nodes) {
-						oSelf.set("nodes", r.nodes);
-					}
-				}}
-			});	
-		}	
+		_onEvaluate : function(e) {
+			var focus = e.data.focus;
+			if(focus) {
+				window.location = 	this.get("paths").eq_evaluate
+					+'?alignment='+encodeURIComponent(this.get("alignment"))
+					+"&focus="+encodeURIComponent(focus);
+			}	
+		}
+	
 	});
 
 	Y.Builder = Builder;

@@ -62,9 +62,6 @@ YUI.add('controls', function(Y) {
 			Y.on("click", this._valueSet, NODE_SOURCE_BTN, this, "source");
 			Y.on("click", this._valueSet, NODE_TARGET_BTN, this, "target");
 
-			// catch events fired when executing hints:
-			this.on("evaluate", this._onEvaluate, this);
-
 			// toggle the controls when selected is changed
 			this.after('selectedChange', this._toggleControls, this);
 			this.after('nodesChange', this._setMappingSelecter, this);
@@ -107,7 +104,7 @@ YUI.add('controls', function(Y) {
 					var checked=status.match('final')?'checked':''
 					HTML += '<div><input type="checkbox" name="secondary_input" value="'
 					+uri+'" ' +checked +' class="' + checked +'">'
-					+'<span>'+m.label+'</span></div>';
+					+'<span class="mapping_label">'+m.abbrev+':'+m.label+'</span></div>';
 				}
 			}
 			return HTML;
@@ -198,16 +195,16 @@ YUI.add('controls', function(Y) {
 			}
 			var secSelecter = Y.one(".secinput_selecter");
 			if (secSelecter&&secSelecter.getContent()) {
-				Y.log("Enabling components requiring secondary inputs");
+				//Y.log("Enabling components requiring secondary inputs");
 				Y.all(".secinput").removeClass("disabled");
 			    
 			} else {
-				Y.log("Disabling components requiring secondary inputs");
+				//Y.log("Disabling components requiring secondary inputs");
 				Y.all(".secinput").addClass("disabled");
 			}
 			var preloadedSelecter = Y.one(".preloaded select option")
 			if(!preloadedSelecter) {
-			  Y.log("Disabling components requiring preloaded input mappings");
+			  //Y.log("Disabling components requiring preloaded input mappings");
 			  Y.all(".preloaded").addClass("disabled");
 			}
 			// enable matcher submit when both source and target have a value
@@ -218,11 +215,6 @@ YUI.add('controls', function(Y) {
 				Y.all("#match .control-submit").setAttribute("disabled", true);
 			}
 		},
-
-		_onEvaluate : function(e) {
-				Y.log('evaluate handler');
-				window.location.replace(e.data.page);
-			      },
 
 		_valueSet : function(e, which) {
 			var selected =  this.get("selected");

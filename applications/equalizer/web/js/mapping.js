@@ -39,14 +39,17 @@ YUI.add('mapping', function(Y) {
 		initializer: function(args) {
 			this._initTable();
 			this._initDetail();
-
+			
+			// hide the table on start
+			NODE_MAPPING_TABLE.addClass("hidden");
+			
 			// bind the modules
 			this.after("selectedChange", this._onSelectedChange, this);
 			this.mappingtable.on("rowSelect", this._onCorrespondenceSelect, this);
-			NODE_DETAIL.one(".submit").on("click", this._onSubmit, this);
-			NODE_DETAIL.one(".next").on("click", this._onSubmit, this, "next");
-			NODE_DETAIL.one(".prev").on("click", this._onSubmit, this, "prev");
-			NODE_DETAIL.one(".cancel").on("click", this._onCancel, this);
+			NODE_DETAIL.all(".submit").on("click", this._onSubmit, this);
+			NODE_DETAIL.all(".next").on("click", this._onSubmit, this, "next");
+			NODE_DETAIL.all(".prev").on("click", this._onSubmit, this, "prev");
+			NODE_DETAIL.all(".cancel").on("click", this._onCancel, this);
 
 			NODE_SOURCE_ALL.on("click", this._fetchDetail, this);
 			NODE_TARGET_ALL.on("click", this._fetchDetail, this);
@@ -90,12 +93,12 @@ YUI.add('mapping', function(Y) {
 
 		_onSelectedChange : function() {
 			var selected = this.get("selected");
+			this.detailOverlay.set("visible", false);
 			if(selected.type=="mapping") {
-				this.detailOverlay.set("visible", false);
 				this.mappingtable.set("mapping", selected.uri);
-				this.mappingtable.set("visible", true);
+				NODE_MAPPING_TABLE.removeClass("hidden");
 			} else {
-				this.mappingtable.set("visible", false);
+				NODE_MAPPING_TABLE.addClass("hidden");
 			}
 		},
 

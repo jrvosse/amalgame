@@ -3,7 +3,8 @@ YUI.add('infobox', function(Y) {
 	var Lang = Y.Lang,
 		Node = Y.Node;
 
-	var NODE_PROPS = Y.one("#properties"),
+	var NODE_INFO = Y.one("#infocontent"),
+		NODE_PROPS = Y.one("#properties"),
 		NODE_DELETE = Y.one("#delete"),
 		NODE_EVAL = Y.one("#evaluate"),
 		NODE_UPDATE = Y.one("#update"),
@@ -13,6 +14,7 @@ YUI.add('infobox', function(Y) {
 		NODE_NAMESPACE = Y.one("#namespace"),
 		NODE_NAMESPACE_ROW = Y.one("#publish_ns"),
 		NODE_LABEL = Y.one("#label"),
+		NODE_ABBREV = Y.one("#abbrev"),
 		NODE_COMMENT = Y.one("#comment"),
 		NODE_STATUS_ROW = Y.one("#statusrow");
 		NODE_STATUS = Y.one("#status");
@@ -25,10 +27,7 @@ YUI.add('infobox', function(Y) {
 		srcNode: {
 			value: null
 		},
-		controls : { 
-			value: null
-		},
-		waiting: {
+		loading: {
 			value:false,
 			validator:function(val) {
 				return Lang.isBoolean(val);
@@ -39,9 +38,6 @@ YUI.add('infobox', function(Y) {
 		},
 		alignment: {
 			value: null
-		},
-		hint : {
-		       value: null
 		},
 		paths : { 
 			value: null
@@ -54,29 +50,116 @@ YUI.add('infobox', function(Y) {
 	Y.extend(InfoBox, Y.Base, {
 
 		initializer : function(config) {
-			var content = this.get("srcNode");
+			var content = this.get("srcNode"),
+				selected = this.get("selected"),
+				nodes = this.get("nodes");
+				
 			this.bd = content.one('.bd');
 			this.loadingNode = content.one('.loading');
 			this.emptyNode = content.one('.empty');
 			this.bd.addClass("hidden");
 
-			NODE_DELETE.on("click", this._deleteNode, this);
-			NODE_UPDATE.on("click", this._updateNode, this);
-			NODE_EVAL.on("click", this._evaluateNode, this);
+			NODE_DELETE.on("click", this._onNodeDelete, this);
+			NODE_UPDATE.on("click", this._onNodeUpdate, this);
+			NODE_EVAL.on("click", this._onNodeEvaluate, this);
 			
-			// this component does not update itself on nodeDelete,
-			// instead this is done via the nodesChange handler
-			//this.after('waitingChange', this.toggleLoading, this);
 			this.after('selectedChange', this.syncUI, this);
-			this.after('nodesChange', this._updateProps, this);
-			this.syncUI();
-			this._updateProps();
+			this.on('loadingChange', this._onLoadingChange, this);
+			this.on('nodesChange', this._onNodesChange, this);
+			
+			this.syncUI();			
 		},
-
+		
 		syncUI : function() {
 			var oSelf = this,
+				paths = this.get("paths"),
 				selected = this.get("selected"),
-				alignment = this.get("alignment"),
+				alignment = this.get("alignment");
+			
+			// update the node properties that we already have
+			this._setProperties(selected);
+			
+			// fetch new info
+			this.set("loading", true);
+			Y.io(paths.info, { 
+				data: {
+					'url':selected.uri,
+					'alignment':alignment
+				}, 
+				on:{ 
+					success:function(e,r) {
+						NODE_PROPS.setContent(r.responseText);
+						oSelf.set("loading", false);
+					}
+				}
+			});
+			
+			// fetch a hint
+			if (!this.get("readonly")) {
+				this._createHint()
+			};
+		},
+		
+		_onNodesChange : function(o) {
+			
+
+		},
+		
+		_onLoadingChange : function (o) {
+			if(o.newVal) {
+				NODE_INFO.addClass("hidden");
+				this.loadingNode.removeClass("hidden");
+			} else {
+				this.loadingNode.addClass("hidden");
+				NODE_INFO.removeClass("hidden");
+			}
+		},
+		
+		_onNodeUpdate : function() {
+			var sel = this.get("selected"),
+				uri = sel.uri,
+				namespace = NODE_NAMESPACE.get("value"),
+				label = NODE_LABEL.get("value"),
+				comment = NODE_COMMENT.get("value"),
+				abbrev = NODE_ABBREV.get("value"),
+				status = NODE_STATUS.get("options")
+					.item(NODE_STATUS.get("selectedIndex")).get("value");
+					
+			var data = {
+				uri:uri,
+				label:label,
+				abbrev:abbrev,
+				namespace:namespace,
+				status:status,
+				comment:comment
+			};
+			
+			Y.log("update node: "+uri);
+			this.fire("nodeUpdate", {data:data});
+		},
+
+		_onNodeDelete : function() {
+			var uri = this.get("selected").uri;
+			Y.log("delete node: "+uri);
+			this.fire("deleteNode", {uri:uri});
+			// this component does not update itself on nodeDelete,
+			// instead this is done via the nodesChange handler
+		},
+		
+		_onNodeEvaluate : function() {
+			var uri = this.get("selected").uri;
+			Y.log("evaluate node: "+uri);
+			this.fire("evaluate", {data:{focus:uri}});
+		},	
+		
+		_onExecHint : function(e, data, event) {
+			Y.log('execute "'+event+'" hint with data:');
+			Y.log(data);
+			this.fire(event, {data: data});
+		},
+		
+		_setProperties : function(selected) {	
+			var alignment = this.get("alignment"),
 				content = this.get("srcNode");
 
 			if(selected) {
@@ -85,14 +168,15 @@ YUI.add('infobox', function(Y) {
 					label = selected.label||uri,
 					type = selected.type||"",
 					comment = selected.comment||"",
+					abbrev = selected.abbrev||"?",
 					namespace = selected.namespace||"",
 					status = selected.status,
 					sec_inputs = selected.secondary_inputs|| [];
 
 				this.emptyNode.addClass("hidden");
-				//this.set("waiting", true);
 				NODE_LABEL.set("value", label);
 				NODE_COMMENT.set("value", comment);
+				NODE_ABBREV.set("value", abbrev);
 				Y.one('#namespace').set("value", namespace);
 				NODE_TYPE.setContent(type);
 				NODE_URI.setContent('<a href="'+link+'">'+uri+'</a>');
@@ -109,13 +193,19 @@ YUI.add('infobox', function(Y) {
 
 				if (type == "mapping") {
 					NODE_EVAL.removeClass("hidden");
-				} else {
+					NODE_ABBREV.removeClass("hidden");
+					Y.all('span.abbrev').removeClass("hidden");
+				}
+				else {
 					NODE_EVAL.addClass("hidden");
+					NODE_ABBREV.addClass("hidden");
+					Y.all('span.abbrev').addClass("hidden");
 				}
 
 				if(type =='alignment' || type=='strategy') {
 					NODE_NAMESPACE_ROW.removeClass("hidden");
 					NODE_DELETE.setAttribute("disabled", true);
+
 				} else if (!this.get('readonly')) {
 					NODE_NAMESPACE_ROW.addClass("hidden");
 					NODE_DELETE.removeAttribute("disabled");
@@ -127,105 +217,62 @@ YUI.add('infobox', function(Y) {
 				} else {
 					content.one('.control-submit').addClass("hidden");
 				}
-				
-				if (!this.get("readonly")) this._createHint();
 				this.bd.removeClass("hidden");
 			} else {
 				this.emptyNode.removeClass("hidden");
 			}
 		},
 				
-		_createHint : function () {
+		_createHint : function() {
 			var oSelf = this;
-			var data =
-			     { strategy: this.get("alignment"),
-			       focus: this.get("selected").uri
-			     };
-			Y.io(this.get("hint"),
-			     { data: data,
-			       on: {success: function(e,o) {
-					       var r = Y.JSON.parse(o.responseText);
-					       if (r.text) {
-						 NODE_HINT.setContent(r.text);
-					       } else {
-						 NODE_HINT.setContent('No hints available at this point');
-					       }
-
-					       if (r.data) {
-						 NODE_HINT.appendChild('&nbsp;');
-						 NODE_HINT.appendChild('(<a id="exec_hint">just do it</a>)');
-						 Y.one('#exec_hint').on("click",
-									oSelf._onExecHint, oSelf, r.data, r.event);
-					       }
-					     }
-				   }
+			Y.io(this.get("paths").hint, {
+				data: {
+					strategy: this.get("alignment"),
+					focus: this.get("selected").uri
+				},
+				on: {success: function(e,o) {
+						var r = Y.JSON.parse(o.responseText);
+						if (r.text) {
+							NODE_HINT.setContent(r.text);
+						} else {
+							NODE_HINT.setContent('No hints available at this point');
+						}
+						if (r.data) {
+							NODE_HINT.appendChild('&nbsp;');
+							NODE_HINT.appendChild('(<a id="exec_hint">just do it</a>)');
+							// FixMe! can we put the handler once on initialization?
+							Y.one('#exec_hint').on("click", oSelf._onExecHint, oSelf, r.data, r.event);
+						}
+					}
+				}
 			});
 		},
-
-		_onExecHint : function(e, data, event) {
-			Y.log(event + ' fired with data:');
-			Y.log(data);
-			this.get("controls").fire(event, {data: data});
-		},
-
-		_updateNode : function() {
-			var sel = this.get("selected"),
-				uri = sel.uri,
-				namespace = NODE_NAMESPACE.get("value"),
-				label = NODE_LABEL.get("value"),
-				comment = NODE_COMMENT.get("value"),
-				status = NODE_STATUS.get("options")
-					.item(NODE_STATUS.get("selectedIndex")).get("value");
-
-			var data = {
-				uri:uri,
-				label:label,
-				namespace:namespace,
-				status:status,
-				comment:comment
-			}
-			this.fire("nodeUpdate", {data:data});
-		},
-
-		_deleteNode : function() {
-			var uri = this.get("selected").uri;
-			Y.log("delete: "+uri);
-			this.fire("deleteNode", {uri:uri});
-			// this component does not update itself on nodeDelete,
-			// instead this is done via the nodesChange handler
-		},
-
-		_evaluateNode : function() {
-			var uri = this.get("selected").uri;
-			var alignment = this.get("alignment");
-			var page = this.get("paths").eq_evaluate+'?alignment='+alignment +
-					      "&focus="+ uri;
-			this.get("controls").fire("evaluate", {data:{page:page}});
-		},
-
-		toggleLoading : function () {
-			if(this.get("waiting")) {
-				this.bd.addClass("hidden");
-				this.loadingNode.removeClass("hidden");
-			} else {
-				this.loadingNode.addClass("hidden");
-				this.bd.removeClass("hidden");
-			}
-		},
 		
-		_updateProps : function() {
-			var HTML = "properties";
-			NODE_PROPS.setContent(HTML);
-			/*var paramnode = content.one('.parameters');
-			if (paramnode && sec_inputs.length > 0) {
-			  Y.log(sec_inputs.length);
-			  paramnode.prepend(this.formatMappingList(sec_inputs))
-			  paramnode.append('<div>Additional input mappings:</div>');
-			}
-			*/
-		}
+
+
+				_updateProps : function() {
+					var paramnode = content.one('.parameters');
+					if (paramnode && sec_inputs.length > 0) {
+					  Y.log(sec_inputs.length);
+					  paramnode.prepend(this.formatMappingList(sec_inputs))
+					  paramnode.append('<div>Additional input mappings:</div>');
+					}
+
+				}
 		
-		/*
+		_setMappingSelecter : function() {
+			var nodes = this.get("nodes");
+			Y.all(".secinput form").each( function(form) {
+				var selecter = form.one('.secinput_selecter');
+				if(!selecter) {
+					selecter = Node.create('<div class="secinput_selecter"></div>');
+					form.prepend(selecter);
+				}
+				selecter.setContent(this.formatMappingList(nodes));
+			}, this);
+		},
+				
+		
 		formatMappingList : function(selected) {
 			var HTML = "";
 			var nodes = this.get("nodes");
@@ -240,25 +287,7 @@ YUI.add('infobox', function(Y) {
 				}
 			}
 			return HTML;
-		},
-
-
-		var conf = { 'url':uri, 'alignment':alignment };
-		this.infoDS.sendRequest({
-			request:'?' + Y.QueryString.stringify(conf),
-			callback:{success:function(o,cfg) {
-				var HTML = o.response.results[0].responseText;
-				NODE_PROPS.setContent(HTML);
-				var paramnode = content.one('.parameters');
-				if (paramnode && sec_inputs.length > 0) {
-				  Y.log(sec_inputs.length);
-				  paramnode.prepend(oSelf.formatMappingList(sec_inputs))
-				  paramnode.prepend('<div>Additional input mappings:</div>');
-				}
-				oSelf.set("waiting", false);
-			}}
-		});
-		*/
+		}
 
 
 
@@ -266,4 +295,4 @@ YUI.add('infobox', function(Y) {
 
 	Y.InfoBox = InfoBox;
 
-}, '0.0.1', { requires: ['node','event']});
+}, '0.0.1', { requires: ['node','event','io','querystring-stringify-simple']});

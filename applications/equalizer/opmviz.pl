@@ -18,6 +18,7 @@
 :- use_module(components(graphviz)).
 :- use_module(library(yui3)).
 :- use_module(library(amalgame/expand_graph)).
+:- use_module(library(amalgame/alignment)).
 :- use_module(eq_util).
 
 :- http_handler(amalgame(opmviz), http_opmviz, []).
@@ -25,12 +26,15 @@
 :- setting(secondary_input, atom, show, 'Show or hide arrows for amalgame:secondary_input').
 
 
-opmviz_options([edge_links(false),
+opmviz_options(Alignment,
+	       [edge_links(false),
 		shape_hook(opm_shape),
+		label_hook(opm_label(Alignment)),
 		graph_attributes([])
 	       ]).
 
 is_meta(shape_hook).
+is_meta(label_hook).
 
 
 %%	http_graphviz(+Request)
@@ -44,25 +48,45 @@ http_opmviz(Request) :-
 				  oneof([xdot,svg,html]),
 				  description('Return svg graph or html page with embedded object')
 				 ]),
-			  graph(Graph,
-				 [description('URI from which we request the context')])
+			  alignment(Alignment,
+				 [description('URI from which we request the context')]),
+			  selected(Selected,
+			      [uri,
+			       optional(true),
+			       description('URI of a node that should be expanded first')
+			      ])
 			]),
+	expand_node(Selected, Alignment),
 	(   Format \== html
-	->  reply_alignment_graph(Graph, Format)
-	;   opmviz_options(Options),
+	->  reply_alignment_graph(Alignment, Format)
+	;   opmviz_options(Alignment, Options),
 	    reply_html_page(cliopatria(default),
-			    [ title(['Graph for ', \turtle_label(Graph)])
+			    [ title(['Graph for ', \turtle_label(Alignment)])
 			    ],
-			    [ \graphviz_graph(opm_triples(Graph), Options)
+			    [ \graphviz_graph(opm_triples(Alignment), Options)
 			    ])
 	).
+
+expand_node(URI, _Alignment) :-
+	var(URI),
+	!.
+expand_node(URI, Alignment) :-
+	rdfs_individual_of(URI, amalgame:'Mapping'),
+	!,
+	expand_mapping(Alignment, URI, _, _).
+expand_node(URI, Alignment) :-
+	rdfs_individual_of(URI, amalgame:'Process'),
+	!,
+	expand_process(Alignment, URI, _).
+expand_node(_, _).
+
 
 %%	reply_alignment_graph(+AlignmentURI)
 %
 %	Emit an alignment graph.
 
 reply_alignment_graph(Alignment, Format) :-
-	opmviz_options(Options),
+	opmviz_options(Alignment, Options),
 	opm_triples(Alignment, Triples),
 	meta_options(is_meta, Options, QOptions),
 	reply_graphviz_graph(Triples, Format, QOptions).
@@ -73,7 +97,7 @@ reply_alignment_graph(Alignment, Format) :-
 %	Emit html component with a visualization of Graph.
 
 html_opmviz(Graph) -->
-	{ opmviz_options(Options)
+	{ opmviz_options(Graph, Options)
 	},
 	graphviz_graph(opm_triples(Graph), Options).
 
@@ -123,6 +147,11 @@ is_opm_property(P) :-
 	rdfs_subproperty_of(P, opmv:wasTriggeredBy),
 	!.
 % filter out empty evaluations ...
+
+empty_evaluation(Strategy,M) :-
+	rdfs_individual_of(M, amalgame:'Mapping'),
+	stats_cache(M-Strategy, stats(0,0,0,_,_)),!.
+
 empty_evaluation(Strategy,M) :-
 	rdfs_individual_of(M, amalgame:'EvaluatedMapping'),
 	with_mutex(M, mapping_counts(M,Strategy,0,0,0,_,_)), !.
@@ -181,3 +210,27 @@ artifact_color(R, '#CCFF99') :-
 	rdf(R, amalgame:status, amalgame:final),
 	!.
 artifact_color(_R, '#FFFFFF').
+
+
+%%	opm_label(+Alignment, +Resource, +Lang, +MaxLenth, -Label)
+%
+%	Defines the node label of Resource.
+
+opm_label(Alignment, Resource, Lang, MaxLen, Label) :-
+	rdf_display_label(Resource, Lang, Text),
+	truncate_atom(Text, MaxLen, Label0),
+	stats_label_list(Alignment, Resource, Stats),
+	(   rdfs_individual_of(Resource, amalgame:'Mapping')
+	->  nickname(Alignment, Resource, Abbreviation),
+	    concat_atom([Abbreviation, ':', Label0, '\n'|Stats], Label)
+	;   concat_atom([Label0, '\n'|Stats], Label)
+	).
+
+stats_label_list(Alignment, Resource, [Count]) :-
+	stats_cache(Resource-Alignment, stats(Count)),
+	!.
+stats_label_list(Alignment, Resource, [SPerc, '% - ', TPerc, '%']) :-
+	stats_cache(Resource-Alignment, stats(_,_,_, SPerc, TPerc)),
+	!.
+stats_label_list(_, _, []).
+

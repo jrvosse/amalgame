@@ -210,6 +210,9 @@ img.explain {
 
 
 /* mapping table */
+#mappingtable.hidden {
+	display: none;
+}
 .yui3-datatable { 
 	margin: 0;
 }

@@ -149,6 +149,7 @@ cache_expand_result(_, _, _, _).
 
 clean_repository :-
 	debug(ag_expand, 'Deleting all graphs made by amalgame', []),
+	retractall(ag_alignment:nickname_cache(_,_,_)),
 	findall(G, is_amalgame_graph(G), Gs),
 	forall(member(G, Gs),
 	       (   debug(ag_expand, 'Deleting named graph ~p', [G]),
@@ -164,12 +165,6 @@ is_amalgame_graph(G) :-
 	;   G == amalgame
 	;   G == amalgame_vocs
 	).
-
-user:message_hook(make(done(_)), _, _) :-
-	debug(ag_expand, 'Flushing expand cache after running make/0', []),
-	retractall(current_program_uri(_)),
-	flush_expand_cache,
-	fail.
 
 %%	flush_expand_cache(+Id)
 %
@@ -285,7 +280,6 @@ exec_amalgame_process(Class, Process, Strategy, Module, Result, Time, Options) :
 	findall(Input, rdf(Process, amalgame:input, Input, Strategy), Inputs),
 	% We need the ids, not the values in most analyzers
 	timed_call(Module:analyzer(Inputs, Process, Strategy, Result, Options), Time).
-
 
 exec_amalgame_process(Class, Process,_,_, _, _, _) :-
 	throw(error(existence_error(mapping_process, [Class, Process]), _)).
@@ -603,6 +597,12 @@ delete_eval_graph_admin(Strategy, Mapping, EvalGraph) :-
 user:message_hook(make(done(_)), _, _) :-
 	debug(ag_expand, 'Flushing stats cache after running make/0', []),
 	flush_stats_cache,
+	fail.
+
+user:message_hook(make(done(_)), _, _) :-
+	debug(ag_expand, 'Flushing expand cache after running make/0', []),
+	retractall(current_program_uri(_)),
+	flush_expand_cache,
 	fail.
 
 flush_stats_cache :-

@@ -93,7 +93,8 @@ html_sidebar -->
 
 html_overlay -->
 	html(form([div(class('yui3-widget-bd'),
-		       [ div([class(concepts), id(concepts)], [])
+		       [ div(class(buttons), \html_buttons),
+			 div([class(concepts), id(concepts)], [])
 		       ]),
 		   div(class('yui3-widget-ft'),
 		       [ div(class(controls),

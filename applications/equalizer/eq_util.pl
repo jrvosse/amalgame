@@ -3,12 +3,14 @@
 	    assert_user_provenance/2,
 	    amalgame_alignment/2,
 	    js_mappings/2,
+	    js_focus_node/3,
 	    js_alignment_nodes/2,
 	    now_xsd/1,
 	    xsd_timestamp/2,
 	    is_edm_collection/1,
 	    has_write_permission/0
 	  ]).
+
 
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_dispatch)).
@@ -120,6 +122,14 @@ mapping(Strategy, URI, Label) :-
 	rdf(URI, rdf:type, amalgame:'Mapping',Strategy),
 	rdf_display_label(URI, Label).
 
+
+%%	js_focus_node(+Alignment, +URI, -NodeProps)
+%
+%	NodeProps contains the currently accessible properties for URI
+
+js_focus_node(Alignment, URI, NodeProps) :-
+	findall(Type=Value, node_prop(Alignment, URI, Type, Value), NodeProps).
+
 %%	js_alignment_nodes(+Alignment, -Nodes)
 %
 %	Nodes contains all nodes in alignment with their OPM type.
@@ -179,17 +189,8 @@ node_prop(_, R, link, Link) :-
 node_prop(S, R, abbrev, Nick) :-
 	rdfs_individual_of(R, amalgame:'Mapping'),
 	nickname(S,R,Nick).
-node_prop(S, Voc, count, Count) :-
-	stats_cache(Voc-S, stats(Count)).
-node_prop(S, Mapping, stats, Stats) :-
-	Stats = json([total=MN,
-		      sources=SN,
-		      targets=TN,
-		      sperc=SPerc,
-		      tperc=TPerc
-		     ]
-		    ),
-	stats_cache(Mapping-S, stats(MN, SN, TN, SPerc, TPerc)).
+
+
 %%	http:convert_parameter(+Type, +In, -URI) is semidet.
 %
 %	HTTP parameter conversion for the following types:

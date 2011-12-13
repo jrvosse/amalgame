@@ -17,38 +17,14 @@
 
 % http handlers for this applications
 
-:- http_handler(amalgame(private/nodeinfo), http_eq_nodeinfo, []).
-:- http_handler(amalgame(private/info), http_eq_info, []).
+:- http_handler(amalgame(private/info), http_node_info, []).
 
-
-%%	http_eq_nodeinfo(+Request)
-%
-%	Emit HTML snippet with statistics for an amalgame URI
-
-http_eq_nodeinfo(Request) :-
-	http_parameters(Request,
-			[ url(URL,
-			      [description('URL of a node (mapping,vocab,process,strategy)')]),
-			  alignment(Alignment,
-				    [description('URL of the alignment strategy')])
-		       ]),
-	html_current_option(content_type(Type)),
-	format('Content-type: ~w~n~n', [Type]),
-	(   rdfs_individual_of(URL, amalgame:'Mapping')
-	->  with_mutex(URL, mapping_counts(URL, Alignment, _MN, _SN, _TN, SPerc, TPerc)),
-	    format('~w\% - ~w\%', [SPerc,TPerc])
-	;   (   rdfs_individual_of(URL, skos:'ConceptScheme')
-	    ->	with_mutex(URL, concept_count(URL, Alignment, Count)),
-		format('~w', [Count])
-	    ;	true
-	    )
-	).
 
 %%	http_eq_info(+Request)
 %
 %	Emit HTML snippet with information about an amalgame URI
 
-http_eq_info(Request) :-
+http_node_info(Request) :-
 	http_parameters(Request,
 			[ url(URL,
 			      [description('URL of a node (mapping,vocab,process,strategy)')]),

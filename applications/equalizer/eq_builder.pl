@@ -106,11 +106,12 @@ html_overlay -->
 		       'Correspondence details'
 		      ),
 		   div(class('yui3-widget-bd'),
-		       [ div([class(concepts), id(concepts)], [])
+		       [ div(class('buttons up'), \html_buttons),
+			 div([class(concepts), id(concepts)], [])
 		       ]),
 		   div(class('yui3-widget-ft'),
 		       [ div(class(controls),
-			     [ div(class(buttons), \html_buttons),
+			     [ div(class('buttons bottom'), \html_buttons),
 			       div(class(options), \html_options)
 			     ])
 		       ])
@@ -139,6 +140,7 @@ yui_script(Alignment, Focus) -->
 	{ findall(K-V, js_path(K, V), Paths),
 	  findall(M-C, js_module(M,C), Modules),
 	  pairs_keys(Modules, Includes),
+	  js_focus_node(Alignment, Focus, FocusNode),
 	  js_alignment_nodes(Alignment, Nodes),
 	  (   has_write_permission
 	  ->  Read_only = false
@@ -152,7 +154,7 @@ yui_script(Alignment, Focus) -->
 			 json([alignment(Alignment),
 			       paths(json(Paths)),
 			       nodes(json(Nodes)),
-			       selected(Focus),
+			       selected(json(FocusNode)),
 			       readonly(Read_only)
 			      ]))
 	     ]).
@@ -169,8 +171,8 @@ js_path(updatenode, Path) :-
 	http_location_by_id(http_update_node, Path).
 js_path(deletenode, Path) :-
 	http_location_by_id(http_delete_node, Path).
-js_path(nodes, Path) :-
-	http_location_by_id(http_nodes, Path).
+js_path(info, Path) :-
+	http_location_by_id(http_node_info, Path).
 js_path(hint, Path) :-
 	http_location_by_id(http_json_hint, Path).
 js_path(eq_evaluate, Path) :-
@@ -191,17 +193,20 @@ js_module(builder, json([fullpath(Path),
 			   requires([node,event,
 				     'json-parse', 'overlay','resize',
 				     'datasource-io','datasource-cache',
-				     'querystring-stringify-simple',
-				     opmviz,controls,infobox,mapping])
+				     opmviz,controls,infobox,mapping
+				    ])
 			  ])) :-
 	http_absolute_location(js('builder.js'), Path, []).
 js_module(opmviz, json([fullpath(Path),
-			requires([node,event,widget,io,
-				 'gallery-svg'])
+			requires([node,event,widget,
+				  io,'querystring-stringify-simple'
+				 ])
 		       ])) :-
 	http_absolute_location(js('opmviz.js'), Path, []).
 js_module(infobox, json([fullpath(Path),
-			 requires([node,event])
+			 requires([node,event,
+				   io, 'querystring-stringify-simple'
+				  ])
 			])) :-
 	http_absolute_location(js('infobox.js'), Path, []).
 js_module(controls, json([fullpath(Path),

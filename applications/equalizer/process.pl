@@ -19,7 +19,6 @@
 :- http_handler(amalgame(data/addprocess), http_add_process, []).
 :- http_handler(amalgame(data/updatenode), http_update_node, []).
 :- http_handler(amalgame(data/deletenode), http_delete_node, []).
-:- http_handler(amalgame(data/nodes), http_nodes, []).
 
 :- rdf_meta
 	new_output(r,r,r,r,r),
@@ -64,38 +63,16 @@ http_add_process(Request) :-
 	subtract(Params1, SecParams, Params),
 	(   Update == true
 	->  rdf_retractall(Process, amalgame:secondary_input, _, Alignment),
-	    update_process(Process, Alignment, Params), Focus = Process
+	    update_process(Process, Alignment, Params),
+	    Focus = Process
 	;   ((nonvar(Source), nonvar(Target)) ; nonvar(Input))
 	->  new_process(Process, Alignment, Source, Target, Input, SecInputs, Params, Focus)
 	;   true
 	),
+	js_focus_node(Alignment, Focus, FocusNode),
 	js_alignment_nodes(Alignment, Nodes),
-	reply_json(json([focus=Focus,nodes=json(Nodes)])).
-
-%%	http_nodes(+Request)
-%
-%       Returns all nodes in Alignment strategy.
-
-http_nodes(Request) :-
-	authorized(write(default, _)),
-	http_parameters(Request,
-			[ alignment(Alignment,
-				    [uri,
-				     description('URI of the alignment graph to which the process is added')]),
-			  selected(Selected,
-			      [uri,
-			       optional(true),
-			       description('URI of a node that should be expanded first')
-			      ])
-			]),
-	(   nonvar(Selected) % FIXME check what kind of focus node we hav
-	->  expand_mapping(Alignment, Selected, _, _)
-	;   true
-	),
-	js_alignment_nodes(Alignment, Nodes),
-	reply_json(json([nodes=json(Nodes)])).
-
-
+	reply_json(json([focus=json(FocusNode),
+			 nodes=json(Nodes)])).
 
 %%	update_process(+Process, +Alignment, +Params)
 %
@@ -148,6 +125,9 @@ clean_dependent_caches(Process, Strategy, ProvGraph) :-
 %	Create new amalgame process.
 
 new_process(Type, Alignment, Source, Target, Input, SecInputs, Params, Focus) :-
+	% hack needed till we have nested rdf transactions:
+	retractall(ag_alignment:nickname_cache(Alignment,_,_)),
+
 	rdf_bnode(URI),
 	rdf_transaction( % this transaction is to make it MT safe
 	    (
@@ -156,8 +136,10 @@ new_process(Type, Alignment, Source, Target, Input, SecInputs, Params, Focus) :-
 	    assert_input(URI, Type, Alignment, Source, Target, Input),
 	    assert_output(URI, Type, Alignment, Focus),
 	    assert_secondary_inputs(SecInputs, URI, Type, Alignment)
-	    )),
+	    )).
+/*
 
+	% precompute results to speed things up
 	(   setting(precompute_mapping, true)
 	->  precompute(URI, Alignment)
 	;   true).
@@ -179,6 +161,8 @@ precompute(Process, Strategy) :-
 	!,
 	with_mutex(Process, expand_process(Strategy, Process, Result)),
 	assert_overlap_output(Process, Strategy, Result).
+*/
+
 
 assert_input(_Process, Type, _Graph, _Source, _Target, _Input) :-
 	rdfs_subclass_of(Type, amalgame:'Analyzer'),
@@ -271,7 +255,11 @@ http_update_node(Request) :-
 	rdf_transaction(update_node_props(Params, URI, Alignment)),
 	change_ns_if_needed(PublishNS, URI, Alignment, NewAlignment),
 	js_alignment_nodes(NewAlignment, Nodes),
-	reply_json(json([alignment=NewAlignment,nodes=json(Nodes), focus(URI)])).
+	js_focus_node(NewAlignment, URI, FocusNode),
+	reply_json(json([alignment=NewAlignment,
+			 nodes=json(Nodes),
+			 focus=json(FocusNode)
+			])).
 
 update_node_props([], _, _).
 update_node_props([T|Ts], URI, Alignment) :-
@@ -288,6 +276,14 @@ update_node_prop(label=Label, URI, Alignment) :-
 	->  true
 	;   rdf_assert(URI, rdfs:label, literal(Label), Alignment)
 	).
+
+update_node_prop(abbrev=Abbrev, URI, Alignment) :-
+	rdf_retractall(URI, amalgame:nickname, _),
+	(   Abbrev == ''
+	->  true
+	;   rdf_assert(URI, amalgame:nickname, literal(Abbrev), Alignment)
+	).
+
 update_node_prop(comment=Comment, URI, Alignment) :-
 	rdf_retractall(URI, rdfs:comment, _),
 	(   Comment == ''
@@ -338,7 +334,10 @@ http_delete_node(Request) :-
 			 node_retract(URI, Alignment)
 			)),
 	js_alignment_nodes(Alignment, Nodes),
-	reply_json(json([nodes=json(Nodes)])).
+	js_focus_node(Alignment, Alignment, FocusNode),
+	reply_json(json([nodes=json(Nodes),
+			 focus=json(FocusNode)
+			])).
 
 node_retract(URI, Strategy) :-
 	provenance_graph(Strategy, ProvGraph),

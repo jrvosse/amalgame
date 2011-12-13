@@ -121,18 +121,20 @@ YUI.add('mappingtable', function(Y) {
 		_onRowSelect : function(e) {
 			var row = e.currentTarget,
 				records = this.table.get("recordset"),
-                                current = records.getRecord( e.currentTarget.get("id"));
+				current = records.getRecord( e.currentTarget.get("id")),
+				source = current.getValue("source"),
+				target = current.getValue("target");
+				
 			var data = {
 					row:row,
-					sourceConcept: current.getValue("source"),
-					targetConcept: current.getValue("target"),
+					sourceConcept: source,
+					targetConcept: target,
 					relation:current.getValue("relation")
 				};
-			//if(!add) {
-				Y.all(".yui3-datatable tr").removeClass("yui3-datatable-selected");
-			//}
+			Y.all(".yui3-datatable tr").removeClass("yui3-datatable-selected");
 			row.addClass("yui3-datatable-selected");
-			this.fire("rowSelect", data)
+			Y.log("selected correspondence: "+source.uri+" - "+target.uri);
+			this.fire("rowSelect", data);
 		},
 
 		nextRow : function(row) {
