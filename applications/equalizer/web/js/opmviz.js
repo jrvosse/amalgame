@@ -32,7 +32,7 @@ YUI.add('opmviz', function(Y) {
 		destructor : function() {},
 		renderUI : function() {},
 		bindUI : function() {
-			this.after("selectedChange", this._onSelectedChange, this);
+			this.after("selectedChange", this.syncUI, this);
 		},
 		
 		_bindSVG : function () {
@@ -46,22 +46,25 @@ YUI.add('opmviz', function(Y) {
 		},
 
 		syncUI : function() {
+			this.updateGraph(this.get("selected").uri);
+		},
+		
+		updateGraph : function(uri) {
 			var oSelf = this,
-				selected = this.get("selected").uri,
-				alignment = this.get("alignment"),
-				paths = this.get("paths");
+				paths = this.get("paths"),
+				data = {"alignment":this.get("alignment")};
+				
+			if(uri) {
+				data.selected = uri
+			}	
 
 			Y.io(paths.opmgraph, {
-				data:{
-					"selected":selected,
-					"alignment":alignment
-				},
+				data:data,
 				on:{
 					success: function(e,o) {
 						// As the server returns an XML document, including doctype
 						// we first take out the actual svg element
-						var SVG = o.responseXML.lastChild;
-						oSelf.get("contentBox").setContent(SVG);
+						oSelf.get("contentBox").setContent(o.responseXML.lastChild);
 						oSelf._setSelection();
 						oSelf._bindSVG();
 					}
@@ -77,10 +80,6 @@ YUI.add('opmviz', function(Y) {
 				}
 			});
 	    },
-	
-		_onSelectedChange : function(o) {
-			this.syncUI();
-		},
 
 		_onNodeSelect : function(e) {
 			e.preventDefault();

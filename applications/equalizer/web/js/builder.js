@@ -107,7 +107,8 @@ YUI.add('builder', function(Y) {
 			this.opmviz = new Y.OPMViz({
 				paths:this.get("paths"),
 				alignment: this.get("alignment"),
-				selected: this.get("selected")
+				selected: this.get("selected"),
+				nodes: this.get("nodes")
 			}).render(NODE_OPM);
 		},
 
@@ -177,6 +178,10 @@ YUI.add('builder', function(Y) {
 				data:data,
 				on:{success:function(e,o) {
 					var r =	Y.JSON.parse(o.responseText);
+					// we first update the graph before anything is computed on the server
+					oSelf.opmviz.updateGraph();
+					// setting the properties will then initiate the components
+					// to fetch the latests stats
 					oSelf.set("nodes", r.nodes);
 					oSelf.set("selected", r.focus);
 				}}

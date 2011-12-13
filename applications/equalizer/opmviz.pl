@@ -67,17 +67,19 @@ http_opmviz(Request) :-
 			    ])
 	).
 
+/* Fixme, compute the stats for all outputs of a process */
+
 expand_node(URI, _Alignment) :-
 	var(URI),
 	!.
 expand_node(URI, Alignment) :-
 	rdfs_individual_of(URI, amalgame:'Mapping'),
 	!,
-	expand_mapping(Alignment, URI, _, _).
-expand_node(URI, Alignment) :-
-	rdfs_individual_of(URI, amalgame:'Process'),
-	!,
-	expand_process(Alignment, URI, _).
+	mapping_counts(URI, Alignment, _, _, _, _, _).
+%expand_node(URI, Alignment) :-
+%	rdfs_individual_of(URI, amalgame:'Process'),
+%	!,
+%	expand_process(Alignment, URI, _).
 expand_node(_, _).
 
 
@@ -222,7 +224,7 @@ opm_label(Alignment, Resource, Lang, MaxLen, Label) :-
 	stats_label_list(Alignment, Resource, Stats),
 	(   rdfs_individual_of(Resource, amalgame:'Mapping')
 	->  nickname(Alignment, Resource, Abbreviation),
-	    concat_atom([Abbreviation, ':', Label0, '\n'|Stats], Label)
+	    concat_atom([Abbreviation, '.', Label0, '\n'|Stats], Label)
 	;   concat_atom([Label0, '\n'|Stats], Label)
 	).
 

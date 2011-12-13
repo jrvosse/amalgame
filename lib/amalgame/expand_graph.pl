@@ -56,7 +56,6 @@ expand_mapping(Strategy, Id, Mapping, Stats) :-
 	findall(C, has_correspondence(C,Id), Mapping0),
 	sort(Mapping0, Mapping),
 	mapping_stats(Id, Mapping, Strategy, Stats).
-
 expand_mapping(Strategy, Id, Mapping, Stats) :-
 	rdf_has(Id, opmv:wasGeneratedBy, Process, OutputType),
 	rdf(Id, OutputType, Process, Strategy),

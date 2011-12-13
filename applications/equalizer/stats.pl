@@ -107,7 +107,7 @@ amalgame_info(URL, Strategy, Stats) :-
 		 'matched source concepts'-SN,
 		 'matched target concepts'-TN
 		],
-	with_mutex(URL, mapping_counts(URL, Strategy, MN, SN0, TN0, SPerc, TPerc)),
+	mapping_counts(URL, Strategy, MN, SN0, TN0, SPerc, TPerc),
 	concat_atom([SN0, ' (',SPerc,'%)'], SN),
 	concat_atom([TN0, ' (',TPerc,'%)'], TN).
 amalgame_info(Scheme, Strategy,

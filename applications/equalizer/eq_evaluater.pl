@@ -150,7 +150,7 @@ js_path(mapping, Path) :-
 js_path(evaluate, Path) :-
 	http_location_by_id(http_data_evaluate, Path).
 js_path(mappinginfo, Path) :-
-	http_location_by_id(http_eq_info, Path).
+	http_location_by_id(http_node_info, Path).
 js_path(info, Path) :-
 	http_location_by_id(http_correspondence, Path).
 

@@ -96,7 +96,7 @@ YUI.add('infobox', function(Y) {
 			
 			// fetch a hint
 			if (!this.get("readonly")) {
-				this._createHint()
+				//this._createHint()
 			};
 		},
 		
@@ -244,7 +244,9 @@ YUI.add('infobox', function(Y) {
 		},
 
 		_updateParameters : function() {
-			var paramnode = this.get("srcNode").one('.parameters');
+			var paramnode = this.get("srcNode").one('.parameters'),
+				sec_inputs = this.get("selected").secondary_inputs || [];
+
 			if (paramnode && sec_inputs.length > 0) {
 			  paramnode.prepend(this.formatMappingList(sec_inputs));
 			  paramnode.append('<div>Additional input mappings:</div>');
