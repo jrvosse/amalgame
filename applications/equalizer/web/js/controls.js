@@ -52,7 +52,7 @@ YUI.add('controls', function(Y) {
 			   var desc =  node.one("div.desc");
 			   if (desc) {
 			     desc.on("mouseout",  function(e) { this.set("visible", false)}, this.explain_overlay);
-			     desc.on("mouseover", this._activate_explanation, this, node);
+			     desc.on("mouseover", this._onMouseOver, this, node);
 			   }
 			}, this);
 
@@ -63,51 +63,8 @@ YUI.add('controls', function(Y) {
 			Y.on("click", this._valueSet, NODE_TARGET_BTN, this, "target");
 
 			// toggle the controls when selected is changed
-			this.after('selectedChange', this._toggleControls, this);
-			this.after('nodesChange', this._setMappingSelecter, this);
-			this._toggleControls();
-			this._setMappingSelecter();
-		},
-
-		_activate_explanation : function (e, node) {
-			   var explainNode = node.one("input[name=graphic]");
-			   if (explainNode) {
-			     var exp = this.explain_overlay;
-			     var selectNode = node.one("select[name=type]");
-			     var selectedIndex = selectNode.get("selectedIndex");
-			     var selectType = selectNode.get("options").item(selectedIndex).getAttribute("value");
-			     var explainURI = explainNode.getAttribute('value') + '-' + selectType + ".png";
-			     Y.log(explainURI);
-			     exp.set("bodyContent", "<img class='explain overlay' src='"+explainURI+"'/>");
-			     exp.set("visible", true);
-			   };
-		 },
-
-		_setMappingSelecter : function() {
-			var nodes = this.get("nodes");
-			Y.all(".secinput form").each( function(form) {
-				var selecter = form.one('.secinput_selecter');
-				if(!selecter) {
-					selecter = Node.create('<div class="secinput_selecter"></div>');
-					form.prepend(selecter);
-				}
-				selecter.setContent(this.formatMappingList(nodes));
-			}, this);
-		},
-
-		formatMappingList : function(nodes) {
-			var HTML = "";
-			for (var uri in nodes) {
-				var m = nodes[uri];
-				if(m.type == "mapping") {
-					var status = m.status?m.status:'unspecified';
-					var checked=status.match('final')?'checked':''
-					HTML += '<div><input type="checkbox" name="secondary_input" value="'
-					+uri+'" ' +checked +' class="' + checked +'">'
-					+'<span class="mapping_label">'+m.abbrev+':'+m.label+'</span></div>';
-				}
-			}
-			return HTML;
+			this.after('selectedChange', this.syncUI, this);
+			this.syncUI();
 		},
 
 		_onControlSubmit : function(e, node) {
@@ -136,8 +93,21 @@ YUI.add('controls', function(Y) {
 			}
 
 			this.fire("submit", {data:data});
-
 		},
+		
+		_onMouseOver : function (e, node) {
+			   var explainNode = node.one("input[name=graphic]");
+			   if (explainNode) {
+			     var exp = this.explain_overlay;
+			     var selectNode = node.one("select[name=type]");
+			     var selectedIndex = selectNode.get("selectedIndex");
+			     var selectType = selectNode.get("options").item(selectedIndex).getAttribute("value");
+			     var explainURI = explainNode.getAttribute('value') + '-' + selectType + ".png";
+			     //Y.log(explainURI);
+			     exp.set("bodyContent", "<img class='explain overlay' src='"+explainURI+"'/>");
+			     exp.set("visible", true);
+			   };
+		 },
 
 		_getFormData : function(form) {
 			var data = {};
@@ -171,7 +141,7 @@ YUI.add('controls', function(Y) {
 			return data;
 		},
 
-		_toggleControls : function() {
+		syncUI : function() {
 			var selected = this.get("selected"),
 				type = selected ? selected.type : "";
 			// We only show the controls for the active type
@@ -214,6 +184,34 @@ YUI.add('controls', function(Y) {
 			} else {
 				Y.all("#match .control-submit").setAttribute("disabled", true);
 			}
+			this._setMappingSelecter();
+		},
+
+		_setMappingSelecter : function() {
+			var nodes = this.get("nodes");
+			Y.all(".secinput form").each( function(form) {
+				var selecter = form.one('.secinput_selecter');
+				if(!selecter) {
+					selecter = Node.create('<div class="secinput_selecter"></div>');
+					form.prepend(selecter);
+				}
+				selecter.setContent(this.formatMappingList(nodes));
+			}, this);
+		},
+
+		formatMappingList : function(nodes) {
+			var HTML = "";
+			for (var uri in nodes) {
+				var m = nodes[uri];
+				if(m.type == "mapping") {
+					var status = m.status?m.status:'unspecified';
+					var checked=status.match('final')?'checked':''
+					HTML += '<div><input type="checkbox" name="secondary_input" value="'
+					+uri+'" ' +checked +' class="' + checked +'">'
+					+'<span class="mapping_label">'+m.abbrev+':'+m.label+'</span></div>';
+				}
+			}
+			return HTML;
 		},
 
 		_valueSet : function(e, which) {
@@ -221,8 +219,8 @@ YUI.add('controls', function(Y) {
 			if(selected) {
 				Y.one("#"+which+'Label').set("value", selected.label);
 				Y.one("#"+which).set("value", selected.uri);
-				this._toggleControls();
-		}
+				this.syncUI();
+			}
 			if(which=="input") {
 				Y.one("#sourceLabel").set("value", "");
 				Y.one("#source").set("value", "");

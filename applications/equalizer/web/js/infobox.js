@@ -65,7 +65,6 @@ YUI.add('infobox', function(Y) {
 			
 			this.after('selectedChange', this.syncUI, this);
 			this.on('loadingChange', this._onLoadingChange, this);
-			this.on('nodesChange', this._onNodesChange, this);
 			
 			this.syncUI();			
 		},
@@ -89,6 +88,7 @@ YUI.add('infobox', function(Y) {
 				on:{ 
 					success:function(e,r) {
 						NODE_PROPS.setContent(r.responseText);
+						oSelf._updateParameters();
 						oSelf.set("loading", false);
 					}
 				}
@@ -98,11 +98,6 @@ YUI.add('infobox', function(Y) {
 			if (!this.get("readonly")) {
 				this._createHint()
 			};
-		},
-		
-		_onNodesChange : function(o) {
-			
-
 		},
 		
 		_onLoadingChange : function (o) {
@@ -247,32 +242,15 @@ YUI.add('infobox', function(Y) {
 				}
 			});
 		},
-		
 
-
-				_updateProps : function() {
-					var paramnode = content.one('.parameters');
-					if (paramnode && sec_inputs.length > 0) {
-					  Y.log(sec_inputs.length);
-					  paramnode.prepend(this.formatMappingList(sec_inputs))
-					  paramnode.append('<div>Additional input mappings:</div>');
-					}
-
-				}
-		
-		_setMappingSelecter : function() {
-			var nodes = this.get("nodes");
-			Y.all(".secinput form").each( function(form) {
-				var selecter = form.one('.secinput_selecter');
-				if(!selecter) {
-					selecter = Node.create('<div class="secinput_selecter"></div>');
-					form.prepend(selecter);
-				}
-				selecter.setContent(this.formatMappingList(nodes));
-			}, this);
+		_updateParameters : function() {
+			var paramnode = this.get("srcNode").one('.parameters');
+			if (paramnode && sec_inputs.length > 0) {
+			  paramnode.prepend(this.formatMappingList(sec_inputs));
+			  paramnode.append('<div>Additional input mappings:</div>');
+			}
 		},
 				
-		
 		formatMappingList : function(selected) {
 			var HTML = "";
 			var nodes = this.get("nodes");
@@ -288,9 +266,6 @@ YUI.add('infobox', function(Y) {
 			}
 			return HTML;
 		}
-
-
-
 	});
 
 	Y.InfoBox = InfoBox;

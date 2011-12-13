@@ -177,8 +177,8 @@ YUI.add('builder', function(Y) {
 				data:data,
 				on:{success:function(e,o) {
 					var r =	Y.JSON.parse(o.responseText);
-					oSelf.set("selected", r.focus);
 					oSelf.set("nodes", r.nodes);
+					oSelf.set("selected", r.focus);
 				}}
 			});
 		},
@@ -193,8 +193,8 @@ YUI.add('builder', function(Y) {
 				data:data,
 				on:{success:function(e,o) {
 					var r = Y.JSON.parse(o.responseText);
-					oSelf.set("selected", r.focus);
 					oSelf.set("nodes", r.nodes);
+					oSelf.set("selected", r.focus);
 					if (!data.alignment == r.alignment) {
 						// alignment changed name, we need to fully reload ...
 						var l = window.location;
@@ -219,8 +219,8 @@ YUI.add('builder', function(Y) {
 				},
 				on:{success:function(e,o) {
 					var r = Y.JSON.parse(o.responseText);
-					oSelf.set("selected", r.focus);
 					oSelf.set("nodes", r.nodes);
+					oSelf.set("selected", r.focus);
 				}}
 			})
 		},
