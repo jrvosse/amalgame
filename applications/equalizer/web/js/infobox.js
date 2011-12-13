@@ -96,7 +96,7 @@ YUI.add('infobox', function(Y) {
 			
 			// fetch a hint
 			if (!this.get("readonly")) {
-				//this._createHint()
+				this._createHint()
 			};
 		},
 		
@@ -249,7 +249,7 @@ YUI.add('infobox', function(Y) {
 
 			if (paramnode && sec_inputs.length > 0) {
 			  paramnode.prepend(this.formatMappingList(sec_inputs));
-			  paramnode.append('<div>Additional input mappings:</div>');
+			  paramnode.prepend('<div>Additional input mappings:</div>');
 			}
 		},
 				

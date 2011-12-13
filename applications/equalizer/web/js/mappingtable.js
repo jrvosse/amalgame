@@ -26,6 +26,12 @@ YUI.add('mappingtable', function(Y) {
 		},
 		datasource: {
 			value: null
+		},
+		loading: {
+			value:false,
+			validator:function(val) {
+				return Lang.isBoolean(val);
+			}
 		}
 	};
 
@@ -34,6 +40,13 @@ YUI.add('mappingtable', function(Y) {
 			var instance = this,
 				content = this.get("srcNode");
 
+			this._tableNode = content.appendChild(Node.create(
+				'<div class="table"></div>'
+			));
+			this._loadingNode = content.appendChild(Node.create(
+				'<div class="loading"></div>'
+			));
+				
 			this.table = new Y.DataTable.Base({
 				columnset:[{key:"source",
 					       formatter:this.formatResource,
@@ -49,9 +62,7 @@ YUI.add('mappingtable', function(Y) {
 					      }],
 				plugins: [ Y.Plugin.DataTableSort ]
 			})
-			.render(content.appendChild(Node.create(
-				'<div class="table"></div>'
-			)));
+			.render(this._tableNode);
 
 			this.paginator = new Y.Paginator({
 				rowsPerPage:this.get("rows"),
@@ -68,7 +79,8 @@ YUI.add('mappingtable', function(Y) {
 				this.setPage(state.page, true);
 				instance.loadData({offset:state.recordOffset}, true);
 			});
-
+			this.on('loadingChange', this._onLoadingChange, this);
+			
 			// get new data if mapping is changed
 			this.after('mappingChange', function() {this.loadData()}, this);
 			this.table.delegate('click', this._onRowSelect, '.yui3-datatable-data tr', this);
@@ -76,7 +88,8 @@ YUI.add('mappingtable', function(Y) {
 		},
 
 		loadData : function(conf, recordsOnly) {
-			var mapping = this.get("mapping"),
+			var oSelf = this,
+				mapping = this.get("mapping"),
 				datasource = this.get("datasource"),
 				alignment = this.get("alignment"),
 				table = this.table,
@@ -91,6 +104,7 @@ YUI.add('mappingtable', function(Y) {
 						paginator.setTotalRecords(total, true);
 					}
 					table.set("recordset", records);
+					oSelf.set("loading", false);
 				}
 			};
 
@@ -98,6 +112,7 @@ YUI.add('mappingtable', function(Y) {
 				conf = conf ? conf : {};
 				conf.url = mapping;
 				conf.alignment=alignment;
+				this.set("loading", true);
 				datasource.sendRequest({
 					request:'?'+Y.QueryString.stringify(conf),
 					callback:callback
@@ -171,6 +186,16 @@ YUI.add('mappingtable', function(Y) {
 			         records = this.table.get("recordset");
 			         return records.getRecord(prev.get("id"));
 			     },
+			
+		_onLoadingChange : function (o) {
+			if(o.newVal) {
+				this._tableNode.addClass("hidden");
+				this._loadingNode.removeClass("hidden");
+			} else {
+				this._loadingNode.addClass("hidden");
+				this._tableNode.removeClass("hidden");
+			}
+		}
 	});
 
 	Y.MappingTable = MappingTable;

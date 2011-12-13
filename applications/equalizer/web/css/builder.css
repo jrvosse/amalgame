@@ -214,6 +214,14 @@ img.explain {
 #mappingtable.hidden {
 	display: none;
 }
+#mappingtable .table.hidden,
+#mappingtable .loading.hidden {
+	display:none;
+}
+#mappingtable .loading {
+	padding: 20px 0;
+	background: url("loading.gif") no-repeat 50% 50%;
+}
 .yui3-datatable { 
 	margin: 0;
 }

@@ -91,7 +91,8 @@ YUI.add('controls', function(Y) {
 			else if(selected) {
 				data.input = selected.uri;
 			}
-
+			Y.log("add process:");
+			Y.log(data);
 			this.fire("submit", {data:data});
 		},
 		
