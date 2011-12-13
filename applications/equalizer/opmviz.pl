@@ -128,7 +128,7 @@ opm_graph_triple(Graph,Scheme,P,Graph) :-
 opm_graph_triple(Graph,S,P,O) :-
 	rdf(S,P,O,Graph),
 	is_opm_property(P),
-	\+ empty_evaluation(Graph, S).
+	\+ empty_result(Graph, S).
 
 
 is_opm_property(P) :-
@@ -148,21 +148,21 @@ is_opm_property(P) :-
 is_opm_property(P) :-
 	rdfs_subproperty_of(P, opmv:wasTriggeredBy),
 	!.
-% filter out empty evaluations ...
+% filter out empty results ...
 
-empty_evaluation(Strategy,M) :-
+empty_result(Strategy, M) :-
 	rdfs_individual_of(M, amalgame:'Mapping'),
 	stats_cache(M-Strategy, stats(0,0,0,_,_)),!.
 
-empty_evaluation(Strategy,M) :-
+empty_result(Strategy,M) :-
 	rdfs_individual_of(M, amalgame:'EvaluatedMapping'),
 	with_mutex(M, mapping_counts(M,Strategy,0,0,0,_,_)), !.
 
 % and processes resulting in empty evals
-empty_evaluation(Strategy,Process) :-
+empty_result(Strategy,Process) :-
 	rdfs_individual_of(Process, amalgame:'EvaluationProcess'),
 	rdf(Empty, opmv:wasGeneratedBy, Process, Strategy),
-	empty_evaluation(Strategy, Empty).
+	empty_result(Strategy, Empty).
 
 
 %%	opm_shape(+Resource, -Shape)
