@@ -19,9 +19,9 @@
 :- use_module(library(semweb/rdf_label)).
 :- use_module(user(user_db)).
 :- use_module(cliopatria(components/label)).
-:- use_module(library(amalgame/expand_graph)).
+:- use_module(library(amalgame/caching)).
 :- use_module(library(amalgame/alignment)).
-
+:- use_module(library(amalgame/ag_evaluation)).
 
 :- multifile
 	eq:menu_item/2.
@@ -139,9 +139,6 @@ js_alignment_nodes(Strategy, Nodes) :-
 	sort(Nodes0, Nodes1),
 	maplist(node_data(Strategy), Nodes1, Nodes).
 
-is_empty_eval_graph(Eval) :-
-	   rdfs_individual_of(Eval, amalgame:'EvaluatedMapping'),
-	   \+ rdf_graph(Eval).
 
 graph_resource(Graph, R) :-
 	rdf(R,rdf:type,_,Graph),

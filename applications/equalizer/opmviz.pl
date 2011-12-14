@@ -17,14 +17,16 @@
 :- use_module(components(label)).
 :- use_module(components(graphviz)).
 :- use_module(library(yui3)).
-:- use_module(library(amalgame/expand_graph)).
+:- use_module(library(amalgame/caching)).
+:- use_module(library(amalgame/ag_evaluation)).
+:- use_module(library(amalgame/ag_stats)).
 :- use_module(library(amalgame/alignment)).
 :- use_module(eq_util).
 
 :- http_handler(amalgame(opmviz), http_opmviz, []).
 
-:- setting(secondary_input, atom, show, 'Show or hide arrows for amalgame:secondary_input').
-
+:- setting(secondary_input, oneof([show,hide]), show,
+	   'Show or hide arrows for amalgame:secondary_input').
 
 opmviz_options(Alignment,
 	       [edge_links(false),
@@ -154,9 +156,8 @@ empty_result(Strategy, M) :-
 	rdfs_individual_of(M, amalgame:'Mapping'),
 	stats_cache(M-Strategy, stats(0,0,0,_,_)),!.
 
-empty_result(Strategy,M) :-
-	rdfs_individual_of(M, amalgame:'EvaluatedMapping'),
-	with_mutex(M, mapping_counts(M,Strategy,0,0,0,_,_)), !.
+empty_result(_Strategy,M) :-
+	is_empty_eval_graph(M).
 
 % and processes resulting in empty evals
 empty_result(Strategy,Process) :-

@@ -1,5 +1,5 @@
 :- module(overlap_analyzer,
-	  [ overlap/2
+	  [
 	  ]).
 
 :- use_module(library(semweb/rdf_db)).
@@ -14,45 +14,18 @@
 amalgame_module(amalgame:'OverlapComponent').
 
 analyzer(Inputs, Process, Strategy, overlap(Results), _Options) :-
-	maplist(expander(Strategy), Inputs, ExpandedInputs),
+	maplist(input_expander(Strategy), Inputs, ExpandedInputs),
 	overlap(ExpandedInputs, Overlaps),
-	maplist(ensure_overlap_output(Process, Strategy), Overlaps, Results).
+	maplist(output_expander(Process, Strategy), Overlaps, Results).
 
-expander(Strategy, Id, Id:Expanded) :-
+input_expander(Strategy, Id, Id:Expanded) :-
 	expand_mapping(Strategy, Id, Expanded, _).
 
-ensure_overlap_output(Process, Strategy, OverlapId-Mapping, OutputUri-MappingMerged) :-
+output_expander(Process, Strategy, OverlapId-Mapping, OutputUri-MappingMerged) :-
 	append(Mapping, MappingFlat),
 	merge_provenance(MappingFlat, MappingMerged),
-
-	(   output_exist(Process, Strategy, OverlapId, OutputUri)
-	->  true % output node already exists in the strategy graph, reuse this
-	;   with_mutex(Strategy,
-		       create_overlap_outputs(Process, Strategy,
-					      OverlapId-MappingMerged,
-					      OutputUri-MappingMerged))
-	).
-
-create_overlap_outputs(Process, Strategy, OverlapId-Mapping, OutputUri-Mapping) :-
-	rdf_equal(Type, amalgame:'Mapping'),
-	rdf_equal(Pred, opmv:wasGeneratedBy),
-	new_output(Type, Process, Pred, Strategy, OutputUri),
-	findall(Nick,
-		(	member(Id, OverlapId),
-			nickname(Strategy,Id,Nick)
-		),
-		Nicks),
-	atomic_list_concat(Nicks, AllNicks),
-	format(atom(Comment), 'Mappings found only in: ~p', [OverlapId]),
-	format(atom(Label), 'Intersect: ~w', [AllNicks]),
-	rdf_assert(OutputUri, amalgame:overlap_set, literal(OverlapId), Strategy),
-	rdf_assert(OutputUri, rdfs:comment, literal(Comment), Strategy),
-	rdf_assert(OutputUri, rdfs:label, literal(Label), Strategy).
-
-output_exist(Process, Strategy, OverlapId, OutputUri) :-
 	rdf(OutputUri, opmv:wasGeneratedBy, Process, Strategy),
-	rdf(OutputUri, amalgame:overlap_set, literal(OverlapId), Strategy).
-
+	rdf(OutputUri, amalgame:overlap_set, literal(OverlapId), Strategy),!.
 
 overlap(MappingList, Overlaps) :-
 	create_pairs(MappingList, Pairs),

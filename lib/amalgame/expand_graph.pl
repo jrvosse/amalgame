@@ -1,40 +1,23 @@
 :- module(expand_graph,
 	  [ expand_mapping/4,
 	    expand_vocab/4,
-	    expand_process/3,
-	    new_output/5,
-	    process_options/3,
-	    save_mappings/3,
-	    evaluation_graph/3,
-	    mapping_counts/7,
-	    concept_count/3,
-	    clean_repository/0,
-	    stats_cache/2,
-	    flush_expand_cache/0,
-	    flush_expand_cache/2,     % +Id, +Strategy
-	    flush_stats_cache/0,
-	    flush_stats_cache/2 % +Mapping, +Strategy
+	    expand_process/3
 	  ]).
 
 :- use_module(library(semweb/rdf_db)).
-:- use_module(library(semweb/rdf_turtle_write)).
 :- use_module(library(semweb/rdfs)).
-:- use_module(library(http/http_parameters)).
-:- use_module(library(amalgame/alignment)).
-:- use_module(library(amalgame/map)).
+% :- use_module(library(amalgame/alignment)).
+:- use_module(library(amalgame/caching)).
 :- use_module(library(amalgame/opm)).
+:- use_module(library(amalgame/map)).
+:- use_module(library(amalgame/caching)).
 :- use_module(library(amalgame/ag_provenance)).
+:- use_module(library(amalgame/ag_stats)).
 :- use_module(library(amalgame/vocabulary)).
 :- use_module(library(amalgame/amalgame_modules)).
 
 :- use_module(library(skos/vocabularies)).
 :- use_module(library(ag_drivers/exec_amalgame_process)).
-
-:- dynamic
-	expand_cache/2.
-
-:- setting(cache_time, float, 0.5,
-	   'Minimum execution time to cache results').
 
 %%	expand_mapping(+Strategy, +Id, -Result, -Stats) is det.
 %
@@ -140,86 +123,6 @@ do_expand_process(Strategy, Process, Result) :-
 	;   true
 	).
 
-cache_expand_result(ExecTime, Process, Strategy, Result) :-
-	setting(cache_time, CacheTime),
-	ExecTime > CacheTime,
-	!,
-	assert(expand_cache(Process-Strategy, Result)).
-cache_expand_result(_, _, _, _).
-
-clean_repository :-
-	debug(ag_expand, 'Deleting all graphs made by amalgame', []),
-	retractall(ag_alignment:nickname_cache(_,_,_)),
-	findall(G, is_amalgame_graph(G), Gs),
-	forall(member(G, Gs),
-	       (   debug(ag_expand, 'Deleting named graph ~p', [G]),
-		   rdf_unload(G)
-	       )
-	      ).
-
-is_amalgame_graph(G) :-
-	rdf_graph(G),
-	(   rdf(G, amalgame:strategy, _) % G is provenance graph
-	;   rdfs_individual_of(G, amalgame:'AlignmentStrategy')
-	;   once(rdf(G, align:map, _, G))	 % G is mapping graph
-	;   G == amalgame
-	;   G == amalgame_vocs
-	).
-
-%%	flush_expand_cache(+Id)
-%
-%	Retract all cached mappings.
-
-flush_expand_cache :-
-	del_prov_graphs,
-	del_materialized_vocs,
-	del_materialized_mappings,
-	forall(expand_cache(Id-Strategy, _),
-	       flush_expand_cache(Id, Strategy)
-	      ).
-
-flush_expand_cache(Id, Strategy) :-
-	(   expand_cache(Id-Strategy, _) % make sure Id is bounded to something in the cache
-	->  retractall(expand_cache(Id-Strategy, _)),
-	    catch(rdf_unload(Id), _, true),
-	    debug(ag_expand, 'flush cache and unloading graph for ~p', [Id])
-	;   true
-	).
-
-del_prov_graphs :-
-	findall(P,provenance_graph(_,P), ProvGraphs),
-	forall(member(P, ProvGraphs),
-	       (   catch(rdf_unload(P), _, true),
-		   debug(ag_expand, 'Deleting provenance graph ~w', [P])
-	       )
-	      ).
-
-del_materialized_mappings :-
-	findall(Id, (
-		     rdfs_individual_of(Id, amalgame:'Mapping'),
-		     \+ rdfs_individual_of(Id, amalgame:'EvaluatedMapping'),
-		     \+ rdfs_individual_of(Id, amalgame:'LoadedMapping'),
-		     rdf_graph(Id)
-		    ), Finals),
-	forall(member(F, Finals),
-	       (   catch(rdf_unload(F), _, true),
-		   debug(ag_expand, 'Deleting final result graph ~w', [F])
-	       )
-	      ).
-
-del_materialized_vocs :-
-	findall(Voc,
-		(   rdfs_individual_of(Voc, skos:'ConceptScheme'),
-		    rdf_graph(Voc),
-		    rdf_has(Voc, opmv:wasGeneratedBy, _)
-		), Vocs),
-	forall(member(V, Vocs),
-	       (   catch(rdf_unload(V), _, true),
-		   voc_clear_stats(V),
-		   debug(ag_expand, 'Deleting materialized vocab graph ~w', [V])
-	       )
-	      ).
-
 
 
 %%	select_result_mapping(+Id, +Result, +OutputType, -Mapping)
@@ -242,80 +145,15 @@ select_result_mapping(_Id, select(Selected, Discarded, Undecided), OutputType, M
 
 select_result_mapping(Id, overlap(List), P, Mapping) :-
 	rdf_equal(opmv:wasGeneratedBy, P),
-	member(Id-Mapping, List).
+	(   member(Id-Mapping, List)
+	->  true
+	;   Mapping=[]
+	).
 
 select_result_mapping(_Id, Mapping, P, Mapping) :-
 	is_list(Mapping),
 	rdf_equal(opmv:wasGeneratedBy, P).
 
-new_output(Type, Process, P, Strategy, OutputURI) :-
-	rdf(Strategy, amalgame:publish_ns, NS),
-	repeat,
-	gensym(dataset, Local),
-	atomic_concat(NS, Local, OutputURI),
-	\+ rdf(OutputURI, _, _), !,
-	rdf_assert(OutputURI, rdf:type, Type, Strategy),
-	rdf_assert(OutputURI, amalgame:status, amalgame:intermediate, Strategy),
-        rdf_assert(OutputURI, P, Process, Strategy),
-	nickname(Strategy, OutputURI, _Nick).
-
-%%	process_options(+Process, +Module, -Options)
-%
-%	Options are the instantiated parameters for Module based on the
-%	parameters string in Process.
-
-process_options(Process, Module, Options) :-
-	rdf(Process, amalgame:parameters, literal(ParamString)),
-	!,
-	module_options(Module, Options, Parameters),
-	parse_url_search(ParamString, Search0),
-	fix_not_expanded_options(Search0, Search),
-	Request = [search(Search)] ,
-	http_parameters(Request, Parameters).
-process_options(_, _, []).
-
-fix_not_expanded_options([''],[]).
-fix_not_expanded_options([],[]).
-fix_not_expanded_options([Key=Value|Tail], [Key=FixedValue|Results]):-
-	(   \+ sub_atom(Value,0,_,_,'http:'),
-	    term_to_atom(NS:L, Value),
-	    rdf_global_id(NS:L,FixedValue)
-	->  true
-	;   FixedValue = Value
-	),
-	fix_not_expanded_options(Tail, Results).
-
-%%	module_options(+Module, -Options, -Parameters)
-%
-%	Options  are  all  option  clauses    defined   for  Module.
-%	Parameters is a specification list for http_parameters/3.
-%	Module:parameter is called as:
-%
-%	    parameter(Name, Properties, Description)
-%
-%	Name is the name of the	the option, The Properties are as
-%	supported by http_parameters/3.	Description is used by the help
-%	system.
-
-module_options(Module, Options, Parameters) :-
-	current_predicate(Module:parameter/4),
-	!,
-	findall(O-P,
-		( call(Module:parameter, Name, Type, Default, _Description),
-		  O =.. [Name, Value],
-		  param_options(Type, Default, ParamOptions),
-		  P =.. [Name, Value, ParamOptions]
-		),
-		Pairs),
-	pairs_keys_values(Pairs, Options, Parameters).
-module_options(_, _, []).
-
-
-param_options(Type, Default, Options) :-
-	(   is_list(Type)
-	->  Options = [default(Default)|Type]
-	;   Options = [default(Default), Type]
-	).
 
 materialize_results_if_needed(Strategy, Process, Results) :-
 	findall(Id-RP,
@@ -349,292 +187,5 @@ materialize_if_needed(Id, Mapping) :-
 	% voc_clear_stats(all),
 	materialize_mapping_graph(Mapping, [graph(Id), evidence_graphs(Enabled)]).
 
-void_graph(Strategy, VoidGraph) :-
-	ground(Strategy),
-	atomic_concat(Strategy, '_void', VoidGraph).
-
-make_new_directory(D) :-
-	(   exists_directory(D)
-	->  atomic_concat(D, '/*.ttl', WildCard),
-	    expand_file_name(WildCard, L),
-	    forall(member(F,L), delete_file(F)),
-	    delete_directory(D)
-	;   true
-	),
-	make_directory(D).
-
-save_mappings(Strategy, Dir, Options) :-
-	provenance_graph(Strategy, ProvGraph),
-	void_graph(Strategy, VoidGraph),
-	(   rdf_graph(VoidGraph) -> rdf_unload(VoidGraph); true),
-
-	make_new_directory(Dir),
-	file_base_name(Strategy, StrategyB),
-	file_base_name(ProvGraph, ProvGraphB),
-	absolute_file_name(StrategyB,  StratFile, [relative_to(Dir), extensions([ttl])]),
-	absolute_file_name(ProvGraphB, ProvFile,  [relative_to(Dir), extensions([ttl])]),
-	absolute_file_name(void,      VoidFile,  [relative_to(Dir), extensions([ttl])]),
-
-	select_mappings_to_be_saved(Strategy, Mappings, Options),
-	forall(member(Mapping, Mappings),
-	       save_mapping(Mapping, Strategy, ProvGraph, [dir(Dir)|Options])),
-
-	rdf_save_turtle(StratFile, [graph(Strategy)|Options]),
-	rdf_save_turtle(ProvFile,  [graph(ProvGraph)|Options]),
-	rdf_save_turtle(VoidFile,  [graph(VoidGraph)|Options]),
-	rdf_unload(VoidGraph).
-
-add_relation_if_needed(Mapping, Options) :-
-	rdf_graph(Mapping),
-	option(default_relation(Default), Options),
-	findall(Cell, (
-		      rdf(Mapping, align:map, Cell, Mapping),
-		      \+ rdf(Cell, align:relation, _, Mapping)
-		      ), Cells),
-	findall(Cell:Relation,
-		(   member(Cell,Cells),
-		    find_relation(Mapping, Cell, Default, Relation)
-		), CellRelationPairs),
-	forall(member(C:R, CellRelationPairs),
-	       rdf_assert(C, align:relation, R, Mapping)
-	      ).
-
-find_relation(Mapping, Cell, Default, Relation) :-
-	rdf(Cell, align:entity1, S, Mapping),
-	rdf(Cell, align:entity2, T, Mapping),
-	has_correspondence(align(S,T, P), Mapping),
-	flatten(P, Pflat),
-	option(relation(Relation), Pflat, Default), !.
-
-save_mapping(Id, Strategy, ProvGraph, Options) :-
-	(   \+ rdf_graph(Id)
-	->  expand_mapping(Strategy, Id, Mapping, _),
-	    materialize_mapping_graph(Mapping, [graph(Id)|Options])
-	;   add_relation_if_needed(Id, Options)
-	),
-	rdf_equal(xsd:int, Int),
-
-	void_graph(Strategy, Void),
-	rdf_statistics(triples_by_file(Id, NrOfTriples)),
-	assert_metadata(Id, Strategy, Void),
-	rdf_assert(Id, void:vocabulary,   amalgame:'', Void),
-	rdf_assert(Id, void:vocabulary,   void:'', Void),
-	rdf_assert(Id, rdf:type,          void:'Linkset', Void),
-	rdf_assert(Id, void:triples, literal(type(Int,NrOfTriples)), Void),
-
-	rdf_assert(Id, amalgame:strategy, Strategy, Void),
-	rdf_assert(Id, amalgame:opm,      ProvGraph, Void),
-
-	file_base_name(Id, Base),
-	option(dir(Dir), Options, tmpdir),
-	absolute_file_name(Base,  Name, [relative_to(Dir), extensions([ttl])]),
-	rdf_save_turtle(Name, [graph(Id)|Options]).
-
-assert_metadata(Id, Strategy, Graph) :-
-	findall(rdf(Id,P,O),
-		is_metadata_triple(Id, P, O, Strategy),
-		Triples),
-	expand_bnode_objects(Triples, Expanded),
-	forall(member(rdf(S,P,O), Expanded), rdf_assert(S,P,O,Graph)).
-
-expand_bnode_objects([],[]).
-expand_bnode_objects([rdf(S,P,O)|Tail], [rdf(S,P,O)|Expanded]) :-
-	expand_bnode_objects(Tail, ExpandedTail),
-	(   rdf_is_bnode(O)
-	->  Bnode = O,
-	    findall(rdf(Bnode, P1, O1), rdf(Bnode, P1, O1), BnodeTriples),
-	    expand_bnode_objects(BnodeTriples, ExpandedBnode),
-	    append(ExpandedBnode, ExpandedTail, Expanded)
-	;   Expanded = ExpandedTail
-	).
-
-is_metadata_triple(S,P,O,Graph) :-
-	rdf_has(S,opmv:wasGeneratedBy, Process, RP),
-	rdf(S,RP,Process,Graph),
-	rdf(Process, opmv:wasPerformedBy, O),
-	rdf_equal(dcterms:creator, P).
-is_metadata_triple(S,P,literal(type(T,N)), _Graph) :-
-	rdf_has(S, amalgame:mappedSourceConcepts, literal(type(T,N))),
-	rdf_equal(P, void:distinctSubjects).
-is_metadata_triple(S,P,literal(type(T,N)), _Graph) :-
-	rdf_has(S, amalgame:mappedTargetConcepts, literal(type(T,N))),
-	rdf_equal(P, void:distinctObjects).
-
-select_mappings_to_be_saved(Strategy, Mappings, Options) :-
-	option(status(Status), Options, all),
-	(   Status == all
-	->  findall(Mapping,
-		    (	rdfs_individual_of(Mapping, amalgame:'Mapping'),
-			rdf(Mapping, rdf:type, _, Strategy)
-		    ),
-		    Mappings)
-	;   findall(Mapping,
-		    (	rdfs_individual_of(Mapping, amalgame:'Mapping'),
-			rdf(Mapping, rdf:type, _, Strategy),
-			rdf(Mapping, amalgame:status, Status)
-		    ), Mappings)
-	).
-
-%%
-evaluation_graph(Strategy, Mapping, EvalGraph) :-
-	rdf(EvalGraph, amalgame:evaluationOf, Mapping, Strategy),
-	!.
-
-evaluation_graph(Strategy, Mapping, EvalGraph) :-
-	repeat,
-	gensym(evaluation_process, EvalProcess),
-	\+ rdf_subject(EvalProcess),
-
-	repeat,
-	gensym(evaluation_result, EvalGraph),
-	\+ rdf_subject(EvalGraph),
-	\+ rdf_graph(EvalGraph),
-	!,
-
-	format(atom(Comment), 'Manual evaluation of ~w', [Mapping]),
-
-	rdf_assert(EvalProcess, rdf:type, amalgame:'EvaluationProcess', Strategy),
-	rdf_assert(EvalProcess, rdfs:label, literal('Manual evaluation process'), Strategy),
-	rdf_assert(EvalProcess, amalgame:input,	Mapping, Strategy),
-
-	rdf_assert(EvalGraph, rdf:type, amalgame:'EvaluatedMapping', Strategy),
-	rdf_assert(EvalGraph, rdfs:label, literal('Evaluation results'), Strategy),
-	rdf_assert(EvalGraph, rdfs:comment, literal(Comment), Strategy),
-	rdf_assert(EvalGraph, opmv:wasGeneratedBy, EvalProcess, Strategy),
-	rdf_assert(EvalGraph, amalgame:evaluationOf, Mapping, Strategy),
-	rdf_assert(EvalGraph, amalgame:status, amalgame:intermediate, Strategy),
-
-	Options = [was_derived_from([Mapping])],
-	provenance_graph(Strategy, ProvGraph),
-	opm_was_generated_by(EvalProcess, [EvalGraph], ProvGraph, Options).
-
-delete_eval_graph_admin(Strategy, Mapping, EvalGraph) :-
-	% Beware, this will delete all metadata about your manual evaluations!
-	rdf(EvalGraph, amalgame:evaluationOf, Mapping, Strategy),
-	rdf(EvalGraph, opmv:wasGeneratedBy, EvalProcess, Strategy),
-	!,
-	rdf_retractall(EvalGraph, _, _, Strategy),
-	rdf_retractall(EvalProcess, _, _, Strategy).
 
 
-		 /*******************************
-		 *               stats		*
-		 *******************************/
-
-:- dynamic
-	stats_cache/2.
-
-user:message_hook(make(done(_)), _, _) :-
-	debug(ag_expand, 'Flushing stats cache after running make/0', []),
-	flush_stats_cache,
-	fail.
-
-user:message_hook(make(done(_)), _, _) :-
-	debug(ag_expand, 'Flushing expand cache after running make/0', []),
-	retractall(current_program_uri(_)),
-	flush_expand_cache,
-	fail.
-
-flush_stats_cache :-
-	retractall(stats_cache(_,_)).
-
-flush_stats_cache(Mapping, Strategy) :-
-	retractall(stats_cache(Mapping-Strategy,_)).
-
-
-%%	mapping_counts(+MappingURI,+Strat,?MappingN,?SourceN,?TargetN,?SourcePerc,?TargetPerc)
-%	is det.
-%
-%	Counts for the mappings in MappingURI.
-%
-%       @param MappingN is the number of total correspondences
-%       @param SourceN is the number of source concepts mapped
-%       @param TargetN is the number of target concepts mapped
-
-mapping_counts(URL, Strategy, MN, SN, TN, SPerc, TPerc) :-
-	stats_cache(URL-Strategy, _),!,
-	stats_cache(URL-Strategy, stats(MN, SN, TN, SPerc, TPerc)).
-mapping_counts(URL, Strategy, MN, SN, TN, SPerc, TPerc) :-
-	expand_mapping(Strategy, URL, _Mapping, stats(MN, SN, TN, SPerc, TPerc)).
-
-
-%%	mapping_stats(+URL, +Mapping, +Strategy, -Stats)
-%
-%	Stats are statistics for mapping.
-
-mapping_stats(URL, Mapping, Strategy, Stats) :-
-	maplist(align_source, Mapping, Ss0),
-	maplist(align_target, Mapping, Ts0),
-	sort(Ss0, Ss),
-	sort(Ts0, Ts),
-	length(Mapping, MN),
-	length(Ss, SN),
-	length(Ts, TN),
-	Stats = stats(MN, SN, TN, SPerc, TPerc),
-	(   mapping_sources(URL, Strategy, InputS, InputT)
-	->  concept_count(InputS, Strategy, SourceN),
-	    concept_count(InputT, Strategy, TargetN),
-	    rounded_perc(SourceN, SN, SPerc),
-	    rounded_perc(TargetN, TN, TPerc)
-	;   SPerc = 100, TPerc = 100
-	),
-	flush_stats_cache(URL, Strategy),
-	assert(stats_cache(URL-Strategy, Stats)).
-
-rounded_perc(0, _, 0.0) :- !.
-rounded_perc(_, 0, 0.0) :- !.
-rounded_perc(Total, V, Perc) :-
-	Perc0 is V/Total,
-	dyn_perc_round(Perc0, Perc, 100).
-
-dyn_perc_round(P0, P, N) :-
-	P1 is round(P0*N),
-	(   P1 == 0
-	->  N1 is N*10,
-	    dyn_perc_round(P0, P, N1)
-	;   P is P1/(N/100)
-	).
-
-%%	concept_count(+Vocab, +Strategy, -Count)
-%
-%	Count is the number of concepts in Vocab when expanded in Strategy
-
-concept_count(Vocab, Strategy, Count) :-
-	stats_cache(Vocab-Strategy, stats(Count)),
-	!.
-concept_count(Vocab, Strategy, Count) :-
-	expand_vocab(Strategy, Vocab, _Scheme, stats(Count)).
-
-vocab_stats(Vocab, Scheme, Strategy, stats(Count)) :-
-	findall(C, vocab_member(C, Scheme), Cs),
-	length(Cs, Count),
-	retractall(stats_cache(Vocab-Strategy,_)),
-	assert(stats_cache(Vocab-Strategy, stats(Count))).
-
-
-%%	mapping_sources(+MappingURI, Strategy, -Source, -Target)
-%
-%	Source and Target are the recursive source and target
-%	vocabularies of Mapping.
-
-mapping_sources(URL, Strategy, S, T) :-
-	rdf_has(URL, opmv:wasGeneratedBy, Process, RealProp),
-	rdf(URL, RealProp, Process, Strategy),
-	!,
-	(   rdf(Process, amalgame:source, S0, Strategy),
-	    rdf(Process, amalgame:target, T0, Strategy)
-	->  vocab_source(S0, Strategy, S),
-	    vocab_source(T0, Strategy, T)
-	;   rdf(Process, amalgame:input, Input, Strategy)
-	->  mapping_sources(Input, Strategy, S, T)
-	).
-
-vocab_source(V, Strategy, S) :-
-	rdf_has(V, opmv:wasGeneratedBy, Process, Strategy),
-	rdf_has(Process, amalgame:input, Input, Strategy),
-	!,
-	vocab_source(Input, Strategy, S).
-vocab_source(V, _S, V).
-
-align_source(align(S,_,_), S).
-align_target(align(_,T,_), T).
