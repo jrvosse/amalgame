@@ -24,7 +24,7 @@
 html_controls  -->
 	{ amalgame_modules_of_type(amalgame:'Selecter', Selecters),
 	  amalgame_modules_of_type(amalgame:'Matcher', Matchers),
-	  amalgame_modules_of_type(amalgame:'Analyzer', Analyzers)
+	  amalgame_modules_of_type(amalgame:'SetOperator', Analyzers)
 	},
 	html([\html_control_set(true,
 				'Current node',
@@ -316,16 +316,14 @@ module_special_type(M, secinput) :-
 	;   rdfs_subclass_of(M, amalgame:'AncestorMatcher')
 	;   rdfs_subclass_of(M, amalgame:'DescendentMatcher')
 	;   rdfs_subclass_of(M, amalgame:'RelatedMatcher')
-	;   rdfs_subclass_of(M, amalgame:'Analyzer')
+	;   rdfs_subclass_of(M, amalgame:'SetOperator')
 	),
 	!.
 module_special_type(M,preloaded) :-
 	rdfs_subclass_of(M, amalgame:'SelectPreLoaded'),
 	!.
 
-module_special_type(M, merger) :-
-	rdfs_subclass_of(M, amalgame:'Merger'),
-	!.
+
 module_special_type(M, match) :-
 	rdfs_subclass_of(M, amalgame:'Matcher'),
 	!.

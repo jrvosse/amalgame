@@ -14,38 +14,31 @@ amalgame:Process
 amalgame:Matcher
     rdfs:label "matcher"@en ;
     skos:definition "Component that creates a mapping given a source and target vocabulary"@en ;
-    rdfs:range amalgame:Mapping ;
     rdfs:subClassOf amalgame:Process .
 amalgame:Selecter
     rdfs:label "selecter"@en ;
     rdfs:subClassOf amalgame:Process .
-amalgame:Analyzer
-    rdfs:label "analyzer"@en ;
+amalgame:SetOperator
+    rdfs:label "set operator"@en ;
+    skos:definition "Component that creates a mapping by combining the correspondences from a number of mappings"@en ;
     rdfs:subClassOf amalgame:Process .
 amalgame:MappingSelecter
     rdfs:label "selecter"@en ;
     skos:definition "Component that creates a new mapping by selecting a number of correspondences from an existing mapping"@en ;
-    rdfs:domain amalgame:Mapping ;
-    rdfs:range amalgame:Mapping ;
     rdfs:subClassOf amalgame:Selecter .
 amalgame:VocabSelecter
     rdfs:label "selecter"@en ;
     skos:definition "Component that creates a new conceptScheme by selecting a number of concepts from an existing concept scheme"@en ;
-    rdfs:domain skos:ConceptScheme ;
-    rdfs:range skos:ConceptScheme ;
     rdfs:subClassOf amalgame:Selecter .
 amalgame:Subtracter
     rdfs:label "subtracter"@en ;
     skos:definition "Component that creates a new conceptScheme by subtracting a number of concepts that occur in another source"@en ;
-    rdfs:domain skos:ConceptScheme ;
-    rdfs:range skos:ConceptScheme ;
     rdfs:subClassOf amalgame:Process .
 amalgame:Merger
     rdfs:label "merger"@en ;
-    skos:definition "Component that creates a mapping by combining the correspondences from a number of mappings"@en ;
-    rdfs:domain amalgame:Mapping ;
-    rdfs:range amalgame:Mapping ;
+    skos:definition "Component that creates a mapping by mergin the correspondences from a number of mappings"@en ;
     rdfs:subClassOf amalgame:Process .
+
 
 amalgame:includes
         rdfs:domain skos:ConceptScheme ;

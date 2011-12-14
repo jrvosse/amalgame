@@ -155,7 +155,7 @@ precompute(Process, Alignment) :-
 	    _,[ detached(true) ]).
 
 assert_input(_Process, Type, _Graph, _Source, _Target, _Input) :-
-	rdfs_subclass_of(Type, amalgame:'OverlapComponent'),
+	rdfs_subclass_of(Type, amalgame:'MultiInputComponent'),
 	!.
 
 assert_input(Process, _Type, Graph, Source, Target, _Input) :-
@@ -169,7 +169,7 @@ assert_input(Process, _Type, Graph, _Source, _Target, Input) :-
 
 assert_secondary_inputs([], _, _, _).
 assert_secondary_inputs([URI|URIs], Process, Type, Strategy) :-
-	(   rdfs_subclass_of(Type, amalgame:'OverlapComponent')
+	(   rdfs_subclass_of(Type, amalgame:'SetOperator')
 	->  rdf_equal(Pred, amalgame:input)
 	;   rdf_equal(Pred, amalgame:secondary_input)
 	),
@@ -217,13 +217,9 @@ assert_output(Process, Type, Strategy, SecInputs, Strategy) :-
 	      ).
 
 
-
 assert_output(Process, Type, Graph, _, MainOutput) :-
 	output_type(Type, OutputClass),
 	new_output(OutputClass, Process, opmv:wasGeneratedBy, Graph, MainOutput).
-
-assert_overlap_output(_Process, _Strategy, _Results) :-
-	true.
 
 new_output(Type, Process, P, Strategy, OutputURI) :-
 	rdf(Strategy, amalgame:publish_ns, NS),

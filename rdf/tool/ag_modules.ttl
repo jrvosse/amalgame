@@ -86,7 +86,7 @@ amalgame:SiblingSelecter
 amalgame:MapMerger
     rdfs:label "mapping merger"@en ;
     skos:definition "Merge two or more mappings into one new mapping. This can, for example, to collect the good mappings made by different processes."@en ;
-    rdfs:subClassOf amalgame:Merger .
+    rdfs:subClassOf amalgame:SetOperator .
 
 amalgame:VocExclude
     rdfs:label "subtract mapped concepts"@en ;
@@ -102,7 +102,7 @@ amalgame:TypeSelect
 amalgame:OverlapComponent
     rdfs:label "overlap"@en ;
     skos:definition "Component that analyzes a set of mappings by creating intersections and differences sets"@en ;
-    rdfs:subClassOf amalgame:Analyzer .
+    rdfs:subClassOf amalgame:SetOperator .
 
 amalgame:Evaluater
     rdfs:label "evaluater"@en ;

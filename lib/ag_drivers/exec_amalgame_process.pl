@@ -62,13 +62,13 @@ exec_amalgame_process(Class, Process, Strategy, Module, Result, Time, Options) :
 	expand_vocab(Strategy, Input, Vocab, _),
 	timed_call(Module:selecter(Vocab, Result, Options), Time).
 exec_amalgame_process(Class, Process, Strategy, Module, Result, Time, Options) :-
-	rdfs_subclass_of(Class, amalgame:'Merger'),
+	rdfs_subclass_of(Class, amalgame:'MapMerger'),
 	!,
 	findall(Input, rdf(Process, amalgame:input, Input, Strategy), Inputs),
 	maplist(expand_mapping(Strategy), Inputs, Expanded, _),
 	timed_call(Module:merger(Expanded, Result, Options), Time).
 exec_amalgame_process(Class, Process, Strategy, Module, Result, Time, Options) :-
-	rdfs_subclass_of(Class, amalgame:'Analyzer'),
+	rdfs_subclass_of(Class, amalgame:'OverlapComponent'),
 	!,
 	findall(Input, rdf(Process, amalgame:input, Input, Strategy), Inputs),
 	% We need the ids, not the values in most analyzers
