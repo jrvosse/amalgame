@@ -95,7 +95,7 @@ YUI.add('controls', function(Y) {
 			Y.log(data);
 			this.fire("submit", {data:data});
 		},
-		
+
 		_onMouseOver : function (e, node) {
 			   var explainNode = node.one("input[name=graphic]");
 			   if (explainNode) {
@@ -145,6 +145,10 @@ YUI.add('controls', function(Y) {
 		syncUI : function() {
 			var selected = this.get("selected"),
 				type = selected ? selected.type : "";
+
+			// add mapping selection radio buttons with available mappings to components that need them
+			this._setMappingSelecter();
+
 			// We only show the controls for the active type
 			NODE_INPUT_CONTROLS.each(function(node) {
 				if(type&&node.hasClass(type)) {
@@ -166,11 +170,11 @@ YUI.add('controls', function(Y) {
 			}
 			var secSelecter = Y.one(".secinput_selecter");
 			if (secSelecter&&secSelecter.getContent()) {
-				//Y.log("Enabling components requiring secondary inputs");
+				// Y.log("Enabling components requiring secondary inputs");
 				Y.all(".secinput").removeClass("disabled");
-			    
+
 			} else {
-				//Y.log("Disabling components requiring secondary inputs");
+				// Y.log("Disabling components requiring secondary inputs");
 				Y.all(".secinput").addClass("disabled");
 			}
 			var preloadedSelecter = Y.one(".preloaded select option")
@@ -185,7 +189,6 @@ YUI.add('controls', function(Y) {
 			} else {
 				Y.all("#match .control-submit").setAttribute("disabled", true);
 			}
-			this._setMappingSelecter();
 		},
 
 		_setMappingSelecter : function() {
