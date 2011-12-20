@@ -21,24 +21,13 @@ selecter(In, Out, _, _, Options) :-
 	assert_from_list(Method, In, 1, RandSet, Out).
 
 assert_from_list(_,_,_,[], _).
-assert_from_list(Method, In, Nr, [Rand|RandSet], [[E1,E2]|Maps]) :-
+assert_from_list(Method, [Head|Tail], Nr, [Rand|RandSet], RandomMaps) :-
 	(   Rand = Nr
-	->  has_map([E1,E2], _, Options, Graph),!,
-	    (	Method = random
-	    ->	AltMaps = [E1-E2-Options]
-	    ),
-	    assert_map_list(AltMaps, Name),
-	    NewRandSet = RandSet
-	;   NewRandSet = [Rand|RandSet]
+	->  NewRandSet = RandSet,
+	    RandomMaps = [Head|Maps]
+	;   NewRandSet = [Rand|RandSet],
+	    RandomMaps = Maps
 	),
 	NewNr is Nr + 1,
-	assert_from_list(Method, In, NewNr, NewRandSet, Maps).
+	assert_from_list(Method, Tail, NewNr, NewRandSet, Maps).
 
-assert_map_list([],_).
-assert_map_list([H|T], Graph) :-
-	H=E1-E2-Options,
-	(   has_map([E1,E2], edoal, Graph)
-	->  true
-	;   assert_cell(E1,E2, [graph(Graph), alignment(Graph) | Options])
-	),
-	assert_map_list(T,Graph).
