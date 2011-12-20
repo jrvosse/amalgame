@@ -31,10 +31,11 @@
 %          scheme(Scheme) or type(Class)
 
 expand_mapping(Strategy, Id, Mapping, Stats) :-
-	(   rdfs_individual_of(Id, amalgame:'EvaluatedMapping')
-	;   rdfs_individual_of(Id, amalgame:'LoadedMapping')
-	;   rdf(Id, opmv:wasGeneratedBy, Process),
-	    rdf(Process, rdf:type, amalgame:'SelectPreloaded')
+	(   rdf_graph(Id)
+	;   rdfs_individual_of(Id, amalgame:'EvaluatedMapping')
+	%;   rdfs_individual_of(Id, amalgame:'LoadedMapping')
+	%;   rdf(Id, opmv:wasGeneratedBy, Process),
+	%    rdf(Process, rdf:type, amalgame:'SelectPreloaded')
 	),
 	!,
 	findall(C, has_correspondence(C,Id), Mapping0),
@@ -161,10 +162,13 @@ materialize_results_if_needed(Strategy, Process, Results) :-
 		    rdf(Id, RP, Process, Strategy)
 		),
 		Ids),
-	forall(member(Id-P, Ids),
-	       (   select_result_mapping(Id, Results, P, Mapping),
-		   materialize_if_needed(Id, Mapping)
-	       )
+	forall(
+	    (	member(Id-P, Ids),
+		needs_materialization(Id, Process, Strategy)
+	    ),
+	    (   select_result_mapping(Id, Results, P, Mapping),
+		materialize(Id, Mapping)
+	    )
 	      ).
 
 %%	materialize_if_needed(+Id, Mapping) is det.
@@ -173,13 +177,21 @@ materialize_results_if_needed(Strategy, Process, Results) :-
 %	this graph does not exist yet and if the resource with the same
 %	Id has the amalgame:status amalgame:final.
 
-materialize_if_needed(Id, _) :-
-	rdf_graph(Id), !. % Already materialized in a prev. run
-materialize_if_needed(Id, _) :-
+needs_materialization(Id, _, _) :-
+	rdf_graph(Id), !, % Already materialized in a prev. run
+	fail.
+needs_materialization(_Id, Process, _Strategy) :-
+	rdfs_individual_of(Process, ProcessType),
+	rdf(ProcessType, amalgame:materialize, amalgame:always),
+	!,
+	true.
+needs_materialization(Id, _, _) :-
 	rdf_has(Id, amalgame:status, Status),
 	\+ rdf_equal(Status, amalgame:final),
-	!. % Not a final graph, no need to materalize.
-materialize_if_needed(Id, Mapping) :-
+	!, % Not a final graph, no need to materalize.
+	fail.
+
+materialize(Id, Mapping) :-
 	(   rdf_has(Id, amalgame:recordEvidence, amalgame:enabled)
 	->  Enabled = enabled
 	;   Enabled = disabled
