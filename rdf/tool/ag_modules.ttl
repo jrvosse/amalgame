@@ -108,3 +108,8 @@ amalgame:Evaluater
     rdfs:label "evaluater"@en ;
     skos:definition "Component that analyzes correspondences in a mappings by manual evaluation"@en ;
     rdfs:subClassOf amalgame:Analyzer .
+
+amalgame:Sampler
+    rdfs:label "sampler"@en ;
+    skos:definition "Component that randomly samples correspondences to create a new mapping."@en ;
+    rdfs:subClassOf amalgame:MappingSelecter .

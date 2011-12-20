@@ -13,6 +13,7 @@
 
 % Alignment filters/selecters
 :- use_module(library(ag_modules/arity_select)).
+:- use_module(library(ag_modules/ag_sample)).
 :- use_module(library(ag_modules/token_arity_select)).
 :- use_module(library(ag_modules/best_numeric)).
 :- use_module(library(ag_modules/most_methods)).
