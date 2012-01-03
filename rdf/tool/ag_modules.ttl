@@ -113,4 +113,5 @@ amalgame:Sampler
     rdfs:label "sampler"@en ;
     amalgame:materialize amalgame:always ;
     skos:definition "Component that randomly samples correspondences to create a new mapping."@en ;
+    rdfs:comment "Samples are always materialized to guarantee replicability of the workflow."@en ;
     rdfs:subClassOf amalgame:MappingSelecter .
