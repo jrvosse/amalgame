@@ -44,7 +44,7 @@ flush_stats_cache(Mapping, Strategy) :-
 cache_result(ExecTime, Process, Strategy, Result) :-
 	debug(ag_expand, 'Caching results of process ~p ...', [Process]),
 	cache_expand_result(ExecTime, Process, Strategy, Result),
-	debug(ag_expand, '... almost ...', []), gtrace,
+	debug(ag_expand, '... almost ...', []),
 	cache_result_stats(Process, Strategy, Result),
 	debug(ag_expand, '... Done!', []).
 

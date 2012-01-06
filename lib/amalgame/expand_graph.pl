@@ -64,7 +64,8 @@ expand_vocab(Strategy, Id, Vocab) :-
 	!,
 	with_mutex(Process, expand_process(Strategy, Process, Vocab)).
 
-expand_vocab(_Strategy, Vocab, Vocab).
+expand_vocab(Strategy, Vocab, Vocab) :-
+	vocab_stats(Vocab, Vocab, Strategy, _).
 
 %%	expand_process(+Strategy, +Process, -Result)
 %
