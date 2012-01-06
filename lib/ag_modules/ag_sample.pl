@@ -20,7 +20,8 @@ selecter(In, Out, _, _, Options) :-
 	randset(Size, Length, RandSet),
 	assert_from_list(Method, In, 1, RandSet, Out).
 
-assert_from_list(_,_,_,[], _).
+assert_from_list(_,[],_,_,[]):- !.
+assert_from_list(_,_,_,[],[]):- !.
 assert_from_list(Method, [Head|Tail], Nr, [Rand|RandSet], RandomMaps) :-
 	(   Rand = Nr
 	->  NewRandSet = RandSet,
