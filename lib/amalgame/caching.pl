@@ -2,7 +2,7 @@
 	  [
 	   expand_cache/2,
 	   stats_cache/2,
-	   cache_expand_result/4,
+	   cache_result/4,
 	   clean_repository/0,
 	   flush_expand_cache/0,
 	   flush_expand_cache/2,     % +Id, +Strategy
@@ -12,16 +12,10 @@
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
-%:- use_module(library(http/http_parameters)).
-%:- use_module(library(amalgame/alignment)).
-%:- use_module(library(amalgame/map)).
 :- use_module(library(amalgame/opm)).
 :- use_module(library(amalgame/ag_provenance)).
-%:- use_module(library(amalgame/vocabulary)).
-%:- use_module(library(amalgame/amalgame_modules)).
-
 :- use_module(library(skos/vocabularies)).
-%:- use_module(library(ag_drivers/exec_amalgame_process)).
+:- use_module(ag_stats).
 
 :- dynamic
 	expand_cache/2,
@@ -47,6 +41,27 @@ flush_stats_cache :-
 flush_stats_cache(Mapping, Strategy) :-
 	retractall(stats_cache(Mapping-Strategy,_)).
 
+cache_result(ExecTime, Process, Strategy, Result) :-
+	debug(ag_expand, 'Process ~p results cached in cache_result', [Process]),
+	cache_expand_result(ExecTime, Process, Strategy, Result),
+	cache_result_stats(Process, Strategy, Result).
+
+cache_result_stats(Process, Strategy, select(Sel, Disc, Undec)) :-
+	rdf(S, amalgame:selectedBy, Process, Strategy),
+	rdf(D, amalgame:discardedBy, Process, Strategy),
+	rdf(U, amalgame:undecidedBy, Process, Strategy),
+	!,
+	mapping_stats(S, Sel, Strategy, _),
+	mapping_stats(D, Disc, Strategy, _),
+	mapping_stats(U, Undec, Strategy, _).
+
+cache_result_stats(Process, Strategy, Result) :-
+	rdf(D, opmv:wasGeneratedBy, Process, Strategy),
+	!,
+	mapping_stats(D, Result, Strategy, _).
+
+cache_result_stats(Process, _Strategy, _Result) :-
+	debug(ag_expand, 'Error: do not know how to cache stats of ~p', [Process]).
 
 cache_expand_result(ExecTime, Process, Strategy, Result) :-
 	setting(cache_time, CacheTime),

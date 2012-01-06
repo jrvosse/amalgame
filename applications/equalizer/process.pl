@@ -150,7 +150,7 @@ precompute(Process, Alignment) :-
 	rdf(Output, RP, Process, Alignment),
 	thread_create( % Write debug output to server console, cannot write to client:
 	    (	set_stream(user_output, alias(current_output)),
-		expand_mapping(Alignment, Output, _, _)
+		expand_mapping(Alignment, Output, _)
 	    ),
 	    _,[ detached(true) ]).
 
@@ -318,7 +318,7 @@ update_node_prop(status=Status, URI, Alignment) :-
 	(   rdf_equal(Status, amalgame:final)
 	->  thread_create(
 		(   set_stream(user_output, alias(current_output)),
-		    expand_mapping(Alignment, URI, _, _)
+		    expand_mapping(Alignment, URI, _)
 		), _, [ detached(true) ])
 	;   true
 	).

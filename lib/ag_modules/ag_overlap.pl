@@ -19,7 +19,7 @@ analyzer(Inputs, Process, Strategy, overlap(Results), _Options) :-
 	maplist(output_expander(Process, Strategy), Overlaps, Results).
 
 input_expander(Strategy, Id, Id:Expanded) :-
-	expand_mapping(Strategy, Id, Expanded, _).
+	expand_mapping(Strategy, Id, Expanded).
 
 output_expander(Process, Strategy, OverlapId-Mapping, OutputUri-MappingMerged) :-
 	append(Mapping, MappingFlat),

@@ -21,10 +21,11 @@
 %       @param TargetN is the number of target concepts mapped
 
 mapping_counts(URL, Strategy, MN, SN, TN, SPerc, TPerc) :-
-	stats_cache(URL-Strategy, _),!,
+	(   stats_cache(URL-Strategy, _)
+	->  true
+	;   expand_mapping(Strategy, URL, _Mapping)
+	),
 	stats_cache(URL-Strategy, stats(MN, SN, TN, SPerc, TPerc)).
-mapping_counts(URL, Strategy, MN, SN, TN, SPerc, TPerc) :-
-	expand_mapping(Strategy, URL, _Mapping, stats(MN, SN, TN, SPerc, TPerc)).
 
 
 %%	mapping_stats(+URL, +Mapping, +Strategy, -Stats)

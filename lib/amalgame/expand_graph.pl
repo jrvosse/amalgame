@@ -1,12 +1,11 @@
 :- module(expand_graph,
-	  [ expand_mapping/4,
+	  [ expand_mapping/3,
 	    expand_vocab/4,
 	    expand_process/3
 	  ]).
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
-% :- use_module(library(amalgame/alignment)).
 :- use_module(library(amalgame/caching)).
 :- use_module(library(amalgame/opm)).
 :- use_module(library(amalgame/map)).
@@ -19,7 +18,7 @@
 :- use_module(library(skos/vocabularies)).
 :- use_module(library(ag_drivers/exec_amalgame_process)).
 
-%%	expand_mapping(+Strategy, +Id, -Result, -Stats) is det.
+%%	expand_mapping(+Strategy, +Id, -Result) is det.
 %
 %	Generate the Result corresponding to Id.
 %	We use a mutex so that the next thread will use the cached
@@ -30,7 +29,7 @@
 %          if Id is a Vocabulary Result is an assoc or one of
 %          scheme(Scheme) or type(Class)
 
-expand_mapping(Strategy, Id, Mapping, Stats) :-
+expand_mapping(_Strategy, Id, Mapping) :-
 	(   rdf_graph(Id)
 	;   rdfs_individual_of(Id, amalgame:'EvaluatedMapping')
 	%;   rdfs_individual_of(Id, amalgame:'LoadedMapping')
@@ -39,9 +38,9 @@ expand_mapping(Strategy, Id, Mapping, Stats) :-
 	),
 	!,
 	findall(C, has_correspondence(C,Id), Mapping0),
-	sort(Mapping0, Mapping),
-	mapping_stats(Id, Mapping, Strategy, Stats).
-expand_mapping(Strategy, Id, Mapping, Stats) :-
+	sort(Mapping0, Mapping).
+
+expand_mapping(Strategy, Id, Mapping) :-
 	rdf_has(Id, opmv:wasGeneratedBy, Process, OutputType),
 	rdf(Id, OutputType, Process, Strategy),
 	!,
@@ -49,8 +48,8 @@ expand_mapping(Strategy, Id, Mapping, Stats) :-
 	materialize_results_if_needed(Strategy, Process, Result),
 	select_result_mapping(Id, Result, OutputType, Mapping),
 	length(Mapping, Count),
-	debug(ag_expand, 'Found ~w mappings for ~p', [Count, Id]),
-	mapping_stats(Id, Mapping, Strategy, Stats).
+	debug(ag_expand, 'Found ~w mappings for ~p', [Count, Id]).
+
 
 
 %%	expand_vocab(+Strategy, +Id, -Concepts, -Stats) is det.
@@ -99,7 +98,7 @@ do_expand_process(Strategy, Process, Result) :-
 	      [Process,Type,Time]),
 
 	% Work is done, but still lots of admin to do...
-	cache_expand_result(Time, Process, Strategy, Result),
+	cache_result(Time, Process, Strategy, Result),
 
 	% Provenance admin:
 	(   Result = scheme(_)   % Result is a single vocabulary

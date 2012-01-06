@@ -67,7 +67,7 @@ find_relation(Mapping, Cell, Default, Relation) :-
 
 save_mapping(Id, Strategy, ProvGraph, Options) :-
 	(   \+ rdf_graph(Id)
-	->  expand_mapping(Strategy, Id, Mapping, _),
+	->  expand_mapping(Strategy, Id, Mapping),
 	    materialize_mapping_graph(Mapping, [graph(Id)|Options])
 	;   add_relation_if_needed(Id, Options)
 	),

@@ -69,11 +69,11 @@ http_data_mapping(Request) :-
 		       ]),
 
 	(   rdfs_individual_of(URL, amalgame:'EvaluatedMapping')
-	->  expand_mapping(Strategy, URL, PreviousEvaluation, _)
+	->  expand_mapping(Strategy, URL, PreviousEvaluation) 
 	;   evaluation_graph(Strategy, URL, Prev),
-	    expand_mapping(Strategy, Prev, PreviousEvaluation, _)
+	    expand_mapping(Strategy, Prev, PreviousEvaluation)
 	),
-	expand_mapping(Strategy, URL, Mapping0, _),
+	expand_mapping(Strategy, URL, Mapping0),
 	length(Mapping0, Count),
 	maplist(mapping_label, Mapping0, Mapping1),
 	select_relation(Mapping1, PreviousEvaluation, Mapping2),
@@ -201,7 +201,7 @@ http_correspondence(Request) :-
 				  description('Include all target')])
 			]),
 	findall(R-L, mapping_relation(L, R), Relations),
-	expand_mapping(Strategy, Mapping, Ms, _),
+	expand_mapping(Strategy, Mapping, Ms),
 	(   AllSource
 	->  A = align(Source,_,_)
 	;   AllTarget
