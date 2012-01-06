@@ -42,9 +42,11 @@ flush_stats_cache(Mapping, Strategy) :-
 	retractall(stats_cache(Mapping-Strategy,_)).
 
 cache_result(ExecTime, Process, Strategy, Result) :-
-	debug(ag_expand, 'Process ~p results cached in cache_result', [Process]),
+	debug(ag_expand, 'Caching results of process ~p ...', [Process]),
 	cache_expand_result(ExecTime, Process, Strategy, Result),
-	cache_result_stats(Process, Strategy, Result).
+	debug(ag_expand, '... almost ...', []), gtrace,
+	cache_result_stats(Process, Strategy, Result),
+	debug(ag_expand, '... Done!', []).
 
 cache_result_stats(Process, Strategy, select(Sel, Disc, Undec)) :-
 	rdf(S, amalgame:selectedBy, Process, Strategy),
@@ -55,13 +57,17 @@ cache_result_stats(Process, Strategy, select(Sel, Disc, Undec)) :-
 	mapping_stats(D, Disc, Strategy, _),
 	mapping_stats(U, Undec, Strategy, _).
 
+cache_result_stats(_Process, Strategy, scheme(Scheme)) :-
+	vocab_stats(Scheme, Scheme, Strategy, _).
+
 cache_result_stats(Process, Strategy, Result) :-
 	rdf(D, opmv:wasGeneratedBy, Process, Strategy),
 	!,
 	mapping_stats(D, Result, Strategy, _).
 
 cache_result_stats(Process, _Strategy, _Result) :-
-	debug(ag_expand, 'Error: do not know how to cache stats of ~p', [Process]).
+	debug(ag_expand, 'Error: do not know how to cache stats of ~p', [Process]),
+	fail.
 
 cache_expand_result(ExecTime, Process, Strategy, Result) :-
 	setting(cache_time, CacheTime),

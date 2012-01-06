@@ -73,7 +73,8 @@ concept_count(Vocab, Strategy, Count) :-
 	stats_cache(Vocab-Strategy, stats(Count)),
 	!.
 concept_count(Vocab, Strategy, Count) :-
-	expand_vocab(Strategy, Vocab, _Scheme, stats(Count)).
+	expand_vocab(Strategy, Vocab, _Scheme),
+	stats_cache(Vocab-Strategy, stats(Count)).
 
 vocab_stats(Vocab, Scheme, Strategy, stats(Count)) :-
 	findall(C, vocab_member(C, Scheme), Cs),

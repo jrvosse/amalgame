@@ -28,8 +28,8 @@ exec_amalgame_process(Type, Process, Strategy, Module, Mapping, Time, Options) :
 	flatten(SecInputNF, SecInput),
 	(   rdf(Process, amalgame:source, SourceId, Strategy),
 	    rdf(Process, amalgame:target, TargetId, Strategy)
-	->  expand_vocab(Strategy, SourceId, Source, _),
-	    expand_vocab(Strategy, TargetId, Target, _),
+	->  expand_vocab(Strategy, SourceId, Source),
+	    expand_vocab(Strategy, TargetId, Target),
 	    timed_call(Module:matcher(Source, Target, Mapping0, [snd_input(SecInput)|Options]), Time)
 	;   rdf(Process, amalgame:input, InputId)
 	->  expand_mapping(Strategy, InputId, MappingIn),
@@ -43,7 +43,7 @@ exec_amalgame_process(Class, Process, Strategy, Module, Result, Time, Options) :
 	NewVocOption = new_scheme(NewVocab),
 	!,
 	once(rdf(Process, amalgame:input, Input, Strategy)),
-	expand_vocab(Strategy, Input, Vocab, _),
+	expand_vocab(Strategy, Input, Vocab),
 	findall(S, rdf_has(Process, amalgame:secondary_input, S), Ss),
 	maplist(expand_mapping(Strategy), Ss, Expanded),
 	append(Expanded, Mapping),
@@ -59,7 +59,7 @@ exec_amalgame_process(Class, Process, Strategy, Module, Result, Time, Options) :
 	rdfs_subclass_of(Class, amalgame:'VocabSelecter'),
 	!,
 	once(rdf(Process, amalgame:input, Input, Strategy)),
-	expand_vocab(Strategy, Input, Vocab, _),
+	expand_vocab(Strategy, Input, Vocab),
 	timed_call(Module:selecter(Vocab, Result, Options), Time).
 exec_amalgame_process(Class, Process, Strategy, Module, Result, Time, Options) :-
 	rdfs_subclass_of(Class, amalgame:'MapMerger'),

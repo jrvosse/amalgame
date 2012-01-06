@@ -1,6 +1,6 @@
 :- module(expand_graph,
 	  [ expand_mapping/3,
-	    expand_vocab/4,
+	    expand_vocab/3,
 	    expand_process/3
 	  ]).
 
@@ -52,22 +52,19 @@ expand_mapping(Strategy, Id, Mapping) :-
 
 
 
-%%	expand_vocab(+Strategy, +Id, -Concepts, -Stats) is det.
+%%	expand_vocab(+Strategy, +Id, -Concepts) is det.
 %
 %	Generate the Vocab according to Strategy.
 %	@param Id is URI of a conceptscheme or an identifier for a set
 %	of concepts derived by a vocabulary process,
 
-expand_vocab(Strategy, Id, Vocab, Stats) :-
+expand_vocab(Strategy, Id, Vocab) :-
 	rdf_has(Id, opmv:wasGeneratedBy, Process ,OutputType),
 	rdf(Id, OutputType, Process, Strategy),
 	!,
-	with_mutex(Process, expand_process(Strategy, Process, Vocab)),
-	vocab_stats(Id, Vocab, Strategy, Stats).
+	with_mutex(Process, expand_process(Strategy, Process, Vocab)).
 
-expand_vocab(Strategy, Vocab, Vocab, Stats) :-
-	vocab_stats(Vocab, Vocab, Strategy, Stats).
-
+expand_vocab(_Strategy, Vocab, Vocab).
 
 %%	expand_process(+Strategy, +Process, -Result)
 %
