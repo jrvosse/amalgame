@@ -47,9 +47,7 @@ mapping_stats(URL, Mapping, Strategy, Stats) :-
 	    rounded_perc(SourceN, SN, SPerc),
 	    rounded_perc(TargetN, TN, TPerc)
 	;   SPerc = 100, TPerc = 100
-	),
-	flush_stats_cache(URL, Strategy),
-	assert(stats_cache(URL-Strategy, Stats)).
+	).
 
 rounded_perc(0, _, 0.0) :- !.
 rounded_perc(_, 0, 0.0) :- !.

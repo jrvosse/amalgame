@@ -83,7 +83,7 @@ http_add_process(Request) :-
 
 update_process(Process, Graph, Params) :-
 	provenance_graph(Graph, ProvGraph),
-	clean_dependent_caches(Process, Graph, ProvGraph),
+	flush_dependent_caches(Process, Graph, ProvGraph),
 	uri_query_components(Search, Params),
 	rdf_transaction((rdf_retractall(Process, amalgame:parameters, _),
 			 rdf_assert(Process, amalgame:parameters, literal(Search), Graph)
@@ -99,27 +99,6 @@ is_dependent_chk(Mapping, Process, Strategy) :-
 	rdf_has(OtherProcess, opmv:used, OtherMapping, RP2),
 	rdf(OtherProcess, RP2, OtherMapping, Strategy),
 	is_dependent_chk(OtherMapping, Process, Strategy),!.
-
-
-clean_dependent_caches(Process, Strategy, ProvGraph) :-
-	flush_expand_cache(Process, Strategy),
-	findall(Result,
-		(   rdf_has(Result, opmv:wasGeneratedBy, Process, RP),
-		    rdf(Result, RP, Process, Strategy)
-		), Results),
-	forall(member(Result, Results),
-	       flush_stats_cache(Result, Strategy)
-	      ),
-	findall(DepProcess,
-		(   member(Result, Results),
-		    rdf_has(DepProcess, opmv:used, Result, RP),
-		    rdf(DepProcess, RP, Result, Strategy)
-		),
-		Deps),
-	forall(member(Dep, Deps),
-	       clean_dependent_caches(Dep, Strategy, ProvGraph)),
-
-	remove_old_prov(Process, ProvGraph).
 
 
 %%	new_process(+Process, +Alignment, +Source, +Target, +Input,

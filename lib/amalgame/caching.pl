@@ -4,6 +4,7 @@
 	   stats_cache/2,
 	   cache_result/4,
 	   clean_repository/0,
+	   flush_dependent_caches/3,
 	   flush_expand_cache/0,
 	   flush_expand_cache/2,     % +Id, +Strategy
 	   flush_stats_cache/0,
@@ -53,9 +54,18 @@ cache_result_stats(Process, Strategy, select(Sel, Disc, Undec)) :-
 	rdf(D, amalgame:discardedBy, Process, Strategy),
 	rdf(U, amalgame:undecidedBy, Process, Strategy),
 	!,
-	mapping_stats(S, Sel, Strategy, _),
-	mapping_stats(D, Disc, Strategy, _),
-	mapping_stats(U, Undec, Strategy, _).
+	mapping_stats(S, Sel, Strategy,  Sstats),
+	mapping_stats(D, Disc, Strategy, Dstats),
+	mapping_stats(U, Undec, Strategy,Ustats),
+
+	flush_stats_cache(S, Strategy),
+	flush_stats_cache(D, Strategy),
+	flush_stats_cache(U, Strategy),
+
+	assert(stats_cache(S-Strategy, Sstats)),
+	assert(stats_cache(D-Strategy, Dstats)),
+	assert(stats_cache(U-Strategy, Ustats)).
+
 
 cache_result_stats(_Process, Strategy, scheme(Scheme)) :-
 	vocab_stats(Scheme, Scheme, Strategy, _).
@@ -63,7 +73,9 @@ cache_result_stats(_Process, Strategy, scheme(Scheme)) :-
 cache_result_stats(Process, Strategy, Result) :-
 	rdf(D, opmv:wasGeneratedBy, Process, Strategy),
 	!,
-	mapping_stats(D, Result, Strategy, _).
+	flush_stats_cache(D, Strategy),
+	mapping_stats(D, Result, Strategy, Dstats),
+	assert(stats_cache(D-Strategy, Dstats)).
 
 cache_result_stats(Process, _Strategy, _Result) :-
 	debug(ag_expand, 'Error: do not know how to cache stats of ~p', [Process]),
@@ -153,3 +165,22 @@ del_materialized_vocs :-
 
 
 
+flush_dependent_caches(Process, Strategy, ProvGraph) :-
+	flush_expand_cache(Process, Strategy),
+	findall(Result,
+		(   rdf_has(Result, opmv:wasGeneratedBy, Process, RP),
+		    rdf(Result, RP, Process, Strategy)
+		), Results),
+	forall(member(Result, Results),
+	       flush_stats_cache(Result, Strategy)
+	      ),
+	findall(DepProcess,
+		(   member(Result, Results),
+		    rdf_has(DepProcess, opmv:used, Result, RP),
+		    rdf(DepProcess, RP, Result, Strategy)
+		),
+		Deps),
+	forall(member(Dep, Deps),
+	       flush_dependent_caches(Dep, Strategy, ProvGraph)),
+
+	remove_old_prov(Process, ProvGraph).
