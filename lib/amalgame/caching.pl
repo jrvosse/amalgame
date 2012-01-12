@@ -42,12 +42,16 @@ flush_stats_cache :-
 flush_stats_cache(Mapping, Strategy) :-
 	retractall(stats_cache(Mapping-Strategy,_)).
 
+cache_result(_ExecTime, Id, Strategy, Result) :-
+	rdfs_individual_of(Id, amalgame:'Mapping'),
+	!,
+	flush_stats_cache(Id, Strategy),
+	mapping_stats(Id, Result, Strategy, Stats),
+	assert(stats_cache(Id-Strategy, Stats)).
+
 cache_result(ExecTime, Process, Strategy, Result) :-
-	debug(ag_expand, 'Caching results of process ~p ...', [Process]),
 	cache_expand_result(ExecTime, Process, Strategy, Result),
-	debug(ag_expand, '... almost ...', []),
-	cache_result_stats(Process, Strategy, Result),
-	debug(ag_expand, '... Done!', []).
+	cache_result_stats(Process, Strategy, Result).
 
 cache_result_stats(Process, Strategy, select(Sel, Disc, Undec)) :-
 	rdf(S, amalgame:selectedBy, Process, Strategy),
@@ -68,7 +72,10 @@ cache_result_stats(Process, Strategy, select(Sel, Disc, Undec)) :-
 
 
 cache_result_stats(_Process, Strategy, scheme(Scheme)) :-
-	vocab_stats(Scheme, Scheme, Strategy, _).
+	!,
+	vocab_stats(Scheme, Count),
+	retractall(stats_cache(Scheme-Strategy,_)),
+	assert(stats_cache(Scheme-Strategy, stats(Count))).
 
 cache_result_stats(Process, Strategy, Result) :-
 	rdf(D, opmv:wasGeneratedBy, Process, Strategy),
@@ -184,3 +191,4 @@ flush_dependent_caches(Process, Strategy, ProvGraph) :-
 	       flush_dependent_caches(Dep, Strategy, ProvGraph)),
 
 	remove_old_prov(Process, ProvGraph).
+

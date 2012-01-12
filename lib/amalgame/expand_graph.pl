@@ -1,7 +1,6 @@
 :- module(expand_graph,
 	  [ expand_mapping/3,
-	    expand_vocab/3,
-	    expand_process/3
+	    expand_vocab/3
 	  ]).
 
 :- use_module(library(semweb/rdf_db)).
@@ -29,22 +28,26 @@
 %          if Id is a Vocabulary Result is an assoc or one of
 %          scheme(Scheme) or type(Class)
 
-expand_mapping(_Strategy, Id, Mapping) :-
+expand_mapping(Strategy, Id, Mapping) :-
 	(   rdf_graph(Id)
 	;   rdfs_individual_of(Id, amalgame:'EvaluatedMapping')
-	%;   rdfs_individual_of(Id, amalgame:'LoadedMapping')
-	%;   rdf(Id, opmv:wasGeneratedBy, Process),
-	%    rdf(Process, rdf:type, amalgame:'SelectPreloaded')
+	;   rdfs_individual_of(Id, amalgame:'LoadedMapping')
+	;   rdf(Id, opmv:wasGeneratedBy, Process),
+	    rdf(Process, rdf:type, amalgame:'SelectPreloaded')
 	),
 	!,
 	findall(C, has_correspondence(C,Id), Mapping0),
-	sort(Mapping0, Mapping).
+	sort(Mapping0, Mapping),
+	cache_result(0, Id, Strategy, Mapping).
+
+
 
 expand_mapping(Strategy, Id, Mapping) :-
 	rdf_has(Id, opmv:wasGeneratedBy, Process, OutputType),
 	rdf(Id, OutputType, Process, Strategy),
 	!,
-	with_mutex(Process, expand_process(Strategy, Process, Result)),
+	with_mutex(Process, expand_process(Strategy, Process, Result, Time)),
+	cache_result(Time, Process, Strategy, Result),
 	materialize_results_if_needed(Strategy, Process, Result),
 	select_result_mapping(Id, Result, OutputType, Mapping),
 	length(Mapping, Count),
@@ -62,26 +65,30 @@ expand_vocab(Strategy, Id, Vocab) :-
 	rdf_has(Id, opmv:wasGeneratedBy, Process ,OutputType),
 	rdf(Id, OutputType, Process, Strategy),
 	!,
-	with_mutex(Process, expand_process(Strategy, Process, Vocab)).
+	with_mutex(Process, expand_process(Strategy, Process, Vocab, Time)),
+	cache_result(Time, Process, Strategy, scheme(Vocab)).
 
 expand_vocab(Strategy, Vocab, Vocab) :-
-	vocab_stats(Vocab, Vocab, Strategy, _).
+	rdf_equal(amalgame:preloaded, Preloaded),
+	cache_result(0, Preloaded, Strategy, scheme(Vocab)).
 
-%%	expand_process(+Strategy, +Process, -Result)
+
+%%	expand_process(+Strategy, +Process, -Result, -Time)
 %
 %	Expand Process according to Strategy to generate Result.
 %
 %	Results are cached when execution time of process takes longer
 %	then setting(cache_time).
 
-expand_process(Strategy, Process, Result) :-
+expand_process(Strategy, Process, Result, Time) :-
 	ground(Process),
 	(   expand_cache(Process-Strategy, Result)
-	->  debug(ag_expand, 'Output of process ~p taken from cache', [Process])
-	;   do_expand_process(Strategy, Process, Result)
+	->  Time = 0,
+	    debug(ag_expand, 'Output of process ~p taken from cache', [Process])
+	;   do_expand_process(Strategy, Process, Result, Time)
 	).
 
-do_expand_process(Strategy, Process, Result) :-
+do_expand_process(Strategy, Process, Result, Time) :-
 	rdf(Process, rdf:type, Type, Strategy),
 
 	% Do not try multiple types if something fails below...
@@ -94,9 +101,6 @@ do_expand_process(Strategy, Process, Result) :-
 			      Module, Result, Time, Options),
 	debug(ag_expand, 'Output of process ~p (~p) computed in ~ws',
 	      [Process,Type,Time]),
-
-	% Work is done, but still lots of admin to do...
-	cache_result(Time, Process, Strategy, Result),
 
 	% Provenance admin:
 	(   Result = scheme(_)   % Result is a single vocabulary

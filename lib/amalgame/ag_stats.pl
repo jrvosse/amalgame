@@ -3,7 +3,7 @@
 		    mapping_counts/7,
 		    concept_count/3,
 		    mapping_stats/4,
-		    vocab_stats/4
+		    vocab_stats/2
 		   ]).
 
 :- use_module(library(semweb/rdf_db)).
@@ -28,6 +28,18 @@ mapping_counts(URL, Strategy, MN, SN, TN, SPerc, TPerc) :-
 	stats_cache(URL-Strategy, stats(MN, SN, TN, SPerc, TPerc)).
 
 
+%%	concept_count(+Vocab, +Strategy, -Count)
+%
+%	Count is the number of concepts in Vocab when expanded in Strategy
+
+concept_count(Vocab, Strategy, Count) :-
+	(   stats_cache(Vocab-Strategy, _)
+	->  true
+	;   expand_vocab(Strategy, Vocab, _Scheme)
+	),
+	stats_cache(Vocab-Strategy, stats(Count)).
+
+
 %%	mapping_stats(+URL, +Mapping, +Strategy, -Stats)
 %
 %	Stats are statistics for mapping.
@@ -49,6 +61,10 @@ mapping_stats(URL, Mapping, Strategy, Stats) :-
 	;   SPerc = 100, TPerc = 100
 	).
 
+vocab_stats(Scheme, Count):-
+	findall(C, vocab_member(C, Scheme), Cs),
+	length(Cs, Count).
+
 rounded_perc(0, _, 0.0) :- !.
 rounded_perc(_, 0, 0.0) :- !.
 rounded_perc(Total, V, Perc) :-
@@ -62,24 +78,6 @@ dyn_perc_round(P0, P, N) :-
 	    dyn_perc_round(P0, P, N1)
 	;   P is P1/(N/100)
 	).
-
-%%	concept_count(+Vocab, +Strategy, -Count)
-%
-%	Count is the number of concepts in Vocab when expanded in Strategy
-
-concept_count(Vocab, Strategy, Count) :-
-	stats_cache(Vocab-Strategy, stats(Count)),
-	!.
-concept_count(Vocab, Strategy, Count) :-
-	expand_vocab(Strategy, Vocab, _Scheme),
-	stats_cache(Vocab-Strategy, stats(Count)).
-
-vocab_stats(Vocab, Scheme, Strategy, stats(Count)) :-
-	findall(C, vocab_member(C, Scheme), Cs),
-	length(Cs, Count),
-	retractall(stats_cache(Vocab-Strategy,_)),
-	assert(stats_cache(Vocab-Strategy, stats(Count))).
-
 
 %%	mapping_sources(+MappingURI, Strategy, -Source, -Target)
 %
@@ -107,3 +105,4 @@ vocab_source(V, _S, V).
 
 align_source(align(S,_,_), S).
 align_target(align(_,T,_), T).
+
