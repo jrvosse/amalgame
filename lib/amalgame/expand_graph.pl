@@ -23,9 +23,9 @@ expand_node(Strategy, Id, Result) :-
 	ground(Strategy),
 	ground(Id),
 	(   rdfs_individual_of(Id, amalgame:'Mapping')
-	->  expand_mapping(Strategy, Id, Result)
+	->  with_mutex(Id, expand_mapping(Strategy, Id, Result))
 	;   rdfs_individual_of(Id, skos:'ConceptScheme')
-	->  expand_vocab(Strategy, Id, Result)
+	->  with_mutex(Id, expand_vocab(Strategy, Id, Result))
 	;   true
 	).
 

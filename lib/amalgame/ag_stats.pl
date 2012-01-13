@@ -21,6 +21,9 @@
 %       @param TargetN is the number of target concepts mapped
 
 mapping_counts(URL, Strategy, MN, SN, TN, SPerc, TPerc) :-
+	with_mutex(URL, mapping_counts_(URL, Strategy, MN, SN, TN, SPerc, TPerc)).
+
+mapping_counts_(URL, Strategy, MN, SN, TN, SPerc, TPerc) :-
 	(   stats_cache(URL-Strategy, _)
 	->  true
 	;   expand_mapping(Strategy, URL, _Mapping)
@@ -33,6 +36,9 @@ mapping_counts(URL, Strategy, MN, SN, TN, SPerc, TPerc) :-
 %	Count is the number of concepts in Vocab when expanded in Strategy
 
 concept_count(Vocab, Strategy, Count) :-
+	with_mutex(Vocab, concept_count_(Vocab, Strategy, Count)).
+
+concept_count_(Vocab, Strategy, Count) :-
 	(   stats_cache(Vocab-Strategy, _)
 	->  true
 	;   expand_vocab(Strategy, Vocab, _Scheme)
