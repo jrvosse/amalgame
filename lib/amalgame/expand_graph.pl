@@ -58,8 +58,9 @@ expand_mapping(Strategy, Id, Mapping) :-
 	rdf_has(Id, opmv:wasGeneratedBy, Process, OutputType),
 	rdf(Id, OutputType, Process, Strategy),
 	!,
-	with_mutex(Process, expand_process(Strategy, Process, Result, Time)),
-	cache_result(Time, Process, Strategy, Result),
+	with_mutex(Process,
+		   (   expand_process(Strategy, Process, Result, Time),
+		       cache_result(Time, Process, Strategy, Result))),
 	materialize_results_if_needed(Strategy, Process, Result),
 	select_result_mapping(Id, Result, OutputType, Mapping),
 	length(Mapping, Count),
@@ -77,8 +78,11 @@ expand_vocab(Strategy, Id, Vocab) :-
 	rdf_has(Id, opmv:wasGeneratedBy, Process ,OutputType),
 	rdf(Id, OutputType, Process, Strategy),
 	!,
-	with_mutex(Process, expand_process(Strategy, Process, Vocab, Time)),
-	cache_result(Time, Process, Strategy, Vocab).
+	with_mutex(Process,
+		   (   expand_process(Strategy, Process, Vocab, Time),
+		       cache_result(Time, Process, Strategy, Vocab)
+		   )
+		  ).
 
 expand_vocab(Strategy, Vocab, Vocab) :-
 	rdf_equal(amalgame:preloaded, Preloaded),
