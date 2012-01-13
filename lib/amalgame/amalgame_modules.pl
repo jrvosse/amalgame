@@ -120,7 +120,7 @@ fix_not_expanded_options([''],[]).
 fix_not_expanded_options([],[]).
 fix_not_expanded_options([Key=Value|Tail], [Key=FixedValue|Results]):-
 	(   \+ sub_atom(Value,0,_,_,'http:'),
-	    term_to_atom(NS:L, Value),
+	    atomic_list_concat([NS,L], :, Value),
 	    rdf_global_id(NS:L,FixedValue)
 	->  true
 	;   FixedValue = Value
