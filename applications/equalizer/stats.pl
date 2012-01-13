@@ -154,7 +154,7 @@ amalgame_provenance(R, Alignment, Provenance) :-
 ag_prov(R, A, 'defined by', \rdf_link(Agent)) :-
 	(   rdf_has(R, dc:creator, Agent, RealProp),
 	    rdf(R, RealProp, Agent, A)
-	->  true
+	*->  true
 	;   rdf_has(R, dc:creator, Agent)
 	).
 
@@ -186,10 +186,10 @@ ag_prov(R, A, owl:'version', V) :-
 	).
 ag_prov(Graph, Graph, contributors, Vs) :-
 	rdfs_individual_of(Graph, amalgame:'AlignmentStrategy'),
-	findall(V,
-		(   rdf(R, _, _, Graph),
+	findall(\rdf_link(V),
+		(   rdf_has(R, dc:creator, V, RP),
+		    rdf(R, RP, V, Graph),
 		    \+ R == Graph,
-		    rdf(R, dc:creator, V),
 		    \+ rdf(Graph, dc:creator, V)
 		), Vs0),
 	Vs0 \== [],
