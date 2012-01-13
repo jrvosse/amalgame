@@ -55,27 +55,36 @@ cache_result(ExecTime, Process, Strategy, Result) :-
 
 cache_result_stats(Process, Strategy, select(Sel, Disc, Undec)) :-
 	rdf(S, amalgame:selectedBy, Process, Strategy),
-	rdf(D, amalgame:discardedBy, Process, Strategy),
-	rdf(U, amalgame:undecidedBy, Process, Strategy),
 	!,
 	mapping_stats(S, Sel, Strategy,  Sstats),
-	mapping_stats(D, Disc, Strategy, Dstats),
-	mapping_stats(U, Undec, Strategy,Ustats),
-
 	flush_stats_cache(S, Strategy),
-	flush_stats_cache(D, Strategy),
-	flush_stats_cache(U, Strategy),
-
 	assert(stats_cache(S-Strategy, Sstats)),
-	assert(stats_cache(D-Strategy, Dstats)),
-	assert(stats_cache(U-Strategy, Ustats)).
 
+	% in older strategies discarded and undecided were optional...
+	(   rdf(D, amalgame:discardedBy, Process, Strategy)
+	->  mapping_stats(D, Disc, Strategy, Dstats),
+	    flush_stats_cache(D, Strategy),
+	    assert(stats_cache(D-Strategy, Dstats))
+	;   true
+	),
+	(   rdf(U, amalgame:undecidedBy, Process, Strategy)
+	->  mapping_stats(U, Undec, Strategy,Ustats),
+	    flush_stats_cache(U, Strategy),
+	    assert(stats_cache(U-Strategy, Ustats))
+	;   true
+	).
 
-cache_result_stats(_Process, Strategy, scheme(Scheme)) :-
+cache_result_stats(Process, Strategy, SchemeSpec) :-
+	(   SchemeSpec = scheme(Id)
+	->  true
+	;   SchemeSpec = and(_,_)
+	->  rdf(Id, opmv:wasGeneratedBy, Process, Strategy)
+	;   fail
+	),
 	!,
-	vocab_stats(Scheme, Count),
-	retractall(stats_cache(Scheme-Strategy,_)),
-	assert(stats_cache(Scheme-Strategy, stats(Count))).
+	vocab_stats(SchemeSpec, Count),
+	retractall(stats_cache(Id-Strategy,_)),
+	assert(stats_cache(Id-Strategy, stats(Count))).
 
 cache_result_stats(Process, Strategy, Result) :-
 	rdf(D, opmv:wasGeneratedBy, Process, Strategy),
