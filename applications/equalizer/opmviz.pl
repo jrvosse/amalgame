@@ -18,6 +18,7 @@
 :- use_module(components(graphviz)).
 :- use_module(library(yui3)).
 :- use_module(library(amalgame/caching)).
+:- use_module(library(amalgame/expand_graph)).
 :- use_module(library(amalgame/ag_evaluation)).
 :- use_module(library(amalgame/ag_stats)).
 :- use_module(library(amalgame/alignment)).
@@ -58,7 +59,9 @@ http_opmviz(Request) :-
 			       description('URI of a node that should be expanded first')
 			      ])
 			]),
-	expand_node(Selected, Alignment),
+	% When a node has been selected, make sure it is expanded so we know the stats
+	(   ground(Selected) -> expand_node(Alignment, Selected, _); true),
+
 	(   Format \== html
 	->  reply_alignment_graph(Alignment, Format)
 	;   opmviz_options(Alignment, Options),
@@ -68,22 +71,6 @@ http_opmviz(Request) :-
 			    [ \graphviz_graph(opm_triples(Alignment), Options)
 			    ])
 	).
-
-/* Fixme, compute the stats for all outputs of a process */
-
-expand_node(URI, _Alignment) :-
-	var(URI),
-	!.
-expand_node(URI, Alignment) :-
-	rdfs_individual_of(URI, amalgame:'Mapping'),
-	!,
-	mapping_counts(URI, Alignment, _, _, _, _, _).
-%expand_node(URI, Alignment) :-
-%	rdfs_individual_of(URI, amalgame:'Process'),
-%	!,
-%	expand_process(Alignment, URI, _).
-expand_node(_, _).
-
 
 %%	reply_alignment_graph(+AlignmentURI)
 %

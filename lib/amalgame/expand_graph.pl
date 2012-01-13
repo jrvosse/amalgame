@@ -1,5 +1,7 @@
 :- module(expand_graph,
-	  [ expand_mapping/3,
+	  [
+	    expand_node/3,
+	    expand_mapping/3,
 	    expand_vocab/3
 	  ]).
 
@@ -16,6 +18,16 @@
 
 :- use_module(library(skos/vocabularies)).
 :- use_module(library(ag_drivers/exec_amalgame_process)).
+
+expand_node(Strategy, Id, Result) :-
+	ground(Strategy),
+	ground(Id),
+	(   rdfs_individual_of(Id, amalgame:'Mapping')
+	->  expand_mapping(Strategy, Id, Result)
+	;   rdfs_individual_of(Id, skos:'ConceptScheme')
+	->  expand_vocab(Strategy, Id, Result)
+	;   true
+	).
 
 %%	expand_mapping(+Strategy, +Id, -Result) is det.
 %
@@ -76,9 +88,6 @@ expand_vocab(Strategy, Vocab, Vocab) :-
 %%	expand_process(+Strategy, +Process, -Result, -Time)
 %
 %	Expand Process according to Strategy to generate Result.
-%
-%	Results are cached when execution time of process takes longer
-%	then setting(cache_time).
 
 expand_process(Strategy, Process, Result, Time) :-
 	ground(Process),
