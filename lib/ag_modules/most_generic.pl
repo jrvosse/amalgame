@@ -65,7 +65,7 @@ hierarchy_related([A|As], target, G0, G, [A1|Rest]) :-
 	->  G1 = A,
 	    A1 = G0
 	),
-	hierarchy_related(As, G1, target, G, Rest).
+	hierarchy_related(As, target, G1, G, Rest).
 
 hierarchy_related([A|As], source, G0, G, [A1|Rest]) :-
 	A = align(S,_,_),
