@@ -66,7 +66,7 @@ expand_vocab(Strategy, Id, Vocab) :-
 	rdf(Id, OutputType, Process, Strategy),
 	!,
 	with_mutex(Process, expand_process(Strategy, Process, Vocab, Time)),
-	cache_result(Time, Process, Strategy, scheme(Vocab)).
+	cache_result(Time, Process, Strategy, Vocab).
 
 expand_vocab(Strategy, Vocab, Vocab) :-
 	rdf_equal(amalgame:preloaded, Preloaded),
