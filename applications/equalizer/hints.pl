@@ -176,7 +176,7 @@ is_endpoint(Strategy, Mapping) :-
 
 
 hints_mapping_counts(Focus, Strategy, MN,SN,TN,SP,TP) :-
-	% hack to make mapping_counts not fail on gives stats bindings ...
+	% hack to make mapping_counts not fail on given stats bindings ...
 	mapping_counts(Focus, Strategy, MN1, SN1, TN1, SP1, TP1),
 	MN = MN1,
 	SN = SN1,
