@@ -12,6 +12,7 @@ http:location(amalgame, cliopatria(amalgame), []).
 
 :- rdf_attach_library(amalgame(rdf)).
 :- rdf_load_library(amalgame).
+:- rdf_load_library(dc).
 
 :- use_module([
 	% Deprecated:
