@@ -26,7 +26,7 @@ mapping_counts(URL, Strategy, MN, SN, TN, SPerc, TPerc) :-
 mapping_counts_(URL, Strategy, MN, SN, TN, SPerc, TPerc) :-
 	(   stats_cache(URL-Strategy, _)
 	->  true
-	;   expand_mapping(Strategy, URL, _Mapping)
+	;   expand_node(Strategy, URL, _Mapping)
 	),
 	stats_cache(URL-Strategy, stats(MN, SN, TN, SPerc, TPerc)).
 
@@ -41,7 +41,7 @@ concept_count(Vocab, Strategy, Count) :-
 concept_count_(Vocab, Strategy, Count) :-
 	(   stats_cache(Vocab-Strategy, _)
 	->  true
-	;   expand_vocab(Strategy, Vocab, _Scheme)
+	;   expand_node(Strategy, Vocab, _Scheme)
 	),
 	stats_cache(Vocab-Strategy, stats(Count)).
 

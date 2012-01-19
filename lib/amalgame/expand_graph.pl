@@ -1,8 +1,7 @@
 :- module(expand_graph,
 	  [
 	    expand_node/3,
-	    expand_mapping/3,
-	    expand_vocab/3
+	    expand_mapping/3
 	  ]).
 
 :- use_module(library(semweb/rdf_db)).
