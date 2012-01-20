@@ -18,10 +18,14 @@ amalgame:Matcher
 amalgame:Selecter
     rdfs:label "selecter"@en ;
     rdfs:subClassOf amalgame:Process .
+amalgame:MultiInputComponent
+    rdfs:label "multi-input operator"@en ;
+    skos:definition "Component with multiple first-class inputs"@en ;
+    rdfs:subClassOf amalgame:Process .
 amalgame:SetOperator
     rdfs:label "set operator"@en ;
     skos:definition "Component that creates a mapping by combining the correspondences from a number of mappings"@en ;
-    rdfs:subClassOf amalgame:Process .
+    rdfs:subClassOf amalgame:MultiInputComponent .
 amalgame:MappingSelecter
     rdfs:label "selecter"@en ;
     skos:definition "Component that creates a new mapping by selecting a number of correspondences from an existing mapping"@en ;
