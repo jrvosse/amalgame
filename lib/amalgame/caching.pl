@@ -53,6 +53,14 @@ cache_result(ExecTime, Process, Strategy, Result) :-
 	cache_expand_result(ExecTime, Process, Strategy, Result),
 	cache_result_stats(Process, Strategy, Result).
 
+cache_result_stats(_Process, Strategy, overlap(List)) :-
+	forall(member(Id-Mapping, List),
+	       (   mapping_stats(Id, Mapping, Strategy, Stats),
+		   flush_stats_cache(Id, Strategy),
+		   assert(stats_cache(Id-Strategy, Stats))
+	       )
+	      ).
+
 cache_result_stats(Process, Strategy, select(Sel, Disc, Undec)) :-
 	rdf(S, amalgame:selectedBy, Process, Strategy),
 	!,
