@@ -16,16 +16,20 @@ amalgame_module(amalgame:'OverlapComponent').
 analyzer(Inputs, Process, Strategy, overlap(Results), _Options) :-
 	maplist(input_expander(Strategy), Inputs, ExpandedInputs),
 	overlap(ExpandedInputs, Overlaps),
-	maplist(output_expander(Process, Strategy), Overlaps, Results).
+	findall(Id-_Mapping,
+		rdf(Id, opmv:wasGeneratedBy, Process, Strategy),
+		Results),
+	maplist(output_expander(Results, Strategy), Overlaps).
 
 input_expander(Strategy, Id, Id:Expanded) :-
 	expand_mapping(Strategy, Id, Expanded).
 
-output_expander(Process, Strategy, OverlapId-Mapping, OutputUri-MappingMerged) :-
+output_expander(Results, Strategy, OverlapId-Mapping) :-
 	append(Mapping, MappingFlat),
 	merge_provenance(MappingFlat, MappingMerged),
-	rdf(OutputUri, opmv:wasGeneratedBy, Process, Strategy),
-	rdf(OutputUri, amalgame:overlap_set, literal(OverlapId), Strategy),!.
+	rdf(OutputUri, amalgame:overlap_set, literal(OverlapId), Strategy),
+	member(OutputUri-MappingMerged, Results),
+	!.
 
 overlap(MappingList, Overlaps) :-
 	create_pairs(MappingList, Pairs),
