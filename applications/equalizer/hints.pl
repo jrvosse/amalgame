@@ -92,10 +92,10 @@ find_hint(Strategy, Focus, Hint) :-
 	% if focus node is unambigious and not been evaluated,
 	% this might be a good idea to do.
 	\+ rdf(Focus, amalgame:evaluationOf, _, Strategy),
-	with_mutex(Focus, hints_mapping_counts(Focus, Strategy, N,N,N,_,_)),
+	mapping_counts(Focus, Strategy, N,N,N,_,_),
 	N > 0,
 	!,
-	format(atom(Text), 'hint: this dataset contains ~w unambigious mappings, that is good!  It has not yet been evaluated, however.  Manual inspection could help you decide if the quality is sufficiently good.', [N]),
+	format(atom(Text), 'hint: this dataset contains ~w unambigious mappings, that is good!  It has not yet been evaluated, however.  Manual inspection could help you decide if the quality is sufficient.', [N]),
 	http_link_to_id(http_eq_evaluate, [alignment(Strategy), focus(Focus)],EvalPage),
 	Hint =	json([
 		    event(evaluate),
@@ -141,7 +141,7 @@ needs_disambiguation(Strategy, Focus, Mapping) :-
 	;   Endpoints = Endpoints0
 	),
 	member(Mapping, Endpoints),
-	\+ hints_mapping_counts(Mapping, Strategy, N, N, N, _, _).   %  differs from the total number of mappings
+	\+ mapping_counts(Mapping, Strategy, N, N, N, _, _).   %  differs from the total number of mappings
 
 is_known_to_be_disambiguous(Strategy, Focus, Focus) :-
 	rdf_has(Focus, amalgame:discardedBy, Process),
@@ -173,16 +173,6 @@ is_endpoint(Strategy, Mapping) :-
 		   \+ rdf_graph(EvalResults)
 	       )
 	      ).
-
-
-hints_mapping_counts(Focus, Strategy, MN,SN,TN,SP,TP) :-
-	% hack to make mapping_counts not fail on given stats bindings ...
-	mapping_counts(Focus, Strategy, MN1, SN1, TN1, SP1, TP1),
-	MN = MN1,
-	SN = SN1,
-	TN = TN1,
-	SP = SP1,
-	TP = TP1.
 
 %%	is_result_of_process_type(?Mapping, ?Type) is nodet.
 %
