@@ -1,11 +1,13 @@
 :- module(ag_exec_process, [
-			    exec_amalgame_process/7
+			    exec_amalgame_process/7,
+			    select_result_mapping/4
 			   ]).
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(amalgame/expand_graph)).
 :- use_module(library(amalgame/map)).
+
 
 %%	exec_amalgame_process(+Type,+Process,+Strategy,+Module,-Result,-Time,+Options)
 %
@@ -17,8 +19,40 @@
 %
 %       @error existence_error(mapping_process)
 
+
 :- multifile
-	exec_amalgame_process/7.
+	exec_amalgame_process/7,
+	select_result_mapping/4.
+
+%%	select_result_mapping(+Id, +Result, +OutputType, -Mapping)
+%
+%	Mapping is part of (process) Result as defined by OutputType.
+%
+%	@param OutputType is an RDF property
+%	@error existence_error(mapping_select)
+
+select_result_mapping(_Id, select(Selected, Discarded, Undecided), OutputType, Mapping) :-
+	!,
+	(   rdf_equal(amalgame:selectedBy, OutputType)
+	->  Mapping = Selected
+	;   rdf_equal(amalgame:discardedBy, OutputType)
+	->  Mapping = Discarded
+	;   rdf_equal(amalgame:undecidedBy, OutputType)
+	->  Mapping = Undecided
+	;   throw(error(existence_error(mapping_selector, OutputType), _))
+	).
+
+select_result_mapping(Id, overlap(List), P, Mapping) :-
+	!,
+	rdf_equal(opmv:wasGeneratedBy, P),
+	(   member(Id-Mapping, List)
+	->  true
+	;   Mapping=[]
+	).
+
+select_result_mapping(_Id, Mapping, P, Mapping) :-
+	is_list(Mapping),
+	rdf_equal(opmv:wasGeneratedBy, P).
 
 exec_amalgame_process(Type, Process, Strategy, Module, Mapping, Time, Options) :-
 	rdfs_subclass_of(Type, amalgame:'Matcher'),
