@@ -111,7 +111,7 @@ new_process(Type, Alignment, Source, Target, Input, SecInputs, Params, Focus) :-
 	retractall(ag_alignment:nickname_cache(Alignment,_,_)),
 
 	rdf_bnode(URI),
-	rdf_transaction( % this transaction is to make it MT safe
+	rdf_transaction( % this rdf_transaction is to make it MT safe
 	    (	assert_process(URI, Type, Alignment, Params),
 		assert_user_provenance(URI, Alignment),
 		assert_input(URI, Type, Alignment, Source, Target, Input),
@@ -129,7 +129,7 @@ precompute(Process, Alignment) :-
 	rdf(Output, RP, Process, Alignment),
 	thread_create( % Write debug output to server console, cannot write to client:
 	    (	set_stream(user_output, alias(current_output)),
-		expand_mapping(Alignment, Output, _)
+		expand_node(Alignment, Output, _)
 	    ),
 	    _,[ detached(true) ]).
 
@@ -297,7 +297,7 @@ update_node_prop(status=Status, URI, Alignment) :-
 	(   rdf_equal(Status, amalgame:final)
 	->  thread_create(
 		(   set_stream(user_output, alias(current_output)),
-		    expand_mapping(Alignment, URI, _)
+		    expand_node(Alignment, URI, _)
 		), _, [ detached(true) ])
 	;   true
 	).

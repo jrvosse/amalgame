@@ -1,7 +1,6 @@
 :- module(expand_graph,
 	  [
-	    expand_node/3,
-	    expand_mapping/3
+	    expand_node/3
 	  ]).
 
 :- use_module(library(semweb/rdf_db)).
@@ -18,14 +17,23 @@
 :- use_module(library(skos/vocabularies)).
 :- use_module(library(ag_drivers/exec_amalgame_process)).
 
+%%	expand_node(+StrategyURL, +NodeURL, -Result) is det.
+%
+%	Compute result of expanding NodeURL as defined by StrategyURL.
+%	Result is a term defined by the type of output of the
+%	components.
+%
 expand_node(Strategy, Id, Result) :-
 	ground(Strategy),
 	ground(Id),
+	with_mutex(Id, expand_node_(Strategy, Id, Result)).
+
+expand_node_(Strategy, Id, Result) :-
 	(   rdfs_individual_of(Id, amalgame:'Mapping')
-	->  with_mutex(Id, expand_mapping(Strategy, Id, Result))
+	->  expand_mapping(Strategy, Id, Result)
 	;   rdfs_individual_of(Id, skos:'ConceptScheme')
-	->  with_mutex(Id, expand_vocab(Strategy, Id, Result))
-	;   true
+	->  expand_vocab(Strategy, Id, Result)
+	;   Result=error(Id)
 	).
 
 %%	expand_mapping(+Strategy, +Id, -Result) is det.
@@ -40,6 +48,7 @@ expand_node(Strategy, Id, Result) :-
 %          scheme(Scheme) or type(Class)
 
 expand_mapping(Strategy, Id, Mapping) :-
+	debug(ag_expand, 'Expanding mapping ~p', [Id]),
 	(   rdf_graph(Id)
 	;   rdfs_individual_of(Id, amalgame:'EvaluatedMapping')
 	;   rdfs_individual_of(Id, amalgame:'LoadedMapping')

@@ -24,7 +24,7 @@ exec_amalgame_process(Type, Process, Strategy, Module, Mapping, Time, Options) :
 	rdfs_subclass_of(Type, amalgame:'Matcher'),
 	!,
 	findall(S, rdf(Process, amalgame:secondary_input, S), SecInputs),
-	maplist(expand_mapping(Strategy), SecInputs, SecInputNF),
+	maplist(expand_node(Strategy), SecInputs, SecInputNF),
 	flatten(SecInputNF, SecInput),
 	(   rdf(Process, amalgame:source, SourceId, Strategy),
 	    rdf(Process, amalgame:target, TargetId, Strategy)
@@ -32,7 +32,7 @@ exec_amalgame_process(Type, Process, Strategy, Module, Mapping, Time, Options) :
 	    expand_node(Strategy, TargetId, Target),
 	    timed_call(Module:matcher(Source, Target, Mapping0, [snd_input(SecInput)|Options]), Time)
 	;   rdf(Process, amalgame:input, InputId)
-	->  expand_mapping(Strategy, InputId, MappingIn),
+	->  expand_node(Strategy, InputId, MappingIn),
 	    timed_call(Module:filter(MappingIn, Mapping0, [snd_input(SecInput)|Options]), Time)
 	),
 	merge_provenance(Mapping0, Mapping).
@@ -45,7 +45,7 @@ exec_amalgame_process(Class, Process, Strategy, Module, Result, Time, Options) :
 	once(rdf(Process, amalgame:input, Input, Strategy)),
 	expand_node(Strategy, Input, Vocab),
 	findall(S, rdf_has(Process, amalgame:secondary_input, S), Ss),
-	maplist(expand_mapping(Strategy), Ss, Expanded),
+	maplist(expand_node(Strategy), Ss, Expanded),
 	append(Expanded, Mapping),
 	timed_call(Module:exclude(Vocab, Mapping, Result, [NewVocOption|Options]), Time).
 exec_amalgame_process(Class, Process, Strategy, Module, Result, Time, Options) :-
@@ -53,7 +53,7 @@ exec_amalgame_process(Class, Process, Strategy, Module, Result, Time, Options) :
 	!,
 	Result = select(Selected, Discarded, Undecided),
 	once(rdf(Process, amalgame:input, InputId, Strategy)),
-	expand_mapping(Strategy, InputId, MappingIn),
+	expand_node(Strategy, InputId, MappingIn),
 	timed_call(Module:selecter(MappingIn, Selected, Discarded, Undecided, Options), Time).
 exec_amalgame_process(Class, Process, Strategy, Module, Result, Time, Options) :-
 	rdfs_subclass_of(Class, amalgame:'VocabSelecter'),
@@ -65,7 +65,7 @@ exec_amalgame_process(Class, Process, Strategy, Module, Result, Time, Options) :
 	rdfs_subclass_of(Class, amalgame:'MapMerger'),
 	!,
 	findall(Input, rdf(Process, amalgame:input, Input, Strategy), Inputs),
-	maplist(expand_mapping(Strategy), Inputs, Expanded),
+	maplist(expand_node(Strategy), Inputs, Expanded),
 	timed_call(Module:merger(Expanded, Result, Options), Time).
 exec_amalgame_process(Class, Process, Strategy, Module, Result, Time, Options) :-
 	rdfs_subclass_of(Class, amalgame:'OverlapComponent'),

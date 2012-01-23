@@ -22,7 +22,7 @@ analyzer(Inputs, Process, Strategy, overlap(Results), _Options) :-
 	maplist(output_expander(Results, Strategy), Overlaps).
 
 input_expander(Strategy, Id, Id:Expanded) :-
-	expand_mapping(Strategy, Id, Expanded).
+	expand_node(Strategy, Id, Expanded).
 
 output_expander(Results, Strategy, OverlapId-Mapping) :-
 	append(Mapping, MappingFlat),
