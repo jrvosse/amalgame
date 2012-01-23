@@ -89,11 +89,11 @@ find_hint(Strategy, Focus, Hint) :-
 		    ]).
 
 find_hint(Strategy, Focus, Hint) :-
-	% if focus node is unambigious and not been evaluated,
+	% if focus node is unambigious, small and not yet evaluated,
 	% this might be a good idea to do.
 	\+ rdf(Focus, amalgame:evaluationOf, _, Strategy),
 	mapping_counts(Focus, Strategy, N,N,N,_,_),
-	N > 0,
+	N > 0, N < 51,
 	!,
 	format(atom(Text), 'hint: this dataset contains ~w unambigious mappings, that is good!  It has not yet been evaluated, however.  Manual inspection could help you decide if the quality is sufficient.', [N]),
 	http_link_to_id(http_eq_evaluate, [alignment(Strategy), focus(Focus)],EvalPage),
@@ -107,9 +107,28 @@ find_hint(Strategy, Focus, Hint) :-
 		    text(Text)
 		     ]).
 find_hint(Strategy, Focus, Hint) :-
+	% if focus node is unambigious, large maybe we should take a sample?
+
+	is_endpoint(Strategy, Focus),
+	mapping_counts(Focus, Strategy, N,N,N,_,_),
+	N > 50,
+	!,
+	rdf_equal(Process, amalgame:'Sampler'),
+	format(atom(Text), 'hint: this dataset contains ~w unambigious mappings, that is good!  You might want to take a random sample to look at in more detail', [N]),
+	Hint =	json([
+		    event(submit),
+		    data(json([
+			     process(Process),
+			     input(Focus),
+			     alignment(Strategy)
+			      ])),
+		    text(Text)
+		     ]).
+
+find_hint(Strategy, Focus, Hint) :-
 	is_known_to_be_disambiguous(Strategy, Focus, Mapping),
 	http_link_to_id(http_eq_evaluate, [alignment(Strategy), focus(Mapping)],EvalPage),
-	format(atom(Text), '~w contains ambiguous mappings.  Maybe you can select the good ones after looking at what is causing the problem.', [Mapping]),
+	format(atom(Text), '~p contains ambiguous mappings.  Maybe you can select the good ones after looking at what is causing the problem.', [Mapping]),
 	Hint =	json([
 		    event(evaluate),
 		    data(json([
