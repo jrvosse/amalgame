@@ -10,7 +10,7 @@
 
 amalgame_module(amalgame:'Sampler').
 
-parameter(sample_size, integer, 5, 'Sample size').
+parameter(sample_size, integer, 25, 'Sample size').
 parameter(method, oneof([random]), random , 'Sample method').
 
 selecter(In, Out, [], [], Options) :-
