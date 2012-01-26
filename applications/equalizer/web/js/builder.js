@@ -8,7 +8,7 @@ YUI.add('builder', function(Y) {
 		NODE_CONTROLS		= Y.one("#controls"),
 		NODE_INFO			= Y.one("#info"),
 		NODE_SELECT			= Y.one("#select");
-		
+
 
 	function Builder(config) {
 		Builder.superclass.constructor.apply(this, arguments);
@@ -60,45 +60,47 @@ YUI.add('builder', function(Y) {
 			  Y.one('#hint').setContent('Please login to make changes');
 			  Y.all('button').each(function(button) { button.setAttribute("disabled", true); });
 			};
-			
+
 			// handlers for the infobox
 			this.infobox.after("deleteNode", this._onNodeDelete, this);
 			this.infobox.after("nodeUpdate", this._onNodeUpdate, this);
-			this.infobox.on("evaluate", this._onEvaluate, this);
-			this.infobox.on("submit", this._onControlSubmit, this); // used for hints
-			
+			this.infobox.on("evaluate", this._onEvaluate, this);     // used for hints
+			this.infobox.on("submit", this._onControlSubmit, this);  // used for hints
+			this.infobox.on("nodeSelect", this._onSelectedChange, this); // used for hints
+
 			// handlers for graph and mapping
 			this.opmviz.on("nodeSelect", this._onNodeSelect, this);
-			this.mapping.on("evalSubmit", this._updateNodes, this);			
+			this.mapping.on("evalSubmit", this._updateNodes, this);
 
 			// handlers for changes on attributes
 			// federate them to the components
 			this.on('nodesChange', function(o) {
 				var nodes = o.newVal;
-				this.infobox.set("nodes", nodes); 
+				this.infobox.set("nodes", nodes);
 				this.controls.set("nodes", nodes);
 			}, this);
-			
-			this.on("selectedChange", function(o) {
-				var selected = o.newVal;
-				this.opmviz.set("selected", selected);
-				this.infobox.set("selected", selected);	
-				this.controls.set("selected", selected);
-				this.mapping.set("selected", selected);
-			}, this);
+
+			this.on("selectedChange", this._onSelectedChange, this);
 		},
 
+                _onSelectedChange: function(o) {
+			var selected = o.newVal?o.newVal:o.data.newVal ;
+			this.opmviz.set("selected", selected);
+			this.infobox.set("selected", selected);
+			this.controls.set("selected", selected);
+			this.mapping.set("selected", selected);
+		}, 
 		_initLayout : function() {
 			// graph node is resizable in height
 			var resize = new Y.Resize({
 		        node: '#graph',
 				handles: 'b',
 				wrap: true
-		    }); 
+		    });
 			resize.on("resize", this._onGraphResize, this);
 			resize.on("end", this._onGraphResize, this);
 			Y.on("windowresize", this._onWindowResize, this);
-			
+
 			// make controls and, graph-bottom fit in viewport
 			this._onWindowResize();
 		},
@@ -130,7 +132,7 @@ YUI.add('builder', function(Y) {
 				nodes: this.get("nodes")
 			});
 		},
-		
+
 		_initMapping : function() {
 			this.mapping = new Y.Mapping({
 				paths: this.get("paths"),
@@ -138,28 +140,28 @@ YUI.add('builder', function(Y) {
 				selected: this.get("selected")
 			});
 		},
-		
+
 		// helper functions for resizing
 		_contentHeight : function() {
 			var winHeight = Y.DOM.winHeight(),
 				headerHeight = Y.one("#header").get("offsetHeight");
-			return (winHeight - headerHeight - 12);	
+			return (winHeight - headerHeight - 12);
 		},
 		_onGraphResize : function(e) {
 			// the bottom node needs be update according to the remaining space
 			var bottomHeight = this._contentHeight()-(e.info.offsetHeight+10);
 			Y.one("#bottom").setStyle("height", bottomHeight);
-			
+
 			// resize sets fixed width, but we want a fluid width
-			Y.one("#graph").get("parentNode").setStyle("width", "100%"); 
+			Y.one("#graph").get("parentNode").setStyle("width", "100%");
 			Y.one("#graph").setStyle("width", "100%");
 		},
 		_onWindowResize : function(e) {
 			var contentHeight = this._contentHeight(),
 				graphHeight = contentHeight - (Y.one("#bottom").get("offsetHeight")+10);
-			Y.one("#graph").get("parentNode").setStyle("height", graphHeight); 
+			Y.one("#graph").get("parentNode").setStyle("height", graphHeight);
 			Y.one("#graph").setStyle("height", graphHeight);
-			Y.one("#graph").get("parentNode").setStyle("width", "100%"); 
+			Y.one("#graph").get("parentNode").setStyle("width", "100%");
 			Y.one("#graph").setStyle("width", "100%");
 			Y.one("#controls").setStyle("height", contentHeight);
 		},
@@ -193,7 +195,7 @@ YUI.add('builder', function(Y) {
 				paths = this.get("paths"),
 				data = o.data;
 			data.alignment = this.get("alignment");
-			
+
 			Y.io(paths.updatenode, {
 				data:data,
 				on:{success:function(e,o) {
@@ -234,16 +236,16 @@ YUI.add('builder', function(Y) {
 			var selected = this.get("nodes")[e.uri];
 			this.set("selected", selected);
 		},
-		
+
 		_onEvaluate : function(e) {
 			var focus = e.data.focus;
 			if(focus) {
-				window.location = 	this.get("paths").eq_evaluate
+				window.location =	this.get("paths").eq_evaluate
 					+'?alignment='+encodeURIComponent(this.get("alignment"))
 					+"&focus="+encodeURIComponent(focus);
-			}	
+			}
 		}
-	
+
 	});
 
 	Y.Builder = Builder;
