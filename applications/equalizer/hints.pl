@@ -6,7 +6,7 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_label)).
-:- use_module(library(amalgame/ag_stats)).
+:- use_module(library(amalgame/caching)).
 
 :- http_handler(amalgame(data/hint), http_json_hint, []).
 
@@ -34,8 +34,8 @@ find_hint(Strategy, _Focus, Hint) :-
 	rdf(Strategy, amalgame:includes, Voc1, Strategy),
 	rdf(Strategy, amalgame:includes, Voc2, Strategy),
 	Voc1 \== Voc2,
-	concept_count(Voc1, Strategy, Count1),
-	concept_count(Voc2, Strategy, Count2),
+	hints_concept_count(Voc1, Strategy, Count1),
+	hints_concept_count(Voc2, Strategy, Count2),
 	(   Count1 < Count2
 	->  Source = Voc1, Target = Voc2
 	;   Source = Voc2, Target = Voc1
@@ -50,6 +50,26 @@ find_hint(Strategy, _Focus, Hint) :-
 			      ])),
 		    text(Text)
 		     ]).
+find_hint(Strategy, Focus, Hint) :-
+	Focus == Strategy,
+	\+ hints_mapping_counts(_,_,_,_,_,_,_),
+
+	/* this is typically the case for a reloaded strategy,
+	   when no mappings have been expanded yet.
+           Let's expand a random endpoint mapping
+	       */
+
+	 is_endpoint(Strategy, Mapping),
+	format(atom(Text), 'No mappings have been computed yet.  You can click on a mapping like ~p to compute its results.', [Mapping]),
+	Hint = json([event(nodeSelect),
+		     data(json([focus(Mapping),
+				uri(Mapping),
+				newVal(json([uri(Mapping), type(mapping)])),
+				alignment(Strategy)
+			       ])),
+		     text(Text)
+		    ]).
+
 
 find_hint(Strategy, Focus, Hint) :-
 	% if there are end-point mappings with ambiguous correspondences, advise an ambiguity remover
@@ -92,7 +112,7 @@ find_hint(Strategy, Focus, Hint) :-
 	% if focus node is unambigious, small and not yet evaluated,
 	% this might be a good idea to do.
 	\+ rdf(Focus, amalgame:evaluationOf, _, Strategy),
-	mapping_counts(Focus, Strategy, N,N,N,_,_),
+	hints_mapping_counts(Focus, Strategy, N,N,N,_,_),
 	N > 0, N < 51,
 	!,
 	format(atom(Text), 'hint: this dataset contains ~w unambigious mappings, that is good!  It has not yet been evaluated, however.  Manual inspection could help you decide if the quality is sufficient.', [N]),
@@ -110,7 +130,7 @@ find_hint(Strategy, Focus, Hint) :-
 	% if focus node is unambigious, large maybe we should take a sample?
 
 	is_endpoint(Strategy, Focus),
-	mapping_counts(Focus, Strategy, N,N,N,_,_),
+	hints_mapping_counts(Focus, Strategy, N,N,N,_,_),
 	N > 50,
 	!,
 	rdf_equal(Process, amalgame:'Sampler'),
@@ -160,7 +180,7 @@ needs_disambiguation(Strategy, Focus, Mapping) :-
 	;   Endpoints = Endpoints0
 	),
 	member(Mapping, Endpoints),
-	\+ mapping_counts(Mapping, Strategy, N, N, N, _, _).   %  differs from the total number of mappings
+	\+ hints_mapping_counts(Mapping, Strategy, N, N, N, _, _).   %  differs from the total number of mappings
 
 is_known_to_be_disambiguous(Strategy, Focus, Focus) :-
 	rdf_has(Focus, amalgame:discardedBy, Process),
@@ -203,5 +223,10 @@ is_result_of_process_type(Mapping, Type) :-
 	rdfs_individual_of(Process, Type).
 
 
+% These are variants that just take things from the cache but
+% never expand/compute something.
 
-
+hints_mapping_counts(Id, Strategy, MN, SN, TN, SPerc, TPerc) :-
+	stats_cache(Id-Strategy, stats_cache(Id-Strategy, stats(MN, SN, TN, SPerc, TPerc))).
+hints_concept_count(Vocab, Strategy, Count) :-
+	stats_cache(Vocab-Strategy, stats(Count)).
