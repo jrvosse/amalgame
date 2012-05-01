@@ -110,7 +110,8 @@ YUI.add('mapping', function(Y) {
 		},
 
 		_onSubmit : function(e, nav) {
-			e.preventDefault(e);
+			e.preventDefault();
+
 			this.detailOverlay.set("visible", false);
 			var cs = this._getSelection();
 			var c = cs[0];
@@ -138,7 +139,7 @@ YUI.add('mapping', function(Y) {
 		},
 
 		_onCancel : function(e) {
-			e.preventDefault(e);
+			e.preventDefault();
 			this.detailOverlay.set("visible", false);
 		},
 
