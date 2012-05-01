@@ -126,10 +126,10 @@ html_options -->
 	     ]).
 
 html_buttons -->
-	html([ button([class(cancel)], cancel),
-	       button([class(submit)], submit),
-	       button([class(prev)], prev),
-	       button([class(next)], next)
+	html([ input([type(button), class(cancel), value(cancel)]),
+	       input([type(button), class(submit), value(submit)]),
+	       input([type(button), class(prev), value(prev)]),
+	       input([type(button), class(next), value(next)])
 	     ]).
 
 %%	yui_script(+Graph)
