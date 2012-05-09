@@ -168,7 +168,7 @@ materialize_results_if_needed(Strategy, Process, Results) :-
 %%	materialize_if_needed(+Id, Mapping) is det.
 %
 %	materialize result in Mapping in named graph Id if this graph
-%	this graph does not exist yet and if the resource with the same
+%	does not exist yet and if the resource with the same
 %	Id has the amalgame:status amalgame:final.
 
 needs_materialization(Id, _, _) :-
