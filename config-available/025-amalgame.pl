@@ -22,5 +22,7 @@ http:location(amalgame, cliopatria(amalgame), []).
 		applications(concept_finder/concept_finder),
 		applications(evaluator/evaluator),
 	% New UI:
-		applications(equalizer/eq)
+		applications(equalizer/eq),
+	% HTTP API to export mappings to other web services:
+		api(http_mapping)
 	      ]).
