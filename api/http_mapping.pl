@@ -5,7 +5,6 @@
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_json)).
 :- use_module(library(semweb/rdf_db)).
-:- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_label)).
 
 

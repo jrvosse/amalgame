@@ -3,11 +3,9 @@
 
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
-:- use_module(library(http/http_host)).
 :- use_module(library(http/http_path)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/html_write)).
-:- use_module(library(http/js_write)).
 :- use_module(library(yui3_beta)).
 :- use_module(user(user_db)).
 
