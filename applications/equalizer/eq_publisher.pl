@@ -2,14 +2,9 @@
 
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
-:- use_module(library(http/http_host)).
-:- use_module(library(http/http_path)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/html_write)).
-:- use_module(library(http/http_path)).
 :- use_module(library(http/http_dispatch)).
-:- use_module(library(http/js_write)).
-:- use_module(library(yui3_beta)).
 :- use_module(user(user_db)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(amalgame/ag_publish)).
@@ -58,6 +53,7 @@ http_eq_publish(Request) :-
 				    [uri,
 				     description('URI of an alignment workflow')]),
 			  status(Status, [uri, description('amalgame:status value')]),
+			  format(Format, [one_of([both, simple, edoal]), description('Format to publish in')]),
 			  default_relation(DefaultRelation,
 					   [uri,
 					    description('URI of the default mapping relation, to be used if no other relation has been assigned')])
@@ -69,7 +65,7 @@ http_eq_publish(Request) :-
 	absolute_file_name(L,BaseDir),!,
 	file_base_name(Alignment, AlignmentB),
 	atomic_list_concat([BaseDir, AlignmentB], '/', Dir),
-	save_mappings(Alignment, Dir, [status(Status), default_relation(DefaultRelation)]),
+	save_mappings(Alignment, Dir, [status(Status), format(Format),default_relation(DefaultRelation)]),
 	http_redirect(moved, alignment_results(AlignmentB), Request).
 
 
@@ -105,10 +101,19 @@ html_page(Alignment, Focus) :-
 						     \html_options(StatusOptions)]),
 					    ' mappings.',
 					    br([]),
-					    'Default map relation: ',
+					    'Default map relation to use when missing: ',
 					    select([name(default_relation)],
 						   [option(value('none')),
 						   \html_options(MapRelations)]),
+					    br([]),
+					    'RDF format to use:',
+					    select([name(format)],
+						   [
+						    option(value(both), 'EDOAL and simple flat triples'),
+						    option(value(edoal), 'EDOAL cells only'),
+						    option(value(simple), 'Simple mapping triples only')
+						   ]),
+
 					    button([type(submit)],'Go')
 					   ])
 				    ])

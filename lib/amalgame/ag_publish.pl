@@ -8,6 +8,7 @@
 :- use_module(library(amalgame/ag_provenance)).
 :- use_module(library(amalgame/expand_graph)).
 :- use_module(library(amalgame/map)).
+:- use_module(library(amalgame/edoal)).
 
 save_mappings(Strategy, Dir, Options) :-
 	provenance_graph(Strategy, ProvGraph),
@@ -23,7 +24,9 @@ save_mappings(Strategy, Dir, Options) :-
 
 	select_mappings_to_be_saved(Strategy, Mappings, Options),
 	forall(member(Mapping, Mappings),
-	       save_mapping(Mapping, Strategy, ProvGraph, [dir(Dir)|Options])),
+	       (   assert_void(Mapping, Strategy, ProvGraph),
+		   save_mapping(Mapping, Strategy, [dir(Dir)|Options]))
+	      ),
 
 	rdf_save_turtle(StratFile, [graph(Strategy)|Options]),
 	rdf_save_turtle(ProvFile,  [graph(ProvGraph)|Options]),
@@ -44,9 +47,9 @@ make_new_directory(D) :-
 	),
 	make_directory(D).
 
-add_relation_if_needed(Mapping, Options) :-
+add_relation_where_needed(Mapping, Default) :-
 	rdf_graph(Mapping),
-	option(default_relation(Default), Options),
+
 	findall(Cell, (
 		      rdf(Mapping, align:map, Cell, Mapping),
 		      \+ rdf(Cell, align:relation, _, Mapping)
@@ -56,7 +59,9 @@ add_relation_if_needed(Mapping, Options) :-
 		    find_relation(Mapping, Cell, Default, Relation)
 		), CellRelationPairs),
 	forall(member(C:R, CellRelationPairs),
-	       rdf_assert(C, align:relation, R, Mapping)
+	       (   rdf_assert(C, align:relation, R, Mapping),
+		   debug(publish, 'Asserting relation ~p', [R])
+	       )
 	      ).
 
 find_relation(Mapping, Cell, Default, Relation) :-
@@ -64,14 +69,10 @@ find_relation(Mapping, Cell, Default, Relation) :-
 	rdf(Cell, align:entity2, T, Mapping),
 	has_correspondence(align(S,T, P), Mapping),
 	flatten(P, Pflat),
-	option(relation(Relation), Pflat, Default), !.
+	option(relation(Relation), Pflat, Default), !,
+	Relation \= none.
 
-save_mapping(Id, Strategy, ProvGraph, Options) :-
-	(   \+ rdf_graph(Id)
-	->  expand_node(Strategy, Id, Mapping),
-	    materialize_mapping_graph(Mapping, [graph(Id)|Options])
-	;   add_relation_if_needed(Id, Options)
-	),
+assert_void(Id, Strategy, ProvGraph) :-
 	rdf_equal(xsd:int, Int),
 
 	void_graph(Strategy, Void),
@@ -83,12 +84,43 @@ save_mapping(Id, Strategy, ProvGraph, Options) :-
 	rdf_assert(Id, void:triples, literal(type(Int,NrOfTriples)), Void),
 
 	rdf_assert(Id, amalgame:strategy, Strategy, Void),
-	rdf_assert(Id, amalgame:opm,      ProvGraph, Void),
+	rdf_assert(Id, amalgame:opm,      ProvGraph, Void).
+
+default_mapping_relation(Id, Default, Options) :-
+	(   rdf(Id, amalgame:default_relation, Default)
+	->  true
+	;   option(default_relation(Default), Options)
+	).
+
+save_mapping(Id, Strategy, Options) :-
+	default_mapping_relation(Id, Default, Options),
+	(   \+ rdf_graph(Id)
+	->  expand_node(Strategy, Id, Mapping),
+	    materialize_mapping_graph(Mapping, [graph(Id), default_relation(Default)|Options])
+	;   true
+	),
+	add_relation_where_needed(Id, Default),
 
 	file_base_name(Id, Base),
 	option(dir(Dir), Options, tmpdir),
-	absolute_file_name(Base,  Name, [relative_to(Dir), extensions([ttl])]),
-	rdf_save_turtle(Name, [graph(Id)|Options]).
+	atomic_concat(edoal_, Base, EdoalBase),
+	absolute_file_name(Base,       Filename, [relative_to(Dir), extensions([ttl])]),
+	absolute_file_name(EdoalBase, EdoalName, [relative_to(Dir), extensions([ttl])]),
+
+	(   option(format(edoal), Options)
+	->  rdf_save_turtle(EdoalName, [graph(Id)|Options])
+	;   option(format(both), Options)
+	->  rdf_save_turtle(EdoalName, [graph(Id)|Options]),
+	    save_flat_triples(Filename, Id, Options)
+	;   option(format(single), Options)
+	->  save_flat_triples(Filename, Id, Options)
+	).
+
+save_flat_triples(Filename, Id, Options) :-
+	atomic_concat(Id, '_flat_triples', SimpleGraph),
+	edoal_to_triples(Id, SimpleGraph, Options),
+	rdf_save_turtle(Filename, [graph(SimpleGraph)|Options]),
+	rdf_unload(SimpleGraph).
 
 assert_metadata(Id, Strategy, Graph) :-
 	findall(rdf(Id,P,O),
@@ -125,13 +157,15 @@ select_mappings_to_be_saved(Strategy, Mappings, Options) :-
 	(   Status == all
 	->  findall(Mapping,
 		    (	rdfs_individual_of(Mapping, amalgame:'Mapping'),
-			rdf(Mapping, rdf:type, _, Strategy)
+			rdf(Mapping, rdf:type, _, Strategy),
+			\+ rdf(Mapping, amalgame:format, literal(empty))
 		    ),
 		    Mappings)
 	;   findall(Mapping,
 		    (	rdfs_individual_of(Mapping, amalgame:'Mapping'),
 			rdf(Mapping, rdf:type, _, Strategy),
-			rdf(Mapping, amalgame:status, Status)
+			rdf(Mapping, amalgame:status, Status),
+			\+ rdf(Mapping, amalgame:format, literal(empty))
 		    ), Mappings)
 	).
 
