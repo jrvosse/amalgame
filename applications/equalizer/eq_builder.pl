@@ -4,19 +4,18 @@
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
-:- use_module(library(http/http_host)).
 :- use_module(library(http/http_path)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/html_write)).
-:- use_module(library(http/js_write)).
 :- use_module(library(yui3_beta)).
-:- use_module(user(user_db)).
 
 :- use_module(controls).
 :- use_module(process).
-:- use_module(opmviz).
 :- use_module(eq_util).
 :- use_module(hints).
+
+% We have to load the opmviz module somewhere:
+:- use_module(opmviz).
 
 :- multifile
 	eq:menu_item/2.
