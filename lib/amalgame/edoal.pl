@@ -1,7 +1,7 @@
 :-module(edoal, [
 		 assert_alignment/2,	% +URI, +OptionList
 		 assert_cell/3,	        % +E1, +E2, +OptionList
-		 edoal_to_triples/4,	% +Request, +EdoalGraph, +Options, +TargetGraph
+		 edoal_to_triples/3,	% +Request, +EdoalGraph, +Options, +TargetGraph
 		 edoal_select/5	        % +Request, +EdoalGraph, +Options, +TargetGraph, +TargetRestGraph
 		]
 	).
@@ -164,7 +164,7 @@ rdf_assert_triples([rdf(S,P,O)|Tail], Graph) :-
 	rdf_assert(S,P,O,Graph),
 	rdf_assert_triples(Tail, Graph).
 
-%%	edoal_to_triples(+Request, +EdoalGraph, +SkosGraph, +Options) is
+%%	edoal_to_triples(+EdoalGraph, +SkosGraph, +Options) is
 %%	det.
 %
 %	Convert mappings in EdoalGraph to some triple-based format using
@@ -172,29 +172,31 @@ rdf_assert_triples([rdf(S,P,O)|Tail], Graph) :-
 %	or dc:replaces.
 %
 %	Options:
+%	* request(Request): http request to be used in provenance data
 %	* relation(URI): relation to be used, defaults to
 %	skos:closeMatch
 %	* min(Measure): minimal confidence level, defaults to 0.0.
 %	* max(Measure): max confidence level, default to 1.0
 
-edoal_to_triples(Request, EdoalGraph, TargetGraph, Options) :-
+edoal_to_triples(EdoalGraph, TargetGraph, Options) :-
 	rdf_assert(TargetGraph, rdf:type, amalgame:'ExportedAlignment', TargetGraph),
 	rdf_transaction(
-			forall(has_map([C1, C2], edoal, MatchOptions, EdoalGraph),
-			       assert_as_single_triple(C1-C2-MatchOptions, Options, TargetGraph)
+			forall(has_correspondence(align(C1,C2,MatchOptions), EdoalGraph),
+			       assert_as_single_triple(align(C1,C2,MatchOptions), Options, TargetGraph)
 			      )
 		       ),
 	rdf_bnode(Process),
 	opm_was_generated_by(Process, TargetGraph, TargetGraph,
-			     [was_derived_from([EdoalGraph]),
-			     request(Request)]).
+			     [was_derived_from([EdoalGraph])
+			     |Options]).
 
-assert_as_single_triple(C1-C2-MatchOptions, Options, TargetGraph) :-
+assert_as_single_triple(align(C1,C2,MatchOptions), Options, TargetGraph) :-
 	rdf_equal(skos:closeMatch, DefaultRelation),
+	append(MatchOptions, MatchOptionsFlat),
 	append([
 		Options,
-		MatchOptions,
-		[DefaultRelation]
+		MatchOptionsFlat,
+		[default_relation(DefaultRelation)]
 	       ],
 	       AllOptions),
 	member(relation(R), AllOptions),
