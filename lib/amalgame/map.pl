@@ -83,7 +83,7 @@ same_target(As, _S, [], As).
 
 has_correspondence(align(E1, E2, P), Graph) :-
 	has_map([E1, E2], _, Properties, Graph),
-	flatten(Properties, Pflat),
+	append(Properties, Pflat),
 	(   memberchk(method(_), Pflat)
 	->  P = Properties
 	;   P = [[method(preloaded), graph(Graph)]|Properties]
