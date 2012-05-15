@@ -299,7 +299,7 @@ http_skos_export(Request) :-
 				 ]),
 
 	(rdf_graph(TargetGraph) -> rdf_unload(TargetGraph); true),
-	edoal_to_triples(Request, Graph, TargetGraph, [relation(MapRelation)]),
+	edoal_to_triples(Graph, TargetGraph, [request(Request), relation(MapRelation)]),
 	http_link_to_id(http_list_alignment, [graph(TargetGraph)], ListGraph),
 	http_redirect(moved, ListGraph, Request).
 
