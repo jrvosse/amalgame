@@ -15,6 +15,7 @@
 :- use_module(library(http/json)).
 :- use_module(library(amalgame/amalgame_modules)).
 :- use_module(components(label)).
+:- use_module(library(amalgame/map)).
 
 :- use_module(eq_util).
 
@@ -87,7 +88,8 @@ html_info_control -->
 		 ])).
 
 html_node_props -->
-	{ findall(R, status_option(R), Rs)
+	{ findall(Status, status_option(Status), StatusOptions),
+	  supported_map_relations(RelationOptions)
 	},
 	html(table([tr([td(id(type), []),
 			td(id(uri), [])
@@ -106,9 +108,16 @@ html_node_props -->
 		       [td(status),
 			td(select([id(status), autocomplete(off)],
 				 [ option(value('')),
-				   \html_options(Rs)
+				   \html_options(StatusOptions)
 				 ]))
-		       ])
+		       ]),
+		    tr([id(relationrow)],
+		      [td(relation),
+		       td(select([id(default_relation), autocomplete(off)],
+				 [ option(value('')),
+				   \html_options(RelationOptions)
+				 ]))
+		      ])
 		   ])).
 
 html_options([]) --> !.

@@ -23,7 +23,7 @@
 :- http_handler(amalgame(data/deletenode), http_delete_node, []).
 
 :- rdf_meta
-	new_output(r,r,r,r,r),
+	new_output(r,r,r,r,r,r),
 	output_type(r,r).
 
 %%	http_add_process(+Request)
@@ -116,7 +116,7 @@ new_process(Type, Alignment, Source, Target, Input, SecInputs, Params, Focus) :-
 		assert_user_provenance(URI, Alignment),
 		assert_input(URI, Type, Alignment, Source, Target, Input),
 		assert_secondary_inputs(SecInputs, URI, Type, Alignment),
-		assert_output(URI, Type, Alignment, SecInputs, Focus)
+		assert_output(URI, Type, Alignment, Input, SecInputs, Focus)
 	    )),
 
 	% precompute results to speed things up
@@ -165,22 +165,22 @@ assert_process(Process, Type, Graph, Params) :-
 	rdf_assert(Process, rdfs:label, literal(Label), Graph),
 	rdf_assert(Process, amalgame:parameters, literal(Search), Graph).
 
-assert_output(Process, Type, Graph, _, MainOutput) :-
+assert_output(Process, Type, Graph, Input, _, MainOutput) :-
 	rdfs_subclass_of(Type, amalgame:'MappingSelecter'),
 	!,
 	rdf_equal(amalgame:'Mapping', OutputClass),
-	new_output(OutputClass, Process, amalgame:selectedBy,  Graph, MainOutput),
-	new_output(OutputClass, Process, amalgame:discardedBy, Graph, _),
-	new_output(OutputClass, Process, amalgame:undecidedBy, Graph, _).
+	new_output(OutputClass, Process, amalgame:selectedBy,  Input, Graph, MainOutput),
+	new_output(OutputClass, Process, amalgame:discardedBy, Input, Graph, _),
+	new_output(OutputClass, Process, amalgame:undecidedBy, Input, Graph, _).
 
-assert_output(Process, Type, Strategy, SecInputs, Strategy) :-
+assert_output(Process, Type, Strategy, Input, SecInputs, Strategy) :-
 	rdfs_subclass_of(Type, amalgame:'OverlapComponent'),
 	!,
 	rdf_equal(amalgame:'Mapping', OutputClass),
 	oset_power(SecInputs, [[]|PowSet]),
 	forall(member(InSet0, PowSet),
 	       (   sort(InSet0, InSet),
-		   new_output(OutputClass, Process, opmv:wasGeneratedBy, Strategy, OutputUri),
+		   new_output(OutputClass, Process, opmv:wasGeneratedBy, Input, Strategy, OutputUri),
 		   findall(Nick,
 			   (	member(Id, InSet),
 				nickname(Strategy,Id,Nick)
@@ -196,11 +196,11 @@ assert_output(Process, Type, Strategy, SecInputs, Strategy) :-
 	      ).
 
 
-assert_output(Process, Type, Graph, _, MainOutput) :-
+assert_output(Process, Type, Graph, Input, _, MainOutput) :-
 	output_type(Type, OutputClass),
-	new_output(OutputClass, Process, opmv:wasGeneratedBy, Graph, MainOutput).
+	new_output(OutputClass, Process, opmv:wasGeneratedBy, Input, Graph, MainOutput).
 
-new_output(Type, Process, P, Strategy, OutputURI) :-
+new_output(Type, Process, P, Input, Strategy, OutputURI) :-
 	rdf(Strategy, amalgame:publish_ns, NS),
 	repeat,
 	gensym(dataset, Local),
@@ -209,8 +209,16 @@ new_output(Type, Process, P, Strategy, OutputURI) :-
 	rdf_assert(OutputURI, rdf:type, Type, Strategy),
 	rdf_assert(OutputURI, amalgame:status, amalgame:intermediate, Strategy),
         rdf_assert(OutputURI, P, Process, Strategy),
+	assert_relation(OutputURI, Input, Strategy),
 	nickname(Strategy, OutputURI, _Nick).
 
+assert_relation(Output, Input, Strategy) :-
+	nonvar(Input),
+	rdf(Input, amalgame:default_relation, Relation, Strategy),
+	rdf_assert(Output, amalgame:default_relation, Relation, Strategy),
+	!.
+
+assert_relation(_,_,_).
 
 output_type(ProcessType, skos:'ConceptScheme') :-
 	rdfs_subclass_of(ProcessType, amalgame:'VocabSelecter'),
@@ -269,27 +277,27 @@ update_node_props([_|Ts], URI, Alignment) :-
 
 
 update_node_prop(label=Label, URI, Alignment) :-
-	rdf_retractall(URI, rdfs:label, _),
+	rdf_retractall(URI, rdfs:label, _, Alignment),
 	(   Label == ''
 	->  true
 	;   rdf_assert(URI, rdfs:label, literal(Label), Alignment)
 	).
 
 update_node_prop(abbrev=Abbrev, URI, Alignment) :-
-	rdf_retractall(URI, amalgame:nickname, _),
+	rdf_retractall(URI, amalgame:nickname, _, Alignment),
 	(   Abbrev == ''
 	->  true
 	;   rdf_assert(URI, amalgame:nickname, literal(Abbrev), Alignment)
 	).
 
 update_node_prop(comment=Comment, URI, Alignment) :-
-	rdf_retractall(URI, rdfs:comment, _),
+	rdf_retractall(URI, rdfs:comment, _, Alignment),
 	(   Comment == ''
 	->  true
 	;   rdf_assert(URI, rdfs:comment, literal(Comment), Alignment)
 	).
 update_node_prop(status=Status, URI, Alignment) :-
-	rdf_retractall(URI, amalgame:status, _),
+	rdf_retractall(URI, amalgame:status, _, Alignment),
 	(   Status == ''
 	->  true
 	;   rdf_assert(URI, amalgame:status, Status, Alignment)
@@ -300,6 +308,13 @@ update_node_prop(status=Status, URI, Alignment) :-
 		    expand_node(Alignment, URI, _)
 		), _, [ detached(true) ])
 	;   true
+	).
+
+update_node_prop(default_relation=Relation, URI, Strategy) :-
+	rdf_retractall(URI, amalgame:default_relation, _, Strategy),
+	(   Relation == ''
+	->  true
+	;   rdf_assert(URI, amalgame:default_relation, Relation, Strategy)
 	).
 
 change_ns_if_needed(NS, URI, Strategy, NewStrategy) :-

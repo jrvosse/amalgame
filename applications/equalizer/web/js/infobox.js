@@ -16,8 +16,11 @@ YUI.add('infobox', function(Y) {
 		NODE_LABEL = Y.one("#label"),
 		NODE_ABBREV = Y.one("#abbrev"),
 		NODE_COMMENT = Y.one("#comment"),
-		NODE_STATUS_ROW = Y.one("#statusrow");
-		NODE_STATUS = Y.one("#status");
+		NODE_STATUS_ROW = Y.one("#statusrow"),
+		NODE_STATUS = Y.one("#status"),
+		NODE_REL = Y.one("#default_relation"),
+		NODE_REL_ROW = Y.one("#relationrow");
+
 
 	function InfoBox(config) {
 		InfoBox.superclass.constructor.apply(this, arguments);
@@ -33,13 +36,13 @@ YUI.add('infobox', function(Y) {
 				return Lang.isBoolean(val);
 			}
 		},
-		readonly: { 
+		readonly: {
 			value: true
 		},
 		alignment: {
 			value: null
 		},
-		paths : { 
+		paths : {
 			value: null
 		},
 		selected: {
@@ -53,7 +56,7 @@ YUI.add('infobox', function(Y) {
 			var content = this.get("srcNode"),
 				selected = this.get("selected"),
 				nodes = this.get("nodes");
-				
+
 			this.bd = content.one('.bd');
 			this.loadingNode = content.one('.loading');
 			this.emptyNode = content.one('.empty');
@@ -62,30 +65,30 @@ YUI.add('infobox', function(Y) {
 			NODE_DELETE.on("click", this._onNodeDelete, this);
 			NODE_UPDATE.on("click", this._onNodeUpdate, this);
 			NODE_EVAL.on("click", this._onNodeEvaluate, this);
-			
+
 			this.after('selectedChange', this.syncUI, this);
 			this.on('loadingChange', this._onLoadingChange, this);
-			
-			this.syncUI();			
+
+			this.syncUI();
 		},
-		
+
 		syncUI : function() {
 			var oSelf = this,
 				paths = this.get("paths"),
 				selected = this.get("selected"),
 				alignment = this.get("alignment");
-			
+
 			// update the node properties that we already have
 			this._setProperties(selected);
-			
+
 			// fetch new info
 			this.set("loading", true);
-			Y.io(paths.info, { 
+			Y.io(paths.info, {
 				data: {
 					'url':selected.uri,
 					'alignment':alignment
-				}, 
-				on:{ 
+				},
+				on:{
 					success:function(e,r) {
 						NODE_PROPS.setContent(r.responseText);
 						oSelf._updateParameters();
@@ -93,13 +96,13 @@ YUI.add('infobox', function(Y) {
 					}
 				}
 			});
-			
+
 			// fetch a hint
 			if (!this.get("readonly")) {
 				this._createHint()
 			};
 		},
-		
+
 		_onLoadingChange : function (o) {
 			if(o.newVal) {
 				NODE_INFO.addClass("hidden");
@@ -109,7 +112,7 @@ YUI.add('infobox', function(Y) {
 				NODE_INFO.removeClass("hidden");
 			}
 		},
-		
+
 		_onNodeUpdate : function() {
 			var sel = this.get("selected"),
 				uri = sel.uri,
@@ -119,16 +122,20 @@ YUI.add('infobox', function(Y) {
 				abbrev = NODE_ABBREV.get("value"),
 				status = NODE_STATUS.get("options")
 					.item(NODE_STATUS.get("selectedIndex")).get("value");
-					
+
+				relation = NODE_REL.get("options")
+					.item(NODE_REL.get("selectedIndex")).get("value");
+
 			var data = {
 				uri:uri,
 				label:label,
 				abbrev:abbrev,
 				namespace:namespace,
 				status:status,
+				default_relation:relation,
 				comment:comment
 			};
-			
+
 			Y.log("update node: "+uri);
 			this.fire("nodeUpdate", {data:data});
 		},
@@ -140,20 +147,20 @@ YUI.add('infobox', function(Y) {
 			// this component does not update itself on nodeDelete,
 			// instead this is done via the nodesChange handler
 		},
-		
+
 		_onNodeEvaluate : function() {
 			var uri = this.get("selected").uri;
 			Y.log("evaluate node: "+uri);
 			this.fire("evaluate", {data:{focus:uri}});
-		},	
-		
+		},
+
 		_onExecHint : function(e, data, event) {
 			Y.log('execute "'+event+'" hint with data:');
 			Y.log(data);
 			this.fire(event, {data: data});
 		},
-		
-		_setProperties : function(selected) {	
+
+		_setProperties : function(selected) {
 			var alignment = this.get("alignment"),
 				content = this.get("srcNode");
 
@@ -166,6 +173,7 @@ YUI.add('infobox', function(Y) {
 					abbrev = selected.abbrev||"?",
 					namespace = selected.namespace||"",
 					status = selected.status,
+					relation = selected.default_relation,
 					sec_inputs = selected.secondary_inputs|| [];
 
 				this.emptyNode.addClass("hidden");
@@ -179,11 +187,16 @@ YUI.add('infobox', function(Y) {
 				// the status row is only shown for mappings
 				if(type=="mapping") {
 					NODE_STATUS_ROW.removeClass("hidden")
+					NODE_REL_ROW.removeClass("hidden")
 					Node.getDOMNode(NODE_STATUS).selectedIndex =
 							  NODE_STATUS.get('options')
 							    .indexOf(NODE_STATUS.one("option[value='"+status+"']"));
+					Node.getDOMNode(NODE_REL).selectedIndex =
+							  NODE_REL.get('options')
+							    .indexOf(NODE_REL.one("option[value='"+relation+"']"));
 				} else {
 					NODE_STATUS_ROW.addClass("hidden")
+					NODE_REL_ROW.addClass("hidden")
 				}
 
 				if (type == "mapping") {
@@ -205,7 +218,7 @@ YUI.add('infobox', function(Y) {
 					NODE_NAMESPACE_ROW.addClass("hidden");
 					NODE_DELETE.removeAttribute("disabled");
 				}
-				
+
 				// hide the parameter form submit button in case we are not a process
 				if(type==="process") {
 					content.one('.control-submit').removeClass("hidden");
@@ -217,7 +230,7 @@ YUI.add('infobox', function(Y) {
 				this.emptyNode.removeClass("hidden");
 			}
 		},
-				
+
 		_createHint : function() {
 			var oSelf = this;
 			Y.io(this.get("paths").hint, {
@@ -252,7 +265,7 @@ YUI.add('infobox', function(Y) {
 			  paramnode.prepend('<div>Additional input mappings:</div>');
 			}
 		},
-				
+
 		formatMappingList : function(selected) {
 			var HTML = "";
 			var nodes = this.get("nodes");

@@ -181,6 +181,8 @@ node_prop(S, R, namespace, NS) :-
 	rdf(R, amalgame:publish_ns, NS, S).
 node_prop(S, R, status, Status) :-
 	rdf(R, amalgame:status, Status, S).
+node_prop(S, R, default_relation, Relation) :-
+	rdf(R, amalgame:default_relation, Relation, S).
 node_prop(S, R, comment, Comment) :-
 	rdf(R, rdfs:comment, literal(Lit), S),
 	literal_text(Lit, Comment).
