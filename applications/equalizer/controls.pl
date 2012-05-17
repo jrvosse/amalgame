@@ -11,13 +11,9 @@
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(http/html_write)).
-:- use_module(library(http/http_dispatch)).
-:- use_module(library(http/json)).
 :- use_module(library(amalgame/amalgame_modules)).
-:- use_module(components(label)).
 :- use_module(library(amalgame/map)).
 
-:- use_module(eq_util).
 
 :- rdf_meta
 	status_option(r).
@@ -27,18 +23,21 @@ html_controls  -->
 	  amalgame_modules_of_type(amalgame:'Matcher', Matchers),
 	  amalgame_modules_of_type(amalgame:'SetOperator', Analyzers)
 	},
-	html([\html_control_set(true,
-				'Current node',
-				\html_info_control),
-	      \html_control_set(false,
-				'Selecters',
-				\html_select_control(Selecters)),
-	      \html_control_set(false,
-				'Matchers',
-				\html_match_control(Matchers)),
-	      \html_control_set(false,
-				'Analyzers',
-				\html_analyzers_control(Analyzers))
+	html([
+	    \html_control_set(false,
+			      '1. Match',
+			      \html_match_control(Matchers)),
+	    \html_control_set(false,
+			      '2. Analyze',
+			      \html_analyzers_control(Analyzers)),
+	    \html_control_set(false,
+			      '3. Select',
+			      \html_select_control(Selecters)),
+	    \html_control_set(true,
+			      'Current node',
+			      \html_info_control)
+
+
 	     ]).
 
 html_control_set(Active, Header, Body) -->
