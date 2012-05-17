@@ -3,12 +3,9 @@
 
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
-:- use_module(library(http/http_host)).
 :- use_module(library(http/http_path)).
 :- use_module(library(http/html_head)).
-:- use_module(library(http/http_json)).
 :- use_module(library(http/html_write)).
-:- use_module(library(http/js_write)).
 :- use_module(library(yui3_beta)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
@@ -357,9 +354,9 @@ new_alignment(Schemes, Alignment) :-
 			 add_schemes(Schemes, Alignment))).
 
 add_schemes([], _).
-add_schemes([Scheme|Ss], A) :-
-	rdf_assert(A, amalgame:includes, Scheme, A),
-	add_schemes(Ss, A).
+add_schemes([Scheme|Ss], Strategy) :-
+	rdf_assert(Strategy, amalgame:includes, Scheme, Strategy),
+	add_schemes(Ss, Strategy).
 
 
 
