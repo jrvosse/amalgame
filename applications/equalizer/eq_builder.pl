@@ -7,6 +7,7 @@
 :- use_module(library(http/http_path)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/html_write)).
+:- use_module(library(amalgame/ag_stats)).
 :- use_module(library(yui3_beta)).
 
 :- use_module(controls).
@@ -29,7 +30,15 @@ eq:menu_item(200=http_eq_build, 'build').
 backward_compatibilty_fixes(Strategy) :-
 	fix_sec_inputs(Strategy),
 	fix_arity_params(Strategy),
-	fix_publish_ns(Strategy).
+	fix_publish_ns(Strategy),
+	precalc_voc_stats(Strategy).
+
+precalc_voc_stats(Strategy) :-
+	% handy to know how many concepts etc are in each vocab,
+	% both for the user as for the hints system etc.
+	forall(rdf(Strategy, amalgame:includes, Vocab),
+	       concept_count(Vocab, Strategy, _)
+	      ).
 
 %%	http_eq_build(+Request)
 %
