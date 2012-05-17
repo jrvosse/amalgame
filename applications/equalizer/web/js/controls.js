@@ -58,9 +58,9 @@ YUI.add('controls', function(Y) {
 
 			// the match control has two additional buttons
 			// to set the source and target
-			Y.on("click", this._valueSet, NODE_INPUT_BTN, this, "input");
-			Y.on("click", this._valueSet, NODE_SOURCE_BTN, this, "source");
-			Y.on("click", this._valueSet, NODE_TARGET_BTN, this, "target");
+			Y.on("click", this._valueSetAndSync, NODE_INPUT_BTN, this, "input");
+			Y.on("click", this._valueSetAndSync, NODE_SOURCE_BTN, this, "source");
+			Y.on("click", this._valueSetAndSync, NODE_TARGET_BTN, this, "target");
 
 			// toggle the controls when selected is changed
 			this.after('selectedChange', this.syncUI, this);
@@ -165,9 +165,14 @@ YUI.add('controls', function(Y) {
 			if(type=="vocab") {
 				NODE_SOURCE_BTN.removeAttribute("disabled");
 				NODE_TARGET_BTN.removeAttribute("disabled");
+				var target = this._findOtherVocab(selected);
+				this._valueSet(selected, "source");
+				this._valueSet(target, "target");
 			} else if(type=="mapping") {
-				NODE_INPUT_BTN.removeAttribute("disabled");
+				 NODE_INPUT_BTN.removeAttribute("disabled");
+				 this._valueSet(selected, "input");
 			}
+
 			var secSelecter = Y.one(".secinput_selecter");
 			if (secSelecter&&secSelecter.getContent()) {
 				// Y.log("Enabling components requiring secondary inputs");
@@ -218,12 +223,28 @@ YUI.add('controls', function(Y) {
 			return HTML;
 		},
 
-		_valueSet : function(e, which) {
-			var selected =  this.get("selected");
+		_findOtherVocab: function(current) {
+		  var nodes = this.get("nodes");
+		  for (var uri in nodes) {
+		    var n = nodes[uri];
+		    if ((n != current) &&
+			(n.type == "vocab")
+		       ) return n;
+		  }
+		  return null;
+		},
+
+
+		_valueSetAndSyncUI: function(e, which) {
+		       var selected =  this.get("selected");
+		       this._valueSet(selected, which);
+		       this.syncUI();
+		},
+
+		_valueSet : function(selected, which) {
 			if(selected) {
 				Y.one("#"+which+'Label').set("value", selected.label);
 				Y.one("#"+which).set("value", selected.uri);
-				this.syncUI();
 			}
 			if(which=="input") {
 				Y.one("#sourceLabel").set("value", "");
