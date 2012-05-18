@@ -58,9 +58,9 @@ YUI.add('controls', function(Y) {
 
 			// the match control has two additional buttons
 			// to set the source and target
-			Y.on("click", this._valueSetAndSync, NODE_INPUT_BTN, this, "input");
-			Y.on("click", this._valueSetAndSync, NODE_SOURCE_BTN, this, "source");
-			Y.on("click", this._valueSetAndSync, NODE_TARGET_BTN, this, "target");
+			Y.on("click", this._valueSetAndSyncUI, NODE_INPUT_BTN, this, "input");
+			Y.on("click", this._valueSetAndSyncUI, NODE_SOURCE_BTN, this, "source");
+			Y.on("click", this._valueSetAndSyncUI, NODE_TARGET_BTN, this, "target");
 
 			// toggle the controls when selected is changed
 			this.after('selectedChange', this.syncUI, this);
@@ -165,9 +165,16 @@ YUI.add('controls', function(Y) {
 			if(type=="vocab") {
 				NODE_SOURCE_BTN.removeAttribute("disabled");
 				NODE_TARGET_BTN.removeAttribute("disabled");
-				var target = this._findOtherVocab(selected);
-				this._valueSet(selected, "source");
-				this._valueSet(target, "target");
+				var current = NODE_SOURCE.get("value");
+				if (!current) {
+				  // auto set source to selected if no source yet:
+				  this._valueSet(selected, "source");
+				}
+				var target = this._findOnlyOtherVocab(selected);
+				if (target) {
+				  // auto set target if only one other vocab exists:
+				  this._valueSet(target, "target");
+				}
 			} else if(type=="mapping") {
 				 NODE_INPUT_BTN.removeAttribute("disabled");
 				 this._valueSet(selected, "input");
@@ -223,15 +230,16 @@ YUI.add('controls', function(Y) {
 			return HTML;
 		},
 
-		_findOtherVocab: function(current) {
+		_findOnlyOtherVocab: function(current) {
 		  var nodes = this.get("nodes");
+		  var others = [];
 		  for (var uri in nodes) {
 		    var n = nodes[uri];
 		    if ((n.uri != current.uri) &&
 			(n.type == "vocab")
-		       ) return n;
+		       ) others.push(n);
 		  }
-		  return null;
+		  if (n.length == 1) return n[0]; else return null;
 		},
 
 
