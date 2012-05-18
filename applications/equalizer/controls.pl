@@ -193,11 +193,11 @@ html_module_items([[URI,Module]|Ms]) -->
 	html_accordion_item('control '+SpecialType+' '+InputType,
 			    \module_label(URI),
 			    [ \module_desc(URI),
-			      \module_form(URI, Params)
+			      \module_form(URI, Params, SpecialType)
 			    ]),
 	html_module_items(Ms).
 
-module_form(URI, Params) -->
+module_form(URI, Params, Step) -->
 	{
 	 (   amalgame_module_property(URI, explanation_graph(ExplainMe))
 	 ->  Explain = input([type(hidden), name(graphic), value(ExplainMe)])
@@ -205,6 +205,7 @@ module_form(URI, Params) -->
 	 )
 	},
 	html(form([input([type(hidden), name(process), value(URI)]),
+		   input([type(hidden), name(step), value(Step)]),
 		   Explain,
 		   table(tbody(\html_parameter_form(Params))),
 		   div(class('control-buttons'),
@@ -335,6 +336,9 @@ module_special_type(M,preloaded) :-
 
 module_special_type(M, match) :-
 	rdfs_subclass_of(M, amalgame:'Matcher'),
+	!.
+module_special_type(M, select) :-
+	rdfs_subclass_of(M, amalgame:'MappingSelecter'),
 	!.
 module_special_type(_, '').
 

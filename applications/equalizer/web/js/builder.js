@@ -89,7 +89,7 @@ YUI.add('builder', function(Y) {
 			this.infobox.set("selected", selected);
 			this.controls.set("selected", selected);
 			this.mapping.set("selected", selected);
-		}, 
+		},
 		_initLayout : function() {
 			// graph node is resizable in height
 			var resize = new Y.Resize({
@@ -176,6 +176,7 @@ YUI.add('builder', function(Y) {
 			// data only contains the process parameters
 			// we need to add the context
 			data.alignment = this.get("alignment");
+			if (data.step) this.infobox.set("lastAction", data.step);
 			Y.io(paths.addprocess, {
 				data:data,
 				on:{success:function(e,o) {

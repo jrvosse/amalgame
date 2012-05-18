@@ -39,6 +39,9 @@ YUI.add('infobox', function(Y) {
 		readonly: {
 			value: true
 		},
+		lastAction: {
+			     value: null
+			     },
 		alignment: {
 			value: null
 		},
@@ -135,13 +138,14 @@ YUI.add('infobox', function(Y) {
 				default_relation:relation,
 				comment:comment
 			};
-
+			this.set("lastAction", "nodeUpdate");
 			Y.log("update node: "+uri);
 			this.fire("nodeUpdate", {data:data});
 		},
 
 		_onNodeDelete : function() {
 			var uri = this.get("selected").uri;
+			this.set("lastAction", "nodeDelete");
 			Y.log("delete node: "+uri);
 			this.fire("deleteNode", {uri:uri});
 			// this component does not update itself on nodeDelete,
@@ -150,6 +154,7 @@ YUI.add('infobox', function(Y) {
 
 		_onNodeEvaluate : function() {
 			var uri = this.get("selected").uri;
+			this.set("lastAction", "nodeEvaluate");
 			Y.log("evaluate node: "+uri);
 			this.fire("evaluate", {data:{focus:uri}});
 		},
@@ -255,9 +260,9 @@ YUI.add('infobox', function(Y) {
 						       Y.one('#exec_hint').on("click", oSelf._onExecHint, oSelf, r.data, r.event);
 						       if (r.data.step && (r.data.step == "match")) {
 							 Y.one('#match_control_set').addClass('active');
-							 Y.one('#input_control_set').removeClass('active');
+							 Y.one('#select_control_set').removeClass('active');
 						       } else if (r.data.step && (r.data.step == "input")) {
-							 Y.one('#input_control_set').addClass('active');
+							 Y.one('#select_control_set').addClass('active');
 							 Y.one('#match_control_set').removeClass('active');
 						       }
 						     }
