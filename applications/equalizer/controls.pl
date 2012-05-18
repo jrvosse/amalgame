@@ -24,26 +24,28 @@ html_controls  -->
 	  amalgame_modules_of_type(amalgame:'SetOperator', Analyzers)
 	},
 	html([
-	    \html_control_set(false,
-			      '1. Match',
-			      \html_match_control(Matchers)),
-	    \html_control_set(false,
-			      '2. Analyze',
+	    \html_control_set(hint_control_set, true,
+			      'Suggestion for next step',
+			      div([id(hint), class('hint help c')], 'No hints available.')
+			     ),
+	    \html_control_set(analyze_control_set, false,
+			      'Step 1: analyze',
 			      \html_analyzers_control(Analyzers)),
-	    \html_control_set(false,
-			      '3. Select',
+	    \html_control_set(match_control_set, false,
+			      'Step 2a: match or ...',
+			      \html_match_control(Matchers)),
+	    \html_control_set(select_control_set, false,
+			      'Step 2b:	... select',
 			      \html_select_control(Selecters)),
-	    \html_control_set(true,
-			      'Current node',
+	    \html_control_set(current_control_set, true,
+			      'Current node details',
 			      \html_info_control)
-
-
 	     ]).
 
-html_control_set(Active, Header, Body) -->
+html_control_set(Id, Active, Header, Body) -->
         { active_class(Active, Class)
 	},
-	html(div([class('control-set '+Class)],
+	html(div([id(Id), class('control-set '+Class)],
 		 [ div(class('hd'),
 		       a([href('javascript:void(0)'),
 			  class('trigger')],
@@ -79,8 +81,7 @@ html_info_control -->
 			      div(class('control-buttons'),
 				  button(class('control-submit'), 'Update'))
 			     ]),
-			div([class('loading c hidden')], []),
-			div([id(hint), class('hint help c')], 'No hints available.')
+			div([class('loading c hidden')], [])
 		      ]),
 		  div([class('empty c')],
 		      ['select a node in the graph'])
