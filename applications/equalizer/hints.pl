@@ -48,8 +48,8 @@ find_hint(Strategy, Focus, Hint) :-
 		   data(json([
 			    focus(Source),
 			    uri(Source),
-			    step(analyze),
-			    newVal(json([uri(Source), type(vocab)])),
+			    step(current),
+			    newVal(json([uri(Source), type(vocab), label(L1)])),
 			    alignment(Strategy)
 			     ])
 		       ),
@@ -131,7 +131,6 @@ find_hint(Strategy, Focus, Hint) :-
 		    event(submit),
 		    data(json([
 			     step(select),
-			     % newVal(json([uri(Mapping), type(mapping)])),
 			     process(Process),
 			     input(Mapping),
 			     alignment(Strategy)

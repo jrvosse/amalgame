@@ -227,7 +227,7 @@ YUI.add('controls', function(Y) {
 		  var nodes = this.get("nodes");
 		  for (var uri in nodes) {
 		    var n = nodes[uri];
-		    if ((n != current) &&
+		    if ((n.uri != current.uri) &&
 			(n.type == "vocab")
 		       ) return n;
 		  }
