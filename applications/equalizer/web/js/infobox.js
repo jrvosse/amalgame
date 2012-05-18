@@ -253,16 +253,19 @@ YUI.add('infobox', function(Y) {
 						       NODE_HINT.appendChild('(<a id="exec_hint">just do it</a>)');
 						       // FixMe! can we put the handler once on initialization?
 						       Y.one('#exec_hint').on("click", oSelf._onExecHint, oSelf, r.data, r.event);
-						       if (r.data.step) {
-							 Y.all('.control-set').removeClass('active');
-							 Y.one('#hint_control_set').addClass('active');
-							 Y.one('#'+r.data.step+'_control_set').addClass('active');
+						       if (r.data.step && (r.data.step == "match")) {
+							 Y.one('#match_control_set').addClass('active');
+							 Y.one('#input_control_set').removeClass('active');
+						       } else if (r.data.step && (r.data.step == "input")) {
+							 Y.one('#input_control_set').addClass('active');
+							 Y.one('#match_control_set').removeClass('active');
 						       }
-						}
-					}
-				}
-			});
-		},
+						     }
+						   }
+					 }
+				     }
+			   );
+		 },
 
 		_updateParameters : function() {
 			var paramnode = this.get("srcNode").one('.parameters'),
