@@ -232,24 +232,32 @@ YUI.add('infobox', function(Y) {
 		},
 
 		_createHint : function() {
-			var oSelf = this;
-			Y.io(this.get("paths").hint, {
-				data: {
-					strategy: this.get("alignment"),
-					focus: this.get("selected").uri
-				},
-				on: {success: function(e,o) {
-						var r = Y.JSON.parse(o.responseText);
-						if (r.text) {
-							NODE_HINT.setContent(r.text);
-						} else {
-							NODE_HINT.setContent('No hints available at this point');
-						}
-						if (r.data) {
-							NODE_HINT.appendChild('&nbsp;');
-							NODE_HINT.appendChild('(<a id="exec_hint">just do it</a>)');
-							// FixMe! can we put the handler once on initialization?
-							Y.one('#exec_hint').on("click", oSelf._onExecHint, oSelf, r.data, r.event);
+				var oSelf = this;
+				var focus = this.get("selected").uri
+				Y.io(this.get("paths").hint,
+				     {
+				     data: {
+					   strategy: this.get("alignment"),
+					   focus: focus
+					   },
+				     on: {success: function(e,o)
+						   {
+						     var r = Y.JSON.parse(o.responseText);
+						     if (r.text) {
+						       NODE_HINT.setContent(r.text);
+						     } else {
+						       NODE_HINT.setContent('No hints available at this point');
+						     }
+						     if (r.data) {
+						       NODE_HINT.appendChild('&nbsp;');
+						       NODE_HINT.appendChild('(<a id="exec_hint">just do it</a>)');
+						       // FixMe! can we put the handler once on initialization?
+						       Y.one('#exec_hint').on("click", oSelf._onExecHint, oSelf, r.data, r.event);
+						       if (r.data.step) {
+							 Y.all('.control-set').removeClass('active');
+							 Y.one('#hint_control_set').addClass('active');
+							 Y.one('#'+r.data.step+'_control_set').addClass('active');
+						       }
 						}
 					}
 				}
