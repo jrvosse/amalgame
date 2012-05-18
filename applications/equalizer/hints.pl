@@ -24,13 +24,13 @@ http_json_hint(Request) :-
 	find_hint(Strategy, Focus, Hint),
 	reply_json(Hint).
 
-find_hint(Strategy, _Focus, Hint) :-
-	% If there are no mappings yet, advise an exact label match
+find_hint(Strategy, Focus, Hint) :-
+% Initial phase: no mappings created, no vocab selected.
+% Advise to select the smallest vocab
+% FIX ME: Assumes only to vocabs have been selected.
+	Focus == Strategy,
 	\+ rdf(_, rdf:type, amalgame:'Mapping',Strategy),
 	!,
-	rdf_equal(Match, amalgame:'ExactLabelMatcher'),
-	rdf_display_label(Match, Label),
-	format(atom(Text), 'hint: maybe you\'d like to try a simple label Matcher like ~w to create your first mapping', [Label]),
 	rdf(Strategy, amalgame:includes, Voc1, Strategy),
 	rdf(Strategy, amalgame:includes, Voc2, Strategy),
 	Voc1 \== Voc2,
@@ -40,11 +40,43 @@ find_hint(Strategy, _Focus, Hint) :-
 	->  Source = Voc1, Target = Voc2
 	;   Source = Voc2, Target = Voc1
 	),
+	rdf_display_label(Source, L1),
+	rdf_display_label(Target, L2),
+	format(atom(Text), 'Step 1: analyze. Vocabulary ~w is smaller than vocabulary ~w.  Maybe you should click on the first to set it as the source of your next matching process.', [L1, L2]),
+	Hint = json([
+		   event(nodeSelect),
+		   data(json([
+			    focus(Source),
+			    uri(Source),
+			    step(analyze),
+			    newVal(json([uri(Source), type(vocab)])),
+			    alignment(Strategy)
+			     ])
+		       ),
+		   text(Text)
+		    ]
+		   ).
+
+find_hint(Strategy, Focus, Hint) :-
+	% If there are no mappings yet, and the focus is a vocabulary.
+	% advise an exact label match using the focus as the source
+	\+ rdf(_, rdf:type, amalgame:'Mapping',Strategy),
+	rdf(Strategy, amalgame:includes, Focus, Strategy),
+	!,
+	rdf(Strategy, amalgame:includes, Target, Strategy),
+	Focus \== Target,
+	rdf_equal(Match, amalgame:'ExactLabelMatcher'),
+	rdf_display_label(Match, Label),
+	rdf_display_label(Focus, L1),
+	rdf_display_label(Target, L2),
+	format(atom(Text), 'Step 2a: match.  Hint: maybe you\'d like to try a simple label Matcher like ~w to create your first mapping from ~w to ~w', [Label, L1, L2]),
 	Hint =	json([
 		    event(submit),
 		    data(json([
+			     step(match),
+			     focus(Focus),
 			     process(Match),
-			     source(Source),
+			     source(Focus),
 			     target(Target),
 			     alignment(Strategy)
 			      ])),
@@ -53,34 +85,53 @@ find_hint(Strategy, _Focus, Hint) :-
 find_hint(Strategy, Focus, Hint) :-
 	Focus == Strategy,
 	\+ hints_mapping_counts(_,_,_,_,_,_,_),
+	!,
+	% this is typically the case for a reloaded strategy,
+	% when no mappings have been expanded yet. Let's expand a random endpoint mapping.
 
-	/* this is typically the case for a reloaded strategy,
-	   when no mappings have been expanded yet.
-           Let's expand a random endpoint mapping
-	       */
-
-	 is_endpoint(Strategy, Mapping),
-	format(atom(Text), 'No mappings have been computed yet.  You can click on a mapping like ~p to compute its results.', [Mapping]),
+	is_endpoint(Strategy, Mapping),
+	format(atom(Text), 'Step 1: analyze. No mappings have been computed to analyze.  You can click on a mapping like ~p to compute its results.', [Mapping]),
 	Hint = json([event(nodeSelect),
 		     data(json([focus(Mapping),
 				uri(Mapping),
+				step(current),
 				newVal(json([uri(Mapping), type(mapping)])),
 				alignment(Strategy)
 			       ])),
 		     text(Text)
 		    ]).
 
+find_hint(Strategy, Focus, Hint) :-
+	Focus == Strategy,
+	needs_disambiguation(Strategy, Focus, Mapping),
+	!,
+	% Mmm, current focus is on the strategy node.  Suggest the user focusses on a mapping node that needs work.
+	rdf_display_label(Mapping, L),
+	format(atom(Text), 'Step 1: analyze.  Click on the node you want to analyze in more detail. Hint:  mapping ~w seems to need some work.', [L]),
+	Hint =	json([
+		    event(nodeSelect),
+		    data(json([
+			     step(current),
+			     newVal(json([uri(Mapping), type(mapping)])),
+			     input(Mapping),
+			     alignment(Strategy)
+			      ])),
+		    text(Text)
+		     ]).
 
 find_hint(Strategy, Focus, Hint) :-
 	% if there are end-point mappings with ambiguous correspondences, advise an ambiguity remover
 	needs_disambiguation(Strategy, Focus, Mapping),
+	!,
 	rdf_equal(Process, amalgame:'AritySelect'),
 	rdf_display_label(Process, PLabel),
 	rdf_display_label(Mapping, MLabel),
-	format(atom(Text), 'hint: maybe you\'d like to remove the ambiguity from node "~w" by running an ~w', [MLabel, PLabel]),
+	format(atom(Text), 'Step 2b: select. Maybe you\'d like to select the non-ambiguous results from node "~w" by running an ~w', [MLabel, PLabel]),
 	Hint =	json([
 		    event(submit),
 		    data(json([
+			     step(select),
+			     % newVal(json([uri(Mapping), type(mapping)])),
 			     process(Process),
 			     input(Mapping),
 			     alignment(Strategy)
@@ -96,10 +147,11 @@ find_hint(Strategy, Focus, Hint) :-
 	FinalStatus \== Status,
 	!,
 	rdf_global_id(_:Local, Status),
-	format(atom(Text), 'hint: this dataset has been evaluated, if the results were satisfactory, you might want to change the status from \'~p\' to \'final\'.', [Local]),
+	format(atom(Text), 'Approval: this dataset has been evaluated, if the results were satisfactory, you might want to change the status from \'~p\' to \'final\'.', [Local]),
 	Hint = json([
 		   event(nodeUpdate),
 		   data(json([
+			    step(current),
 			    uri(Focus),
 			    alignment(Strategy),
 			    status(FinalStatus)
@@ -115,11 +167,12 @@ find_hint(Strategy, Focus, Hint) :-
 	hints_mapping_counts(Focus, Strategy, N,N,N,_,_),
 	N > 0, N < 51,
 	!,
-	format(atom(Text), 'hint: this dataset contains ~w unambigious mappings, that is good!  It has not yet been evaluated, however.  Manual inspection could help you decide if the quality is sufficient.', [N]),
+	format(atom(Text), 'Evaluate: this dataset only contains ~w non-ambigious mappings, that is good!  It has not yet been evaluated, however.  Manual inspection could help you decide if the quality is sufficient.', [N]),
 	http_link_to_id(http_eq_evaluate, [alignment(Strategy), focus(Focus)],EvalPage),
 	Hint =	json([
 		    event(evaluate),
 		    data(json([
+			     step(current),
 			     focus(Focus),
 			     alignment(Strategy),
 			     page(EvalPage)
@@ -127,17 +180,18 @@ find_hint(Strategy, Focus, Hint) :-
 		    text(Text)
 		     ]).
 find_hint(Strategy, Focus, Hint) :-
-	% if focus node is unambigious, large maybe we should take a sample?
+	% if focus node is unambigious and large maybe we should take a sample?
 
 	is_endpoint(Strategy, Focus),
 	hints_mapping_counts(Focus, Strategy, N,N,N,_,_),
 	N > 50,
 	!,
 	rdf_equal(Process, amalgame:'Sampler'),
-	format(atom(Text), 'hint: this dataset contains ~w unambigious mappings, that is good!  You might want to take a random sample to look at in more detail', [N]),
+	format(atom(Text), 'Step 2b: select. This dataset contains ~w unambigious mappings, that is good!  You might want to take a random sample to look at in more detail', [N]),
 	Hint =	json([
 		    event(submit),
 		    data(json([
+			     step(select),
 			     process(Process),
 			     input(Focus),
 			     alignment(Strategy)
@@ -148,10 +202,11 @@ find_hint(Strategy, Focus, Hint) :-
 find_hint(Strategy, Focus, Hint) :-
 	is_known_to_be_disambiguous(Strategy, Focus, Mapping),
 	http_link_to_id(http_eq_evaluate, [alignment(Strategy), focus(Mapping)],EvalPage),
-	format(atom(Text), '~p contains ambiguous mappings.  Maybe you can select the good ones after looking at what is causing the problem.', [Mapping]),
+	format(atom(Text), 'Evaluate: ~p contains ambiguous mappings.  Maybe you can select the good ones after looking at what is causing the problem.', [Mapping]),
 	Hint =	json([
 		    event(evaluate),
 		    data(json([
+			     step(current),
 			     focus(Mapping),
 			     alignment(Strategy),
 			     page(EvalPage)
@@ -227,6 +282,6 @@ is_result_of_process_type(Mapping, Type) :-
 % never expand/compute something.
 
 hints_mapping_counts(Id, Strategy, MN, SN, TN, SPerc, TPerc) :-
-	stats_cache(Id-Strategy, stats_cache(Id-Strategy, stats(MN, SN, TN, SPerc, TPerc))).
+	stats_cache(Id-Strategy, stats(MN, SN, TN, SPerc, TPerc)).
 hints_concept_count(Vocab, Strategy, Count) :-
 	stats_cache(Vocab-Strategy, stats(Count)).
