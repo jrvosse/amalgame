@@ -197,7 +197,7 @@ html_module_items([[URI,Module]|Ms]) -->
 			    ]),
 	html_module_items(Ms).
 
-module_form(URI, Params, Step) -->
+module_form(URI, Params, LastAction) -->
 	{
 	 (   amalgame_module_property(URI, explanation_graph(ExplainMe))
 	 ->  Explain = input([type(hidden), name(graphic), value(ExplainMe)])
@@ -205,7 +205,7 @@ module_form(URI, Params, Step) -->
 	 )
 	},
 	html(form([input([type(hidden), name(process), value(URI)]),
-		   input([type(hidden), name(step), value(Step)]),
+		   input([type(hidden), name(lastAction), value(LastAction)]),
 		   Explain,
 		   table(tbody(\html_parameter_form(Params))),
 		   div(class('control-buttons'),

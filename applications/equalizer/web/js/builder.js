@@ -176,7 +176,7 @@ YUI.add('builder', function(Y) {
 			// data only contains the process parameters
 			// we need to add the context
 			data.alignment = this.get("alignment");
-			if (data.step) this.infobox.set("lastAction", data.step);
+			if (data.lastAction) this.infobox.set("lastAction", data.lastAction);
 			Y.io(paths.addprocess, {
 				data:data,
 				on:{success:function(e,o) {

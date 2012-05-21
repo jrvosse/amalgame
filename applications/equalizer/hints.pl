@@ -15,19 +15,25 @@ http_json_hint(Request) :-
 			[ strategy(Strategy,
 				   [uri,
 				    description('URI of an alignment strategy')]),
+			  lastAction(LastAction,
+			       [optional(true),
+				description('Context: Previous action done')]),
 			  focus(Focus,
 			       [ uri,
-				 description('Node that is currently in focus in the builder'),
+				 description('Context: Node that is currently in focus in the builder'),
 				 optional(true)
 			       ])
 			]),
-	find_hint(Strategy, Focus, Hint),
+	find_hint(Strategy, [focus(Focus), lastAction(LastAction)], Hint),
 	reply_json(Hint).
 
-find_hint(Strategy, Focus, Hint) :-
+find_hint(Strategy, Context, Hint) :-
 % Initial phase: no mappings created, no vocab selected.
+% Focus is on the strategy node.
 % Advise to select the smallest vocab
-% FIX ME: Assumes only to vocabs have been selected.
+% FIX ME: Assumes only to vocabs are being aligned.
+
+	option(focus(Focus), Context),
 	Focus == Strategy,
 	\+ rdf(_, rdf:type, amalgame:'Mapping',Strategy),
 	!,
@@ -48,7 +54,7 @@ find_hint(Strategy, Focus, Hint) :-
 		   data(json([
 			    focus(Source),
 			    uri(Source),
-			    step(current),
+			    lastAction(current),
 			    newVal(json([uri(Source), type(vocab), label(L1)])),
 			    alignment(Strategy)
 			     ])
@@ -57,10 +63,11 @@ find_hint(Strategy, Focus, Hint) :-
 		    ]
 		   ).
 
-find_hint(Strategy, Focus, Hint) :-
+find_hint(Strategy, Context, Hint) :-
 	% If there are no mappings yet, and the focus is a vocabulary.
 	% advise an exact label match using the focus as the source
 	\+ rdf(_, rdf:type, amalgame:'Mapping',Strategy),
+	option(focus(Focus), Context),
 	rdf(Strategy, amalgame:includes, Focus, Strategy),
 	!,
 	rdf(Strategy, amalgame:includes, Target, Strategy),
@@ -73,7 +80,7 @@ find_hint(Strategy, Focus, Hint) :-
 	Hint =	json([
 		    event(submit),
 		    data(json([
-			     step(match),
+			     lastAction(match),
 			     focus(Focus),
 			     process(Match),
 			     source(Focus),
@@ -82,7 +89,8 @@ find_hint(Strategy, Focus, Hint) :-
 			      ])),
 		    text(Text)
 		     ]).
-find_hint(Strategy, Focus, Hint) :-
+find_hint(Strategy, Context, Hint) :-
+	option(focus(Focus), Context),
 	Focus == Strategy,
 	\+ hints_mapping_counts(_,_,_,_,_,_,_),
 	!,
@@ -94,14 +102,15 @@ find_hint(Strategy, Focus, Hint) :-
 	Hint = json([event(nodeSelect),
 		     data(json([focus(Mapping),
 				uri(Mapping),
-				step(current),
+				lastAction(current),
 				newVal(json([uri(Mapping), type(mapping)])),
 				alignment(Strategy)
 			       ])),
 		     text(Text)
 		    ]).
 
-find_hint(Strategy, Focus, Hint) :-
+find_hint(Strategy, Context, Hint) :-
+	option(focus(Focus), Context),
 	Focus == Strategy,
 	needs_disambiguation(Strategy, Focus, Mapping),
 	!,
@@ -111,7 +120,7 @@ find_hint(Strategy, Focus, Hint) :-
 	Hint =	json([
 		    event(nodeSelect),
 		    data(json([
-			     step(current),
+			     lastAction(current),
 			     newVal(json([uri(Mapping), type(mapping)])),
 			     input(Mapping),
 			     alignment(Strategy)
@@ -119,8 +128,9 @@ find_hint(Strategy, Focus, Hint) :-
 		    text(Text)
 		     ]).
 
-find_hint(Strategy, Focus, Hint) :-
+find_hint(Strategy, Context, Hint) :-
 	% if there are end-point mappings with ambiguous correspondences, advise an ambiguity remover
+	option(focus(Focus), Context),
 	needs_disambiguation(Strategy, Focus, Mapping),
 	!,
 	rdf_equal(Process, amalgame:'AritySelect'),
@@ -130,15 +140,16 @@ find_hint(Strategy, Focus, Hint) :-
 	Hint =	json([
 		    event(submit),
 		    data(json([
-			     step(select),
+			     lastAction(select),
 			     process(Process),
 			     input(Mapping),
 			     alignment(Strategy)
 			      ])),
 		    text(Text)
 		     ]).
-find_hint(Strategy, Focus, Hint) :-
+find_hint(Strategy, Context, Hint) :-
 	% if focus node has been evaluated, maybe it can be get final status?
+	option(focus(Focus), Context),
 	rdf(Eval, amalgame:evaluationOf, Focus, Strategy),
 	rdf_graph(Eval), % check eval graph ain't empty ...
 	rdf(Focus, amalgame:status, Status, Strategy),
@@ -150,7 +161,7 @@ find_hint(Strategy, Focus, Hint) :-
 	Hint = json([
 		   event(nodeUpdate),
 		   data(json([
-			    step(current),
+			    lastAction(current),
 			    uri(Focus),
 			    alignment(Strategy),
 			    status(FinalStatus)
@@ -159,9 +170,10 @@ find_hint(Strategy, Focus, Hint) :-
 		   focus(Focus)
 		    ]).
 
-find_hint(Strategy, Focus, Hint) :-
+find_hint(Strategy, Context, Hint) :-
 	% if focus node is unambigious, small and not yet evaluated,
 	% this might be a good idea to do.
+	option(focus(Focus), Context),
 	\+ rdf(Focus, amalgame:evaluationOf, _, Strategy),
 	hints_mapping_counts(Focus, Strategy, N,N,N,_,_),
 	N > 0, N < 51,
@@ -171,16 +183,16 @@ find_hint(Strategy, Focus, Hint) :-
 	Hint =	json([
 		    event(evaluate),
 		    data(json([
-			     step(current),
+			     lastAction(current),
 			     focus(Focus),
 			     alignment(Strategy),
 			     page(EvalPage)
 			      ])),
 		    text(Text)
 		     ]).
-find_hint(Strategy, Focus, Hint) :-
+find_hint(Strategy, Context, Hint) :-
 	% if focus node is unambigious and large maybe we should take a sample?
-
+	option(focus(Focus), Context),
 	is_endpoint(Strategy, Focus),
 	hints_mapping_counts(Focus, Strategy, N,N,N,_,_),
 	N > 50,
@@ -190,7 +202,7 @@ find_hint(Strategy, Focus, Hint) :-
 	Hint =	json([
 		    event(submit),
 		    data(json([
-			     step(select),
+			     lastAction(select),
 			     process(Process),
 			     input(Focus),
 			     alignment(Strategy)
@@ -198,14 +210,15 @@ find_hint(Strategy, Focus, Hint) :-
 		    text(Text)
 		     ]).
 
-find_hint(Strategy, Focus, Hint) :-
+find_hint(Strategy, Context, Hint) :-
+	option(focus(Focus), Context),
 	is_known_to_be_disambiguous(Strategy, Focus, Mapping),
 	http_link_to_id(http_eq_evaluate, [alignment(Strategy), focus(Mapping)],EvalPage),
 	format(atom(Text), 'Evaluate: ~p contains ambiguous mappings.  Maybe you can select the good ones after looking at what is causing the problem.', [Mapping]),
 	Hint =	json([
 		    event(evaluate),
 		    data(json([
-			     step(current),
+			     lastAction(current),
 			     focus(Mapping),
 			     alignment(Strategy),
 			     page(EvalPage)

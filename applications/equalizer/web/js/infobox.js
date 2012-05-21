@@ -243,6 +243,7 @@ YUI.add('infobox', function(Y) {
 				     {
 				     data: {
 					   strategy: this.get("alignment"),
+					   lastAction: this.get("lastAction"),
 					   focus: focus
 					   },
 				     on: {success: function(e,o)
@@ -258,10 +259,10 @@ YUI.add('infobox', function(Y) {
 						       NODE_HINT.appendChild('(<a id="exec_hint">just do it</a>)');
 						       // FixMe! can we put the handler once on initialization?
 						       Y.one('#exec_hint').on("click", oSelf._onExecHint, oSelf, r.data, r.event);
-						       if (r.data.step && (r.data.step == "match")) {
+						       if (r.data.lastAction && (r.data.lastAction == "match")) {
 							 Y.one('#match_control_set').addClass('active');
 							 Y.one('#select_control_set').removeClass('active');
-						       } else if (r.data.step && (r.data.step == "input")) {
+						       } else if (r.data.lastAction && (r.data.lastAction == "input")) {
 							 Y.one('#select_control_set').addClass('active');
 							 Y.one('#match_control_set').removeClass('active');
 						       }
