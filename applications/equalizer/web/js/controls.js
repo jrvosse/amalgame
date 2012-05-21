@@ -165,7 +165,7 @@ YUI.add('controls', function(Y) {
 			if(type=="vocab") {
 				NODE_SOURCE_BTN.removeAttribute("disabled");
 				NODE_TARGET_BTN.removeAttribute("disabled");
-				var current = NODE_SOURCE.get("value");
+				var current =  Y.one("#sourceLabel").get("value");
 				if (!current) {
 				  // auto set source to selected if no source yet:
 				  this._valueSet(selected, "source");
