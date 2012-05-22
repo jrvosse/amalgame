@@ -79,7 +79,7 @@ html_info_control -->
 			form([id(infocontent), class('control c')],
 			     [div([id(properties)], []),
 			      div(class('control-buttons'),
-				  button(class('control-submit'), 'Update'))
+				  button(class('control-submit'), 'update'))
 			     ]),
 			div([class('loading c hidden')], [])
 		      ]),
