@@ -31,7 +31,7 @@
 :- use_module(library(json_graph)).
 
 :- setting(evaluator:maxMappings, nonneg, 1000,
-	   'Max number of mappings per mapping file to put in the \
+	   'Max number of mappings per mapping file to put in the \c
 	   todo list of the mapping evaluator').
 :- setting(evaluator:authorization, oneof([required, optional]), required,
 	   'Login required to evaluate or not').
