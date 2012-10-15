@@ -1,0 +1,27 @@
+@prefix      lib: <http://www.swi-prolog.org/rdf/library/> .
+@prefix      owl: <http://www.w3.org/2002/07/owl#> .
+@prefix	 dcterms: <http://purl.org/dc/terms/> .
+@prefix     void: <http://rdfs.org/ns/void#> .
+@prefix     vann: <http://purl.org/vocab/vann/> .
+
+[ vann:preferredNamespacePrefix "amalgame"  ; vann:preferredNamespaceUri "http://purl.org/vocabularies/amalgame#>" ] .
+[ vann:preferredNamespacePrefix "align"     ; vann:preferredNamespaceUri "http://knowledgeweb.semanticweb.org/heterogeneity/alignment#" ] .
+
+<alignmentschema>
+	a void:Dataset ;
+	dcterms:title "Schema for the Alignment format"@en ;
+	lib:source <http://knowledgeweb.semanticweb.org/heterogeneity/alignment> ;
+	void:dataDump <align.owl> .
+
+<ag_modules>
+	a void:Dataset ;
+	dcterms:title "Schema for the amalgame modules"@en ;
+	lib:source <http://purl.org/vocabularies/amalgame/modules/> ;
+	void:dataDump <ag_modules.ttl> .
+
+<amalgame>
+	a void:Dataset ;
+	dcterms:title "Schema for the Amalgame RDF vocabulary"@en ;
+	lib:source <http://knowledgeweb.semanticweb.org/heterogeneity/alignment> ;
+	void:subset <ag_modules> , <alignmentschema> ;
+	void:dataDump <amalgame.ttl> .
