@@ -6,7 +6,6 @@
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_json)).
-:- use_module(library(http/json)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_label)).
@@ -15,9 +14,7 @@
 :- use_module(components(label)).
 :- use_module(components(graphviz)).
 
-:- use_module(library(skos/vocabularies)).
 :- use_module(library(amalgame/caching)).
-:- use_module(library(amalgame/amalgame_modules)).
 :- use_module(library(amalgame/ag_evaluation)).
 :- use_module(library(amalgame/edoal)).
 :- use_module(library(amalgame/map)).
