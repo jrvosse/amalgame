@@ -6,15 +6,11 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(amalgame/caching)).
-:- use_module(library(amalgame/opm)).
 :- use_module(library(amalgame/map)).
 :- use_module(library(amalgame/caching)).
 :- use_module(library(amalgame/ag_provenance)).
-:- use_module(library(amalgame/ag_stats)).
-:- use_module(library(amalgame/vocabulary)).
 :- use_module(library(amalgame/amalgame_modules)).
 
-:- use_module(library(skos/vocabularies)).
 :- use_module(library(ag_drivers/exec_amalgame_process)).
 
 %%	expand_node(+StrategyURL, +NodeURL, -Result) is det.
