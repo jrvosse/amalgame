@@ -179,8 +179,8 @@ needs_materialization(_Id, Process, _Strategy) :-
 	rdf(ProcessType, amalgame:materialize, amalgame:always),
 	!,
 	true.
-needs_materialization(Id, _, _) :-
-	rdf_has(Id, amalgame:status, Status),
+needs_materialization(Id, _, Strategy) :-
+	rdf_has(Id, amalgame:status, Status, Strategy),
 	\+ rdf_equal(Status, amalgame:final),
 	!, % Not a final graph, no need to materalize.
 	fail.
