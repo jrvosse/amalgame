@@ -274,7 +274,8 @@ html_resource_context(URI, Prov) -->
 	{ rdf_display_label(URI, Label),
 	  resource_alternative_labels(URI, Label, Prov, Alt),
 	  resource_tree(URI, Tree),
-	  related_resources(URI, Related)
+	  related_resources(URI, Related),
+	  image_examples(URI, Examples)
 	},
 	html(div(class('resource-info'),
 		 [div(class(label), a([alt(URI), href(URI)], Label)),
@@ -282,7 +283,8 @@ html_resource_context(URI, Prov) -->
 		  \html_definition(URI),
 		  \html_scope(URI),
 		  \html_resource_tree(Tree),
-		  \html_related_list(Related)
+		  \html_related_list(Related),
+		  \html_image_examples(Examples)
 		 ])).
 
 html_relations([], _) --> !.
@@ -299,6 +301,15 @@ html_relations([Rel-Label|Rs], Active) -->
 		 ])),
 	html_relations(Rs, Active).
 
+html_image_examples([]) --> !.
+html_image_examples([E|Tail]) -->
+	{
+	 http_link_to_id(http_thumbnail, [uri(E)], Src)
+	},
+	html(div([class(example)],
+		 [img([src(Src),height(150)])]
+		)),
+	html_image_examples(Tail).
 
 resource_alternative_labels(R, Label, _Prov, Alt) :-
 	findall(L, (rdf_label(R, L)), Ls),
@@ -326,6 +337,14 @@ matching_label(S, Prov, MatchingLabel) :-
 related_resources(S, Rs) :-
 	findall(R, skos_related(S, R), Rs0),
 	sort(Rs0, Rs).
+
+image_examples(R, Es) :-
+	% hack: assume non-literal examples to be image urls ...
+	findall(E, ( rdf(R, skos:example, E),
+		     \+ E =.. [literal|_]
+		   ),
+		List),
+	sort(List, Es).
 
 skos_related(R1, R2) :-
 	rdf_has(R1, skos:related, R2).
