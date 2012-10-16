@@ -12,6 +12,7 @@
 
 :- use_module(controls).
 :- use_module(process).
+:- use_module(voc).
 :- use_module(eq_util).
 :- use_module(hints).
 
