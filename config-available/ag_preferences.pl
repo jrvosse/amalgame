@@ -30,6 +30,7 @@
 %       database in RDF, typically using the OpenID as subject.
 
 cliopatria:user_preference_db(Property, Value) :-
+	http_in_session(_),
 	logged_on(User, anonymous),
 	http_session_data(rdf(User, Property, Value)).
 
