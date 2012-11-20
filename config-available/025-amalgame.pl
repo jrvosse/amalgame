@@ -19,7 +19,6 @@ http:location(amalgame, cliopatria(amalgame), []).
 		applications(align_stats),
 		applications(alignment/alignment),
 		applications(vocabularies/vocabularies),
-		applications(concept_finder/concept_finder),
 		applications(evaluator/evaluator),
 	% New UI:
 		applications(equalizer/eq),

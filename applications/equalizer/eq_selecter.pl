@@ -16,6 +16,8 @@
 :- use_module(components(label)).
 :- use_module(eq_util).
 
+:- use_module(applications(skos_browser)).
+
 % http handlers for this applications
 :- http_handler(amalgame(eq), http_eq, []).
 :- http_handler(amalgame(new), http_eq_new, []).
@@ -230,7 +232,7 @@ html_strategy_name(Graph, Options) -->
 
 html_scheme_name(Graph) -->
 	{ graph_label(Graph, Label),
-	  http_link_to_id(http_concept_finder, [scheme(Graph)], Link)
+	  http_link_to_id(http_skos_browser, [scheme(Graph)], Link)
 	},
 	html(a([href(Link)],Label)).
 
