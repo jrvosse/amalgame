@@ -89,6 +89,7 @@ YUI.add('mapping', function(Y) {
 				width:"80%",
 				align:{points:[Y.WidgetPositionAlign.TC, Y.WidgetPositionAlign.TC]}
 			}).render();
+			NODE_DETAIL.removeClass("hidden");
 		},
 
 		_onSelectedChange : function() {

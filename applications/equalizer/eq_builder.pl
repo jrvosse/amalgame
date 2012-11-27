@@ -16,6 +16,9 @@
 :- use_module(eq_util).
 :- use_module(hints).
 
+:- use_module(api(skos_concepts)).
+%:- use_module(applications(skos_browser)).
+
 % We have to load the opmviz module somewhere:
 :- use_module(opmviz).
 
@@ -77,6 +80,8 @@ html_page(Strategy, Focus) :-
 			],
 			[ \html_requires(css('eq.css')),
 			  \html_requires(css('builder.css')),
+			  \html_requires(css('skosbrowser.css')),
+			  \html_requires(css('columnbrowser.css')),
 			  \yui3_combo(yui3,
 				      ['cssreset/reset-min.css',
 				       'cssgrids/grids-min.css',
@@ -97,11 +102,12 @@ html_page(Strategy, Focus) :-
 						    div([id(opm)], []))),
 					    div([id(bottom)],
 						div(class(content),
-						    [ div(id(mappingtable), [])
+						    [ div(id(mappingtable), []),
+						      div(id(vocabularybrowser), [])
 						]))
 					  ])
 				    ]),
-				div(id(detail),
+				div([id(detail),class('hidden')],
 				   \html_overlay)
 			      ]),
 			  script(type('text/javascript'),
@@ -192,6 +198,8 @@ js_path(evaluate, Path) :-
 	http_location_by_id(http_data_evaluate, Path).
 js_path(cinfo, Path) :-
 	http_location_by_id(http_correspondence, Path).
+js_path(concepts, Path) :-
+	http_location_by_id(http_concepts, Path).
 
 %%	js_module(+Key, +Module_Conf)
 %
@@ -236,6 +244,21 @@ js_module(mappingtable, json([fullpath(Path),
 					datatable,'datatable-sort'])
 			     ])) :-
 	http_absolute_location(js('mappingtable.js'), Path, []).
+js_module(vocabulary, json([fullpath(Path),
+			    requires([node,event,
+				      columnbrowser
+				     ])
+			   ])) :-
+	http_absolute_location(js('vocabulary.js'), Path, []).
+js_module(resourcelist, json([fullpath(Path),
+			      requires([node,event,widget])
+			     ])) :-
+    http_absolute_location(js('resourcelist.js'), Path, []).
+js_module(columnbrowser, json([fullpath(Path),
+			     requires([node,event,widget,resourcelist])
+			    ])) :-
+    http_absolute_location(js('columnbrowser.js'), Path, []).
+
 
 fix_publish_ns(S) :-
 % backward compatibility

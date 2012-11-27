@@ -52,6 +52,7 @@ YUI.add('builder', function(Y) {
 			this._initControls();
 			this._initInfo();
 			this._initMapping();
+			this._initVocabulary();
 
 			// handlers for the controls
 			if (!this.readonly) {
@@ -83,12 +84,13 @@ YUI.add('builder', function(Y) {
 			this.on("selectedChange", this._onSelectedChange, this);
 		},
 
-                _onSelectedChange: function(o) {
+		_onSelectedChange: function(o) {
 			var selected = o.newVal?o.newVal:o.data.newVal ;
 			this.opmviz.set("selected", selected);
 			this.infobox.set("selected", selected);
 			this.controls.set("selected", selected);
 			this.mapping.set("selected", selected);
+			this.vocabulary.set("selected", selected);
 		},
 		_initLayout : function() {
 			// graph node is resizable in height
@@ -137,6 +139,13 @@ YUI.add('builder', function(Y) {
 			this.mapping = new Y.Mapping({
 				paths: this.get("paths"),
 				alignment: this.get("alignment"),
+				selected: this.get("selected")
+			});
+		},
+		
+		_initVocabulary : function() {
+			this.vocabulary = new Y.Vocabulary({
+				paths:this.get("paths"),
 				selected: this.get("selected")
 			});
 		},
