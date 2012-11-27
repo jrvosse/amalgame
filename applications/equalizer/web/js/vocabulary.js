@@ -61,6 +61,7 @@ YUI.add('vocabulary', function(Y) {
 
 			this.browser = new Y.mazzle.ColumnBrowser({
 				datasource:DS,
+				autoLoad:false,
 				columns: [
 			    	{   request: fetchConceptsURL,
 						params: {type:'topconcept'},
