@@ -82,8 +82,8 @@ YUI.add('vocabulary', function(Y) {
 		_onSelectedChange : function() {
 			var selected = this.get("selected");
 			if(selected.type=="vocab") {
-				this.browser._updateColumn(0, selected.uri);
 				NODE_BROWSER.removeClass("hidden");
+				this.browser._updateColumn(0, selected.uri);
 			} else {
 				NODE_BROWSER.addClass("hidden");
 			}
