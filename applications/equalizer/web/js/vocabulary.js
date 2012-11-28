@@ -14,12 +14,16 @@ YUI.add('vocabulary', function(Y) {
 		conceptscheme : {
 			value: null
 		},
+		alignment : {
+			value: null
+		},
 		selected : {
 			value: null
 		},
 		paths:{
 			value:{
-				concepts:"/skosapi/concepts"
+				concepts:"/skosapi/concepts",
+				mappinglist:"amalgame/data/mappinglist"
 
 			},
 			validator: function(val) {
@@ -34,12 +38,45 @@ YUI.add('vocabulary', function(Y) {
 			// hide the browser on start
 			NODE_BROWSER.addClass("hidden");
 			
+ 			this._initHeader();
 			this._initBrowser();
 			this.after("selectedChange", this._onSelectedChange, this);
+			
+			this._currentMappings = {};
 		},
 
+		_initHeader : function() {
+			var oSelf = this;
+			
+			var selected = this.get("selected");
+			var mappingHeader = NODE_BROWSER.appendChild(Node.create('<div class="header"></div>'));
+			var titleBox = mappingHeader.appendChild(Node.create('<div class="title-box" title="click to show options"></div>'));
+			this.title = titleBox.appendChild(Node.create('<span class="title"></span>'));
+			var mappingSelect = mappingHeader.appendChild(Node.create('<div class="mapping-select"></div>'));
+			mappingSelect.appendChild('<span>highlight mappings from: </span>');
+			mappingList = mappingSelect.appendChild(Node.create('<ul class="mappings"></ul>'));
+		
+			
+			mappingList.delegate('click', function(e) {
+				var graphs = [];
+				mappingList.all('input').each(function(o) {
+					if(o.get("checked")) {
+						graphs.push(o.get("value"));
+					}	
+				})
+				oSelf.browser.updateAll({graph:graphs});
+			}, 'input');
+			
+			titleBox.on("click", function(e) {
+				mappingSelect.toggleClass("hidden");
+			});
+			
+			this.mappingList = mappingList;
+		},	
+		
 		_initBrowser : function() {
 			var selected = this.get("selected"),
+				alignment = this.get("alignment"),
 				vocabulary = (selected.type=="vocabulary") ? selected.uri : null,
 				fetchConceptsURL = this.get("paths").concepts;
 				
@@ -56,8 +93,8 @@ YUI.add('vocabulary', function(Y) {
 						totalNumberOfResults:"totalNumberOfResults"
 					}
 				}
-			})
-			.plug(Plugin.DataSourceCache, {"max":10});
+			});
+			//.plug(Plugin.DataSourceCache, {"max":10});
 
 			this.browser = new Y.mazzle.ColumnBrowser({
 				datasource:DS,
@@ -65,10 +102,10 @@ YUI.add('vocabulary', function(Y) {
 				searchEnabled: false,
 				columns: [
 			    	{   request: fetchConceptsURL,
-						params: {type:'topconcept'}
+						params: {type:'topconcept',graph:[alignment]}
 			    	},
 			    	{   request: fetchConceptsURL,
-						params: {type:'child'},
+						params: {type:'child',graph:[alignment]},
 						repeat: true
 			    	}
 				]
@@ -81,10 +118,39 @@ YUI.add('vocabulary', function(Y) {
 			if(selected.type=="vocab") {
 				NODE_BROWSER.removeClass("hidden");
 				this.browser._updateColumn(0, selected.uri);
+				this.title.setContent(selected.label);
+				this.fetchMappings();
 			} else {
 				NODE_BROWSER.addClass("hidden");
 			}
 		},
+		
+		fetchMappings : function() {
+			var alignment = this.get("alignment"),
+				mappingNode = this.mappingList,
+				currentMappings = this._currentMappings;
+			
+			function formatMappings(e,o) {
+				var mappings = Y.JSON.parse(o.responseText);
+				for (var i=0; i < mappings.length; i++) {
+					var mapping = mappings[i],
+						uri = mapping['uri'];
+					if(!currentMappings[uri]) {
+						mappingNode.append('<li><input type="checkbox" checked value="'+uri+'"><span>'+mapping.label+'</span></li>');
+						currentMappings[uri] = mapping;
+					}
+				}
+			}
+			
+			Y.io(this.get("paths").mappinglist, {
+				data: {
+					'alignment':alignment
+				},
+				on:{
+					success:formatMappings
+				}
+			});
+		}
 
 	});
 

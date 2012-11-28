@@ -202,6 +202,8 @@ js_path(cinfo, Path) :-
 	http_location_by_id(http_correspondence, Path).
 js_path(concepts, Path) :-
 	http_location_by_id(http_concepts, Path).
+js_path(mappinglist, Path) :-
+	http_location_by_id(http_mapping_list, Path).
 
 %%	js_module(+Key, +Module_Conf)
 %
@@ -247,7 +249,7 @@ js_module(mappingtable, json([fullpath(Path),
 			     ])) :-
 	http_absolute_location(js('mappingtable.js'), Path, []).
 js_module(vocabulary, json([fullpath(Path),
-			    requires([node,event,
+			    requires([node,event,'json-parse',
 				      columnbrowser
 				     ])
 			   ])) :-
@@ -305,21 +307,30 @@ arity_param_convert(X,X):- !.
 		 *    skos browser hooks	*
 		 *******************************/
 
-cliopatria:concept_property(class, Concept, Class) :-
-	(   is_mapped(Concept)
+cliopatria:concept_property(class, Concept, Graphs0, Class) :-
+	graph_mappings(Graphs0, Graphs),
+	(   is_mapped(Concept, Graphs)
 	->  Class = mapped
 	;   Class = unmapped
 	).
-cliopatria:concept_property(count, Concept, Count) :-
-	mapped_descendant_count(Concept, Count).
+cliopatria:concept_property(count, Concept, Graphs0, Count) :-
+	graph_mappings(Graphs0, Graphs),
+	mapped_descendant_count(Concept, Graphs, Count).
 
 
-mapped_descendant_count(Concept, Count) :-
+graph_mappings([Alignment], Graphs) :-
+	rdf(Alignment, rdf:type, amalgame:'AlignmentStrategy'),
+	!,
+	findall(Mapping, rdf(Mapping, rdf:type, amalgame:'Mapping', Alignment), Graphs).
+graph_mappings(Graphs, Graphs).
+
+
+mapped_descendant_count(Concept, Graphs, Count) :-
 	findall(C, descendant_of(Concept, C), Descendants0),
 	sort(Descendants0, Descendants),
 	(   Descendants	= []
 	->  Count = @null
-	;   mapped_chk(Descendants, Mapped),
+	;   mapped_chk(Descendants, Graphs, Mapped),
 	    length(Descendants, Descendant_Count),
 	    length(Mapped, Mapped_Count),
 	    Percentage is round((Mapped_Count/Descendant_Count)*100),
@@ -334,15 +345,19 @@ descendant_of(Concept, D) :-
 	\+ D = Concept.
 
 
-mapped_chk([], []).
-mapped_chk([C|T], [C|Rest]) :-
-	is_mapped(C),
+mapped_chk([], _, []).
+mapped_chk([C|T], Graphs, [C|Rest]) :-
+	is_mapped(C, Graphs),
 	!,
-	mapped_chk(T, Rest).
-mapped_chk([_|T], Rest) :-
-	mapped_chk(T, Rest).
+	mapped_chk(T, Graphs, Rest).
+mapped_chk([_|T], Graphs, Rest) :-
+	mapped_chk(T, Graphs, Rest).
 
-is_mapped(C) :-
-	has_map([C,_], _, _), !.
-is_mapped(C) :-
-	has_map([_,C], _, _), !.
+is_mapped(C, Graphs) :-
+	has_map([C,_], _, Graph),
+	memberchk(Graph, Graphs),
+	!.
+is_mapped(C, Graphs) :-
+	has_map([_,C], _, Graph),
+	memberchk(Graph, Graphs),
+	!.

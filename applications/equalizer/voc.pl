@@ -8,6 +8,7 @@
 :- use_module(library(http/http_json)).
 :- use_module(library(count)).
 :- use_module(user(preferences)).
+:- use_module(library(semweb/rdf_label)).
 
 :- use_module(library(ag_util)).
 :- use_module(library(amalgame/vocabulary)).
@@ -15,10 +16,29 @@
 :- use_module(library(amalgame/expand_graph)).
 
 :- http_handler(amalgame(data/voc), http_data_voc, []).
+:- http_handler(amalgame(data/mappinglist), http_mapping_list, []).
 
 :- rdf_meta
 	rdf_lang(r,r,-),
 	rdf_lang(r,r,+,-).
+
+
+%%	http_mapping_list(+Request)
+%
+%	Return a JSON object with the mappings in an alignment
+
+http_mapping_list(Request) :-
+	http_parameters(Request,
+			[ alignment(Alignment, [description('URL of strategy')])
+			]),
+	Obj = json([uri=URI, label=Label]),
+	findall(Obj, mapping_in_alignment(Alignment, URI, Label), Mappings),
+	reply_json(Mappings).
+
+mapping_in_alignment(Alignment, Mapping, Label) :-
+	rdf(Mapping, rdf:type, amalgame:'Mapping', Alignment),
+	rdf_display_label(Mapping, Label).
+
 
 http_data_voc(Request) :-
 	setting(eq_mapping:rows_per_page, RowsPerPage),

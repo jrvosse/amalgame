@@ -164,7 +164,8 @@ YUI.add('builder', function(Y) {
 		_initVocabulary : function() {
 			this.vocabulary = new Y.Vocabulary({
 				paths:this.get("paths"),
-				selected: this.get("selected")
+				selected: this.get("selected"),
+				alignment: this.get("alignment")
 			});
 		},
 
