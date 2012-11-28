@@ -8,6 +8,7 @@
 :- use_module(library(http/html_head)).
 :- use_module(library(http/html_write)).
 :- use_module(library(amalgame/ag_stats)).
+:- use_module(library(amalgame/map)).
 :- use_module(library(yui3_beta)).
 
 :- use_module(controls).
@@ -15,6 +16,7 @@
 :- use_module(voc).
 :- use_module(eq_util).
 :- use_module(hints).
+
 
 :- use_module(api(skos_concepts)).
 %:- use_module(applications(skos_browser)).
@@ -298,3 +300,49 @@ arity_param_convert('type=1N', 'type=target'):- !.
 arity_param_convert('type=N1', 'type=source'):- !.
 arity_param_convert(X,X):- !.
 
+
+		 /*******************************
+		 *    skos browser hooks	*
+		 *******************************/
+
+cliopatria:concept_property(class, Concept, Class) :-
+	(   is_mapped(Concept)
+	->  Class = mapped
+	;   Class = unmapped
+	).
+cliopatria:concept_property(count, Concept, Count) :-
+	mapped_descendant_count(Concept, Count).
+
+
+mapped_descendant_count(Concept, Count) :-
+	findall(C, descendant_of(Concept, C), Descendants0),
+	sort(Descendants0, Descendants),
+	(   Descendants	= []
+	->  Count = @null
+	;   mapped_chk(Descendants, Mapped),
+	    length(Descendants, Descendant_Count),
+	    length(Mapped, Mapped_Count),
+	    Percentage is round((Mapped_Count/Descendant_Count)*100),
+	    concat_atom([Percentage,'%'], Count)
+	).
+
+descendant_of(Concept, D) :-
+	rdf_reachable(D, skos:broader, Concept),
+	\+ D = Concept.
+descendant_of(Concept, D) :-
+	rdf_reachable(Concept, skos:narrower, D),
+	\+ D = Concept.
+
+
+mapped_chk([], []).
+mapped_chk([C|T], [C|Rest]) :-
+	is_mapped(C),
+	!,
+	mapped_chk(T, Rest).
+mapped_chk([_|T], Rest) :-
+	mapped_chk(T, Rest).
+
+is_mapped(C) :-
+	has_map([C,_], _, _), !.
+is_mapped(C) :-
+	has_map([_,C], _, _), !.

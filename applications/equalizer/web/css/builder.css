@@ -369,7 +369,18 @@ img.explain {
 .evidence .target object {
 }
 
-/* mapping table */
+/* vocabulary browser */
+#vocabularybrowser {
+	height: 100%;
+}
 #vocabularybrowser.hidden {
 	display: none;
+}
+#vocabularybrowser .yui3-columnbrowser {
+	height: 100%;
+	border: none;
+}
+.yui3-columnbrowser .resourcelist-item.mapped .resourcelist-item-value {
+	font-weight: bold;
+	
 }

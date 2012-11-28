@@ -51,7 +51,7 @@ YUI.add('vocabulary', function(Y) {
 			.plug(Plugin.DataSourceJSONSchema, {
 				schema: {
 					resultListLocator: "results",
-					resultFields: ["id", "label", "hasNext", "matches", "scheme"],
+					resultFields: ["id", "label", "hasNext", "count", "class"],
 					metaFields: {
 						totalNumberOfResults:"totalNumberOfResults"
 					}
@@ -62,17 +62,13 @@ YUI.add('vocabulary', function(Y) {
 			this.browser = new Y.mazzle.ColumnBrowser({
 				datasource:DS,
 				autoLoad:false,
+				searchEnabled: false,
 				columns: [
 			    	{   request: fetchConceptsURL,
-						params: {type:'topconcept'},
-						options: [
-					  		{value:'inscheme', label:'all concepts'},
-					  		{value:'topconcept', selected:true, label: 'top concepts'}
-					 	]
+						params: {type:'topconcept'}
 			    	},
 			    	{   request: fetchConceptsURL,
 						params: {type:'child'},
-						options: [],
 						repeat: true
 			    	}
 				]
