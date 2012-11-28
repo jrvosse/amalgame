@@ -93,18 +93,36 @@ YUI.add('builder', function(Y) {
 			this.vocabulary.set("selected", selected);
 		},
 		_initLayout : function() {
+			var oSelf = this,
+				controls = Y.one("#controls"),
+				bottom = Y.one("#bottom"),
+				graph = Y.one("#graph");
+			
+			function windowResize() {
+				var graphWrapper = graph.get("parentNode"),
+					contentHeight = oSelf._contentHeight(),
+					graphHeight = contentHeight - (bottom.get("offsetHeight")+10);
+
+				graph.setStyle("height", graphHeight);
+				graphWrapper.setStyle("height", graphHeight);
+				graph.setStyle("width", "100%");
+				graphWrapper.setStyle("width", "100%");
+				controls.setStyle("height", contentHeight);
+			}
+			
 			// graph node is resizable in height
 			var resize = new Y.Resize({
 		        node: '#graph',
 				handles: 'b',
 				wrap: true
 		    });
-			resize.on("resize", this._onGraphResize, this);
-			resize.on("end", this._onGraphResize, this);
-			Y.on("windowresize", this._onWindowResize, this);
+			resize.after("resize", this._onGraphResize, this);
+			resize.after("end", this._onGraphResize, this);
+			
+			//			
+			Y.on("windowresize", windowResize);
+			windowResize();
 
-			// make controls and, graph-bottom fit in viewport
-			this._onWindowResize();
 		},
 
 		_initGraph : function() {
@@ -157,24 +175,13 @@ YUI.add('builder', function(Y) {
 			return (winHeight - headerHeight - 12);
 		},
 		_onGraphResize : function(e) {
-			// the bottom node needs be update according to the remaining space
+			// the bottom node needs be updated according to the remaining space
 			var bottomHeight = this._contentHeight()-(e.info.offsetHeight+10);
 			Y.one("#bottom").setStyle("height", bottomHeight);
-
 			// resize sets fixed width, but we want a fluid width
 			Y.one("#graph").get("parentNode").setStyle("width", "100%");
 			Y.one("#graph").setStyle("width", "100%");
 		},
-		_onWindowResize : function(e) {
-			var contentHeight = this._contentHeight(),
-				graphHeight = contentHeight - (Y.one("#bottom").get("offsetHeight")+10);
-			Y.one("#graph").get("parentNode").setStyle("height", graphHeight);
-			Y.one("#graph").setStyle("height", graphHeight);
-			Y.one("#graph").get("parentNode").setStyle("width", "100%");
-			Y.one("#graph").setStyle("width", "100%");
-			Y.one("#controls").setStyle("height", contentHeight);
-		},
-
 
 		/* handlers */
 		_onControlSubmit : function(o) {
