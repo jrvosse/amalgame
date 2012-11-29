@@ -140,7 +140,7 @@ YUI.add('vocabulary', function(Y) {
 						var labelNode = currentMappings[uri].one('span');
 						if(labelNode) { labelNode.setContent(label); }
 					} else {
-						currentMappings[uri] = mappingNode.appendChild('<li><input type="checkbox" value="'+uri+'"><span>'+mapping.label+'</span></li>');
+						currentMappings[uri] = mappingNode.appendChild('<li><input type="checkbox" autocomplete="off" value="'+uri+'"><span>'+mapping.label+'</span></li>');
 					}
 				}
 			}
