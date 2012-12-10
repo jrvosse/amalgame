@@ -63,7 +63,7 @@ YUI.add('vocabulary', function(Y) {
 					if(o.get("checked")) {
 						graphs.push(o.get("value"));
 					}	
-				})
+				});
 				oSelf.browser.updateAll({graph:graphs});
 			}, 'input');
 			
@@ -102,10 +102,10 @@ YUI.add('vocabulary', function(Y) {
 				searchEnabled: false,
 				columns: [
 			    	{   request: fetchConceptsURL,
-						params: {type:'topconcept',graph:[alignment]}
+						params: {type:'topconcept'}
 			    	},
 			    	{   request: fetchConceptsURL,
-						params: {type:'child',graph:[alignment]},
+						params: {type:'child'},
 						repeat: true
 			    	}
 				]
@@ -129,15 +129,18 @@ YUI.add('vocabulary', function(Y) {
 			var alignment = this.get("alignment"),
 				mappingNode = this.mappingList,
 				currentMappings = this._currentMappings;
-			
+				
 			function formatMappings(e,o) {
 				var mappings = Y.JSON.parse(o.responseText);
 				for (var i=0; i < mappings.length; i++) {
 					var mapping = mappings[i],
-						uri = mapping['uri'];
-					if(!currentMappings[uri]) {
-						mappingNode.append('<li><input type="checkbox" checked value="'+uri+'"><span>'+mapping.label+'</span></li>');
-						currentMappings[uri] = mapping;
+						uri = mapping['uri'],
+						label = mapping['label'];
+					if(currentMappings[uri]) {
+						var labelNode = currentMappings[uri].one('span');
+						if(labelNode) { labelNode.setContent(label); }
+					} else {
+						currentMappings[uri] = mappingNode.appendChild('<li><input type="checkbox" autocomplete="off" value="'+uri+'"><span>'+mapping.label+'</span></li>');
 					}
 				}
 			}
