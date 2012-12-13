@@ -17,7 +17,7 @@ analyzer(Inputs, Process, Strategy, overlap(Results), _Options) :-
 	maplist(input_expander(Strategy), Inputs, ExpandedInputs),
 	overlap(ExpandedInputs, Overlaps),
 	findall(Id-_Mapping,
-		rdf(Id, opmv:wasGeneratedBy, Process, Strategy),
+		rdf(Id, amalgame:wasGeneratedBy, Process, Strategy),
 		Results),
 	maplist(output_expander(Results, Strategy), Overlaps).
 

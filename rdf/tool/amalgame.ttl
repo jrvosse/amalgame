@@ -7,8 +7,6 @@
 @prefix     skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix     xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-opmv:Process
-    rdfs:subClassOf amalgame:Process .
 amalgame:Process
     rdfs:label "process"@en ;
     skos:definition "Top class for all amalgame processes"@en ;
@@ -62,6 +60,9 @@ amalgame:secondary_input
 	rdfs:domain opmv:Process ;
 	rdfs:range  amalgame:Alignment ;
 	rdfs:subPropertyOf opmv:used .
+
+amalgame:wasGeneratedBy
+	rdfs:subPropertyOf opmv:wasGeneratedBy.
 
 amalgame:selectedBy
 	rdfs:domain  amalgame:Alignment ;
