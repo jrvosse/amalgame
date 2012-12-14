@@ -48,7 +48,7 @@ expand_mapping(Strategy, Id, Mapping) :-
 	(   rdf_graph(Id)
 	;   rdfs_individual_of(Id, amalgame:'EvaluatedMapping')
 	;   rdfs_individual_of(Id, amalgame:'LoadedMapping')
-	;   rdf(Id, amalgame:wasGeneratedBy, Process),
+	;   rdf_has(Id, amalgame:wasGeneratedBy, Process),
 	    rdf(Process, rdf:type, amalgame:'SelectPreloaded')
 	),
 	!,
