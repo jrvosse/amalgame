@@ -36,7 +36,7 @@ evaluation_graph(Strategy, Mapping, EvalGraph) :-
 	rdf_assert(EvalGraph, rdf:type, amalgame:'EvaluatedMapping', Strategy),
 	rdf_assert(EvalGraph, rdfs:label, literal('Evaluation results'), Strategy),
 	rdf_assert(EvalGraph, rdfs:comment, literal(Comment), Strategy),
-	rdf_assert(EvalGraph, opmv:wasGeneratedBy, EvalProcess, Strategy),
+	rdf_assert(EvalGraph, amalgame:wasGeneratedBy, EvalProcess, Strategy),
 	rdf_assert(EvalGraph, amalgame:evaluationOf, Mapping, Strategy),
 	rdf_assert(EvalGraph, amalgame:status, amalgame:intermediate, Strategy),
 
@@ -47,7 +47,7 @@ evaluation_graph(Strategy, Mapping, EvalGraph) :-
 delete_eval_graph_admin(Strategy, Mapping, EvalGraph) :-
 	% Beware, this will delete all metadata about your manual evaluations!
 	rdf(EvalGraph, amalgame:evaluationOf, Mapping, Strategy),
-	rdf(EvalGraph, opmv:wasGeneratedBy, EvalProcess, Strategy),
+	rdf(EvalGraph, amalgame:wasGeneratedBy, EvalProcess, Strategy),
 	!,
 	rdf_retractall(EvalGraph, _, _, Strategy),
 	rdf_retractall(EvalProcess, _, _, Strategy).

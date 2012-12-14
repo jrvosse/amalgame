@@ -149,7 +149,7 @@ empty_result(_Strategy,M) :-
 % and processes resulting in empty evals
 empty_result(Strategy,Process) :-
 	rdfs_individual_of(Process, amalgame:'EvaluationProcess'),
-	rdf(Empty, opmv:wasGeneratedBy, Process, Strategy),
+	rdf(Empty, amalgame:wasGeneratedBy, Process, Strategy),
 	empty_result(Strategy, Empty).
 
 

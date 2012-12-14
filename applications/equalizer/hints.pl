@@ -275,7 +275,7 @@ is_endpoint(Strategy, Mapping) :-
 	rdf(Mapping, rdf:type, amalgame:'Mapping', Strategy),
 	forall(rdf(Process, amalgame:input, Mapping, Strategy),
 	       (   rdfs_individual_of(Process,amalgame:'EvaluationProcess'),
-		   rdf(EvalResults, opmv:wasGeneratedBy, Process, Strategy),
+		   rdf(EvalResults, amalgame:wasGeneratedBy, Process, Strategy),
 		   \+ rdf_graph(EvalResults)
 	       )
 	      ).
@@ -286,7 +286,7 @@ is_endpoint(Strategy, Mapping) :-
 %	type Type.
 %
 is_result_of_process_type(Mapping, Type) :-
-	rdf_has(Mapping, opmv:wasGeneratedBy, Process),
+	rdf_has(Mapping, amalgame:wasGeneratedBy, Process),
 	rdfs_individual_of(Process, Type).
 
 

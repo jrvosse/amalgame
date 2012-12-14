@@ -33,7 +33,7 @@ select_result_mapping(_Id, select(Selected, Discarded, Undecided), OutputType, M
 
 select_result_mapping(Id, overlap(List), P, Mapping) :-
 	!,
-	rdf_equal(opmv:wasGeneratedBy, P),
+	rdf_equal(amalgame:wasGeneratedBy, P),
 	(   member(Id-Mapping, List)
 	->  true
 	;   Mapping=[]
@@ -41,7 +41,7 @@ select_result_mapping(Id, overlap(List), P, Mapping) :-
 
 select_result_mapping(_Id, Mapping, P, Mapping) :-
 	is_list(Mapping),
-	rdf_equal(opmv:wasGeneratedBy, P).
+	rdf_equal(amalgame:wasGeneratedBy, P).
 
 %%	exec_amalgame_process(+Type,+Process,+Strategy,+Module,-Result,-Time,+Options)
 %
@@ -72,7 +72,7 @@ exec_amalgame_process(Type, Process, Strategy, Module, Mapping, Time, Options) :
 
 exec_amalgame_process(Class, Process, Strategy, Module, Result, Time, Options) :-
 	rdfs_subclass_of(Class, amalgame:'VocExclude'),
-	rdf(NewVocab, opmv:wasGeneratedBy, Process, Strategy),
+	rdf(NewVocab, amalgame:wasGeneratedBy, Process, Strategy),
 	NewVocOption = new_scheme(NewVocab),
 	!,
 	once(rdf(Process, amalgame:input, Input, Strategy)),

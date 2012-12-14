@@ -86,7 +86,7 @@ cache_result_stats(Process, Strategy, SchemeSpec) :-
 	(   SchemeSpec = scheme(Id)
 	->  true
 	;   SchemeSpec = and(_,_)
-	->  rdf(Id, opmv:wasGeneratedBy, Process, Strategy)
+	->  rdf(Id, amalgame:wasGeneratedBy, Process, Strategy)
 	;   fail
 	),
 	!,
@@ -95,7 +95,7 @@ cache_result_stats(Process, Strategy, SchemeSpec) :-
 	assert(stats_cache(Id-Strategy, stats(Count))).
 
 cache_result_stats(Process, Strategy, Result) :-
-	rdf(D, opmv:wasGeneratedBy, Process, Strategy),
+	rdf(D, amalgame:wasGeneratedBy, Process, Strategy),
 	!,
 	flush_stats_cache(D, Strategy),
 	mapping_stats(D, Result, Strategy, Dstats),
@@ -177,7 +177,7 @@ del_materialized_vocs :-
 	findall(Voc,
 		(   rdfs_individual_of(Voc, skos:'ConceptScheme'),
 		    rdf_graph(Voc),
-		    rdf_has(Voc, opmv:wasGeneratedBy, _)
+		    rdf_has(Voc, amalgame:wasGeneratedBy, _)
 		), Vocs),
 	forall(member(V, Vocs),
 	       (   catch(rdf_unload(V), _, true),
@@ -192,7 +192,7 @@ del_materialized_vocs :-
 flush_dependent_caches(Process, Strategy, ProvGraph) :-
 	flush_expand_cache(Process, Strategy),
 	findall(Result,
-		(   rdf_has(Result, opmv:wasGeneratedBy, Process, RP),
+		(   rdf_has(Result, amalgame:wasGeneratedBy, Process, RP),
 		    rdf(Result, RP, Process, Strategy)
 		), Results),
 	forall(member(Result, Results),
