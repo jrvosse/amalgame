@@ -95,7 +95,8 @@ cache_result_stats(Process, Strategy, SchemeSpec) :-
 	assert(stats_cache(Id-Strategy, stats(Count))).
 
 cache_result_stats(Process, Strategy, Result) :-
-	rdf(D, amalgame:wasGeneratedBy, Process, Strategy),
+	rdf_has(D, amalgame:wasGeneratedBy, Process, RP),
+	rdf(D, RP, Process, Strategy),
 	!,
 	flush_stats_cache(D, Strategy),
 	mapping_stats(D, Result, Strategy, Dstats),
