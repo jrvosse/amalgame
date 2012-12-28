@@ -2,7 +2,6 @@
 	  []).
 
 :- use_module(library(semweb/rdf_db)).
-:- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_litindex)).
 :- use_module(library(amalgame/vocabulary)).
 :- use_module(library(skos/vocabularies)).
@@ -65,7 +64,7 @@ align(Source, TargetScheme, Match, Options) :-
 	vocab_member(S, Source),
 	match(align(S,TargetScheme,[]), Match, Options).
 
-match(align(Source, TargetScheme, []), Results, Options) :-
+match(align(Source, TargetScheme, Prov0), Results, Options) :-
 	rdf_equal(rdfs:label, RdfsLabel),
 	option(sourcelabel(MatchProp1), Options, RdfsLabel),
 	option(language(Lang), Options, 'any'),
@@ -97,22 +96,22 @@ match(align(Source, TargetScheme, []), Results, Options) :-
 	NrMatched > 0,
 	Match is NrMatched/TokenLength,
 	format(atom(Score), 'Matched ~w out of ~w parts', [NrMatched, TokenLength]),
-	create_results(Targets, Source, Prov, Results).
+	create_results(Targets, Source, Prov0, Prov, Results).
 
-create_results([], _, _, []).
-create_results([Targets|Tail], Source, OverallProv, Results):-
-	create_result_list(Targets, Source, OverallProv, Results0),
-	create_results(Tail, Source, OverallProv, Results1),
+create_results([], _, _, _, []).
+create_results([Targets|Tail], Source, OldProv, MatchProv, Results):-
+	create_result_list(Targets, Source, OldProv, MatchProv, Results0),
+	create_results(Tail, Source, OldProv, MatchProv, Results1),
 	append(Results0, Results1, Results).
 
-create_result_list([]-_-_, _, _, []).
-create_result_list([T-TProv|Tail]-L-Count, Source, OverallProv, [A|Results]):-
-	create_result(T-L-TProv-Count, Source, OverallProv, A),
-	create_result_list(Tail-L-Count, Source, OverallProv, Results).
+create_result_list([]-_-_, _, _, _, []).
+create_result_list([T-TProv|Tail]-L-Count, Source, OldProv, MatchProv, [A|Results]):-
+	create_result(T-L-TProv-Count, Source, OldProv, MatchProv, A),
+	create_result_list(Tail-L-Count, Source, OldProv, MatchProv, Results).
 
-create_result(Target-L-TargetProvGraph-Count, Source, OverallProv,
-	      align(Source, Target, [token(L),token_ambiguity(Count),graph(ProvGraph)|Rest])) :-
-	select_option(graph(Graph), OverallProv, Rest),
+create_result(Target-L-TargetProvGraph-Count, Source, OldProv, MatchProv,
+	      align(Source, Target, [[token(L),token_ambiguity(Count),graph(ProvGraph)|Rest]|OldProv])) :-
+	select_option(graph(Graph), MatchProv, Rest),
 	append(Graph, TargetProvGraph, ProvGraph).
 
 match_label(Source, Label, Targets, Options) :-
@@ -147,6 +146,3 @@ match_label(Source, Label, Targets, Options) :-
 		),
 		Targets),
 	Targets \= [].
-
-
-
