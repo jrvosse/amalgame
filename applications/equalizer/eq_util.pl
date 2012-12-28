@@ -85,7 +85,7 @@ assert_user_provenance(R, Graph) :-
 	logged_on(User),
 	user_property(User, url(Agent)),
 	(   user_property(User, realname(Realname))
-	->  rdf_assert(Agent, rdfs:label, literal(Realname))
+	->  rdf_assert(Agent, rdfs:label, literal(Realname), Graph)
 	),
 	now_xsd(Time),
 	rdf_assert(R, dcterms:creator, Agent, Graph),
