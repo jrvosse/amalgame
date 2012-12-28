@@ -34,6 +34,7 @@ eq:menu_item(200=http_eq_build, 'build').
 
 
 backward_compatibilty_fixes(Strategy) :-
+	fix_opmv_ns(Strategy),
 	fix_sec_inputs(Strategy),
 	fix_arity_params(Strategy),
 	fix_publish_ns(Strategy),
@@ -281,6 +282,16 @@ fix_sec_inputs(Strategy) :-
 	forall(member(rdf(S,P,O), Triples),
 	       (   rdf_retractall(S,P,O,Strategy),
 		   rdf_assert(S,amalgame:secondary_input, O, Strategy)
+	       )
+	      ).
+fix_opmv_ns(Strategy) :- % backward compatibility
+	rdf_equal(opmv:wasGeneratedBy, OldProp),
+	findall(rdf(S,OldProp,O),
+		rdf(S, OldProp, O, Strategy),
+		Triples),
+	forall(member(rdf(S,P,O), Triples),
+	       (   rdf_retractall(S,P,O,Strategy),
+		   rdf_assert(S,amalgame:wasGeneratedBy, O, Strategy)
 	       )
 	      ).
 
