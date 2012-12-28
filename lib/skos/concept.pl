@@ -8,7 +8,7 @@
 assert_concept_stats(Voc, Graph) :-
 	ground(Voc),
 	ground(Graph),
-	(   rdf_graph(Graph) -> rdf_unload(Graph); true),
+	(   rdf_graph(Graph) -> rdf_unload_graph(Graph); true),
 	topconcepts(Voc, TopConcepts),
 	forall(member(Top, TopConcepts),
 	       assert_subtree_stats(Top, [graph(Graph)], _Stats)

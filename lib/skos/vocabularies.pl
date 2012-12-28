@@ -110,7 +110,7 @@ voc_get_computed_props(Voc, Props) :-
 
 voc_clear_stats(all) :-
 	(   rdf_graph(amalgame_vocs)
-	->  rdf_unload(amalgame_vocs),
+	->  rdf_unload_graph(amalgame_vocs),
 	    print_message(informational, map(cleared, 'vocabulary statistics', amalgame_vocs, all))
 	;   true
 	).
@@ -123,7 +123,7 @@ voc_clear_stats(Graph) :-
 voc_delete_derived :-
 	findall(Voc, rdf(Voc, rdf:type, amalgame:'DerivedConceptScheme'), Derived),
 	forall(member(Voc, Derived),
-	       ( rdf_unload(Voc),
+	       ( rdf_unload_graph(Voc),
 		 print_message(informational, map(cleared, 'vocabulary', Voc, 1))
 	       )
 	      ).
@@ -369,7 +369,7 @@ make_subvoc(Voc, SubVoc, PortrayURI) :-
 	rdf_display_label(Voc,  VocL),
 	format(atom(SubVocLabel), '~w (~p)', [VocL, PortrayURI]),
 
-	(   rdf_graph(SubVoc) -> rdf_unload(SubVoc); true),
+	(   rdf_graph(SubVoc) -> rdf_unload_graph(SubVoc); true),
 
 	rdf_assert(SubVoc, rdfs:label, literal(SubVocLabel), SubVoc),
 	rdf_assert(SubVoc, rdf:type, amalgame:'NoAlignmentGraph', SubVoc),

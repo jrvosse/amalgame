@@ -345,7 +345,7 @@ materialize_mapping_graph(Input, Options) :-
         option(graph(Graph), Options, test),
 
         (   rdf_graph(Graph)
-        ->  rdf_unload(Graph)
+        ->  rdf_unload_graph(Graph)
         ;   true
         ),
         (   memberchk(align(_,_,_), Input)

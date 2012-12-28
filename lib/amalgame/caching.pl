@@ -119,7 +119,7 @@ clean_repository :-
 	findall(G, is_amalgame_graph(G), Gs),
 	forall(member(G, Gs),
 	       (   debug(ag_expand, 'Deleting named graph ~p', [G]),
-		   rdf_unload(G)
+		   rdf_unload_graph(G)
 	       )
 	      ).
 
@@ -147,7 +147,7 @@ flush_expand_cache :-
 flush_expand_cache(Id, Strategy) :-
 	(   expand_cache(Id-Strategy, _) % make sure Id is bounded to something in the cache
 	->  retractall(expand_cache(Id-Strategy, _)),
-	    catch(rdf_unload(Id), _, true),
+	    catch(rdf_unload_graph(Id), _, true),
 	    debug(ag_expand, 'flush cache and unloading graph for ~p', [Id])
 	;   true
 	).
@@ -155,7 +155,7 @@ flush_expand_cache(Id, Strategy) :-
 del_prov_graphs :-
 	findall(P,provenance_graph(_,P), ProvGraphs),
 	forall(member(P, ProvGraphs),
-	       (   catch(rdf_unload(P), _, true),
+	       (   catch(rdf_unload_graph(P), _, true),
 		   debug(ag_expand, 'Deleting provenance graph ~w', [P])
 	       )
 	      ).
@@ -168,7 +168,7 @@ del_materialized_mappings :-
 		     rdf_graph(Id)
 		    ), Finals),
 	forall(member(F, Finals),
-	       (   catch(rdf_unload(F), _, true),
+	       (   catch(rdf_unload_graph(F), _, true),
 		   debug(ag_expand, 'Deleting final result graph ~w', [F])
 	       )
 	      ).
@@ -180,7 +180,7 @@ del_materialized_vocs :-
 		    rdf_has(Voc, opmv:wasGeneratedBy, _)
 		), Vocs),
 	forall(member(V, Vocs),
-	       (   catch(rdf_unload(V), _, true),
+	       (   catch(rdf_unload_graph(V), _, true),
 		   voc_clear_stats(V),
 		   debug(ag_expand, 'Deleting materialized vocab graph ~w', [V])
 	       )

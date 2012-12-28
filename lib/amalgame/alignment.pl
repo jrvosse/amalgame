@@ -185,12 +185,12 @@ align_ensure_stats(mapped(Graph)) :-
 align_clear_stats(all) :-
 	print_message(informational, map(cleared, statistics, 1, amalgame)),
 	(   rdf_graph(amalgame)
-	->  rdf_unload(amalgame)
+	->  rdf_unload_graph(amalgame)
 	;   true
 	),
 	print_message(informational, map(cleared, nicknames, 1, amalgame)),
 	(   rdf_graph(amalgame_nicknames)
-	->  rdf_unload(amalgame_nicknames)
+	->  rdf_unload_graph(amalgame_nicknames)
 	;   true
 	).
 
@@ -338,7 +338,7 @@ reassert(Request, [Map:Options|Tail], OldGraph, Condition, Accum, Results) :-
 	(   memberchk(NewGraph, Accum)
 	->  NewAccum = Accum
 	;   NewAccum = [NewGraph|Accum],
-	    (	rdf_graph(NewGraph) -> rdf_unload(NewGraph); true),
+	    (	rdf_graph(NewGraph) -> rdf_unload_graph(NewGraph); true),
 
 	    rdf_assert(NewGraph, rdf:type, amalgame:'PartitionedAlignment', NewGraph),
 	    rdf_assert(OldGraph, void:subset, NewGraph, NewGraph),

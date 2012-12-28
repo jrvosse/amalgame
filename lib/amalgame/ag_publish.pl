@@ -13,7 +13,7 @@
 save_mappings(Strategy, Dir, Options) :-
 	provenance_graph(Strategy, ProvGraph),
 	void_graph(Strategy, VoidGraph),
-	(   rdf_graph(VoidGraph) -> rdf_unload(VoidGraph); true),
+	(   rdf_graph(VoidGraph) -> rdf_unload_graph(VoidGraph); true),
 
 	make_new_directory(Dir),
 	file_base_name(Strategy, StrategyB),
@@ -31,7 +31,7 @@ save_mappings(Strategy, Dir, Options) :-
 	rdf_save_turtle(StratFile, [graph(Strategy)|Options]),
 	rdf_save_turtle(ProvFile,  [graph(ProvGraph)|Options]),
 	rdf_save_turtle(VoidFile,  [graph(VoidGraph)|Options]),
-	rdf_unload(VoidGraph).
+	rdf_unload_graph(VoidGraph).
 
 void_graph(Strategy, VoidGraph) :-
 	ground(Strategy),
@@ -120,7 +120,7 @@ save_flat_triples(Filename, Id, Options) :-
 	atomic_concat(Id, '_flat_triples', SimpleGraph),
 	edoal_to_triples(Id, SimpleGraph, Options),
 	rdf_save_turtle(Filename, [graph(SimpleGraph)|Options]),
-	rdf_unload(SimpleGraph).
+	rdf_unload_graph(SimpleGraph).
 
 assert_metadata(Id, Strategy, Graph) :-
 	findall(rdf(Id,P,O),

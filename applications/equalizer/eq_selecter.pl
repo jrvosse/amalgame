@@ -381,12 +381,12 @@ http_eq_upload_data(Request) :-
 			     free_memory_file(MemFile)
 			   )),
 	rdf(Strategy, rdf:type, amalgame:'AlignmentStrategy', TmpGraph),!,
-	rdf_unload(Strategy), % Delete old strategies under the same name
+	rdf_unload_graph(Strategy), % Delete old strategies under the same name
 
 	% Copy entire strategy graph to keep original named graph:
 	findall(rdf(S,P,O), rdf(S,P,O,TmpGraph), Triples),
 	forall(member(rdf(S,P,O), Triples), rdf_assert(S,P,O,Strategy)),
-	rdf_unload(TmpGraph),
+	rdf_unload_graph(TmpGraph),
 	build_redirect(Request, Strategy).
 
 http_eq_upload_url(Request) :-
