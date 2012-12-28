@@ -117,8 +117,11 @@ do_expand_process(Strategy, Process, Result, Time) :-
 	process_options(Process, Module, Options),
 	exec_amalgame_process(Type, Process, Strategy,
 			      Module, Result, Time, Options),
-	debug(ag_expand, 'Output of process ~p (~p) computed in ~ws',
-	      [Process,Type,Time]),
+	(   ground(Result)
+	->  debug(ag_expand, 'Output of process ~p (~p) computed in ~ws', [Process,Type,Time])
+	;   throw(error(expand_process/4, 'Mappings results not grounded'))
+	),
+
 
 	% Provenance admin:
 	(   Result = scheme(_)   % Result is a single vocabulary
