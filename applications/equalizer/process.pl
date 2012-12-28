@@ -90,11 +90,11 @@ update_process(Process, Graph, Params) :-
 			)).
 
 is_dependent_chk(Mapping, Process, Strategy) :-
-	rdf_has(Mapping, opmv:wasGeneratedBy, Process, RP),
+	rdf_has(Mapping, amalgame:wasGeneratedBy, Process, RP),
 	rdf(Mapping, RP, Process, Strategy),
 	!.
 is_dependent_chk(Mapping, Process, Strategy) :-
-	rdf_has(Mapping, opmv:wasGeneratedBy, OtherProcess, RP1),
+	rdf_has(Mapping, amalgame:wasGeneratedBy, OtherProcess, RP1),
 	rdf(Mapping, RP1, OtherProcess, Strategy),
 	rdf_has(OtherProcess, opmv:used, OtherMapping, RP2),
 	rdf(OtherProcess, RP2, OtherMapping, Strategy),
@@ -125,7 +125,7 @@ new_process(Type, Alignment, Source, Target, Input, SecInputs, Params, Focus) :-
 	;   true).
 
 precompute(Process, Alignment) :-
-	rdf_has(Output, opmv:wasGeneratedBy, Process, RP),
+	rdf_has(Output, amalgame:wasGeneratedBy, Process, RP),
 	rdf(Output, RP, Process, Alignment),
 	thread_create( % Write debug output to server console, cannot write to client:
 	    (	set_stream(user_output, alias(current_output)),
@@ -180,7 +180,7 @@ assert_output(Process, Type, Strategy, Input, SecInputs, Strategy) :-
 	oset_power(SecInputs, [[]|PowSet]),
 	forall(member(InSet0, PowSet),
 	       (   sort(InSet0, InSet),
-		   new_output(OutputClass, Process, opmv:wasGeneratedBy, Input, Strategy, OutputUri),
+		   new_output(OutputClass, Process, amalgame:wasGeneratedBy, Input, Strategy, OutputUri),
 		   findall(Nick,
 			   (	member(Id, InSet),
 				nickname(Strategy,Id,Nick)
@@ -198,7 +198,7 @@ assert_output(Process, Type, Strategy, Input, SecInputs, Strategy) :-
 
 assert_output(Process, Type, Graph, Input, _, MainOutput) :-
 	output_type(Type, OutputClass),
-	new_output(OutputClass, Process, opmv:wasGeneratedBy, Input, Graph, MainOutput).
+	new_output(OutputClass, Process, amalgame:wasGeneratedBy, Input, Graph, MainOutput).
 
 new_output(Type, Process, P, Input, Strategy, OutputURI) :-
 	rdf(Strategy, amalgame:publish_ns, NS),
@@ -361,8 +361,8 @@ node_retract(URI, Strategy) :-
 	       node_retract(Subj, Strategy)).
 
 process_retract(URI, Strategy) :-
-	rdf_has(URI, opmv:wasGeneratedBy, P),
-	findall(S, rdf_has(S, opmv:wasGeneratedBy, P), [URI]),
+	rdf_has(URI, amalgame:wasGeneratedBy, P),
+	findall(S, rdf_has(S, amalgame:wasGeneratedBy, P), [URI]),
 	provenance_graph(Strategy, ProvGraph),
 	!,
 	rdf_retractall(P, _, _, Strategy),

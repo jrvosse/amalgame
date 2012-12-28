@@ -20,12 +20,12 @@ save_mappings(Strategy, Dir, Options) :-
 	file_base_name(ProvGraph, ProvGraphB),
 	absolute_file_name(StrategyB,  StratFile, [relative_to(Dir), extensions([ttl])]),
 	absolute_file_name(ProvGraphB, ProvFile,  [relative_to(Dir), extensions([ttl])]),
-	absolute_file_name(void,      VoidFile,  [relative_to(Dir), extensions([ttl])]),
+	absolute_file_name(void,       VoidFile,  [relative_to(Dir), extensions([ttl])]),
 
 	select_mappings_to_be_saved(Strategy, Mappings, Options),
 	forall(member(Mapping, Mappings),
-	       (   assert_void(Mapping, Strategy, ProvGraph),
-		   save_mapping(Mapping, Strategy, [dir(Dir)|Options]))
+	       save_mapping(Mapping, Strategy, [dir(Dir),
+						prov(ProvGraph)|Options])
 	      ),
 
 	rdf_save_turtle(StratFile, [graph(Strategy)|Options]),
@@ -48,8 +48,6 @@ make_new_directory(D) :-
 	make_directory(D).
 
 add_relation_where_needed(Mapping, Default) :-
-	rdf_graph(Mapping),
-
 	findall(Cell, (
 		      rdf(Mapping, align:map, Cell, Mapping),
 		      \+ rdf(Cell, align:relation, _, Mapping)
@@ -92,28 +90,41 @@ default_mapping_relation(Id, Default, Options) :-
 	;   option(default_relation(Default), Options)
 	).
 
-save_mapping(Id, Strategy, Options) :-
-	default_mapping_relation(Id, Default, Options),
+%%	prepare_mapping(Id, Strategy, Options)
+%
+%	materialize mapping Id if not materialized.
+
+prepare_mapping(Id, Strategy, Options) :-
 	(   \+ rdf_graph(Id)
 	->  expand_node(Strategy, Id, Mapping),
+	    Mapping = [_|_],
+	    default_mapping_relation(Id, Default, Options),
 	    materialize_mapping_graph(Mapping, [graph(Id), default_relation(Default)|Options])
 	;   true
-	),
-	add_relation_where_needed(Id, Default),
+	).
 
-	file_base_name(Id, Base),
-	option(dir(Dir), Options, tmpdir),
-	atomic_concat(edoal_, Base, EdoalBase),
-	absolute_file_name(Base,       Filename, [relative_to(Dir), extensions([ttl])]),
-	absolute_file_name(EdoalBase, EdoalName, [relative_to(Dir), extensions([ttl])]),
+save_mapping(Id, Strategy, Options) :-
+	(   prepare_mapping(Id, Strategy, Options)
+	->  option(prov(ProvGraph), Options),
+	    default_mapping_relation(Id, Default, Options),
+	    assert_void(Id, Strategy, ProvGraph),
+	    add_relation_where_needed(Id, Default),
 
-	(   option(format(edoal), Options)
-	->  rdf_save_turtle(EdoalName, [graph(Id)|Options])
-	;   option(format(both), Options)
-	->  rdf_save_turtle(EdoalName, [graph(Id)|Options]),
-	    save_flat_triples(Filename, Id, Options)
-	;   option(format(single), Options)
-	->  save_flat_triples(Filename, Id, Options)
+	    file_base_name(Id, Base),
+	    option(dir(Dir), Options, tmpdir),
+	    atomic_concat(edoal_, Base, EdoalBase),
+	    absolute_file_name(Base,       Filename, [relative_to(Dir), extensions([ttl])]),
+	    absolute_file_name(EdoalBase, EdoalName, [relative_to(Dir), extensions([ttl])]),
+
+	    (   option(format(edoal), Options)
+	    ->  rdf_save_turtle(EdoalName, [graph(Id)|Options])
+	    ;   option(format(both), Options)
+	    ->  rdf_save_turtle(EdoalName, [graph(Id)|Options]),
+		save_flat_triples(Filename, Id, Options)
+	    ;   option(format(single), Options)
+	    ->  save_flat_triples(Filename, Id, Options)
+	    )
+	;   true % probably an empty evaluation graph, no need to save it
 	).
 
 save_flat_triples(Filename, Id, Options) :-

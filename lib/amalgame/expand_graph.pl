@@ -49,7 +49,7 @@ expand_mapping(Strategy, Id, Mapping) :-
 	    % properly serialized ... :-(
 	    rdfs_individual_of(Id, amalgame:'EvaluatedMapping')
 	;   rdfs_individual_of(Id, amalgame:'LoadedMapping')
-	;   rdf(Id, opmv:wasGeneratedBy, Process),
+	;   rdf_has(Id, amalgame:wasGeneratedBy, Process),
 	    rdf(Process, rdf:type, amalgame:'SelectPreloaded')
 	),
 	!,
@@ -60,7 +60,7 @@ expand_mapping(Strategy, Id, Mapping) :-
 
 
 expand_mapping(Strategy, Id, Mapping) :-
-	rdf_has(Id, opmv:wasGeneratedBy, Process, OutputType),
+	rdf_has(Id, amalgame:wasGeneratedBy, Process, OutputType),
 	rdf(Id, OutputType, Process, Strategy),
 	!,
 	with_mutex(Process,
@@ -80,7 +80,7 @@ expand_mapping(Strategy, Id, Mapping) :-
 %	of concepts derived by a vocabulary process,
 
 expand_vocab(Strategy, Id, Vocab) :-
-	rdf_has(Id, opmv:wasGeneratedBy, Process ,OutputType),
+	rdf_has(Id, amalgame:wasGeneratedBy, Process ,OutputType),
 	rdf(Id, OutputType, Process, Strategy),
 	!,
 	with_mutex(Process,
@@ -124,7 +124,7 @@ do_expand_process(Strategy, Process, Result, Time) :-
 	(   Result = scheme(_)   % Result is a single vocabulary
 	->  add_amalgame_opm(Strategy, Process, Result)
 	;   findall(URI-Mapping, % Result is one or more mappings
-		    (   rdf_has(URI, opmv:wasGeneratedBy, Process, OutputType),
+		    (   rdf_has(URI, amalgame:wasGeneratedBy, Process, OutputType),
 			rdf(URI, OutputType, Process, Strategy),
 			select_result_mapping(URI, Result, OutputType, Mapping)
 		    ),
@@ -149,7 +149,7 @@ do_expand_process(Strategy, Process, Result, Time) :-
 
 materialize_results_if_needed(Strategy, Process, Results) :-
 	findall(Id-RP,
-		(   rdf_has(Id, opmv:wasGeneratedBy, Process, RP),
+		(   rdf_has(Id, amalgame:wasGeneratedBy, Process, RP),
 		    rdf(Id, RP, Process, Strategy)
 		),
 		Ids),

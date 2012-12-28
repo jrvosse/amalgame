@@ -61,6 +61,9 @@ amalgame:secondary_input
 	rdfs:range  amalgame:Alignment ;
 	rdfs:subPropertyOf opmv:used .
 
+amalgame:wasGeneratedBy rdfs:subPropertyOf opmv:wasGeneratedBy.
+opmv:wasGeneratedBy rdfs:subPropertyOf amalgame:wasGeneratedBy.
+
 amalgame:selectedBy
 	rdfs:domain  amalgame:Alignment ;
 	rdfs:range opmv:Process ;

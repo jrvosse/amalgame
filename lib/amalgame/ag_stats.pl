@@ -91,7 +91,7 @@ dyn_perc_round(P0, P, N) :-
 %	vocabularies of Mapping.
 
 mapping_sources(URL, Strategy, S, T) :-
-	rdf_has(URL, opmv:wasGeneratedBy, Process, RealProp),
+	rdf_has(URL, amalgame:wasGeneratedBy, Process, RealProp),
 	rdf(URL, RealProp, Process, Strategy),
 	!,
 	(   rdf(Process, amalgame:source, S0, Strategy),
@@ -103,7 +103,7 @@ mapping_sources(URL, Strategy, S, T) :-
 	).
 
 vocab_source(V, Strategy, S) :-
-	rdf_has(V, opmv:wasGeneratedBy, Process, Strategy),
+	rdf_has(V, amalgame:wasGeneratedBy, Process, Strategy),
 	rdf_has(Process, amalgame:input, Input, Strategy),
 	!,
 	vocab_source(Input, Strategy, S).
