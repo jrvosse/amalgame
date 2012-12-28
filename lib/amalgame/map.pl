@@ -126,7 +126,7 @@ supported_map_relations(List) :-
 		),
 		List).
 
-%%	map_iterator(-Map) is non_det.
+%%	map_iterator(-Map) is nondet.
 %
 %	Iterates over all maps in the triple store. Map is currently of the
 %	form [C1, C2], simply meaning there is a mapping from C1 to C2.
@@ -140,7 +140,7 @@ supported_map_relations(List) :-
 map_iterator([E1,E2]) :-
 	has_map([E1, E2], _, _).
 
-%%	map_iterator(-Map, +GraphList) is non_det.
+%%	map_iterator(-Map, +GraphList) is nondet.
 %
 %	iterates over all maps that are present in provided mapping
 %	graphs.
@@ -151,8 +151,8 @@ map_iterator([E1,E2], GraphList) :-
 
 
 
-%%	has_map(+Map, ?Format, ?Properties, -Graph) is non_det.
-%%%	has_map(+Map, ?Format, -Graph) is non_det.
+%%	has_map(+Map, ?Format, ?Properties, -Graph) is nondet.
+%%%	has_map(+Map, ?Format, -Graph) is nondet.
 %
 %	Intended to be used to find graphs that contain Map, and in what
 %	Format. Map can be stored in the triple store in several
