@@ -140,7 +140,6 @@ yui_script(Alignment, Mapping) -->
 %
 %	YUI3 and application specific modules used in javascript.
 
-js_module(gallery, 'gallery-2011.02.23-19-01').
 js_module(analyser, json([fullpath(Path),
 			   requires([node,event,'json-parse', 'io-base',
 				     'datasource-io','datasource-jsonschema',

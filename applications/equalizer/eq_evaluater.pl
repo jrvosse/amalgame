@@ -128,7 +128,9 @@ yui_script(Alignment, Mapping) -->
 	  pairs_keys(Modules, Includes),
 	  js_mappings(Alignment, Mappings)
 	},
-	yui3([json([modules(json(Modules))])
+	yui3([json([
+		gallery('gallery-2011.02.23-19-01'),
+		modules(json(Modules))])
 	     ],
 	     Includes,
 	     [ \yui3_new(eq, 'Y.Evaluater',
@@ -156,7 +158,6 @@ js_path(info, Path) :-
 %
 %	YUI3 and application specific modules used in javascript.
 
-js_module(gallery, 'gallery-2011.02.23-19-01').
 js_module(evaluater, json([fullpath(Path),
 			   requires([node,event,anim,
 				     'overlay','json-parse','io-base',

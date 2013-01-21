@@ -165,7 +165,8 @@ yui_script(Alignment, Focus) -->
 	  ;   Read_only = true
 	  )
 	},
-	yui3([json([modules(json(Modules))])
+	yui3([json([
+		modules(json(Modules))])
 	     ],
 	     Includes,
 	     [ \yui3_new(eq, 'Y.Builder',
@@ -210,7 +211,6 @@ js_path(mappinglist, Path) :-
 %
 %	YUI3 and application specific modules used in javascript.
 
-js_module(gallery, 'gallery-2011.02.23-19-01').
 js_module(builder, json([fullpath(Path),
 			   requires([node,event,
 				     'json-parse', 'overlay','resize',
@@ -245,6 +245,7 @@ js_module(mapping, json([fullpath(Path),
 js_module(mappingtable, json([fullpath(Path),
 			      requires([node,event,
 					'datasource-jsonschema',
+					'model-list', model, 
 					'gallery-paginator',
 					datatable,'datatable-sort'])
 			     ])) :-

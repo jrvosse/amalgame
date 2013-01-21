@@ -302,7 +302,9 @@ yui_script -->
 	{ findall(M-C, js_module(M,C), Modules),
 	  pairs_keys(Modules, Includes)
 	},
-	yui3([json([modules(json(Modules))])
+	yui3([json([
+		gallery('gallery-2012.09.12-20-02'),
+		modules(json(Modules))])
 	     ],
 	     Includes,
 	     [ \yui3_new(eq, 'Y.Selecter', [])
@@ -313,7 +315,6 @@ yui_script -->
 %
 %	YUI3 and application specific modules used in javascript.
 
-js_module(gallery, 'gallery-2011.02.23-19-01').
 js_module(selecter, json([fullpath(Path),
 				    requires([node,base,event,anim,
 					      'gallery-node-accordion'])
