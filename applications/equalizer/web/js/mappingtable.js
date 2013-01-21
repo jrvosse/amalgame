@@ -47,20 +47,22 @@ YUI.add('mappingtable', function(Y) {
 				'<div class="loading"></div>'
 			));
 				
-			this.table = new Y.DataTable.Base({
-				columnset:[{key:"source",
+			this.table = new Y.DataTable({
+				columns:[{key:"source",
 					       formatter:this.formatResource,
+				 	       allowHTML: true,
 					       sortable:true
 					      },
 					      {key:"relation",
 					       formatter:this.formatRelation,
+				 	       allowHTML: true,
 					       sortable:true
 					      },
 					      {key:"target",
 					       formatter:this.formatResource,
+				 	       allowHTML: true,
 					       sortable:true
-					      }],
-				plugins: [ Y.Plugin.DataTableSort ]
+					      }]
 			})
 			.render(this._tableNode);
 
@@ -103,7 +105,7 @@ YUI.add('mappingtable', function(Y) {
 						paginator.setPage(1, true);
 						paginator.setTotalRecords(total, true);
 					}
-					table.set("recordset", records);
+					table.set("data", records);
 					oSelf.set("loading", false);
 				}
 			};
@@ -119,7 +121,7 @@ YUI.add('mappingtable', function(Y) {
 				})
 			} else {
 				paginator.setTotalRecords(0, true);
-				table.set("recordset", []);
+				table.set("data", []);
 			}
 		},
 
@@ -134,17 +136,16 @@ YUI.add('mappingtable', function(Y) {
 		},
 
 		_onRowSelect : function(e) {
-			var row = e.currentTarget,
-				records = this.table.get("recordset"),
-				current = records.getRecord( e.currentTarget.get("id")),
-				source = current.getValue("source"),
-				target = current.getValue("target");
+			var row = e.currentTarget;
+				current = this.table.getRecord(e.target);
+				source = current.get("source");
+				target = current.get("target");
 				
 			var data = {
 					row:row,
 					sourceConcept: source,
 					targetConcept: target,
-					relation:current.getValue("relation")
+					relation:current.get("relation")
 				};
 			Y.all(".yui3-datatable tr").removeClass("yui3-datatable-selected");
 			row.addClass("yui3-datatable-selected");
@@ -177,14 +178,12 @@ YUI.add('mappingtable', function(Y) {
 			    }
 			  },
 		nextRecord : function(row) {
-			       var next = this.nextRow(row),
-			         records = this.table.get("recordset");
-			         return records.getRecord(next.get("id"));
+			       var next = this.nextRow(row);
+			       return id = this.table.getRecord(next.get("id"));
 			     },
 		prevRecord : function(row) {
-			       var prev = this.prevRow(row),
-			         records = this.table.get("recordset");
-			         return records.getRecord(prev.get("id"));
+			       var prev = this.prevRow(row);
+			       return this.table.getRecord(prev.get("id"));
 			     },
 			
 		_onLoadingChange : function (o) {

@@ -132,8 +132,8 @@ YUI.add('mapping', function(Y) {
 			  currentRow.removeClass("yui3-datatable-selected");
 			  nextRow.addClass("yui3-datatable-selected");
 
-			  this._source = nextRecord.getValue("source").uri;
-			  this._target = nextRecord.getValue("target").uri;
+			  this._source = nextRecord.get("source").uri;
+			  this._target = nextRecord.get("target").uri;
 			  this._selectedRow = nextRow;
 			  this._fetchDetail();
 			}

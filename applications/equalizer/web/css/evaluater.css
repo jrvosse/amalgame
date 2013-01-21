@@ -66,8 +66,8 @@
 	vertical-align: top;
 }
 .yui3-datatable-selected {
-	background-color: #3875D7;
-	color: white;
+	color: #3875D7;
+	background-color: white;
 }
 .yui3-datatable td:first-child,
 .yui3-datatable td:last-child {
