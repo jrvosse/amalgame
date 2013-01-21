@@ -31,7 +31,7 @@ find_hint(Strategy, Context, Hint) :-
 % Initial phase: no mappings created, no vocab selected.
 % Focus is on the strategy node.
 % Advise to select the smallest vocab
-% FIX ME: Assumes only to vocabs are being aligned.
+% FIX ME: Assumes only two vocabs are being aligned.
 
 	option(focus(Focus), Context),
 	Focus == Strategy,
@@ -274,9 +274,9 @@ is_endpoint(Strategy, Mapping) :-
 is_endpoint(Strategy, Mapping) :-
 	rdf(Mapping, rdf:type, amalgame:'Mapping', Strategy),
 	forall(rdf(Process, amalgame:input, Mapping, Strategy),
-	       (   rdfs_individual_of(Process,amalgame:'EvaluationProcess'),
-		   rdf(EvalResults, amalgame:wasGeneratedBy, Process, Strategy),
-		   \+ rdf_graph(EvalResults)
+	       (   rdfs_individual_of(Process,amalgame:'EvaluationProcess')
+		   % rdf(EvalResults, amalgame:wasGeneratedBy, Process, Strategy)
+		   % \+ rdf_graph(EvalResults)
 	       )
 	      ).
 
