@@ -32,7 +32,7 @@ user:message_hook(make(done(_)), _, _) :-
 
 user:message_hook(make(done(_)), _, _) :-
 	debug(ag_expand, 'Flushing expand cache after running make/0', []),
-	retractall(current_program_uri(_)),
+	retractall(ag_opm:current_program_uri(_)),
 	flush_expand_cache,
 	fail.
 
