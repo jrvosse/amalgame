@@ -1,6 +1,6 @@
 @prefix    align: <http://knowledgeweb.semanticweb.org/heterogeneity/alignment#> .
 @prefix amalgame: <http://purl.org/vocabularies/amalgame#> .
-@prefix     opmv: <http://purl.org/net/opmv/ns#> .
+@prefix     prov: <http://www.w3.org/ns/prov#> .
 @prefix      owl: <http://www.w3.org/2002/07/owl#> .
 @prefix      rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix     rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
@@ -10,7 +10,7 @@
 amalgame:Process
     rdfs:label "process"@en ;
     skos:definition "Top class for all amalgame processes"@en ;
-    rdfs:subClassOf opmv:Process .
+    rdfs:subClassOf prov:Activity .
 amalgame:Matcher
     rdfs:label "matcher"@en ;
     skos:definition "Component that creates a mapping given a source and target vocabulary"@en ;
@@ -48,46 +48,46 @@ amalgame:includes
         rdfs:domain skos:ConceptScheme ;
         rdfs:range amalgame:Alignment .
 amalgame:input
-	rdfs:domain opmv:Process ;
+	rdfs:domain prov:Activity ;
 	rdfs:range  amalgame:Alignment ;
-	rdfs:subPropertyOf opmv:used.
+	rdfs:subPropertyOf prov:used.
 
 amalgame:exclude
-	rdfs:domain opmv:Process ;
+	rdfs:domain prov:Activity ;
 	rdfs:range  amalgame:Alignment ;
 	rdfs:subPropertyOf amalgame:secondary_input .
 amalgame:secondary_input
-	rdfs:domain opmv:Process ;
+	rdfs:domain prov:Activity ;
 	rdfs:range  amalgame:Alignment ;
-	rdfs:subPropertyOf opmv:used .
+	rdfs:subPropertyOf prov:used .
 
-amalgame:wasGeneratedBy rdfs:subPropertyOf opmv:wasGeneratedBy.
-opmv:wasGeneratedBy rdfs:subPropertyOf amalgame:wasGeneratedBy.
+amalgame:wasGeneratedBy rdfs:subPropertyOf prov:wasGeneratedBy.
+prov:wasGeneratedBy rdfs:subPropertyOf amalgame:wasGeneratedBy.
 
 amalgame:selectedBy
 	rdfs:domain  amalgame:Alignment ;
-	rdfs:range opmv:Process ;
-	rdfs:subPropertyOf opmv:wasGeneratedBy.
+	rdfs:range prov:Activity ;
+	rdfs:subPropertyOf prov:wasGeneratedBy.
 
 amalgame:discardedBy
 	rdfs:domain  amalgame:Alignment ;
-	rdfs:range opmv:Process ;
-	rdfs:subPropertyOf opmv:wasGeneratedBy.
+	rdfs:range prov:Activity ;
+	rdfs:subPropertyOf prov:wasGeneratedBy.
 
 amalgame:undecidedBy
 	rdfs:domain  amalgame:Alignment ;
-	rdfs:range opmv:Process ;
-	rdfs:subPropertyOf opmv:wasGeneratedBy.
+	rdfs:range prov:Activity ;
+	rdfs:subPropertyOf prov:wasGeneratedBy.
 
 amalgame:evaluationOf
-	rdfs:subPropertyOf opmv:wasDerivedFrom.
+	rdfs:subPropertyOf prov:wasDerivedFrom.
 
 amalgame:NoAlignmentGraph a rdfs:Class ;
 	rdfs:label "No Alignment Graph"@en ;
 	rdfs:comment "The class of all Named Graphs in the repository containing no mappings and/or alignments."@en.
 
 amalgame:Alignment a rdfs:Class ;
-    rdfs:subClassOf opmv:Artifact ;
+    rdfs:subClassOf prov:Artifact ;
 	rdfs:label "Alignment Graph"@en ;
 	rdfs:comment "The class of all Named Graphs in the repository containing mappings and/or alignments."@en.
 
@@ -209,12 +209,12 @@ amalgame:nickname a rdf:Property , owl:FunctionalProperty ;
 	rdfs:range rdfs:Literal .
 
 amalgame:source a rdf:Property ;
-	rdfs:subPropertyOf opmv:used ;
+	rdfs:subPropertyOf prov:used ;
 	rdfs:range align:Ontology ;
 	rdfs:range skos:ConceptScheme .
 
 amalgame:target a rdf:Property ;
-	rdfs:subPropertyOf opmv:used ;
+	rdfs:subPropertyOf prov:used ;
 	rdfs:range align:Ontology ;
 	rdfs:range skos:ConceptScheme .
 

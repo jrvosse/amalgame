@@ -4,7 +4,8 @@
 :- use_module(library(http/http_dirindex)).
 
 
-:- use_module(library(opmv_schema)).
+% :- use_module(library(opmv_schema)).
+:- use_module(library(prov_schema)).
 :- use_module(eq_selecter).
 :- use_module(eq_builder).
 :- use_module(eq_analyser).

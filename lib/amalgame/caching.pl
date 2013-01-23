@@ -201,7 +201,7 @@ flush_dependent_caches(Process, Strategy, ProvGraph) :-
 	      ),
 	findall(DepProcess,
 		(   member(Result, Results),
-		    rdf_has(DepProcess, opmv:used, Result, RP),
+		    rdf_has(DepProcess, amalgame:input, Result, RP),
 		    rdf(DepProcess, RP, Result, Strategy)
 		),
 		Deps),

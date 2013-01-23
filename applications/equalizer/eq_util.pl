@@ -165,7 +165,7 @@ node_prop(_S, R, type, Type) :-
 	->  Type = strategy
 	;   rdfs_individual_of(R, amalgame:'Mapping')
 	->  Type = mapping
-	;   rdfs_individual_of(R, opmv:'Process')
+	;   rdfs_individual_of(R, amalgame:'Process')
 	->  Type = process
 	;   Type = vocab
 	).

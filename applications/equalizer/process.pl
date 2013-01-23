@@ -96,7 +96,7 @@ is_dependent_chk(Mapping, Process, Strategy) :-
 is_dependent_chk(Mapping, Process, Strategy) :-
 	rdf_has(Mapping, amalgame:wasGeneratedBy, OtherProcess, RP1),
 	rdf(Mapping, RP1, OtherProcess, Strategy),
-	rdf_has(OtherProcess, opmv:used, OtherMapping, RP2),
+	rdf_has(OtherProcess, amalgame:input, OtherMapping, RP2),
 	rdf(OtherProcess, RP2, OtherMapping, Strategy),
 	is_dependent_chk(OtherMapping, Process, Strategy),!.
 

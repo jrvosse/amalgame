@@ -23,7 +23,7 @@ provenance_graph(Strategy, Graph) :-
 provenance_graph(Strategy, Graph) :-
 	ground(Strategy),
 	rdf(Strategy, amalgame:publish_ns, NS),
-	(   atomic_list_concat([NS, opmv],  Graph), \+ rdf_graph(Graph)
+	(   atomic_list_concat([NS, prov],  Graph), \+ rdf_graph(Graph)
 	->  true
 	;   repeat, gensym('provgraph', Local),
 	    atomic_list_concat([NS, Local], Graph),
@@ -50,8 +50,8 @@ update_amalgame_opm(Strategy, Mapping) :-
 	      ).
 
 add_amalgame_opm(Strategy, Process, Results) :-
-	rdf_equal(opmv:used, OpmvUsed),
-	rdf_equal(opmv:wasDerivedFrom, OpmvWDF),
+	rdf_equal(prov:used, OpmvUsed),
+	rdf_equal(prov:wasDerivedFrom, OpmvWDF),
 
 	provenance_graph(Strategy, ProvGraph),
 
@@ -61,7 +61,7 @@ add_amalgame_opm(Strategy, Process, Results) :-
 	% Copy all triples about Process from Strategy to ProvGraph
 	findall(rdf(Process, P, O), rdf(Process,P,O,Strategy), ProcessTriples),
 
-	% Translate subProperties of ompv:used to opmv:used
+	% Translate subProperties of ompv:used to prov:used
 	findall(rdf(Process, OpmvUsed, S),
 		(   rdf_has(Process, OpmvUsed, S, RealProp),
 		    rdf(Process, RealProp, S, Strategy)
@@ -76,10 +76,10 @@ add_amalgame_opm(Strategy, Process, Results) :-
 
 	opm_was_generated_by(Process, Artifacts, ProvGraph, []),
 
-	% Generate opmv:wasDerivedFrom triples between Mappings
+	% Generate prov:wasDerivedFrom triples between Mappings
 	findall(rdf(Target, OpmvWDF, Source),
 		(   member(Target, Artifacts),
-		    rdf_has(Process, opmv:used, Source, RealProp),
+		    rdf_has(Process, prov:used, Source, RealProp),
 		    rdf(Process, RealProp, S, Strategy)
 		),
 		DerivedTriples),
@@ -108,7 +108,7 @@ remove_old_prov(Process, ProvGraph) :-
 		    rdf_is_bnode(Bnode),
 		    \+ (rdf(OtherProcess, _, Bnode, ProvGraph),
 			OtherProcess \= Process),
-		    \+ rdfs_individual_of(Bnode, opmvc:'Program')
+		    \+ rdfs_individual_of(Bnode, prov:'Program')
 		),
 		Bnodes),
 	forall(member(B,Bnodes), remove_old_prov(B,ProvGraph)),

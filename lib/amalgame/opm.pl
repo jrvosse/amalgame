@@ -16,8 +16,9 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(version)).
-:- use_module(library(opmv_schema)).
-:- use_module(library(opmvc_schema)).
+:- use_module(library(prov_schema)).
+% :- use_module(library(opmv_schema)).
+% :- use_module(library(opmvc_schema)).
 :- use_module(user(user_db)).
 :- use_module(library(http/http_session)).
 
@@ -42,10 +43,10 @@ opm_include_dependency([H|T], Accum, Results) :-
 	opm_include_dependency(Deps, [H], HeadResults),
 	append(TailResults, HeadResults, Results).
 
-dependent(S, Dep) :- rdf(S, opmv:wasDerivedFrom, Dep).
-dependent(S, Dep) :- rdf(S, opmv:wasGeneratedBy, Dep).
+dependent(S, Dep) :- rdf(S, prov:wasDerivedFrom, Dep).
+dependent(S, Dep) :- rdf(S, prov:wasGeneratedBy, Dep).
 dependent(S, Dep) :-
-	rdfs_individual_of(S, opmv:'Process'),
+	rdfs_individual_of(S, prov:'Activity'),
 	rdf(S,_,Dep),
 	rdf_is_bnode(Dep).
 
@@ -59,10 +60,10 @@ expand_deplist([H|T], Accum, Results) :-
 	opm_triple(r, t).
 
 opm_triple(S, rdf(S, owl:versionInfo,O))     :- rdf(S, owl:versionInfo, O).
-opm_triple(S, rdf(S, opmv:wasDerivedFrom,O)) :- rdf(S, opmv:wasDerivedFrom, O).
-opm_triple(S, rdf(S, opmv:wasGeneratedBy,O)) :- rdf(S, opmv:wasGeneratedBy, O).
+opm_triple(S, rdf(S, prov:wasDerivedFrom,O)) :- rdf(S, prov:wasDerivedFrom, O).
+opm_triple(S, rdf(S, prov:wasGeneratedBy,O)) :- rdf(S, prov:wasGeneratedBy, O).
 opm_triple(S, rdf(S,P,O)) :-
-	rdfs_individual_of(S, opmv:'Process'),
+	rdfs_individual_of(S, prov:'Activity'),
 	rdf(S,P,O).
 opm_triple(S, rdf(S,P,O)) :-
 	rdf_is_bnode(S),
@@ -85,10 +86,10 @@ opm_triple(S, rdf(S,P,O)) :-
 opm_was_generated_by(_, [], _, _) :- !.
 opm_was_generated_by(Process, Artifacts, Graph, Options) :-
 	is_list(Artifacts),!,
-	rdf_assert(Process, rdf:type, opmv:'Process',	Graph),
+	rdf_assert(Process, rdf:type, prov:'Activity',	Graph),
 	forall(member(Artifact, Artifacts),
-	       (   rdf_assert(Artifact, rdf:type, opmv:'Artifact',    Graph),
-		   rdf_assert(Artifact, opmv:wasGeneratedBy, Process, Graph)
+	       (   rdf_assert(Artifact, rdf:type, prov:'Entity',    Graph),
+		   rdf_assert(Artifact, prov:wasGeneratedBy, Process, Graph)
 	       )
 	      ),
 	opm_program(Graph, Program),
@@ -98,18 +99,18 @@ opm_was_generated_by(Process, Artifacts, Graph, Options) :-
 	rdf_bnode(BN_now),
 	rdf_assert(BN_now, rdf:type, time:'Instant',  Graph),
 	rdf_assert(BN_now, time:inXSDDateTime, literal(type(xsd:dateTime, NowXML)), Graph),
-	rdf_assert(Process, opmv:wasEndedAt,   BN_now , Graph),
-	rdf_assert(Process, opmv:wasPerformedBy, Program, Graph),
-	rdf_assert(Process, opmv:wasPerformedBy, Agent,   Graph),
+	rdf_assert(Process, prov:endedAtTime,   BN_now , Graph),
+	rdf_assert(Process, prov:wasAssociatedWith, Program, Graph),
+	rdf_assert(Process, prov:wasAssociatedWith, Agent,   Graph),
 
 	(   memberchk(was_derived_from(Sources), Options)
 	->  forall(member(Source, Sources),
 		   (   forall(member(Artifact, Artifacts),
-			     rdf_assert(Artifact, opmv:wasDerivedFrom,  Source,  Graph)
+			     rdf_assert(Artifact, prov:wasDerivedFrom,  Source,  Graph)
 			     ),
-		       rdf_assert(Process, opmv:used, Source, Graph),
-		       (   \+ rdfs_individual_of(Source, opmv:'Artifact')
-		       ->  rdf_assert(Source, rdf:type,	opmv:'Artifact', Graph)
+		       rdf_assert(Process, prov:used, Source, Graph),
+		       (   \+ rdfs_individual_of(Source, prov:'Entity')
+		       ->  rdf_assert(Source, rdf:type,	prov:'Entity', Graph)
 		       ;   true
 		       )
 		   )
@@ -141,8 +142,7 @@ opm_program(Graph, Program)  :-
 	rdf_bnode(Program),
 	assert(current_program_uri(Program)),
 	rdf_assert(Program, rdfs:label, literal('Amalgame alignment platform'), Graph),
-	rdf_assert(Program, rdf:type,   opmvc:'Program', Graph),
-	rdf_assert(Program, rdf:type,   opmv:'Agent', Graph),
+	rdf_assert(Program, rdf:type,   prov:'SoftwareAgent', Graph),
 
 	(  current_prolog_flag(version_git, PL_version)
 	-> true
@@ -157,7 +157,7 @@ opm_program(Graph, Program)  :-
 	Prolog = 'swi-prolog'-'http://www.swi-prolog.org'-PL_version,
 	forall(member(M-U-V, [Prolog|MUVs]),
 	       (   rdf_bnode(B),
-	           rdf_assert(Program, opmvc:software, B, Graph),
+	           rdf_assert(Program, prov:value, B, Graph),
 		   rdf_assert(B, 'http://usefulinc.com/ns/doap#revision',
 			      literal(V), Graph),
 		   rdf_assert(B, 'http://usefulinc.com/ns/doap#name',
@@ -186,7 +186,7 @@ opm_agent(Graph, Agent) :-
 	),
 
 	rdf_assert(Agent, rdfs:label, literal(UserName),  Graph),
-	rdf_assert(Agent, rdf:type,   opmv:'Agent',	  Graph).
+	rdf_assert(Agent, rdf:type,   prov:'Agent',	  Graph).
 
 get_xml_dateTime(T, TimeStamp) :-
 	format_time(atom(TimeStamp), '%Y-%m-%dT%H-%M-%S%Oz', T).

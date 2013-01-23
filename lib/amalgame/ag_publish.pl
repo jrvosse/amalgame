@@ -74,7 +74,7 @@ assert_void(Id, Strategy, ProvGraph) :-
 	rdf_equal(xsd:int, Int),
 
 	void_graph(Strategy, Void),
-	rdf_statistics(triples_by_file(Id, NrOfTriples)),
+	rdf_statistics(triples_by_graph(Id, NrOfTriples)),
 	assert_metadata(Id, Strategy, Void),
 	rdf_assert(Id, void:vocabulary,   amalgame:'', Void),
 	rdf_assert(Id, void:vocabulary,   void:'', Void),

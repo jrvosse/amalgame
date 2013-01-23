@@ -5,24 +5,17 @@
 
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
-:- use_module(library(http/http_request_value)).
-:- use_module(library(http/http_session)).
 :- use_module(library(http/html_write)).
-:- use_module(library(http/http_host)).
-:- use_module(library(http/http_path)).
-:- use_module(library(http/html_head)).
+
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_label)).
 :- use_module(components(label)).
 :- use_module(components(graphviz)).
-:- use_module(library(yui3)).
 :- use_module(library(amalgame/caching)).
 :- use_module(library(amalgame/expand_graph)).
 :- use_module(library(amalgame/ag_evaluation)).
-:- use_module(library(amalgame/ag_stats)).
 :- use_module(library(amalgame/alignment)).
-:- use_module(eq_util).
 
 :- http_handler(amalgame(opmviz), http_opmviz, []).
 
@@ -121,7 +114,7 @@ opm_graph_triple(Graph,S,P,O) :-
 
 
 is_opm_property(P) :-
-	rdfs_subproperty_of(P, opmv:used),
+	rdfs_subproperty_of(P, prov:used),
 	(   setting(secondary_input, hide)
 	->  \+ rdf_equal(amalgame:secondary_input, P)
 	;   true
@@ -129,13 +122,13 @@ is_opm_property(P) :-
 	!.
 
 is_opm_property(P) :-
-	rdfs_subproperty_of(P, opmv:wasGeneratedBy),
+	rdfs_subproperty_of(P, amalgame:wasGeneratedBy),
 	!.
 is_opm_property(P) :-
-	rdfs_subproperty_of(P, opmv:wasDerivedFrom),
+	rdfs_subproperty_of(P, amalgame:wasDerivedFrom),
 	!.
 is_opm_property(P) :-
-	rdfs_subproperty_of(P, opmv:wasTriggeredBy),
+	rdfs_subproperty_of(P, amalgame:wasTriggeredBy),
 	!.
 % filter out empty results ...
 
@@ -162,7 +155,7 @@ opm_shape(R, [shape(box),
 	      fillcolor(Color),
 	      fontsize(10)]) :-
 	atom(R),
-	rdfs_individual_of(R, opmv:'Process'),
+	rdfs_individual_of(R, amalgame:'Process'),
 	!,
 	process_color(R, Color).
 opm_shape(R, [shape(ellipse),
@@ -176,7 +169,7 @@ opm_shape(R, [shape(ellipse),
 	      style(filled),
               fontsize(10)]) :-
 	atom(R),
-	rdfs_individual_of(R, opmv:'Artifact'),
+	rdfs_individual_of(R, amalgame:'Artifact'),
 	!,
 	artifact_color(R, Color).
 opm_shape(_R, [shape(box),

@@ -16,10 +16,10 @@ http:location(amalgame, cliopatria(amalgame), []).
 
 :- use_module([
 	% Deprecated:
-		applications(align_stats),
-		applications(alignment/alignment),
-		applications(vocabularies/vocabularies),
-		applications(evaluator/evaluator),
+	%	applications(align_stats),
+	%	applications(alignment/alignment),
+	%	applications(vocabularies/vocabularies),
+	%	applications(evaluator/evaluator),
 	% New UI:
 		applications(equalizer/eq),
 	% HTTP API to export mappings to other web services:

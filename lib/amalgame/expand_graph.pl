@@ -140,7 +140,7 @@ do_expand_process(Strategy, Process, Result, Time) :-
 	% builder as an input mapping...
 	(   rdfs_subclass_of(Type, amalgame:'SelectPreLoaded')
 	->  option(name(PreloadedGraph), Options),
-	    rdf_assert(Process, opmv:used, PreloadedGraph, Strategy),
+	    rdf_assert(Process, amalgame:input, PreloadedGraph, Strategy),
 	    rdf_assert(PreloadedGraph, rdf:type, amalgame:'LoadedMapping', Strategy),
 	    rdf_assert(PreloadedGraph, amalgame:status, amalgame:imported, Strategy)
 	;   true
