@@ -7,14 +7,12 @@
 :- use_module(library(http/html_head)).
 :- use_module(library(http/html_write)).
 :- use_module(library(yui3_beta)).
+:- use_module(library(amalgame/util)).
 
 :- use_module(user(user_db)).
 
-:- use_module(library(amalgame/util)).
-
 :- use_module(api(node_info)).
-
-:- use_module(mapping).
+:- use_module(api(mapping)).
 
 :- public amalgame_module/1.
 
