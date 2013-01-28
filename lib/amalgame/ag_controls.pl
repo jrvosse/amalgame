@@ -1,4 +1,4 @@
-:- module(eq_controls,
+:- module(ag_controls,
 	  [ html_controls//0,
 	    html_parameter_form//1,
 	    module_input_type/2,

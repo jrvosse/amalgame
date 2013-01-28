@@ -11,7 +11,7 @@
 :- use_module(library(amalgame/ag_stats)).
 :- use_module(cliopatria(components/label)). % we need rdf_link//1 from this module
 
-:- use_module(applications(equalizer/controls)).
+:- use_module(library(amalgame/ag_controls)).
 
 % http handlers for this applications
 
