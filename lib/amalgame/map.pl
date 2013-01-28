@@ -37,7 +37,7 @@ align(Source,Target,EvidenceList) terms.
 
 :- use_module(library(amalgame/edoal)).
 :- use_module(library(amalgame/alignment)).
-:- use_module(library(ag_util)).
+:- use_module(library(amalgame/util)).
 
 %%	correspondence_source(?C,?S) is det.
 %
