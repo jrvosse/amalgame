@@ -19,12 +19,7 @@
 :- use_module(voc).
 :- use_module(eq_util).
 
-
 :- use_module(api(skos_concepts)).
-%:- use_module(applications(skos_browser)).
-
-% We have to load the opmviz module somewhere:
-:- use_module(opmviz).
 
 :- multifile
 	eq:menu_item/2.
@@ -247,7 +242,7 @@ js_module(mapping, json([fullpath(Path),
 js_module(mappingtable, json([fullpath(Path),
 			      requires([node,event,
 					'datasource-jsonschema',
-					'model-list', model, 
+					'model-list', model,
 					'gallery-paginator',
 					datatable,'datatable-sort'])
 			     ])) :-

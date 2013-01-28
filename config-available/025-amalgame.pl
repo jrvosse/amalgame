@@ -30,7 +30,9 @@ http:location(img,		 root(img),                  [ priority(-100) ]).
 :- use_module(applications(equalizer/eq_analyser)).
 :- use_module(applications(equalizer/eq_evaluater)).
 :- use_module(applications(equalizer/eq_publisher)).
-:- use_module(api(http_mapping)).
+:- use_module(applications(equalizer/opmviz)).
+
+% :- use_module(api(http_mapping)).
 
 % add local web directories from which static files are served.
 
