@@ -11,11 +11,12 @@
 :- use_module(library(amalgame/map)).
 :- use_module(library(yui3_beta)).
 
+:- use_module(api(hints)).
+
 :- use_module(controls).
 :- use_module(process).
 :- use_module(voc).
 :- use_module(eq_util).
-:- use_module(hints).
 
 
 :- use_module(api(skos_concepts)).
