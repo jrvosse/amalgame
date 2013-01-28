@@ -12,6 +12,7 @@
 :- use_module(library(yui3_beta)).
 
 :- use_module(api(hints)).
+:- use_module(api(node_info)).
 
 :- use_module(controls).
 :- use_module(process).

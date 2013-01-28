@@ -9,8 +9,9 @@
 :- use_module(library(yui3_beta)).
 :- use_module(user(user_db)).
 
+:- use_module(api(node_info)).
+
 :- use_module(mapping).
-:- use_module(stats).
 :- use_module(eq_util).
 
 :- public amalgame_module/1.

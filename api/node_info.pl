@@ -1,4 +1,4 @@
-:- module(eq_stats,
+:- module(ag_api_node_info,
 	  [
 	  ]).
 
@@ -11,7 +11,7 @@
 :- use_module(library(amalgame/ag_stats)).
 :- use_module(cliopatria(components/label)). % we need rdf_link//1 from this module
 
-:- use_module(controls).
+:- use_module(applications(equalizer/controls)).
 
 % http handlers for this applications
 
