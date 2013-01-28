@@ -18,8 +18,7 @@
 :- use_module(api(node_info)).
 :- use_module(api(mappinglist)).
 :- use_module(api(skos_concepts)).
-
-:- use_module(process).
+:- use_module(api(ag_process)).
 
 :- multifile
 	eq:menu_item/2.
