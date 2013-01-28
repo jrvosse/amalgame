@@ -7,13 +7,12 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(amalgame/ag_publish)).
+:- use_module(library(amalgame/ag_controls)).
 :- use_module(library(amalgame/map)).
+:- use_module(library(amalgame/util)).
 
 :- use_module(user(user_db)).
 
-:- use_module(library(amalgame/ag_controls)).
-
-:- use_module(eq_util).
 
 :- multifile
 	eq:menu_item/2.

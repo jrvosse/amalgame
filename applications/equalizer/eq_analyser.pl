@@ -14,7 +14,7 @@
 :- use_module(user(user_db)).
 
 :- use_module(library(amalgame/irr)).
-:- use_module(eq_util).
+:- use_module(library(amalgame/util)).
 
 :- multifile
 	eq:menu_item/2.

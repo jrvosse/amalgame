@@ -14,7 +14,7 @@
 :- use_module(library(skos/vocabularies)).
 :- use_module(user(user_db)).
 :- use_module(components(label)).
-:- use_module(eq_util).
+:- use_module(library(amalgame/util)).
 
 :- use_module(applications(skos_browser)).
 

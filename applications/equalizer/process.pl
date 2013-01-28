@@ -13,7 +13,7 @@
 :- use_module(library(amalgame/caching)).
 :- use_module(library(amalgame/ag_provenance)).
 :- use_module(library(amalgame/alignment)).
-:- use_module(eq_util).
+:- use_module(library(amalgame/util)).
 
 :- setting(precompute_mapping, boolean, true,
 	   'When true mappings are computed in the background').

@@ -15,10 +15,10 @@
 :- use_module(api(node_info)).
 
 :- use_module(library(amalgame/ag_controls)).
+:- use_module(library(amalgame/util)).
 
 :- use_module(process).
 :- use_module(voc).
-:- use_module(eq_util).
 
 :- use_module(api(skos_concepts)).
 

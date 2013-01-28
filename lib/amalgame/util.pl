@@ -1,4 +1,4 @@
-:- module(eq_util,
+:- module(ag_util_components,
 	  [ html_eq_header//1,
 	    assert_user_provenance/2,
 	    amalgame_alignment/2,
