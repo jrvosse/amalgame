@@ -11,16 +11,15 @@
 :- use_module(library(amalgame/map)).
 :- use_module(library(yui3_beta)).
 
-:- use_module(api(hints)).
-:- use_module(api(node_info)).
-
 :- use_module(library(amalgame/ag_controls)).
 :- use_module(library(amalgame/util)).
 
-:- use_module(process).
-:- use_module(voc).
-
+:- use_module(api(hints)).
+:- use_module(api(node_info)).
+:- use_module(api(mappinglist)).
 :- use_module(api(skos_concepts)).
+
+:- use_module(process).
 
 :- multifile
 	eq:menu_item/2.
