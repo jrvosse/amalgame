@@ -1,6 +1,7 @@
 :- module(eq_evaluater,
 	  []).
 
+:- use_module(library(semweb/rdfs)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_path)).
@@ -12,7 +13,7 @@
 :- use_module(user(user_db)).
 
 :- use_module(api(node_info)).
-:- use_module(api(mapping)).
+:- use_module(api(mapping)). % need http_data_mapping handler
 
 :- public amalgame_module/1.
 
@@ -45,7 +46,11 @@ http_eq_evaluate(Request) :-
 				   description('URI of initially selected mapping')
 				  ])
 			]),
-	html_page(Alignment, Mapping).
+	(   rdfs_individual_of(Mapping, amalgame:'Mapping')
+	->  SelectedMapping = Mapping
+	;   rdfs_individual_of(SelectedMapping, amalgame:'Mapping')
+	),
+	html_page(Alignment, SelectedMapping).
 
 html_page(Alignment, Mapping) :-
 	html_set_options([dialect(html)]),
