@@ -152,9 +152,9 @@ expand_bnode_objects([rdf(S,P,O)|Tail], [rdf(S,P,O)|Expanded]) :-
 	).
 
 is_metadata_triple(S,P,O,Graph) :-
-	rdf_has(S,opmv:wasGeneratedBy, Process, RP),
+	rdf_has(S,prov:wasGeneratedBy, Process, RP),
 	rdf(S,RP,Process,Graph),
-	rdf(Process, opmv:wasPerformedBy, O),
+	rdf(Process, prov:wasAssociatedWith, O),
 	rdf_equal(dcterms:creator, P).
 is_metadata_triple(S,P,literal(type(T,N)), _Graph) :-
 	rdf_has(S, amalgame:mappedSourceConcepts, literal(type(T,N))),
