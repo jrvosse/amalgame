@@ -117,6 +117,8 @@ mapping_props([
 mapping_relation(skos, skos:mappingRelation).
 mapping_relation(dc,   dcterms:replaces).
 mapping_relation(owl,  owl:sameAs).
+mapping_relation(unrelated, 'http://purl.org/vocabularies/amalgame/evaluator#unrelated').
+mapping_relation(unsure,    'http://purl.org/vocabularies/amalgame/evaluator#unsure').
 
 supported_map_relations(List) :-
 	findall(Relation,
