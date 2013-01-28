@@ -25,22 +25,17 @@ http:location(img,		 root(img),                  [ priority(-100) ]).
 :- rdf_load_library(dc).
 
 /* Now all namespaces should have been defined and we can load the amalgame code: */
-:- use_module(applications(equalizer/eq_selecter)).
-:- use_module(applications(equalizer/eq_builder)).
-:- use_module(applications(equalizer/eq_analyser)).
-:- use_module(applications(equalizer/eq_evaluater)).
-:- use_module(applications(equalizer/eq_publisher)).
-:- use_module(applications(equalizer/opmviz)).
+:- use_module(applications(selecter)).
+:- use_module(applications(builder)).
+:- use_module(applications(analyser)).
+:- use_module(applications(evaluater)).
+:- use_module(applications(publisher)).
+:- use_module(applications(opmviz)).
 
 % :- use_module(api(http_mapping)).
 
 % add local web directories from which static files are served.
 
-:- prolog_load_context(directory, Dir),
-   asserta(user:file_search_path(eq, Dir)).
-:- asserta(user:file_search_path(css, eq(web/css))).
-:- asserta(user:file_search_path(js, eq(web/js))).
-:- asserta(user:file_search_path(icon, eq(web/icon))).
 :- asserta(user:file_search_path(alignment_results, web(alignment_results))).
 :- asserta(user:file_search_path(img, web(img))).
 
