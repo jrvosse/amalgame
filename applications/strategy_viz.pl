@@ -1,5 +1,5 @@
-:- module(eq_opmviz,
-	  [ html_opmviz//1,
+:- module(strategy_graph_viz,
+	  [ html_strategy_viz//1,
 	    reply_alignment_graph/2
 	  ]).
 
@@ -17,12 +17,12 @@
 :- use_module(library(amalgame/ag_evaluation)).
 :- use_module(library(amalgame/alignment)).
 
-:- http_handler(amalgame(opmviz), http_opmviz, []).
+:- http_handler(amalgame(strategy_viz), http_strategy_viz, []).
 
 :- setting(secondary_input, oneof([show,hide]), show,
 	   'Show or hide arrows for amalgame:secondary_input').
 
-opmviz_options(Alignment,
+strategy_viz_options(Alignment,
 	       [edge_links(false),
 		shape_hook(opm_shape),
 		label_hook(opm_label(Alignment)),
@@ -37,7 +37,7 @@ is_meta(label_hook).
 %
 %	Emit html page with a visualization of a graph.
 
-http_opmviz(Request) :-
+http_strategy_viz(Request) :-
 	http_parameters(Request,
 			[ format(Format,
 				 [default(html),
@@ -57,7 +57,7 @@ http_opmviz(Request) :-
 
 	(   Format \== html
 	->  reply_alignment_graph(Alignment, Format)
-	;   opmviz_options(Alignment, Options),
+	;   strategy_viz_options(Alignment, Options),
 	    reply_html_page(cliopatria(default),
 			    [ title(['Graph for ', \turtle_label(Alignment)])
 			    ],
@@ -70,25 +70,25 @@ http_opmviz(Request) :-
 %	Emit an alignment graph.
 
 reply_alignment_graph(Alignment, Format) :-
-	opmviz_options(Alignment, Options),
+	strategy_viz_options(Alignment, Options),
 	opm_triples(Alignment, Triples),
 	meta_options(is_meta, Options, QOptions),
 	reply_graphviz_graph(Triples, Format, QOptions).
 
 
-%%	html_opmviz(+Graph)
+%%	html_strategy_viz(+Graph)
 %
 %	Emit html component with a visualization of Graph.
 
-html_opmviz(Graph) -->
-	{ opmviz_options(Graph, Options)
+html_strategy_viz(Graph) -->
+	{ strategy_viz_options(Graph, Options)
 	},
 	graphviz_graph(opm_triples(Graph), Options).
 
-html_opmviz(Graph) -->
-	{ http_link_to_id(http_opmviz, [graph(Graph),format(svg)], HREF)
+html_strategy_viz(Graph) -->
+	{ http_link_to_id(http_strategy_viz, [graph(Graph),format(svg)], HREF)
 	},
-	html([ object([ id(opmviz),
+	html([ object([ id(strategy_viz),
 			data(HREF),
 			type('image/svg+xml')
 		      ],

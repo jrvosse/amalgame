@@ -171,23 +171,23 @@ body {
 	padding: 5px 10px;
 }
 
-/* opm graph */
-.yui3-opmviz {
+/* strategy graph */
+.yui3-strategy_viz {
 	padding: 5px 5px 15px;
 }
-.yui3-opmviz .edge text {
+.yui3-strategy_viz .edge text {
 	font-size: 11px;
 }
-.yui3-opmviz .selected text {
+.yui3-strategy_viz .selected text {
 	font-weight: bold;
 }
-.yui3-opmviz .info,
-.yui3-opmviz .selected .info {
+.yui3-strategy_viz .info,
+.yui3-strategy_viz .selected .info {
 	font-weight: normal;
 	font-size: 9px;
 }
-.yui3-opmviz .selected ellipse,
-.yui3-opmviz .selected polygon {
+.yui3-strategy_viz .selected ellipse,
+.yui3-strategy_viz .selected polygon {
 	/*fill: #DBEAFF;*/
 	stroke-width: 3px;
 }

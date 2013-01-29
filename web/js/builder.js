@@ -5,7 +5,7 @@ YUI.add('builder', function(Y) {
 		Plugin = Y.Plugin;
 
 	var	NODE_OPM			= Y.one("#opm"),
-		NODE_CONTROLS		= Y.one("#controls"),
+		NODE_CONTROLS			= Y.one("#controls"),
 		NODE_INFO			= Y.one("#info"),
 		NODE_SELECT			= Y.one("#select");
 
@@ -70,7 +70,7 @@ YUI.add('builder', function(Y) {
 			this.infobox.on("nodeSelect", this._onSelectedChange, this); // used for hints
 
 			// handlers for graph and mapping
-			this.opmviz.on("nodeSelect", this._onNodeSelect, this);
+			this.strategy_viz.on("nodeSelect", this._onNodeSelect, this);
 			this.mapping.on("evalSubmit", this._updateNodes, this);
 
 			// handlers for changes on attributes
@@ -86,7 +86,7 @@ YUI.add('builder', function(Y) {
 
 		_onSelectedChange: function(o) {
 			var selected = o.newVal?o.newVal:o.data.newVal ;
-			this.opmviz.set("selected", selected);
+			this.strategy_viz.set("selected", selected);
 			this.infobox.set("selected", selected);
 			this.controls.set("selected", selected);
 			this.mapping.set("selected", selected);
@@ -126,7 +126,7 @@ YUI.add('builder', function(Y) {
 		},
 
 		_initGraph : function() {
-			this.opmviz = new Y.OPMViz({
+			this.strategy_viz = new Y.OPMViz({
 				paths:this.get("paths"),
 				alignment: this.get("alignment"),
 				selected: this.get("selected"),
@@ -199,7 +199,7 @@ YUI.add('builder', function(Y) {
 				on:{success:function(e,o) {
 					var r =	Y.JSON.parse(o.responseText);
 					// we first update the graph before anything is computed on the server
-					oSelf.opmviz.updateGraph();
+					oSelf.strategy_viz.updateGraph();
 					// setting the properties will then initiate the components
 					// to fetch the latests stats
 					oSelf.set("nodes", r.nodes);

@@ -179,7 +179,7 @@ yui_script(Alignment, Focus) -->
 %	Path to the server used in javascript.
 
 js_path(opmgraph, Path) :-
-	http_link_to_id(http_opmviz, [format(svg)], Path).
+	http_link_to_id(http_strategy_viz, [format(svg)], Path).
 js_path(addprocess, Path) :-
 	http_location_by_id(http_add_process, Path).
 js_path(updatenode, Path) :-
@@ -211,16 +211,16 @@ js_module(builder, json([fullpath(Path),
 			   requires([node,event,
 				     'json-parse', 'overlay','resize',
 				     'datasource-io','datasource-cache',
-				     opmviz,controls,infobox,mapping
+				     strategy_viz,controls,infobox,mapping
 				    ])
 			  ])) :-
 	http_absolute_location(js('builder.js'), Path, []).
-js_module(opmviz, json([fullpath(Path),
+js_module(strategy_viz, json([fullpath(Path),
 			requires([node,event,widget,
 				  io,'querystring-stringify-simple'
 				 ])
 		       ])) :-
-	http_absolute_location(js('opmviz.js'), Path, []).
+	http_absolute_location(js('strategy_viz.js'), Path, []).
 js_module(infobox, json([fullpath(Path),
 			 requires([node,event,
 				   io, 'querystring-stringify-simple'

@@ -1,4 +1,4 @@
-YUI.add('opmviz', function(Y) {
+YUI.add('strategy_viz', function(Y) {
 
 	var Lang = Y.Lang,
 		Node = Y.Node,
@@ -9,7 +9,7 @@ YUI.add('opmviz', function(Y) {
 	function OPMViz(config) {
 		OPMViz.superclass.constructor.apply(this, arguments);
 	}
-	OPMViz.NAME = "opmviz";
+	OPMViz.NAME = "strategy_viz";
 	OPMViz.ATTRS = {
 		alignment: {
 			value: null

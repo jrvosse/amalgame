@@ -30,7 +30,7 @@ http:location(img,		 root(img),                  [ priority(-100) ]).
 :- use_module(applications(analyser)).
 :- use_module(applications(evaluater)).
 :- use_module(applications(publisher)).
-:- use_module(applications(opmviz)).
+:- use_module(applications(strategy_viz)).
 
 % :- use_module(api(http_mapping)).
 
