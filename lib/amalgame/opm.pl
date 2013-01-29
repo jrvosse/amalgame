@@ -3,7 +3,7 @@
 		  opm_include_dependency/2,     % +SourceGraph, +TargetGraph
 		  opm_clear_process/1,           % +Process (bnode)
 		  opm_assert_artefact_version/3,
-		  current_program_uri/1
+		  current_program_uri/2
 		 ]).
 
 /* <module> OPM -- simple support for the OPM Provenance Model (OPM)
@@ -23,7 +23,7 @@
 :- use_module(library(http/http_session)).
 
 :- dynamic
-	current_program_uri/1.
+	current_program_uri/2.
 
 opm_include_dependency(Graph, Target) :-
 	opm_include_dependency([Graph], [], DepList),
@@ -135,12 +135,12 @@ opm_clear_process(Process) :-
 	rdf_retractall(Process, _, _, _),
 	rdf_retractall(_, _, Process, _).
 
-opm_program(_, Program) :-
-	current_program_uri(Program),!.
+opm_program(Graph, Program) :-
+	current_program_uri(Graph, Program),!.
 
 opm_program(Graph, Program)  :-
 	rdf_bnode(Program),
-	assert(current_program_uri(Program)),
+	assert(current_program_uri(Graph, Program)),
 	rdf_assert(Program, rdfs:label, literal('Amalgame alignment platform'), Graph),
 	rdf_assert(Program, rdf:type,   prov:'SoftwareAgent', Graph),
 
@@ -157,7 +157,7 @@ opm_program(Graph, Program)  :-
 	Prolog = 'swi-prolog'-'http://www.swi-prolog.org'-PL_version,
 	forall(member(M-U-V, [Prolog|MUVs]),
 	       (   rdf_bnode(B),
-	           rdf_assert(Program, prov:value, B, Graph),
+	           rdf_assert(Program, amalgame:component, B, Graph),
 		   rdf_assert(B, 'http://usefulinc.com/ns/doap#revision',
 			      literal(V), Graph),
 		   rdf_assert(B, 'http://usefulinc.com/ns/doap#name',
