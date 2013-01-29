@@ -108,7 +108,7 @@ remove_old_prov(Process, ProvGraph) :-
 		    rdf_is_bnode(Bnode),
 		    \+ (rdf(OtherProcess, _, Bnode, ProvGraph),
 			OtherProcess \= Process),
-		    \+ rdfs_individual_of(Bnode, prov:'Program')
+		    \+ rdfs_individual_of(Bnode, prov:'SoftwareAgent')
 		),
 		Bnodes),
 	forall(member(B,Bnodes), remove_old_prov(B,ProvGraph)),
