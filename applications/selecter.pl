@@ -351,7 +351,9 @@ new_alignment(Schemes, Alignment) :-
 	atomic_list_concat([NS,Local], Alignment),
 	\+ rdf_graph(Alignment),
 	!,
-	rdf_transaction((rdf_assert(Alignment, rdf:type, amalgame:'AlignmentStrategy', Alignment),
+	rdf_transaction((
+			 rdf_assert(Alignment, rdf:type, amalgame:'AlignmentStrategy', Alignment),
+			 rdf_assert(Alignment, rdf:type, prov:'Plan', Alignment),
 			 rdf_assert(Alignment, amalgame:publish_ns, NS, Alignment),
 			 assert_user_provenance(Alignment, Alignment),
 			 add_schemes(Schemes, Alignment))).
