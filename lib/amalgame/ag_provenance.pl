@@ -33,6 +33,7 @@ provenance_graph(Strategy, Graph) :-
 
 create_prov_graph(Strategy, Graph) :-
 	format(atom(Label), 'Provenance graph for strategy ~p', [Strategy]),
+	rdf_assert(Graph, rdf:type, prov:'Bundle', Graph),
 	rdf_assert(Graph, amalgame:strategy, Strategy, Graph),
 	rdf_assert(Graph, rdfs:label, literal(lang(en,Label)), Graph),
 	% Copy Strategy triples to empty prov graph:
