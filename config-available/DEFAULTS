@@ -1,5 +1,4 @@
 config('025-amalgame', link).
-config(ag_data, link).
 config(ag_lod, link).
 config(ag_menu, link).
 config(ag_preferences, link).
