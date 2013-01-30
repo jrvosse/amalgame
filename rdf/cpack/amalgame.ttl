@@ -18,6 +18,7 @@
 	cpack:author [ a foaf:Person ;
 		       foaf:name "Jacco van Ossenbruggen" ;
 		       foaf:mbox "Jacco.van.Ossenbruggen@cs.vu.nl" ;
+		       foaf:mbox_sha1sum "5a9c795d885026039c79778788330c707838b79a";
 		     ] ;
 	cpack:primaryRepository
 	    [ a cpack:GitRepository ;
