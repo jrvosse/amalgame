@@ -41,7 +41,7 @@ evaluation_graph(Strategy, Mapping, EvalGraph) :-
 
 	Options = [was_derived_from([Mapping])],
 	provenance_graph(Strategy, ProvGraph),
-	opm_was_generated_by(EvalProcess, [EvalGraph], ProvGraph, Options).
+	prov_was_generated_by(EvalProcess, [EvalGraph], ProvGraph, Options).
 
 delete_eval_graph_admin(Strategy, Mapping, EvalGraph) :-
 	% Beware, this will delete all metadata about your manual evaluations!

@@ -16,12 +16,8 @@ http://alignapi.gforge.inria.fr/edoal.html
 
 */
 
-:- use_module(library(http/http_host)).
+
 :- use_module(library(semweb/rdf_db)).
-:- use_module(library(semweb/rdfs)).
-
-:- use_module(user(user_db)).
-
 :- use_module(map).
 :- use_module(ag_provenance).
 
@@ -186,7 +182,7 @@ edoal_to_triples(EdoalGraph, TargetGraph, Options) :-
 			      )
 		       ),
 	rdf_bnode(Process),
-	opm_was_generated_by(Process, TargetGraph, TargetGraph,
+	prov_was_generated_by(Process, TargetGraph, TargetGraph,
 			     [was_derived_from([EdoalGraph])
 			     |Options]).
 
@@ -227,7 +223,7 @@ edoal_select(Request, EdoalGraph, TargetGraph, TargetRestGraph, Options) :-
 	rdf_bnode(Process),
 	rdf_assert(Process, amalgame:minimalConfidence, literal(type(xsd:float, Min)), TargetGraph),
 	rdf_assert(Process, amalgame:maximalConfidence, literal(type(xsd:float, Max)), TargetGraph),
-	opm_was_generated_by(Process, [TargetGraph, TargetRestGraph], TargetGraph,
+	prov_was_generated_by(Process, [TargetGraph, TargetRestGraph], TargetGraph,
 			     [was_derived_from([EdoalGraph]),
 			      request(Request)
 			     ]).

@@ -16,7 +16,6 @@
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
-:- use_module(library(semweb/rdf_portray)).
 
 :- use_module(edoal).
 :- use_module(map).
@@ -316,7 +315,7 @@ select_from_alignment(Request, SourceGraph, Condition, TargetGraph, TargetRestGr
 	    rdf_bnode(Process),
 	    rdf_assert(Process, rdfs:label, literal('Amalgame mapping filter'), TargetGraph),
 	    rdf_assert(Process, amalgame:condition, literal(Condition), TargetGraph),
-	    opm_was_generated_by(Process, [TargetGraph, TargetRestGraph], TargetGraph,
+	    prov_was_generated_by(Process, [TargetGraph, TargetRestGraph], TargetGraph,
 				 [was_derived_from([SourceGraph]),
 				  request(Request)
 				 ])
@@ -346,7 +345,7 @@ reassert(Request, [Map:Options|Tail], OldGraph, Condition, Accum, Results) :-
 	    rdf_bnode(Process),
 	    rdf_assert(Process, rdfs:label, literal('Amalgame split operation'), NewGraph),
 	    rdf_assert(Process, amalgame:condition, literal(Condition), NewGraph),
-	    opm_was_generated_by(Process, NewGraph, NewGraph,
+	    prov_was_generated_by(Process, NewGraph, NewGraph,
 				 [was_derived_from([OldGraph]),
 				  request(Request)
 				 ])

@@ -97,7 +97,7 @@ add_amalgame_prov(Strategy, Process, Results) :-
 	    pairs_keys(Results, Artifacts)
 	),
 
-	opm_was_generated_by(Process, Artifacts, ProvGraph, []),
+	prov_was_generated_by(Process, Artifacts, ProvGraph, []),
 
 	% Generate prov:wasDerivedFrom triples between Mappings
 	findall(rdf(Target, ProvWDF, Source),

@@ -346,9 +346,9 @@ classify_concepts(Req, [], Voc, _PartitionType, Partition, Partition) :-
 	;   true
 	),
 	rdf_bnode(Process),
-	OPMgraph = amalgame_vocs_opm,
-	opm_was_generated_by(Process, Partition, OPMgraph, [was_derived_from([Voc]), request(Req)]),
-	rdf_assert(Process, rdfs:label, literal('Amalgame vocabulary partitioning process'), OPMgraph).
+	Provgraph = amalgame_vocs_prov,
+	prov_was_generated_by(Process, Partition, Provgraph, [was_derived_from([Voc]), request(Req)]),
+	rdf_assert(Process, rdfs:label, literal('Amalgame vocabulary partitioning process'), Provgraph).
 
 classify_concepts(Req, [H|T], Voc, PartitionType, Accum, Result) :-
 	classify_concept(H, Voc, PartitionType, SubVocURI, SubVocLabelURI),
