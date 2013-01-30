@@ -36,7 +36,7 @@ clear_prov_cache :-
 %	True if Graph is the provenance graph associated with strategy.
 
 provenance_graph(Strategy, Graph) :-
-	rdf(Graph, amalgame:strategy, Strategy, Graph),
+	rdf(Graph, amalgame:hasPlan, Strategy, Graph),
 	!.
 
 provenance_graph(Strategy, Graph) :-

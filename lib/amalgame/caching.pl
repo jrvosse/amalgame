@@ -125,7 +125,7 @@ clean_repository :-
 
 is_amalgame_graph(G) :-
 	rdf_graph(G),
-	(   rdf(G, amalgame:strategy, _) % G is provenance graph
+	(   rdf(G, amalgame:hasPlan, _) % G is provenance graph
 	;   rdfs_individual_of(G, amalgame:'AlignmentStrategy')
 	;   once(rdf(G, align:map, _, G))	 % G is mapping graph
 	;   G == amalgame

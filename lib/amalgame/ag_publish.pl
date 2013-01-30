@@ -81,7 +81,7 @@ assert_void(Id, Strategy, ProvGraph) :-
 	rdf_assert(Id, rdf:type,          void:'Linkset', Void),
 	rdf_assert(Id, void:triples, literal(type(Int,NrOfTriples)), Void),
 
-	rdf_assert(Id, amalgame:strategy, Strategy, Void),
+	rdf_assert(Id, amalgame:hasPlan, Strategy, Void),
 	rdf_assert(Id, amalgame:prov,	  ProvGraph, Void).
 
 default_mapping_relation(Id, Default, Options) :-
