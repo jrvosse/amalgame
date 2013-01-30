@@ -165,10 +165,7 @@ prov_was_generated_by(Process, Artifacts, Graph, Options) :-
 	prov_agent(Graph, Agent),
 	get_time(Now),
 	get_xml_dateTime(Now, NowXML),
-	rdf_bnode(BN_now),
-	rdf_assert(BN_now, rdf:type, time:'Instant',  Graph),
-	rdf_assert(BN_now, time:inXSDDateTime, literal(type(xsd:dateTime, NowXML)), Graph),
-	rdf_assert(Process, prov:endedAtTime,   BN_now , Graph),
+	rdf_assert(Process, prov:endedAtTime,   literal(type(xsd:dateTime, NowXML)) , Graph),
 	rdf_assert(Process, prov:wasAssociatedWith, Program, Graph),
 	rdf_assert(Process, prov:wasAssociatedWith, Agent,   Graph),
 

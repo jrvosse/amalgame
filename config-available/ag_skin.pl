@@ -28,20 +28,6 @@
 		   requires([ css('amalgame.css')
 			    ])
 		 ]).
-/*
-cliopatria:resource_link(Alignment, Link) :-
-	rdfs_individual_of(Alignment, amalgame:'Alignment'),
-	http_link_to_id(http_list_alignment, [graph(Alignment)], Link).
-cliopatria:resource_link(Voc, Link) :-
-	rdfs_individual_of(Voc, skos:'ConceptScheme'),
-	http_link_to_id(http_list_skos_voc, [voc(Voc)], Link).
-*/
-cliopatria:display_link(TimeInstant, _Options) -->
-	{
-	 rdfs_individual_of(TimeInstant, time:'Instant'),
-	 rdf(TimeInstant, time:inXSDDateTime, literal(type(_, L)))
-	},
-	format_xsd_timestamp(L).
 
 cliopatria:display_link(literal(type(XSD,L)), _Options) -->
 	{
@@ -65,11 +51,6 @@ cliopatria:predicate_order(P, 400) :-
 	rdf_has(P, rdfs:isDefinedBy, 'http://www.w3.org/ns/prov#').
 cliopatria:predicate_order(P, 405) :-
 	rdf_has(P, rdfs:isDefinedBy, 'http://purl.org/vocabularies/amalgame').
-
-cliopatria:bnode_label(TimeInstant) -->
-	{ rdf(TimeInstant, time:inXSDDateTime, Literal)
-	},
-	html(\turtle_label(Literal)).
 
 user:body(amalgame(search), Body) -->
 	{
@@ -110,13 +91,3 @@ format_xsd_timestamp(L) -->
 	 sub_atom(L,ST,_,ET,TimePart)
 	},
 	html(span(class('time:instant'), [TimePart, ' ',DatePart])).
-
-
-
-
-
-
-
-
-
-
