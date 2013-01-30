@@ -6,4 +6,4 @@ config(ag_menu, link).
 config(ag_preferences, link).
 config(ag_modules, link).
 config(ag_skin, link).
-% config(opm_graphviz, link).
+config(ag_strat_prov_graph_viz, link).

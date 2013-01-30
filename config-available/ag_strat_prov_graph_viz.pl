@@ -1,4 +1,4 @@
-:- module(opm_graph, []).
+:- module(strategy_and_prov_graph_viz_config, []).
 
 
 :- use_module(cliopatria(hooks)).
@@ -11,16 +11,16 @@
         transitive_context(r).
 
 cliopatria:context_graph(URI, RDF) :-
-	(   rdfs_individual_of(URI, opmv:'Artifact')
-	;   rdfs_individual_of(URI, opmv:'Process')
-	;   rdfs_individual_of(URI, opmv:'Agent')
+	(   rdfs_individual_of(URI, prov:'Entity')
+	;   rdfs_individual_of(URI, prov:'Activity')
+	;   rdfs_individual_of(URI, prov:'Agent')
 	;   rdfs_individual_of(URI, skos:'ConceptScheme')
 	;   rdfs_individual_of(URI, amalgame:'Alignment')
 	),
 	findall(T, opm_context_triple(URI, T), RDF0),
 	sort(RDF0, RDF1),
 	minimise_graph(RDF1, RDF2),		% remove inverse/symmetric/...
-	bagify_graph(RDF2, RDF3, Bags, []), 	% Create bags of similar resources
+	bagify_graph(RDF2, RDF3, Bags, []),	% Create bags of similar resources
 	append(RDF3, Bags, RDF),
 	RDF \= [].
 
@@ -29,7 +29,7 @@ cliopatria:context_graph(URI, RDF) :-
 	findall(Triple, cell_context_triple(URI, Triple), RDF0),
 	sort(RDF0, RDF1),
 	minimise_graph(RDF1, RDF2),		% remove inverse/symmetric/...
-	bagify_graph(RDF2, RDF3, Bags, []), 	% Create bags of similar resources
+	bagify_graph(RDF2, RDF3, Bags, []),	% Create bags of similar resources
 	append(RDF3, Bags, RDF),
 	RDF \= [].
 
@@ -81,30 +81,29 @@ down(Orig, URI, [rdf(Child, P, URI)|T], Visited, MaxD) :-
 down(_,_, [], _, _).
 
 transitive_context(owl:versionInfo).
-transitive_context(opmv:used).
-transitive_context(opmv:wasGeneratedBy).
-transitive_context(opmv:wasPerformedBy).
+transitive_context(prov:used).
+transitive_context(prov:wasInfluencedBy).
 
 blacklist(Orig, Overlap) :-
 	rdfs_individual_of(Overlap, amalgame:'OverlapAlignment'),
 	\+ rdfs_individual_of(Orig, amalgame:'OverlapAlignment'),
-	\+ rdf_has(_Overlap, opmv:wasGeneratedBy,Orig).
+	\+ rdf_has(_Overlap, prov:wasGeneratedBy,Orig).
 
 blacklist(Orig, OverlapProcess) :-
-	rdf_has(Overlap, opmv:wasGeneratedBy, OverlapProcess),
+	rdf_has(Overlap, prov:wasGeneratedBy, OverlapProcess),
 	rdfs_individual_of(Overlap, amalgame:'OverlapAlignment'),
 	\+ rdfs_individual_of(Orig, amalgame:'OverlapAlignment').
 
 
 % Alignment made with amalgame:
 cliopatria:node_shape(URI, Shape, _Options) :-
-	rdf_has(URI, rdf:type, opmv:'Artifact'),
+	rdf_has(URI, rdf:type, prov:'Entity'),
 	rdfs_individual_of(URI, amalgame:'Alignment'),
-	rdf_has(URI, opmv:wasGeneratedBy, _),
+	rdf_has(URI, prov:wasInfluencedBy, _),
 	Shape = [shape('Mdiamond'),fontize('20.00'), style(filled),fillcolor('#FF8888')].
 % Amalgame process:
 cliopatria:node_shape(URI, Shape, _Options) :-
-	rdfs_individual_of(URI, opmv:'Process'),
+	rdfs_individual_of(URI, prov:'Activity'),
 	Shape = [shape('box'), style(filled),fillcolor('#FF8888')].
 
 % Alignment (up)loaded, typically not made with amalgame
