@@ -23,7 +23,7 @@ http://alignapi.gforge.inria.fr/edoal.html
 :- use_module(user(user_db)).
 
 :- use_module(map).
-:- use_module(opm).
+:- use_module(ag_provenance).
 
 %%	assert_alignment(+URI, +OptionList) is det.
 %

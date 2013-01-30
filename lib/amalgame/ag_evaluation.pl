@@ -6,7 +6,6 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(amalgame/ag_provenance)).
-:- use_module(library(amalgame/opm)).
 
 is_empty_eval_graph(Eval) :-
 	   rdfs_individual_of(Eval, amalgame:'EvaluatedMapping'),

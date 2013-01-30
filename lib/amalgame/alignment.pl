@@ -20,7 +20,7 @@
 
 :- use_module(edoal).
 :- use_module(map).
-:- use_module(opm).
+:- use_module(ag_provenance).
 
 :- dynamic
 	nickname_cache/3.
