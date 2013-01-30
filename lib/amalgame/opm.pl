@@ -1,6 +1,6 @@
-:-module(ag_opm, [
+:-module(ag_prov, [
 		  opm_was_generated_by/4,       % +Process (cause), +Artifact (effect), +RDFGraph, +Options
-		  opm_clear_process/1,           % +Process (bnode)
+		  prov_clear_activity/1,           % +Process (bnode)
 		  prov_assert_entity_version/3,
 		  clear_prov_cache/0,
 		  current_program_uri/2
@@ -88,9 +88,9 @@ opm_was_generated_by(Process, Artifact, Graph, Options) :-
 	atom(Artifact),!,
 	opm_was_generated_by(Process, [Artifact], Graph, Options).
 
-opm_clear_process(Process) :-
-	rdf_retractall(Process, _, _, _),
-	rdf_retractall(_, _, Process, _).
+prov_clear_activity(Activity) :-
+	rdf_retractall(Activity, _, _, _),
+	rdf_retractall(_, _, Activity, _).
 
 prov_program(Graph, Program) :-
 	current_program_uri(Graph, Program),!.

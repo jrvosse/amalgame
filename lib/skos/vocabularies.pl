@@ -340,9 +340,9 @@ voc_partition(Request, Voc, PartitionType, Partition) :-
 classify_concepts(Req, [], Voc, _PartitionType, Partition, Partition) :-
 	memberchk(SubVoc, Partition),
 	(   rdf(SubVoc, amalgame:wasDerivedFrom, Voc)
-	->  rdf(SubVoc, amalgame:wasGeneratedBy, OldProcess),
-	    rdf(OldProcess, amalgame:input, Voc),
-	    opm_clear_process(OldProcess)
+	->  rdf(SubVoc, amalgame:wasGeneratedBy, OldActivity),
+	    rdf(OldActivity, amalgame:input, Voc),
+	    prov_clear_activity(OldActivity)
 	;   true
 	),
 	rdf_bnode(Process),
