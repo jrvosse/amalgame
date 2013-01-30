@@ -17,7 +17,7 @@ cliopatria:context_graph(URI, RDF) :-
 	;   rdfs_individual_of(URI, skos:'ConceptScheme')
 	;   rdfs_individual_of(URI, amalgame:'Alignment')
 	),
-	findall(T, opm_context_triple(URI, T), RDF0),
+	findall(T, prov_context_triple(URI, T), RDF0),
 	sort(RDF0, RDF1),
 	minimise_graph(RDF1, RDF2),		% remove inverse/symmetric/...
 	bagify_graph(RDF2, RDF3, Bags, []),	% Create bags of similar resources
@@ -51,14 +51,14 @@ other(URI, rdf(Other, P, E2)):-
 	rdf_has(Other, align:entity2, E2, P),
 	Other \= URI.
 
-opm_context_triple(URI, Triple) :-
+prov_context_triple(URI, Triple) :-
 	up(URI, URI, Triples, [URI], 3),
 	member(Triple, Triples).
-opm_context_triple(URI, Triple) :-
+prov_context_triple(URI, Triple) :-
 	down(URI, URI, Triples, [URI], 2),
 	member(Triple, Triples).
 
-opm_context_triple(URI, rdf(URI, P, Class)) :-
+prov_context_triple(URI, rdf(URI, P, Class)) :-
 	rdf_has(URI, rdf:type, Class, P),
 	rdf_global_id(amalgame:_, Class).
 

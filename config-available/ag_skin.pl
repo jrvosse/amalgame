@@ -62,7 +62,7 @@ rdf_label:display_label_hook(Cell, _Lang, Label) :-
 
 cliopatria:predicate_order(P, "zzz") :- rdf_equal(align:map, P).
 cliopatria:predicate_order(P, 400) :-
-	rdf_has(P, rdfs:isDefinedBy, 'http://purl.org/net/opmv/ns').
+	rdf_has(P, rdfs:isDefinedBy, 'http://www.w3.org/ns/prov#').
 cliopatria:predicate_order(P, 405) :-
 	rdf_has(P, rdfs:isDefinedBy, 'http://purl.org/vocabularies/amalgame').
 
