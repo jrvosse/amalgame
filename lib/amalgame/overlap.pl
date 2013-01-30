@@ -73,7 +73,7 @@ strat_uri(Count, MergeGraph, StratumGraphURI):-
         rdf_persistency(StratumGraphURI, Persistency),
 	rdf_bnode(Process),
 	rdf_assert(Process, rdfs:label, literal('amalgame stratum calculator'), StratumGraphURI),
-	opm_was_generated_by(Process, StratumGraphURI,StratumGraphURI,
+	prov_was_generated_by(Process, StratumGraphURI,StratumGraphURI,
 				 [was_derived_from([MergeGraph])])).
 
 
@@ -163,7 +163,7 @@ count_overlaps(Request, [Graphs:Map|Tail], Accum, Results) :-
 	    rdf_persistency(Overlap, Persistency),
 	    rdf_bnode(Process),
 	    rdf_assert(Process, rdfs:label, literal('amalgame overlap calculator'), Overlap),
-	    opm_was_generated_by(Process, Overlap, Overlap,
+	    prov_was_generated_by(Process, Overlap, Overlap,
 				 [was_derived_from(Graphs), request(Request)])
 	),
 	Map = [E1, E2],
@@ -248,7 +248,7 @@ create_merge_graph(InputGraphList, MergeGraphURI):-
         rdf_persistency(MergeGraphURI, Persistency),
 	rdf_bnode(Process),
 	rdf_assert(Process, rdfs:label, literal('amalgame merge calculator'), MergeGraphURI),
-	opm_was_generated_by(Process, MergeGraphURI,MergeGraphURI,
+	prov_was_generated_by(Process, MergeGraphURI,MergeGraphURI,
 				 [was_derived_from(InputGraphList)]),
 
 	assert_merges(SortMaps,InputGraphList,MergeGraphURI),
