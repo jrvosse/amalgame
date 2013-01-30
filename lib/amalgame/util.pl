@@ -242,7 +242,7 @@ xsd_timestamp(Time, Atom) :-
                     Date, posix).
 
 is_edm_collection(EDM) :-
-	once(rdf(_,edm:country, _, EDM:_)).
+	once(rdf(_,'http://www.europeana.eu/schemas/edm/country', _, EDM:_)).
 
 is_edm_collection(EDM) :-
 	findall(Target-Graph-Class, is_edm_collection_(Target, Graph, Class), Results0),
@@ -257,7 +257,7 @@ is_edm_collection(EDM) :-
 	member(EDM-_-_, Results).
 
 is_edm_collection_(EDM, Graph, Class) :-
-	rdf_equal(Class,  edm:'Agent'),
+	rdf_equal(Class,  'http://www.europeana.eu/schemas/edm/Agent'),
 	rdfs_individual_of(Agent, Class),
 	rdf(Agent, rdf:type, _, Graph:_),
 	atom_concat(Graph, '_Agent', EDM).
