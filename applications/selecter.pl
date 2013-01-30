@@ -403,11 +403,16 @@ http_eq_upload_url(Request) :-
 	http_parameters(Request,
 			[ url(URL, [])
 			]),
-	gensym(strategy, Local),
-	setting(eq_publisher:default_namespace, NS),
-	atomic_list_concat([NS, Local], Graph),
-	rdf_load(URL, [graph(Graph)]),
-	build_redirect(Request, Graph).
+	rdf_bnode(TmpGraph),
+	rdf_load(URL, [graph(TmpGraph)]),
+	rdf(Strategy, rdf:type, amalgame:'AlignmentStrategy', TmpGraph),!,
+	rdf_unload_graph(Strategy), % Delete old strategies under the same name
+
+	% Copy entire strategy graph to keep original named graph:
+	findall(rdf(S,P,O), rdf(S,P,O,TmpGraph), Triples),
+	forall(member(rdf(S,P,O), Triples), rdf_assert(S,P,O,Strategy)),
+	rdf_unload_graph(TmpGraph),
+	build_redirect(Request, Strategy).
 
 build_redirect(Request, Graph) :-
 	http_link_to_id(http_eq_build, [alignment(Graph)], Redirect),
