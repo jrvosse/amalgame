@@ -24,8 +24,8 @@
 
 strategy_viz_options(Alignment,
 	       [edge_links(false),
-		shape_hook(opm_shape),
-		label_hook(opm_label(Alignment)),
+		shape_hook(amalgame_shape),
+		label_hook(amalgame_label(Alignment)),
 		graph_attributes([])
 	       ]).
 
@@ -61,7 +61,7 @@ http_strategy_viz(Request) :-
 	    reply_html_page(cliopatria(default),
 			    [ title(['Graph for ', \turtle_label(Alignment)])
 			    ],
-			    [ \graphviz_graph(opm_triples(Alignment), Options)
+			    [ \graphviz_graph(amalgame_triples(Alignment), Options)
 			    ])
 	).
 
@@ -71,7 +71,7 @@ http_strategy_viz(Request) :-
 
 reply_alignment_graph(Alignment, Format) :-
 	strategy_viz_options(Alignment, Options),
-	opm_triples(Alignment, Triples),
+	amalgame_triples(Alignment, Triples),
 	meta_options(is_meta, Options, QOptions),
 	reply_graphviz_graph(Triples, Format, QOptions).
 
@@ -83,7 +83,7 @@ reply_alignment_graph(Alignment, Format) :-
 html_strategy_viz(Graph) -->
 	{ strategy_viz_options(Graph, Options)
 	},
-	graphviz_graph(opm_triples(Graph), Options).
+	graphviz_graph(amalgame_triples(Graph), Options).
 
 html_strategy_viz(Graph) -->
 	{ http_link_to_id(http_strategy_viz, [graph(Graph),format(svg)], HREF)
@@ -96,24 +96,24 @@ html_strategy_viz(Graph) -->
 	     ]).
 
 
-%%	opm_triples(Graph, Triples)
+%%	amalgame_triples(Graph, Triples)
 %
 %	Triples are all rdf(S,P,O) in Graph.
 
-opm_triples(Graph, Triples) :-
-	findall(rdf(S,P,O), opm_graph_triple(Graph,S,P,O), Triples).
+amalgame_triples(Graph, Triples) :-
+	findall(rdf(S,P,O), amalgame_graph_triple(Graph,S,P,O), Triples).
 
 % hack, to get a better layout we reverse the arrow :(
-opm_graph_triple(Graph,Scheme,P,Graph) :-
+amalgame_graph_triple(Graph,Scheme,P,Graph) :-
 	rdf_equal(amalgame:includedIn, P),
 	rdf(Graph,amalgame:includes,Scheme,Graph).
-opm_graph_triple(Graph,S,P,O) :-
+amalgame_graph_triple(Graph,S,P,O) :-
 	rdf(S,P,O,Graph),
-	is_opm_property(P),
+	is_amalgame_property(P),
 	\+ empty_result(Graph, S).
 
 
-is_opm_property(P) :-
+is_amalgame_property(P) :-
 	rdfs_subproperty_of(P, prov:used),
 	(   setting(secondary_input, hide)
 	->  \+ rdf_equal(amalgame:secondary_input, P)
@@ -121,13 +121,13 @@ is_opm_property(P) :-
 	),
 	!.
 
-is_opm_property(P) :-
+is_amalgame_property(P) :-
 	rdfs_subproperty_of(P, amalgame:wasGeneratedBy),
 	!.
-is_opm_property(P) :-
+is_amalgame_property(P) :-
 	rdfs_subproperty_of(P, amalgame:wasDerivedFrom),
 	!.
-is_opm_property(P) :-
+is_amalgame_property(P) :-
 	rdfs_subproperty_of(P, amalgame:wasTriggeredBy),
 	!.
 % filter out empty results ...
@@ -146,11 +146,11 @@ empty_result(Strategy,Process) :-
 	empty_result(Strategy, Empty).
 
 
-%%	opm_shape(+Resource, -Shape)
+%%	amalgame_shape(+Resource, -Shape)
 %
 %	Defines graph node shape for different types of OPM resources.
 
-opm_shape(R, [shape(box),
+amalgame_shape(R, [shape(box),
 	      style(filled),
 	      fillcolor(Color),
 	      fontsize(10)]) :-
@@ -158,13 +158,13 @@ opm_shape(R, [shape(box),
 	rdfs_individual_of(R, amalgame:'Process'),
 	!,
 	process_color(R, Color).
-opm_shape(R, [shape(ellipse),
+amalgame_shape(R, [shape(ellipse),
 	      style(filled),
 	      fillcolor('#EEEEEE'),
 	      fontsize(10)]) :-
 	atom(R),
 	rdf(R, rdf:type, skos:'ConceptScheme').
-opm_shape(R, [shape(ellipse),
+amalgame_shape(R, [shape(ellipse),
 	      fillcolor(Color),
 	      style(filled),
               fontsize(10)]) :-
@@ -172,7 +172,7 @@ opm_shape(R, [shape(ellipse),
 	rdfs_individual_of(R, amalgame:'Artifact'),
 	!,
 	artifact_color(R, Color).
-opm_shape(_R, [shape(box),
+amalgame_shape(_R, [shape(box),
 	       fontsize(10)]).
 
 process_color(R, '#FFCC99') :-
@@ -195,11 +195,11 @@ artifact_color(R, '#CCFF99') :-
 artifact_color(_R, '#FFFFFF').
 
 
-%%	opm_label(+Alignment, +Resource, +Lang, +MaxLenth, -Label)
+%%	amalgame_label(+Alignment, +Resource, +Lang, +MaxLenth, -Label)
 %
 %	Defines the node label of Resource.
 
-opm_label(Alignment, Resource, Lang, MaxLen, Label) :-
+amalgame_label(Alignment, Resource, Lang, MaxLen, Label) :-
 	rdf_display_label(Resource, Lang, Text),
 	truncate_atom(Text, MaxLen, Label0),
 	stats_label_list(Alignment, Resource, Stats),
