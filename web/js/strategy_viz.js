@@ -6,11 +6,11 @@ YUI.add('strategy_viz', function(Y) {
 
 	var svgNS = "http://www.w3.org/2000/svg";
 
-	function OPMViz(config) {
-		OPMViz.superclass.constructor.apply(this, arguments);
+	function StratViz(config) {
+		StratViz.superclass.constructor.apply(this, arguments);
 	}
-	OPMViz.NAME = "strategy_viz";
-	OPMViz.ATTRS = {
+	StratViz.NAME = "strategy_viz";
+	StratViz.ATTRS = {
 		alignment: {
 			value: null
 		},
@@ -22,7 +22,7 @@ YUI.add('strategy_viz', function(Y) {
 		}
 	};
 
-	Y.extend(OPMViz, Y.Widget, {
+	Y.extend(StratViz, Y.Widget, {
 		initializer: function(config) {
 			this.infoDS = new Y.DataSource.IO({
 				source: this.get("paths").nodeinfo
@@ -94,6 +94,6 @@ YUI.add('strategy_viz', function(Y) {
 		
 	});
 
-	Y.OPMViz = OPMViz;
+	Y.StratViz = StratViz;
 
 }, '0.0.1', { requires: ['node','event','widget']});

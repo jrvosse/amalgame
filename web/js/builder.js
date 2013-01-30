@@ -4,7 +4,7 @@ YUI.add('builder', function(Y) {
 		Node = Y.Node,
 		Plugin = Y.Plugin;
 
-	var	NODE_OPM			= Y.one("#strategy_graph"),
+	var	NODE_GRAPH			= Y.one("#strategy_graph"),
 		NODE_CONTROLS			= Y.one("#controls"),
 		NODE_INFO			= Y.one("#info"),
 		NODE_SELECT			= Y.one("#select");
@@ -126,12 +126,12 @@ YUI.add('builder', function(Y) {
 		},
 
 		_initGraph : function() {
-			this.strategy_viz = new Y.OPMViz({
+			this.strategy_viz = new Y.StratViz({
 				paths:this.get("paths"),
 				alignment: this.get("alignment"),
 				selected: this.get("selected"),
 				nodes: this.get("nodes")
-			}).render(NODE_OPM);
+			}).render(NODE_GRAPH);
 		},
 
 		_initInfo : function() {
