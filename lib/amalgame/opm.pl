@@ -3,6 +3,7 @@
 		  opm_include_dependency/2,     % +SourceGraph, +TargetGraph
 		  opm_clear_process/1,           % +Process (bnode)
 		  opm_assert_artefact_version/3,
+		  clear_prov_cache/0,
 		  current_program_uri/2
 		 ]).
 
@@ -13,17 +14,18 @@
 */
 
 :- use_module(library(http/http_host)).
+:- use_module(library(http/http_session)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(version)).
 :- use_module(library(prov_schema)).
-% :- use_module(library(opmv_schema)).
-% :- use_module(library(opmvc_schema)).
 :- use_module(user(user_db)).
-:- use_module(library(http/http_session)).
 
 :- dynamic
 	current_program_uri/2.
+
+clear_prov_cache :-
+	retractall(current_program_uri(_,_)).
 
 opm_include_dependency(Graph, Target) :-
 	opm_include_dependency([Graph], [], DepList),

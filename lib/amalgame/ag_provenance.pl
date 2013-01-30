@@ -3,6 +3,7 @@
 	 provenance_graph/2,
 	 add_amalgame_opm/3,
 	 update_amalgame_opm/2,                      % -Strategy, +Mapping
+	 flush_prov_cache/0,
 	 remove_old_prov/2                           % +Process, +ProvGraph
 	]).
 
@@ -39,6 +40,9 @@ create_prov_graph(Strategy, Graph) :-
 	% Copy Strategy triples to empty prov graph:
 	findall(rdf(Strategy,P,O), rdf(Strategy,P,O,Strategy), STriples),
 	forall(member(rdf(S,P,O), STriples), rdf_assert(S,P,O,Graph)).
+
+flush_prov_cache :-
+	clear_prov_cache.
 
 update_amalgame_opm(Strategy, Mapping) :-
 	provenance_graph(Strategy, ProvGraph),

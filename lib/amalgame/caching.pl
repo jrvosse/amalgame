@@ -13,7 +13,6 @@
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
-:- use_module(library(amalgame/opm)).
 :- use_module(library(amalgame/ag_provenance)).
 :- use_module(library(skos/vocabularies)).
 :- use_module(ag_stats).
@@ -32,7 +31,7 @@ user:message_hook(make(done(_)), _, _) :-
 
 user:message_hook(make(done(_)), _, _) :-
 	debug(ag_expand, 'Flushing expand cache after running make/0', []),
-	retractall(ag_opm:current_program_uri(_)),
+	flush_prov_cache,
 	flush_expand_cache,
 	fail.
 
