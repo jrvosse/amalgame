@@ -282,7 +282,7 @@ fix_sec_inputs(Strategy) :-
 	       )
 	      ).
 fix_opmv_ns(Strategy) :- % backward compatibility
-	OldProp = 'http://purl.org/net/opmv/ns/wasGeneratedBy',
+	OldProp = 'http://purl.org/net/opmv/ns#wasGeneratedBy',
 	findall(rdf(S,OldProp,O),
 		rdf(S, OldProp, O, Strategy),
 		Triples),
