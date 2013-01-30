@@ -53,7 +53,7 @@ provenance_graph(Strategy, Graph) :-
 create_prov_graph(Strategy, Graph) :-
 	format(atom(Label), 'Provenance graph for strategy ~p', [Strategy]),
 	rdf_assert(Graph, rdf:type, prov:'Bundle', Graph),
-	rdf_assert(Graph, amalgame:strategy, Strategy, Graph),
+	rdf_assert(Graph, amalgame:hasPlan, Strategy, Graph),
 	rdf_assert(Graph, rdfs:label, literal(lang(en,Label)), Graph),
 	% Copy Strategy triples to empty prov graph:
 	findall(rdf(Strategy,P,O), rdf(Strategy,P,O,Strategy), STriples),
@@ -208,10 +208,7 @@ prov_program(Graph, Program) :-
 	current_program_uri(Graph, Program),!.
 
 prov_program(Graph, Program)  :-
-	rdf_bnode(Program),
-	assert(current_program_uri(Graph, Program)),
-	rdf_assert(Program, rdfs:label, literal('Amalgame alignment platform'), Graph),
-	rdf_assert(Program, rdf:type,   prov:'SoftwareAgent', Graph),
+
 
 	(  current_prolog_flag(version_git, PL_version)
 	-> true
@@ -224,7 +221,15 @@ prov_program(Graph, Program)  :-
 		MUVs
 	       ),
 	Prolog = 'swi-prolog'-'http://www.swi-prolog.org'-PL_version,
-	forall(member(M-U-V, [Prolog|MUVs]),
+	All = [Prolog|MUVs],
+	variant_sha1(All, Hash),
+	atom_concat('/ns/amalgame/version/x', Hash, Local),
+	rdf_global_id(amexp:Local, Program),
+	assert(current_program_uri(Graph, Program)),
+	rdf_assert(Program, rdfs:label, literal('Amalgame alignment platform'), Graph),
+	rdf_assert(Program, rdf:type,   prov:'SoftwareAgent', Graph),
+
+	forall(member(M-U-V, All),
 	       (   rdf_bnode(B),
 	           rdf_assert(Program, amalgame:component, B, Graph),
 		   rdf_assert(B, 'http://usefulinc.com/ns/doap#revision',
