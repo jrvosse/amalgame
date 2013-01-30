@@ -1,8 +1,8 @@
 :- module(ag_provenance,
 	[
 	 provenance_graph/2,
-	 add_amalgame_opm/3,
-	 update_amalgame_opm/2,                      % -Strategy, +Mapping
+	 add_amalgame_prov/3,
+	 update_amalgame_prov/2,                      % -Strategy, +Mapping
 	 flush_prov_cache/0,
 	 remove_old_prov/2                           % +Process, +ProvGraph
 	]).
@@ -44,7 +44,7 @@ create_prov_graph(Strategy, Graph) :-
 flush_prov_cache :-
 	clear_prov_cache.
 
-update_amalgame_opm(Strategy, Mapping) :-
+update_amalgame_prov(Strategy, Mapping) :-
 	provenance_graph(Strategy, ProvGraph),
 	rdf_retractall(Mapping, _, _, ProvGraph),
 	findall(rdf(Mapping,P,O),
@@ -54,9 +54,9 @@ update_amalgame_opm(Strategy, Mapping) :-
 	       rdf_assert(S,P,O,ProvGraph)
 	      ).
 
-add_amalgame_opm(Strategy, Process, Results) :-
-	rdf_equal(prov:used, OpmvUsed),
-	rdf_equal(prov:wasDerivedFrom, OpmvWDF),
+add_amalgame_prov(Strategy, Process, Results) :-
+	rdf_equal(prov:used, ProvUsed),
+	rdf_equal(prov:wasDerivedFrom, ProvWDF),
 
 	provenance_graph(Strategy, ProvGraph),
 
@@ -67,8 +67,8 @@ add_amalgame_opm(Strategy, Process, Results) :-
 	findall(rdf(Process, P, O), rdf(Process,P,O,Strategy), ProcessTriples),
 
 	% Translate subProperties of ompv:used to prov:used
-	findall(rdf(Process, OpmvUsed, S),
-		(   rdf_has(Process, OpmvUsed, S, RealProp),
+	findall(rdf(Process, ProvUsed, S),
+		(   rdf_has(Process, ProvUsed, S, RealProp),
 		    rdf(Process, RealProp, S, Strategy)
 		),
 		InputTriples),
@@ -82,7 +82,7 @@ add_amalgame_opm(Strategy, Process, Results) :-
 	opm_was_generated_by(Process, Artifacts, ProvGraph, []),
 
 	% Generate prov:wasDerivedFrom triples between Mappings
-	findall(rdf(Target, OpmvWDF, Source),
+	findall(rdf(Target, ProvWDF, Source),
 		(   member(Target, Artifacts),
 		    rdf_has(Process, prov:used, Source, RealProp),
 		    rdf(Process, RealProp, S, Strategy)

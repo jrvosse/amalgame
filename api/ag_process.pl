@@ -1,4 +1,4 @@
-:- module(eq_process,
+:- module(ag_process,
 	  [
 	  ]).
 
@@ -259,7 +259,7 @@ http_update_node(Request) :-
 			[form_data(Params)
 			]),
 	rdf_transaction(update_node_props(Params, URI, Alignment)),
-	update_amalgame_opm(Alignment, URI),
+	update_amalgame_prov(Alignment, URI),
 	change_ns_if_needed(PublishNS, URI, Alignment, NewAlignment),
 	js_alignment_nodes(NewAlignment, Nodes),
 	js_focus_node(NewAlignment, URI, FocusNode),

@@ -121,7 +121,6 @@ js_mappings(Strategy, Results) :-
 	findall(json([uri=M, label=L, stats=json(Stats)]),
 		(   member(M-L, Mappings),
 		    stats_cache(M-Strategy, stats(MN, SN, TN, SPerc, TPerc)),
-		    % mapping_counts(M, Strategy, MN, SN, TN, SPerc, TPerc),
 		    Stats = [
 			     numberOfMappings(MN),
 			     numberOfSourceConcepts(SN),

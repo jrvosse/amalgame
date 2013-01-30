@@ -7,7 +7,6 @@
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(amalgame/caching)).
 :- use_module(library(amalgame/map)).
-:- use_module(library(amalgame/caching)).
 :- use_module(library(amalgame/ag_provenance)).
 :- use_module(library(amalgame/amalgame_modules)).
 
@@ -125,14 +124,14 @@ do_expand_process(Strategy, Process, Result, Time) :-
 
 	% Provenance admin:
 	(   Result = scheme(_)   % Result is a single vocabulary
-	->  add_amalgame_opm(Strategy, Process, Result)
+	->  add_amalgame_prov(Strategy, Process, Result)
 	;   findall(URI-Mapping, % Result is one or more mappings
 		    (   rdf_has(URI, amalgame:wasGeneratedBy, Process, OutputType),
 			rdf(URI, OutputType, Process, Strategy),
 			select_result_mapping(URI, Result, OutputType, Mapping)
 		    ),
 		    Artifacts),
-	    add_amalgame_opm(Strategy, Process, Artifacts)
+	    add_amalgame_prov(Strategy, Process, Artifacts)
 	),
 
 	% HACK: this is needed to get preloaded graphs in the strategy graph
