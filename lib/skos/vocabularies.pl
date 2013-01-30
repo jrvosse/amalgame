@@ -16,15 +16,9 @@
 	   voc_delete_derived/0
           ]).
 
-:- use_module(library(uri)).
-:- use_module(library(version)).
-
-:- use_module(library(http/http_dispatch)).
-:- use_module(library(http/html_write)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_label)).
-:- use_module(library(semweb/rdf_portray)).
 
 :- use_module(library(amalgame/map)).
 :- use_module(library(amalgame/opm)).
@@ -169,7 +163,7 @@ voc_ensure_stats(version(Voc)) :-
 	->  true
 	;   assert_voc_version(Voc, amalgame_vocs)
 	->  true
-	;   debug(info, 'Failed to ensure opm stats for ~', [Voc])
+	;   debug(info, 'Failed to ensure version stats for ~', [Voc])
 	),!.
 
 
@@ -231,7 +225,7 @@ assert_subvoc_version(Voc, SuperVoc, TargetGraph) :-
 
 assert_supervoc_version(Voc, TargetGraph) :-
 	rdf(_, skos:inScheme, Voc, SourceGraph:_),!,
-	opm_assert_artefact_version(Voc, SourceGraph, TargetGraph).
+	prov_assert_entity_version(Voc, SourceGraph, TargetGraph).
 
 
 assert_voc_props([]).

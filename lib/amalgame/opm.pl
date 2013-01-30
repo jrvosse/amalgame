@@ -1,8 +1,7 @@
 :-module(ag_opm, [
 		  opm_was_generated_by/4,       % +Process (cause), +Artifact (effect), +RDFGraph, +Options
-		  opm_include_dependency/2,     % +SourceGraph, +TargetGraph
 		  opm_clear_process/1,           % +Process (bnode)
-		  opm_assert_artefact_version/3,
+		  prov_assert_entity_version/3,
 		  clear_prov_cache/0,
 		  current_program_uri/2
 		 ]).
@@ -27,50 +26,6 @@
 clear_prov_cache :-
 	retractall(current_program_uri(_,_)).
 
-opm_include_dependency(Graph, Target) :-
-	opm_include_dependency([Graph], [], DepList),
-	expand_deplist(DepList, [], Results),
-	rdf_assert_list(Results, Target).
-
-rdf_assert_list([], _).
-rdf_assert_list([rdf(S,P,O)|T], Graph) :-
-	rdf_assert(S,P,O,Graph),
-	rdf_assert_list(T, Graph).
-
-opm_include_dependency([], Results, Results).
-
-opm_include_dependency([H|T], Accum, Results) :-
-	opm_include_dependency(T, Accum, TailResults),
-	findall(Dep, dependent(H, Dep),Deps),
-	opm_include_dependency(Deps, [H], HeadResults),
-	append(TailResults, HeadResults, Results).
-
-dependent(S, Dep) :- rdf(S, prov:wasDerivedFrom, Dep).
-dependent(S, Dep) :- rdf(S, prov:wasGeneratedBy, Dep).
-dependent(S, Dep) :-
-	rdfs_individual_of(S, prov:'Activity'),
-	rdf(S,_,Dep),
-	rdf_is_bnode(Dep).
-
-expand_deplist([], Results, Results).
-expand_deplist([H|T], Accum, Results) :-
-	findall(Triple, opm_triple(H,Triple), Triples),
-	append(Triples, Accum, NewAccum),
-	expand_deplist(T, NewAccum, Results).
-
-:- rdf_meta
-	opm_triple(r, t).
-
-opm_triple(S, rdf(S, owl:versionInfo,O))     :- rdf(S, owl:versionInfo, O).
-opm_triple(S, rdf(S, prov:wasDerivedFrom,O)) :- rdf(S, prov:wasDerivedFrom, O).
-opm_triple(S, rdf(S, prov:wasGeneratedBy,O)) :- rdf(S, prov:wasGeneratedBy, O).
-opm_triple(S, rdf(S,P,O)) :-
-	rdfs_individual_of(S, prov:'Activity'),
-	rdf(S,P,O).
-opm_triple(S, rdf(S,P,O)) :-
-	rdf_is_bnode(S),
-	(   rdfs_individual_of(S, align:'Cell') -> gtrace; true),
-	rdf(S,P,O).
 
 %%     opm_was_generated_by(+Process, +Artifacts, +Graph, +Options) is
 %%     det.
@@ -94,8 +49,8 @@ opm_was_generated_by(Process, Artifacts, Graph, Options) :-
 		   rdf_assert(Artifact, prov:wasGeneratedBy, Process, Graph)
 	       )
 	      ),
-	opm_program(Graph, Program),
-	opm_agent(Graph, Agent),
+	prov_program(Graph, Program),
+	prov_agent(Graph, Agent),
 	get_time(Now),
 	get_xml_dateTime(Now, NowXML),
 	rdf_bnode(BN_now),
@@ -137,10 +92,10 @@ opm_clear_process(Process) :-
 	rdf_retractall(Process, _, _, _),
 	rdf_retractall(_, _, Process, _).
 
-opm_program(Graph, Program) :-
+prov_program(Graph, Program) :-
 	current_program_uri(Graph, Program),!.
 
-opm_program(Graph, Program)  :-
+prov_program(Graph, Program)  :-
 	rdf_bnode(Program),
 	assert(current_program_uri(Graph, Program)),
 	rdf_assert(Program, rdfs:label, literal('Amalgame alignment platform'), Graph),
@@ -170,7 +125,7 @@ opm_program(Graph, Program)  :-
 	      ),
 	!.
 
-opm_agent(Graph, Agent) :-
+prov_agent(Graph, Agent) :-
 	(
 	http_in_session(_)
 	->
@@ -193,24 +148,25 @@ opm_agent(Graph, Agent) :-
 get_xml_dateTime(T, TimeStamp) :-
 	format_time(atom(TimeStamp), '%Y-%m-%dT%H-%M-%S%Oz', T).
 
-%%	opm_assert_artefact_version(+Artifact,+SourceGraph,+TargetGraph) is semidet.
+%%	prov_assert_entity_version(+Entity,+SourceGraph,+TargetGraph)
+%	is semidet.
 %
-%	Assert (git) version information about Artifact into the named
+%	Assert (git) version information about Entity into the named
 %	graph TargetGraph. SourceGraph is the main named graph in which
-%	Artifact is defined.
+%	Entity is defined.
 
-opm_assert_artefact_version(Artifact, SourceGraph, TargetGraph) :-
+prov_assert_entity_version(Entity, SourceGraph, TargetGraph) :-
 	rdf_graph_property(SourceGraph, source(SourceFileURL)),
 	uri_file_name(SourceFileURL, Filename),
 	file_directory_name(Filename, Dirname),
-	register_git_module(Artifact, [directory(Dirname), home_url(Artifact)]),
-	(   git_module_property(Artifact, version(Version))
+	register_git_module(Entity, [directory(Dirname), home_url(Entity)]),
+	(   git_module_property(Entity, version(Version))
 	->  format(atom(VersionS),  'GIT version: ~w', [Version]),
-	    rdf_assert(Artifact, owl:versionInfo, literal(VersionS), TargetGraph)
+	    rdf_assert(Entity, owl:versionInfo, literal(VersionS), TargetGraph)
 	;   (rdf_graph_property(SourceGraph, hash(Hash)),
 	     rdf_graph_property(SourceGraph, source_last_modified(LastModified)),
 	     format_time(atom(Mod), 'Last-Modified: %Y-%m-%dT%H-%M-%S%Oz', LastModified),
-	     rdf_assert(Artifact, owl:versionInfo, literal(Mod), TargetGraph),
-	     rdf_assert(Artifact, owl:versionInfo, literal(Hash), TargetGraph)
+	     rdf_assert(Entity, owl:versionInfo, literal(Mod), TargetGraph),
+	     rdf_assert(Entity, owl:versionInfo, literal(Hash), TargetGraph)
 	    )
 	).
