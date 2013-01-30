@@ -148,7 +148,7 @@ empty_result(Strategy,Process) :-
 
 %%	amalgame_shape(+Resource, -Shape)
 %
-%	Defines graph node shape for different types of OPM resources.
+%	Defines graph node shape for different types of resources.
 
 amalgame_shape(R, [shape(box),
 	      style(filled),
