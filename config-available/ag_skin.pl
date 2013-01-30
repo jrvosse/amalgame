@@ -73,7 +73,7 @@ cliopatria:bnode_label(TimeInstant) -->
 
 user:body(amalgame(search), Body) -->
 	{
-	 http_link_to_id(http_list_skos_vocs, [], BackOfficeLink)
+	 http_link_to_id(http_eq, [], BackOfficeLink)
 	},
 	html_requires(cliopatria),
 	html(body(class(['yui-skin-sam', ag_search, cliopatria]),

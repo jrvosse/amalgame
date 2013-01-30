@@ -1,5 +1,6 @@
 :- module(eq_selecter,
-	  []).
+	  [html_schemes_only//0  % for backward compat with europeana demo
+	  ]).
 
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
@@ -70,6 +71,11 @@ html_page :-
 			]).
 
 
+html_schemes_only -->
+	{
+	 find_schemes(ConceptSchemes)
+	},
+	html_new(ConceptSchemes).
 
 %%	html_new
 %
