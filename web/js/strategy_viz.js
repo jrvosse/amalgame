@@ -58,7 +58,7 @@ YUI.add('strategy_viz', function(Y) {
 				data.selected = uri
 			}	
 
-			Y.io(paths.opmgraph, {
+			Y.io(paths.strategyGraph, {
 				data:data,
 				on:{
 					success: function(e,o) {

@@ -98,7 +98,7 @@ html_page(Strategy, Focus) :-
 				      div([class('yui3-u'), id(main)],
 					  [ div(id(graph),
 						div(class(content),
-						    div([id(opm)], []))),
+						    div([id(strategy_graph)], []))),
 					    div([id(bottom)],
 						div(class(content),
 						    [ div(id(mappingtable), []),
@@ -178,7 +178,7 @@ yui_script(Alignment, Focus) -->
 %
 %	Path to the server used in javascript.
 
-js_path(opmgraph, Path) :-
+js_path(strategyGraph, Path) :-
 	http_link_to_id(http_strategy_viz, [format(svg)], Path).
 js_path(addprocess, Path) :-
 	http_location_by_id(http_add_process, Path).

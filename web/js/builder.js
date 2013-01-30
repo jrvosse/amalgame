@@ -4,7 +4,7 @@ YUI.add('builder', function(Y) {
 		Node = Y.Node,
 		Plugin = Y.Plugin;
 
-	var	NODE_OPM			= Y.one("#opm"),
+	var	NODE_OPM			= Y.one("#strategy_graph"),
 		NODE_CONTROLS			= Y.one("#controls"),
 		NODE_INFO			= Y.one("#info"),
 		NODE_SELECT			= Y.one("#select");
