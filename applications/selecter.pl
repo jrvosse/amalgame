@@ -398,8 +398,8 @@ http_eq_upload_url(Request) :-
 			[ url(URL, [])
 			]),
 	gensym(strategy, Local),
-	setting(default_namespace, NS),
-	atomic_list_concat(NS, Local, Graph),
+	setting(eq_publisher:default_namespace, NS),
+	atomic_list_concat([NS, Local], Graph),
 	rdf_load(URL, [graph(Graph)]),
 	build_redirect(Request, Graph).
 
