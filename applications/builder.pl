@@ -40,8 +40,13 @@ precalc_voc_stats(Strategy) :-
 	% handy to know how many concepts etc are in each vocab,
 	% both for the user as for the hints system etc.
 	forall(rdf(Strategy, amalgame:includes, Vocab),
-	       concept_count(Vocab, Strategy, _)
+	       (   concept_count(Vocab, Strategy, _)
+	       ->  true
+	       ;   print_message(informational,
+			     map(found, 'No SKOS Concepts for ', Vocab, 0))
+	       )
 	      ).
+
 
 %%	http_eq_build(+Request)
 %
