@@ -99,11 +99,12 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 	rdf_has(Source, MatchProp1, literal(lang(SourceLang, SourceLabel)), SourceProp),
 	rdf_has(Target, MatchProp2, SearchTarget, TargetProp),
 	Source \== Target,
-	%(   var(SourceLang) -> SourceLang = undefined ; true);
-	%(   var(TargetLang) -> TargetLang = undefined ; true);
 
 	(   IgnoreType
 	->  true
 	;   matching_types(Source, Target)
-	).
+	),
 
+	% if matching label has no lang tag, these are still not grounded:
+	(   var(SourceLang) -> SourceLang = undefined; true),
+	(   var(TargetLang) -> TargetLang = undefined; true).
