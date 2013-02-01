@@ -2,7 +2,6 @@
 	  []).
 
 :- use_module(library(semweb/rdf_db)).
-:- use_module(library(semweb/rdf_litindex)).
 :- use_module(library(snowball)).
 :- use_module(library(amalgame/lit_distance)).
 :- use_module(library(amalgame/vocabulary)).

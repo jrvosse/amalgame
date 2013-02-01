@@ -2,8 +2,6 @@
 	  []).
 
 :- use_module(library(semweb/rdf_db)).
-:- use_module(library(semweb/rdfs)).
-:- use_module(library(semweb/rdf_label)).
 :- use_module(library(amalgame/vocabulary)).
 :- use_module(library(skos/vocabularies)).
 
