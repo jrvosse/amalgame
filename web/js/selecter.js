@@ -37,9 +37,9 @@ YUI.add('selecter', function(Y) {
 	  			e.target.toggleClass("selected");
 	  			var nodes = Y.Node.all("#new .selected");
 				if(nodes.size()>0) {
-	     			Y.one("#new .start").set("disabled", false);
+	     			Y.all("#new .start").set("disabled", false);
           		} else {
-	     			Y.one("#new .start").set("disabled", true);
+	     			Y.all("#new .start").set("disabled", true);
 	  			}
      		});
 
@@ -50,9 +50,9 @@ YUI.add('selecter', function(Y) {
 	  			e.target.toggleClass("selected");
 	  			var nodes = Y.Node.all("#open .selected");
 				if(nodes.size()>0) {
-	     			Y.one("#open .start").set("disabled", false);
+	     			Y.all("#open .start").set("disabled", false);
           		} else {
-	     			Y.one("#open .start").set("disabled", true);
+	     			Y.all("#open .start").set("disabled", true);
 	  			}
      		});
 			// the start button for the publish alignment selector is only shown when
@@ -61,13 +61,10 @@ YUI.add('selecter', function(Y) {
 	  			e.target.toggleClass("selected");
 	  			var nodes = Y.Node.all("#publish .selected");
 				if(nodes.size()>0) {
-	     			Y.one("#publish .start").set("disabled", false);
+	     			Y.all("#publish .start").set("disabled", false);
           		} else {
-	     			Y.one("#publish .start").set("disabled", true);
+	     			Y.all("#publish .start").set("disabled", true);
 	  			}
-     		});
-			Y.all("#import input").on("click", function(e) {
-	     		//Y.one("#import .start").set("disabled", false);
      		});
 		},
 		
