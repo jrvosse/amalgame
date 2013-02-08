@@ -440,6 +440,7 @@ build_redirect(Request, Strategy) :-
 	http_redirect(moved, Redirect, Request).
 
 delete_redirect(Request, Strategy) :-
+	authorized(write(default, _)),
 	rdf_unload_graph(Strategy),
 	http_link_to_id(http_eq, [], Redirect),
 	http_redirect(moved, Redirect, Request).
