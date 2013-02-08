@@ -184,7 +184,7 @@ html_open([]) -->
 		      []),
 	!.
 html_open(Alignments) -->
-	html_acc_item(open, 'open pre-loaded alignment strategy',
+	html_acc_item(open, 'edit/delete pre-loaded alignment strategy',
 		      [ form(action(location_by_id(http_eq_select)),
 			     [
 			       \html_alignment_table(Alignments,
