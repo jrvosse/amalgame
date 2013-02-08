@@ -22,6 +22,7 @@
 % http handlers for this applications
 :- http_handler(amalgame(eq), http_eq, []).
 :- http_handler(amalgame(new), http_eq_new, []).
+:- http_handler(amalgame(select), http_eq_select, []).
 :- http_handler(amalgame(load/url), http_eq_upload_url, []).
 :- http_handler(amalgame(load/data), http_eq_upload_data, []).
 
@@ -33,6 +34,24 @@
 http_eq(_Request) :-
 	% authorized(write(default, _)),
 	html_page.
+
+http_eq_select(Request) :-
+	http_parameters(Request,
+			[
+			 alignment(Strategy,
+				    [uri,
+				     description('URI of the selected strategy')]),
+			 submit(Action,
+				[oneof(['View selected','Delete selected']),
+				 description('Action to be performed on this strategy'),
+				 default('View selected')
+				])
+		       ]),
+	(   Action == 'View selected'
+	->  build_redirect(Request, Strategy)
+	;   Action == 'Delete selected'
+	->  delete_redirect(Request, Strategy)
+	).
 
 find_schemes(Schemes) :-
 	findall(C, rdfs_individual_of(C, skos:'ConceptScheme'), Cs),
@@ -166,10 +185,12 @@ html_open([]) -->
 	!.
 html_open(Alignments) -->
 	html_acc_item(open, 'open pre-loaded alignment strategy',
-		      [ form(action(location_by_id(http_eq_build)),
-			     [ \html_alignment_table(Alignments,
+		      [ form(action(location_by_id(http_eq_select)),
+			     [
+			       \html_alignment_table(Alignments,
 						    [linkto(http_eq_build)]),
-			       \html_submit('Start')
+			       \html_submit('View selected'),
+			       \html_submit('Delete selected')
 			     ])
 		      ]).
 html_publish([]) -->
@@ -280,9 +301,9 @@ html_import --> !.
 %
 
 html_submit(Label) -->
-	html(div(class(controls),
+	html(span(class(controls),
 		 [ input([type(submit), autocomplete(off), class(start),
-			  disabled(true), value(Label)])
+			  name(submit), disabled(true), value(Label)])
 		 ])).
 
 
@@ -414,8 +435,13 @@ http_eq_upload_url(Request) :-
 	rdf_unload_graph(TmpGraph),
 	build_redirect(Request, Strategy).
 
-build_redirect(Request, Graph) :-
-	http_link_to_id(http_eq_build, [alignment(Graph)], Redirect),
+build_redirect(Request, Strategy) :-
+	http_link_to_id(http_eq_build, [alignment(Strategy)], Redirect),
+	http_redirect(moved, Redirect, Request).
+
+delete_redirect(Request, Strategy) :-
+	rdf_unload_graph(Strategy),
+	http_link_to_id(http_eq, [], Redirect),
 	http_redirect(moved, Redirect, Request).
 
 showlist([]) --> !.

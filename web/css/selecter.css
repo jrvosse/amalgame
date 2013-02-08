@@ -16,8 +16,8 @@
 }
 
 .controls {
-	padding-right: 10px;
-	text-align: right;
+	padding: 0.5%;
+	float: right;
 }
 
 /* accordion */
