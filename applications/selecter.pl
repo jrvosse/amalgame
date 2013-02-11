@@ -57,7 +57,13 @@ find_schemes(Schemes) :-
 	findall(C, rdfs_individual_of(C, skos:'ConceptScheme'), Cs),
 	findall(G, is_edm_collection(G), Gs),
 	append(Cs, Gs, All),
-	sort(All, Schemes).
+	maplist(scheme_label, All, Labeled),
+	keysort(Labeled, Sorted),
+	pairs_values(Sorted, Schemes).
+
+scheme_label(URI, Key-URI) :-
+	graph_label(URI, CasedKey),
+	downcase_atom(CasedKey, Key).
 
 html_page :-
 	findall(A-S, amalgame_alignment(A, S), Alignments),
