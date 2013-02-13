@@ -28,12 +28,17 @@
 
 %%	http_eq(+Request)
 %
-%	Emit html page to start a new or load an existing alignment
-%	strategy.
+%	Emit html page to start a new or select/upload an existing
+%	alignment strategy.
 
 http_eq(_Request) :-
-	% authorized(write(default, _)),
 	html_page.
+
+
+%%	http_eq_select(+Request)
+%
+%      Execute action on selected strategy and redirect to
+%      appropriate page.
 
 http_eq_select(Request) :-
 	http_parameters(Request,
@@ -56,6 +61,51 @@ http_eq_select(Request) :-
 	;   Action == 'Delete selected'
 	->  delete_redirect(Request, Strategies)
 	).
+
+%%	http_eq_new(+Request)
+%
+%	Handler to create a new alignment
+
+http_eq_new(Request) :-
+	http_parameters(Request,
+			[ scheme(Schemes,
+				 [zero_or_more,
+				  description('Zero or more concept schemes')])
+			]),
+	new_strategy(Graph, [schemes(Schemes), comment('New strategy')]),
+	build_redirect(Request, [Graph]).
+
+
+
+%%	http_eq_upload_data(+Request)
+%
+%	Handler for alignment import
+
+http_eq_upload_data(Request) :-
+	authorized(write(default, _)),
+	http_parameters(Request,
+			[ data(Data,
+			       [ description('RDF data to be loaded')
+			       ])
+			]),
+	rdf_bnode(TmpGraph),
+	atom_to_memory_file(Data, MemFile),
+	setup_call_cleanup(open_memory_file(MemFile, read, Stream),
+			   rdf_guess_format_and_load(Stream, [graph(TmpGraph)]),
+			   ( close(Stream),
+			     free_memory_file(MemFile)
+			   )),
+	cp_strategy_from_tmp(Request, TmpGraph).
+
+http_eq_upload_url(Request) :-
+	authorized(write(default, _)),
+	http_parameters(Request,
+			[ url(URL, [])
+			]),
+	rdf_bnode(TmpGraph),
+	rdf_load(URL, [graph(TmpGraph)]),
+	cp_strategy_from_tmp(Request, TmpGraph).
+
 
 find_schemes(Schemes) :-
 	findall(C, rdfs_individual_of(C, skos:'ConceptScheme'), Cs),
@@ -360,24 +410,6 @@ js_module(selecter, json([fullpath(Path),
 	http_absolute_location(js('selecter.js'), Path, []).
 
 
-		 /*******************************
-		 *	       upload	        *
-		 *******************************/
-
-%%	http_eq_new(+Request)
-%
-%	Handler to create a new alignment
-
-http_eq_new(Request) :-
-	http_parameters(Request,
-			[ scheme(Schemes,
-				 [zero_or_more,
-				  description('Zero or more concept schemes')])
-			]),
-	new_strategy(Graph, [schemes(Schemes), comment('New strategy')]),
-	build_redirect(Request, [Graph]).
-
-
 %%	new_strategy(-StrategyURI, Options)
 %
 %	Assert a new strategy graph.
@@ -412,35 +444,6 @@ new_strategy_name(Strategy, NS) :-
 	\+ rdf_graph(Strategy),
 	!.
 
-
-%%	http_eq_upload_data(+Request)
-%
-%	Handler for alignment import
-
-http_eq_upload_data(Request) :-
-	authorized(write(default, _)),
-	http_parameters(Request,
-			[ data(Data,
-			       [ description('RDF data to be loaded')
-			       ])
-			]),
-	rdf_bnode(TmpGraph),
-	atom_to_memory_file(Data, MemFile),
-	setup_call_cleanup(open_memory_file(MemFile, read, Stream),
-			   rdf_guess_format_and_load(Stream, [graph(TmpGraph)]),
-			   ( close(Stream),
-			     free_memory_file(MemFile)
-			   )),
-	cp_strategy_from_tmp(Request, TmpGraph).
-
-http_eq_upload_url(Request) :-
-	authorized(write(default, _)),
-	http_parameters(Request,
-			[ url(URL, [])
-			]),
-	rdf_bnode(TmpGraph),
-	rdf_load(URL, [graph(TmpGraph)]),
-	cp_strategy_from_tmp(Request, TmpGraph).
 
 cp_strategy_from_tmp(Request, TmpGraph) :-
 	rdf(Strategy, rdf:type, amalgame:'AlignmentStrategy', TmpGraph),!,
