@@ -288,7 +288,8 @@ html_alignment_head -->
 	html([th([]),
 	      th(name),
 	      th(includes),
-	      th('created by')
+	      th('Created by:'),
+	      th('Comment:')
 	     ]).
 
 html_alignment_rows([],_) --> !.
@@ -297,12 +298,17 @@ html_alignment_rows([URI-Schemes|Gs], Options) -->
 	 (   rdf(URI, dcterms:creator, Author, URI)
 	 ->  true
 	 ;   Author = anonymous
+	 ),
+	 (   rdf(URI, rdfs:comment, CommentR, URI)
+	 ->  literal_text(CommentR, Comment)
+	 ;   Comment = ''
 	 )
 	},
 	html(tr([td(input([type(checkbox), autocomplete(off), class(option), name(alignment), value(URI)])),
 		 td(\html_strategy_name(URI, Options)),
 		 td(\html_scheme_labels(Schemes)),
-		 td(\turtle_label(Author))
+		 td(\turtle_label(Author)),
+		 td([class(comment)],Comment)
 		])),
 	html_alignment_rows(Gs, Options).
 
