@@ -20,10 +20,10 @@
 :- use_module(applications(skos_browser)).
 
 % http handlers for this applications
-:- http_handler(amalgame(eq), http_eq, []).
-:- http_handler(amalgame(new), http_eq_new, []).
-:- http_handler(amalgame(select), http_eq_select, []).
-:- http_handler(amalgame(load/url), http_eq_upload_url, []).
+:- http_handler(amalgame(eq),        http_eq, []).
+:- http_handler(amalgame(new),       http_eq_new, []).
+:- http_handler(amalgame(select),    http_eq_select, []).
+:- http_handler(amalgame(load/url),  http_eq_upload_url, []).
 :- http_handler(amalgame(load/data), http_eq_upload_data, []).
 
 %%	http_eq(+Request)
@@ -38,19 +38,23 @@ http_eq(_Request) :-
 http_eq_select(Request) :-
 	http_parameters(Request,
 			[
-			 alignment(Strategy,
-				    [uri,
+			 alignment(Strategies,
+				    [list(uri),
 				     description('URI of the selected strategy')]),
 			 submit(Action,
-				[oneof(['View selected','Delete selected']),
+				[oneof(['View selected',
+					'Merge selected',
+					'Delete selected']),
 				 description('Action to be performed on this strategy'),
 				 default('View selected')
 				])
 		       ]),
 	(   Action == 'View selected'
-	->  build_redirect(Request, Strategy)
+	->  build_redirect(Request, Strategies)
+	;   Action == 'Merge selected'
+	->  merge_redirect(Request, Strategies)
 	;   Action == 'Delete selected'
-	->  delete_redirect(Request, Strategy)
+	->  delete_redirect(Request, Strategies)
 	).
 
 find_schemes(Schemes) :-
@@ -193,10 +197,11 @@ html_open(Alignments) -->
 	html_acc_item(open, 'edit/delete pre-loaded alignment strategy',
 		      [ form(action(location_by_id(http_eq_select)),
 			     [
-			       \html_alignment_table(Alignments,
+			      \html_alignment_table(Alignments,
 						    [linkto(http_eq_build)]),
-			       \html_submit('View selected'),
-			       \html_submit('Delete selected')
+			      \html_submit('View selected'),
+			      \html_submit('Merge selected'),
+			      \html_submit('Delete selected')
 			     ])
 		      ]).
 html_publish([]) -->
@@ -244,7 +249,7 @@ html_alignment_rows([URI-Schemes|Gs], Options) -->
 	 ;   Author = anonymous
 	 )
 	},
-	html(tr([td(input([type(radio), autocomplete(off), class(option), name(alignment), value(URI)])),
+	html(tr([td(input([type(checkbox), autocomplete(off), class(option), name(alignment), value(URI)])),
 		 td(\html_strategy_name(URI, Options)),
 		 td(\html_scheme_labels(Schemes)),
 		 td(\turtle_label(Author))
@@ -369,33 +374,43 @@ http_eq_new(Request) :-
 				 [zero_or_more,
 				  description('Zero or more concept schemes')])
 			]),
-	new_alignment(Schemes, Graph),
-	build_redirect(Request, Graph).
+	new_strategy(Graph, [schemes(Schemes), comment('New strategy')]),
+	build_redirect(Request, [Graph]).
 
 
-%%	new_alignment(+Schemes, -AlignmentURI)
+%%	new_strategy(-StrategyURI, Options)
 %
-%	Assert a new alignment graph.
+%	Assert a new strategy graph.
 
-new_alignment(Schemes, Alignment) :-
+new_strategy(S, Options) :-
 	authorized(write(default, _)),
-	setting(eq_publisher:default_namespace, NS),
-	repeat, gensym(strategy, Local),
-	atomic_list_concat([NS,Local], Alignment),
-	\+ rdf_graph(Alignment),
-	!,
-	rdf_transaction((
-			 rdf_assert(Alignment, rdf:type, amalgame:'AlignmentStrategy', Alignment),
-			 rdf_assert(Alignment, rdf:type, prov:'Plan', Alignment),
-			 rdf_assert(Alignment, amalgame:publish_ns, NS, Alignment),
-			 assert_user_provenance(Alignment, Alignment),
-			 add_schemes(Schemes, Alignment))).
+	new_strategy_name(S, NS),
+	rdf_assert(S, rdf:type, amalgame:'AlignmentStrategy', S),
+	rdf_assert(S, rdf:type, prov:'Plan', S),
+	rdf_assert(S, amalgame:publish_ns, NS, S),
+	assert_user_provenance(S, S),
+
+	(   option(schemes(Schemes), Options)
+	->  add_schemes(Schemes, S)
+	;   true),
+
+	(   option(comment(C), Options)
+	->  rdf_assert(S, rdfs:comment, literal(C), S)
+	;   true
+	).
 
 add_schemes([], _).
 add_schemes([Scheme|Ss], Strategy) :-
 	rdf_assert(Strategy, amalgame:includes, Scheme, Strategy),
 	add_schemes(Ss, Strategy).
 
+new_strategy_name(Strategy, NS) :-
+	setting(eq_publisher:default_namespace, NS),
+	repeat,
+	gensym(strategy, Local),
+	atomic_list_concat([NS,Local], Strategy),
+	\+ rdf_graph(Strategy),
+	!.
 
 
 %%	http_eq_upload_data(+Request)
@@ -429,24 +444,62 @@ http_eq_upload_url(Request) :-
 
 cp_strategy_from_tmp(Request, TmpGraph) :-
 	rdf(Strategy, rdf:type, amalgame:'AlignmentStrategy', TmpGraph),!,
-	rdf_unload_graph(Strategy), % Delete old strategies under the same name
-
-	% Copy entire strategy graph to keep original named graph:
-	findall(rdf(S,P,O), rdf(S,P,O,TmpGraph), Triples),
-	forall(member(rdf(S,P,O), Triples), rdf_assert(S,P,O,Strategy)),
+	cp_graph(TmpGraph, Strategy, true),
 	rdf_unload_graph(TmpGraph),
 	build_redirect(Request, Strategy).
 
-build_redirect(Request, Strategy) :-
+build_redirect(Request, [Strategy|_]) :-
 	http_link_to_id(http_eq_build, [alignment(Strategy)], Redirect),
 	http_redirect(moved, Redirect, Request).
 
-delete_redirect(Request, Strategy) :-
+delete_redirect(Request, Strategies) :-
 	authorized(write(default, _)),
-	rdf_unload_graph(Strategy),
+	forall(member(Strategy, Strategies),
+	       rdf_unload_graph(Strategy)),
 	http_link_to_id(http_eq, [], Redirect),
 	http_redirect(moved, Redirect, Request).
+
+merge_redirect(Request, Strategies) :-
+	% Create comment
+	maplist(scheme_label, Strategies, Labeled),
+	keysort(Labeled, Sorted),
+	pairs_keys(Sorted, Labels),
+	atomic_list_concat(Labels, ', ', LabelsAtom),
+	atomic_concat('Strategy merged from ', LabelsAtom, Comment),
+
+	% Create merged strategy
+	new_strategy(New, [comment(Comment)]),
+	cp_graphs(Strategies, New),
+	merge_strategy_nodes(Strategies, New),
+
+	% Redirect to builder
+	http_link_to_id(http_eq_build, [alignment(New)], Redirect),
+	http_redirect(moved, Redirect, Request).
+
+merge_strategy_nodes([], _New) :- !.
+merge_strategy_nodes([H|T], New) :-
+	findall(rdf(H,P,O),
+		rdf(H,P,O,New),
+		Triples),
+	forall(member(rdf(_,P,O), Triples),
+	       rdf_assert(New,P,O,New)),
+	merge_strategy_nodes(T, New).
+
+cp_graphs([], _Target) :- !.
+cp_graphs([Head|Tail], Target) :-
+	cp_graph(Head, Target, false),
+	cp_graphs(Tail, Target).
+
+cp_graph(Source, Target, true) :-
+	rdf_unload_graph(Target), % Delete old graphs under the same name
+	cp_graph(Source, Target, false).
+
+cp_graph(Source, Target, false) :-
+	findall(rdf(S,P,O), rdf(S,P,O,Source), Triples),
+	forall(member(rdf(S,P,O), Triples),
+	       rdf_assert(S,P,O,Target)).
 
 showlist([]) --> !.
 showlist([H]) -->  html(H),!.
 showlist([H1,H2|Tail]) -->  html([H1,', ']), showlist([H2|Tail]).
+
