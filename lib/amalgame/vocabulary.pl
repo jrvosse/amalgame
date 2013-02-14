@@ -31,7 +31,7 @@ vocab_member(F, 'http://sws.geonames.org/') :-
 	rdfs_individual_of(F, 'http://www.geonames.org/ontology#Feature').
 vocab_member(E, Scheme) :-
 	atom(Scheme),
-	rdf(Scheme, rdf:type, skos:'ConceptScheme'),
+	rdfs_individual_of(Scheme, skos:'ConceptScheme'),
 	!,
 	rdf_has(E, skos:inScheme, Scheme).
 
