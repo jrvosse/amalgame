@@ -93,7 +93,7 @@ html_page(Alignment, Focus) :-
 				      focus(Focus),
 				      strategy(Alignment)]),
 				div([id(main)],
-				    [ form([id(export_form), action(location_by_id(http_eq_publish))],
+				    [ form([id(export_form), action(location_by_id(http_eq_publish)), method(post)],
 					   ['Publish ',
 					    input([type(hidden), name(alignment), value(Alignment)]),
 					    select([name(status), autocomplete(off)],

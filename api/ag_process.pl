@@ -258,6 +258,7 @@ http_update_node(Request) :-
 			],
 			[form_data(Params)
 			]),
+	rdf_unload_graph(URI), % Earlier alignment graph becomes invalid.
 	rdf_transaction(update_node_props(Params, URI, Alignment)),
 	update_amalgame_prov(Alignment, URI),
 	change_ns_if_needed(PublishNS, URI, Alignment, NewAlignment),
