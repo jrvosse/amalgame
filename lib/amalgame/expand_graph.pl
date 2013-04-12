@@ -118,7 +118,7 @@ do_expand_process(Strategy, Process, Result, Time) :-
 			      Module, Result, Time, Options),
 	(   ground(Result)
 	->  debug(ag_expand, 'Output of process ~p (~p) computed in ~ws', [Process,Type,Time])
-	;   throw(error(expand_process/4, 'Mappings results not grounded'))
+	;   throw(error(instantiation_error, 'Mappings results not grounded'))
 	),
 
 
