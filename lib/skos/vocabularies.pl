@@ -251,7 +251,7 @@ count_concepts(Voc, Count) :-
 	;   Format == skosxl
 	),
 	findall(Concept,
-		rdf(Concept, skos:inScheme, Voc),
+		rdf_has(Concept, skos:inScheme, Voc),
 		Concepts),
 	length(Concepts, Count),
 	print_message(informational, map(found, 'SKOS Concepts', Voc, Count)).
@@ -269,7 +269,7 @@ count_concepts(Voc, 0) :- voc_format(Voc, null).
 
 count_prefLabels(Voc, Count) :-
 	findall(Label,
-		(   rdf(Concept, skos:inScheme, Voc),
+		(   rdf_has(Concept, skos:inScheme, Voc),
 		    (	rdf_has(Concept, skos:prefLabel, literal(Label))
 		    ;	rdf_has(Concept, skosxl:prefLabel, Label)
 		    )
@@ -280,7 +280,7 @@ count_prefLabels(Voc, Count) :-
 
 count_altLabels(Voc, Count) :-
 	findall(Label,
-		(   rdf(Concept, skos:inScheme, Voc),
+		(   rdf_has(Concept, skos:inScheme, Voc),
 		    (	rdf_has(Concept, skos:altLabel, literal(Label))
 		    ;	rdf_has(Concept, skosxl:altLabel, Label)
 		    )
@@ -291,7 +291,7 @@ count_altLabels(Voc, Count) :-
 
 count_mapped_concepts(Voc, Count) :-
 	findall(C,
-		(   rdf(C, skos:inScheme, Voc),
+		(   rdf_has(C, skos:inScheme, Voc),
 		    (	has_map_chk([C,_], _, _)
 		    ;	has_map_chk([_,C], _, _)
 		    )
@@ -323,17 +323,17 @@ voc_languages_used(Voc, Prop, Langs) :-
 	).
 
 language_used(Voc, Lang) :-
-	rdf(Concept, skos:inScheme, Voc),
+	rdf_has(Concept, skos:inScheme, Voc),
 	rdf(Concept, _, literal(lang(Lang, _))),
 	ground(Lang).
 
 language_used(Voc, Prop, Lang) :-
-	rdf(Concept, skos:inScheme, Voc),
+	rdf_has(Concept, skos:inScheme, Voc),
 	rdf_has(Concept, Prop, literal(lang(Lang, _))),
 	ground(Lang).
 
 voc_partition(Request, Voc, PartitionType, Partition) :-
-	findall(C, rdf(C, skos:inScheme, Voc), Concepts),
+	findall(C, rdf_has(C, skos:inScheme, Voc), Concepts),
 	classify_concepts(Request, Concepts, Voc, PartitionType, [], Partition).
 
 

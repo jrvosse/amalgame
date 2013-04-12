@@ -30,7 +30,7 @@ exclude(Vocab, Mapping, scheme(NewScheme), Options) :-
 	rdf_assert(NewScheme, rdf:type, skos:'ConceptScheme', NewScheme).
 
 add_to_scheme(R, Scheme) :-
-	rdf(R, skos:inScheme, Scheme),
+	rdf_has(R, skos:inScheme, Scheme),
 	!.
 add_to_scheme(R, Scheme) :-
 	rdf_assert(R, skos:inScheme, Scheme, Scheme).

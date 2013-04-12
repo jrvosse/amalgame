@@ -163,7 +163,7 @@ amalgame_shape(R, [shape(ellipse),
 	      fillcolor('#EEEEEE'),
 	      fontsize(10)]) :-
 	atom(R),
-	rdf(R, rdf:type, skos:'ConceptScheme').
+	rdfs_individual_of(R, skos:'ConceptScheme').
 amalgame_shape(R, [shape(ellipse),
 	      fillcolor(Color),
 	      style(filled),

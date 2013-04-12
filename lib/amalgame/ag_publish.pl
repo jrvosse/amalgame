@@ -121,7 +121,7 @@ save_mapping(Id, Strategy, Options) :-
 	    ;   option(format(both), Options)
 	    ->  rdf_save_turtle(EdoalName, [graph(Id)|Options]),
 		save_flat_triples(Filename, Id, Options)
-	    ;   option(format(single), Options)
+	    ;   option(format(simple), Options)
 	    ->  save_flat_triples(Filename, Id, Options)
 	    )
 	;   true % probably an empty evaluation graph, no need to save it
