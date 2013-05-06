@@ -209,6 +209,13 @@ new_output(Type, Process, P, Input, Strategy, OutputURI) :-
 	rdf_assert(OutputURI, rdf:type, Type, Strategy),
 	rdf_assert(OutputURI, amalgame:status, amalgame:intermediate, Strategy),
         rdf_assert(OutputURI, P, Process, Strategy),
+
+	rdfs_individual_of(Process, PType),
+	(   rdf_has(PType, amalgame:materialize, amalgame:always)
+	->  rdf_assert(OutputURI, amalgame:recordEvidence, amalgame:enabled, Strategy)
+	;   true
+	),
+
 	assert_relation(OutputURI, Input, Strategy),
 	nickname(Strategy, OutputURI, _Nick).
 
