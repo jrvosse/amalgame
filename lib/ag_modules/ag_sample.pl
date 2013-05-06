@@ -1,8 +1,7 @@
 :- module(ag_sample, [
 		     ]).
 
-:- use_module(library(semweb/rdf_db)).
-:- use_module(library(amalgame/map)).
+:- use_module(library(random)).
 
 :- public amalgame_module/1.
 :- public selecter/5.
@@ -17,7 +16,8 @@ selecter(In, Out, [], [], Options) :-
 	option(sample_size(Size), Options, 5),
 	option(method(Method), Options, random),
 	length(In, Length),
-	randset(Size, Length, RandSet),
+	N is min(Length, Size),
+	randset(N, Length, RandSet),
 	assert_from_list(Method, In, 1, RandSet, Out).
 
 assert_from_list(_,[],_,_,[]):- !.
