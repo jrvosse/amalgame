@@ -44,9 +44,10 @@ expand_node_(Strategy, Id, Result) :-
 
 expand_mapping(Strategy, Id, Mapping) :-
 	debug(ag_expand, 'Expanding mapping ~p', [Id]),
-	(   % rdf_graph(Id) we should not exploit this until the evidence is
-	    % properly serialized ... :-(
-	    rdfs_individual_of(Id, amalgame:'EvaluatedMapping')
+	(   % we should not exploit materialized graphs
+	    % until the evidence is properly serialized ... :-(
+	    (	rdf_graph(Id), rdf(Id, amalgame:recordEvidence, amalgame:enabled))
+	;   rdfs_individual_of(Id, amalgame:'EvaluatedMapping')
 	;   rdfs_individual_of(Id, amalgame:'LoadedMapping')
 	;   rdf_has(Id, amalgame:wasGeneratedBy, Process),
 	    rdf(Process, rdf:type, amalgame:'SelectPreloaded')
