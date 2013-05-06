@@ -138,6 +138,7 @@ is_amalgame_graph(G) :-
 %	Retract all cached mappings.
 
 flush_expand_cache :-
+	del_evidence_graphs,
 	del_prov_graphs,
 	del_materialized_vocs,
 	del_materialized_mappings,
@@ -187,7 +188,18 @@ del_materialized_vocs :-
 	       )
 	      ).
 
+del_evidence_graphs :-
+	forall((rdf_graph(Bnode),
+		rdf_is_bnode(Bnode),
+		rdf(Bnode, amalgame:evidenceGraph, Bnode)
+	       ),
+	       rdf_unload_graph(Bnode)).
 
+del_bnode_graphs :-
+	forall((rdf_graph(Bnode),
+		rdf_is_bnode(Bnode)
+	       ),
+	       rdf_unload_graph(Bnode)).
 
 
 flush_dependent_caches(Process, Strategy, ProvGraph) :-
