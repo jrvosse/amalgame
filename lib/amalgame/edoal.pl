@@ -2,7 +2,8 @@
 		 assert_alignment/2,	% +URI, +OptionList
 		 assert_cell/3,	        % +E1, +E2, +OptionList
 		 edoal_to_triples/3,	% +Request, +EdoalGraph, +Options, +TargetGraph
-		 edoal_select/5	        % +Request, +EdoalGraph, +Options, +TargetGraph, +TargetRestGraph
+		 edoal_select/5,	% +Request, +EdoalGraph, +Options, +TargetGraph, +TargetRestGraph
+		 inline_evidence_graphs/2   % hack
 		]
 	).
 
@@ -227,3 +228,11 @@ edoal_select(Request, EdoalGraph, TargetGraph, TargetRestGraph, Options) :-
 			     [was_derived_from([EdoalGraph]),
 			      request(Request)
 			     ]).
+inline_evidence_graphs([], []).
+inline_evidence_graphs([In|TailIn], [Out|TailOut]) :-
+	inline_evidence_graph(In, Out),
+	inline_evidence_graphs(TailIn, TailOut).
+
+inline_evidence_graph(In, [graph(Evidence)|Rest]) :-
+	select(evidenceGraph(G), In, Rest),
+	findall(rdf(S,P,O), rdf(S,P,O,G), Evidence).
