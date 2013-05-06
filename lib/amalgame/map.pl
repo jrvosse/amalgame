@@ -84,9 +84,13 @@ same_target(As, _S, [], As).
 has_correspondence(align(E1, E2, P), Graph) :-
 	has_map([E1, E2], _, Properties, Graph),
 	append(Properties, Pflat),
+	(   memberchk(evidenceGraph(_), Pflat)
+	->  inline_evidence_graphs(Properties, Properties1)
+	;   Properties1 = Properties
+	),
 	(   memberchk(method(_), Pflat)
-	->  P = Properties
-	;   P = [[method(preloaded), graph(Graph)]|Properties]
+	->  P = Properties1
+	;   P = [[method(preloaded), graph(Graph)]|Properties1]
 	).
 
 %%	remove_correspondence(+C, +G) is semidet.
