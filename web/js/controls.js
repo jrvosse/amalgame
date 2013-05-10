@@ -143,19 +143,24 @@ YUI.add('controls', function(Y) {
 		},
 
 		syncUI : function() {
-			var selected = this.get("selected"),
-				type = selected ? selected.type : "";
+			var selected = this.get("selected");
+			type = selected ? selected.type : "";
 
 			// add mapping selection radio buttons with available mappings to components that need them
 			this._setMappingSelecter();
+			var secSelecter = Y.one(".secinput_selecter");
 
-			// We only show the controls for the active type
+			// Re-enable all controls by default:
+			NODE_CONTROLS.each(function(node) { node.removeClass("disabled") });
+
+			// Disable controls requiring secondairy mappings if there are non:
+			if (!secSelecter || !secSelecter.getContent()) {
+				Y.all(".secinput").addClass("disabled");
+			}
+
+			// Disable controls incompatible with the active type
 			NODE_INPUT_CONTROLS.each(function(node) {
-				if(type&&node.hasClass(type)) {
-					node.removeClass("disabled");
-				} else {
-					node.addClass("disabled");
-				}
+				if(!type || !node.hasClass(type)) node.addClass("disabled");
 			});
 
 			// enable input select when a vocabulary is selected
@@ -180,15 +185,6 @@ YUI.add('controls', function(Y) {
 				 this._valueSet(selected, "input");
 			}
 
-			var secSelecter = Y.one(".secinput_selecter");
-			if (secSelecter&&secSelecter.getContent()) {
-				// Y.log("Enabling components requiring secondary inputs");
-				Y.all(".secinput").removeClass("disabled");
-
-			} else {
-				// Y.log("Disabling components requiring secondary inputs");
-				Y.all(".secinput").addClass("disabled");
-			}
 			var preloadedSelecter = Y.one(".preloaded select option")
 			if(!preloadedSelecter) {
 			  //Y.log("Disabling components requiring preloaded input mappings");
