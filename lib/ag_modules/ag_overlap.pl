@@ -3,8 +3,6 @@
 	  ]).
 
 :- use_module(library(semweb/rdf_db)).
-:- use_module(library(amalgame/vocabulary)).
-:- use_module(library(amalgame/alignment)).
 :- use_module(library(amalgame/expand_graph)).
 :- use_module(library(amalgame/map)).
 
@@ -19,17 +17,18 @@ analyzer(Inputs, Process, Strategy, overlap(Results), _Options) :-
 	findall(Id-_Mapping,
 		rdf(Id, amalgame:wasGeneratedBy, Process, Strategy),
 		Results),
-	maplist(output_expander(Results, Strategy), Overlaps).
+	maplist(output_expander(Overlaps, Strategy), Results).
 
 input_expander(Strategy, Id, Id:Expanded) :-
 	expand_node(Strategy, Id, Expanded).
 
-output_expander(Results, Strategy, OverlapId-Mapping) :-
-	append(Mapping, MappingFlat),
-	merge_provenance(MappingFlat, MappingMerged),
+output_expander(Overlaps, Strategy, OutputUri-MappingMerged) :-
 	rdf(OutputUri, amalgame:overlap_set, literal(OverlapId), Strategy),
-	member(OutputUri-MappingMerged, Results),
-	!.
+	(   memberchk(OverlapId-Mapping, Overlaps)
+	->  append(Mapping, MappingFlat),
+	    merge_provenance(MappingFlat, MappingMerged)
+	;   MappingMerged = []
+	).
 
 overlap(MappingList, Overlaps) :-
 	create_pairs(MappingList, Pairs),
