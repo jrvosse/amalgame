@@ -79,7 +79,8 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 	),
 
 	(   CaseSensitive
-	->  SearchTarget=literal(lang(TargetLang, SourceLabel))
+	->  SearchTarget=literal(lang(TargetLang, SourceLabel)),
+	    TargetLabel = SourceLabel
 	;   SearchTarget=literal(exact(SourceLabel), lang(TargetLang, TargetLabel))
 	),
 
