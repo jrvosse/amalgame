@@ -7,12 +7,12 @@
 :- use_module(library(http/http_path)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/html_write)).
-:- use_module(library(amalgame/ag_stats)).
-:- use_module(library(amalgame/map)).
 :- use_module(library(yui3_beta)).
 
+:- use_module(library(amalgame/ag_stats)).
 :- use_module(library(amalgame/ag_controls)).
 :- use_module(library(amalgame/util)).
+:- use_module(library(amalgame/map)).
 
 :- use_module(api(hints)).
 :- use_module(api(node_info)).
