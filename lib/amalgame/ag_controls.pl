@@ -4,7 +4,7 @@
 	    module_input_type/2,
 	    module_special_type/2,
 	    status_option/1, % Move to eq_util?
-	    html_options//1  % idem
+	    html_options//2  % idem
 	  ]).
 
 :- use_module(library(semweb/rdf_db)).
@@ -90,6 +90,7 @@ html_info_control -->
 html_node_props -->
 	{ findall(Status, status_option(Status), StatusOptions),
 	  supported_map_relations(RelationOptions)
+
 	},
 	html(table([tr([td(id(type), []),
 			td(id(uri), [])
@@ -107,25 +108,29 @@ html_node_props -->
 		    tr(id(statusrow),
 		       [td(status),
 			td(select([id(status), autocomplete(off)],
-				 [ option(value('')),
-				   \html_options(StatusOptions)
+				 [
+				   \html_options([''|StatusOptions],'')
 				 ]))
 		       ]),
 		    tr([id(relationrow)],
 		      [td(relation),
 		       td(select([id(default_relation), autocomplete(off)],
-				 [ option(value('')),
-				   \html_options(RelationOptions)
+				 [
+				   \html_options([''|RelationOptions], '')
 				 ]))
 		      ])
 		   ])).
 
-html_options([]) --> !.
-html_options([R|Rs]) -->
-	{ rdf_display_label(R, Label)
+html_options([],_) --> !.
+html_options([R|Rs], Default) -->
+	{ rdf_display_label(R, Label),
+	  (   R == Default
+	  ->  Selected = [selected(selected)]
+	  ;   Selected = []
+	  )
 	},
-	html(option(value(R), Label)),
-	html_options(Rs).
+	html(option([value(R) | Selected], Label)),
+	html_options(Rs, Default).
 
 html_select_control(Modules) -->
 	html(div(id(select),
