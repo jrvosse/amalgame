@@ -188,17 +188,16 @@ edoal_to_triples(EdoalGraph, TargetGraph, Options) :-
 			     |Options]).
 
 assert_as_single_triple(align(C1,C2,MatchOptions), Options, TargetGraph) :-
-	rdf_equal(skos:closeMatch, DefaultRelation),
+	rdf_equal(skos:closeMatch, DefaultRelationIfNoneGiven),
+	option(default_relation(DefaultRelation), Options, DefaultRelationIfNoneGiven),
 	append(MatchOptions, MatchOptionsFlat),
-	append([
-		Options,
-		MatchOptionsFlat,
-		[default_relation(DefaultRelation)]
-	       ],
-	       AllOptions),
-	member(relation(R), AllOptions),
-	R \= no_override, !,
-	rdf_assert(C1, R, C2, TargetGraph).
+	append([Options, MatchOptionsFlat], AllOptions),
+	option(relation(R), AllOptions, DefaultRelation),
+	(   R == none
+	->  Pred = DefaultRelationIfNoneGiven
+	;   Pred = R
+	),
+	rdf_assert(C1, Pred, C2, TargetGraph).
 
 edoal_select(Request, EdoalGraph, TargetGraph, TargetRestGraph, Options) :-
 	option(min(Min), Options, 0.0),
