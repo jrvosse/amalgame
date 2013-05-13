@@ -455,7 +455,7 @@ cp_strategy_from_tmp(Request, TmpGraph) :-
 	rdf(Strategy, rdf:type, amalgame:'AlignmentStrategy', TmpGraph),!,
 	cp_graph(TmpGraph, Strategy, true),
 	rdf_unload_graph(TmpGraph),
-	build_redirect(Request, Strategy).
+	build_redirect(Request, [Strategy]).
 
 build_redirect(Request, [Strategy|_]) :-
 	http_link_to_id(http_eq_build, [alignment(Strategy)], Redirect),
