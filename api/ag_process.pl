@@ -180,6 +180,7 @@ assert_output(Process, Type, Strategy, Input, SecInputs, Strategy) :-
 	oset_power(SecInputs, [[]|PowSet]),
 	forall(member(InSet0, PowSet),
 	       (   sort(InSet0, InSet),
+		   term_to_atom(InSet, InSetAtom),
 		   new_output(OutputClass, Process, amalgame:wasGeneratedBy, Input, Strategy, OutputUri),
 		   findall(Nick,
 			   (	member(Id, InSet),
@@ -189,7 +190,7 @@ assert_output(Process, Type, Strategy, Input, SecInputs, Strategy) :-
 		   atomic_list_concat(Nicks, AllNicks),
 		   format(atom(Comment), 'Mappings found only in: ~p', [InSet]),
 		   format(atom(Label), 'Intersect: ~w', [AllNicks]),
-		   rdf_assert(OutputUri, amalgame:overlap_set, literal(InSet), Strategy),
+		   rdf_assert(OutputUri, amalgame:overlap_set, literal(InSetAtom), Strategy),
 		   rdf_assert(OutputUri, rdfs:comment, literal(Comment), Strategy),
 		   rdf_assert(OutputUri, rdfs:label, literal(Label), Strategy)
 	       )

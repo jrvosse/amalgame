@@ -3,6 +3,7 @@
 	  ]).
 
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_label)).
 :- use_module(library(amalgame/expand_graph)).
 :- use_module(library(amalgame/map)).
 
@@ -23,8 +24,9 @@ input_expander(Strategy, Id, Id:Expanded) :-
 	expand_node(Strategy, Id, Expanded).
 
 output_expander(Overlaps, Strategy, OutputUri-MappingMerged) :-
-	rdf(OutputUri, amalgame:overlap_set, literal(OverlapId), Strategy),
-	(   memberchk(OverlapId-Mapping, Overlaps)
+	rdf(OutputUri, amalgame:overlap_set, OverlapId, Strategy),
+	literal_text(OverlapId, OverlapTxt),
+	(   memberchk(OverlapTxt-Mapping, Overlaps)
 	->  append(Mapping, MappingFlat),
 	    merge_provenance(MappingFlat, MappingMerged)
 	;   MappingMerged = []
@@ -42,8 +44,9 @@ overlap(MappingList, Overlaps) :-
 	group_pairs_by_key(TransposedPairsSorted, Overlaps).
 
 my_transpose_pairs([], []).
-my_transpose_pairs([(S:T)-L|Tail], [IDs-Es|Result]) :-
+my_transpose_pairs([(S:T)-L|Tail], [IDsAtom-Es|Result]) :-
 	findall(Id, member((Id:align(S,T,_)), L), IDs),
+	term_to_atom(IDs, IDsAtom),
 	findall(align(S,T,E),  member((_I:align(S,T,E)), L), Es),
 	my_transpose_pairs(Tail, Result).
 create_pairs([], []).
