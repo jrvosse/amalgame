@@ -82,6 +82,7 @@ html_page(Alignment, Focus) :-
 	html_set_options([dialect(html)]),
 	findall(R, status_option(R), StatusOptions),
 	supported_map_relations(MapRelations),
+	rdf_equal(skos:closeMatch, DefaultRelationIfNoneGiven),
 	reply_html_page(equalizer(main),
 			[ title(['Align vocabularies'])
 			],
@@ -103,7 +104,7 @@ html_page(Alignment, Focus) :-
 					    'Default map relation to use when missing: ',
 					    select([name(default_relation)],
 						   [
-						   \html_options([none|MapRelations], none)]),
+						   \html_options(MapRelations, DefaultRelationIfNoneGiven)]),
 					    br([]),
 					    'RDF format to use:',
 					    select([name(format)],
