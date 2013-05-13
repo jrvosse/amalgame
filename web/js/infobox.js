@@ -177,8 +177,8 @@ YUI.add('infobox', function(Y) {
 					comment = selected.comment||"",
 					abbrev = selected.abbrev||"?",
 					namespace = selected.namespace||"",
-					status = selected.status,
-					relation = selected.default_relation,
+					status = selected.status || "",
+					relation = selected.default_relation || "",
 					sec_inputs = selected.secondary_inputs|| [];
 
 				this.emptyNode.addClass("hidden");
@@ -199,6 +199,8 @@ YUI.add('infobox', function(Y) {
 					Node.getDOMNode(NODE_REL).selectedIndex =
 							  NODE_REL.get('options')
 							    .indexOf(NODE_REL.one("option[value='"+relation+"']"));
+					Y.log(NODE_REL.get('options').indexOf(NODE_REL.one("option[value='"+relation+"']")));
+					Y.log(selected);
 				} else {
 					NODE_STATUS_ROW.addClass("hidden")
 					NODE_REL_ROW.addClass("hidden")
