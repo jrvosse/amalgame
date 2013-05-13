@@ -31,8 +31,12 @@ parameter(language, oneof(['any'|L]), 'any', 'Language of source label') :-
 parameter(matchacross_lang,
 	  boolean, true,
 	  'Allow labels from different language to be matched').
-parameter(case_sensitive, boolean, false,
+
+/* Not correctly implemented yet
+   parameter(case_sensitive, boolean, false,
 	  'When true the case of labels must be equal').
+
+*/
 
 %%      filter(+MappingsIn, -MappingsOut, +Options)
 %
