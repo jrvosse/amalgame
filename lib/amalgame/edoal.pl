@@ -233,5 +233,6 @@ inline_evidence_graphs([In|TailIn], [Out|TailOut]) :-
 	inline_evidence_graphs(TailIn, TailOut).
 
 inline_evidence_graph(In, [graph(Evidence)|Rest]) :-
-	select(evidenceGraph(G), In, Rest),
+	select(evidenceGraph(G), In, Rest),!,
 	findall(rdf(S,P,O), rdf(S,P,O,G), Evidence).
+inline_evidence_graph(In, In) :- !.
