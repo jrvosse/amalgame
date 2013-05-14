@@ -2,7 +2,6 @@
 		 assert_alignment/2,	% +URI, +OptionList
 		 assert_cell/3,	        % +E1, +E2, +OptionList
 		 edoal_to_triples/3,	% +Request, +EdoalGraph, +Options, +TargetGraph
-		 edoal_select/5,	% +Request, +EdoalGraph, +Options, +TargetGraph, +TargetRestGraph
 		 inline_evidence_graphs/2   % hack
 		]
 	).
@@ -199,34 +198,6 @@ assert_as_single_triple(align(C1,C2,MatchOptions), Options, TargetGraph) :-
 	),
 	rdf_assert(C1, Pred, C2, TargetGraph).
 
-edoal_select(Request, EdoalGraph, TargetGraph, TargetRestGraph, Options) :-
-	option(min(Min), Options, 0.0),
-	option(max(Max), Options, 1.0),
-	rdf_transaction(
-			forall((has_map([C1, C2], edoal, MatchOptions, EdoalGraph),
-				memberchk(measure(Measure), MatchOptions)
-			       ),
-			       (   (Measure < Min ; Measure > Max)
-			       ->  append(Options, MatchOptions, NewOptions),
-				   assert_cell(C1, C2, [graph(TargetRestGraph),
-							alignment(TargetRestGraph)
-						       |NewOptions])
-			       ;   append(Options, MatchOptions, NewOptions),
-				   assert_cell(C1, C2, [graph(TargetGraph),
-							alignment(TargetGraph)
-						       |NewOptions])
-			       )
-			      )
-		       ),
-	rdf_assert(TargetGraph, rdf:type, amalgame:'SelectionAlignment', TargetGraph),
-	rdf_assert(TargetRestGraph, rdf:type, amalgame:'SelectionAlignment', TargetRestGraph),
-	rdf_bnode(Process),
-	rdf_assert(Process, amalgame:minimalConfidence, literal(type(xsd:float, Min)), TargetGraph),
-	rdf_assert(Process, amalgame:maximalConfidence, literal(type(xsd:float, Max)), TargetGraph),
-	prov_was_generated_by(Process, [TargetGraph, TargetRestGraph], TargetGraph,
-			     [was_derived_from([EdoalGraph]),
-			      request(Request)
-			     ]).
 inline_evidence_graphs([], []).
 inline_evidence_graphs([In|TailIn], [Out|TailOut]) :-
 	inline_evidence_graph(In, Out),
