@@ -201,6 +201,9 @@ del_bnode_graphs :-
 	       ),
 	       rdf_unload_graph(Bnode)).
 
+del_empty_graphs :-
+	forall(rdf_graph_property(Graph, triples(0)),
+	       rdf_unload_graph(Graph)).
 
 flush_dependent_caches(Process, Strategy, ProvGraph) :-
 	flush_expand_cache(Process, Strategy),
