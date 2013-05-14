@@ -1,10 +1,6 @@
 :-module(ag_alignment,
 	 [
-	  is_alignment_graph/2,
-	  find_graphs/2,
-	  nickname/2, % deprecated
 	  nickname/3,
-	  split_alignment/4,
 	  select_from_alignment/5,
 
 	  align_stat/2,
@@ -52,16 +48,6 @@ graph_format(Graph, Format) :-
 	->  Format = empty
 	;   fail
 	).
-
-%%	find_graphs(+Map, -Graphs) is det.
-%
-%	Find all Graphs that have a mapping Map.
-
-find_graphs(Map, Graphs) :-
-	findall(Graph,
-		has_map(Map, _, Graph:_),
-		Graphs).
-
 
 %%	align_get_computed_props(+Graph, -Props) is det.
 %
@@ -266,17 +252,6 @@ find_target(Graph, Format, Target) :-
 	).
 find_target(_, _, null).
 
-has_nickname(Graph,Nick) :-
-	rdf(Graph, amalgame:nickname, literal(Nick), amalgame_nicknames).
-nickname(Graph, Nick) :-
-	has_nickname(Graph,Nick), !.
-nickname(Graph, Nick) :-
-	coin_nickname(Graph, Nick),
-	rdf_assert(Graph, amalgame:nickname, literal(Nick), amalgame_nicknames).
-coin_nickname(_Graph, Nick) :-
-	char_type(Nick, alpha),
-	\+ has_nickname(_, Nick),!.
-
 %%	nickname(+Strategy, +Graph, ?Nickname) is det.
 %
 %	Unifies Nickname with the nickname of Graph in Strategy.
@@ -293,82 +268,6 @@ nickname(Strategy, Graph, Nick) :-
 	!,
 	assert(nickname_cache(Strategy, Graph, Nick)),
 	rdf_assert(Graph, amalgame:nickname, literal(Nick), Strategy).
-
-
-split_alignment(Request, SourceGraph, Condition, SplittedGraphs) :-
-	has_map(_,Format,SourceGraph),!,
-	findall(Map:Options, has_map(Map, Format, Options, SourceGraph), Maps),
-	reassert(Request, Maps, SourceGraph, Condition, [], SplittedGraphs).
-
-% VIC: added the restgraph as extra argument
-
-select_from_alignment(Request, SourceGraph, Condition, TargetGraph, TargetRestGraph) :-
-	findall([C1,C2,MapProps], has_map([C1,C2], _, MapProps, SourceGraph), Maps),
-	forall(member([C1,C2,MapProps], Maps),
-	       (   meets_condition(Condition, C1,C2, MapProps, SourceGraph)
-	       ->  assert_cell(C1, C2, [graph(TargetGraph)|MapProps])
-	       ;   assert_cell(C1, C2, [graph(TargetRestGraph)|MapProps])
-	       )
-	      ),
-	(   rdf_graph(TargetGraph)
-	->  rdf_assert(TargetGraph, rdf:type, amalgame:'SelectionAlignment', TargetGraph),
-	    rdf_bnode(Process),
-	    rdf_assert(Process, rdfs:label, literal('Amalgame mapping filter'), TargetGraph),
-	    rdf_assert(Process, amalgame:condition, literal(Condition), TargetGraph),
-	    prov_was_generated_by(Process, [TargetGraph, TargetRestGraph], TargetGraph,
-				 [was_derived_from([SourceGraph]),
-				  request(Request)
-				 ])
-	;   true
-	).
-
-meets_condition(one_to_one, C1, C2, _MapOptions, Graph) :-
-	has_map([C1, C2], _, Graph),
-	\+ ((has_map([A1, C2], _, Graph), A1 \= C1);
-	    (has_map([C1, A2], _, Graph), A2 \= C2)
-	   ).
-meets_condition(unique_label, _C1, _C2, MapOptions, _Graph) :-
-	option(method(Method), MapOptions),
-	sub_atom(Method, _, _, _, 'exact 1/1 ').
-
-reassert(_, [], _ , _, Graphs, Graphs).
-reassert(Request, [Map:Options|Tail], OldGraph, Condition, Accum, Results) :-
-	target_graph(Map, OldGraph, Condition, NewGraph),
-	(   memberchk(NewGraph, Accum)
-	->  NewAccum = Accum
-	;   NewAccum = [NewGraph|Accum],
-	    (	rdf_graph(NewGraph) -> rdf_unload_graph(NewGraph); true),
-
-	    rdf_assert(NewGraph, rdf:type, amalgame:'PartitionedAlignment', NewGraph),
-	    rdf_assert(OldGraph, void:subset, NewGraph, NewGraph),
-
-	    rdf_bnode(Process),
-	    rdf_assert(Process, rdfs:label, literal('Amalgame split operation'), NewGraph),
-	    rdf_assert(Process, amalgame:condition, literal(Condition), NewGraph),
-	    prov_was_generated_by(Process, NewGraph, NewGraph,
-				 [was_derived_from([OldGraph]),
-				  request(Request)
-				 ])
-	),
-	Map = [E1,E2],
-	assert_cell(E1, E2, [graph(NewGraph), Options]),
-	reassert(Request, Tail, OldGraph, Condition, NewAccum, Results).
-
-target_graph([E1, E2], OldGraph, Condition, Graph) :-
-	(   Condition = sourceType
-	->  findall(Type, rdf(E1, rdf:type, Type), Types)
-	;   findall(Type, rdf(E2, rdf:type, Type), Types)
-	),
-	sort(Types, STypes),
-	rdf_equal(skos:'Concept', SkosConcept),
-	(   selectchk(SkosConcept, STypes, GTypes)
-	->  true
-	;   GTypes = STypes
-	),
-	(   GTypes = [FirstType|_]
-	->  format(atom(Graph), '~p_~p', [OldGraph, FirstType])
-	;   Graph = OldGraph
-	).
 
 classify_graph_type(Graph) :-
 	rdfs_individual_of(Graph, amalgame:'Alignment'), !.
