@@ -3,7 +3,6 @@
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(amalgame/vocabulary)).
-:- use_module(library(amalgame/map)).
 
 :- public amalgame_module/1.
 :- public filter/3.
@@ -69,12 +68,6 @@ match(align(S, T, Prov0), BackgroundMatches, align(S, T, [Prov|Prov0]), Options)
 		target_steps(Steps2),
 		graph([R1,R2])
 	       ].
-/*
-	has_map([AncS, AncT],_,O, Graph),
-	memberchk(relation(AncMapRel), O),
-	Prov = [method(ancestor_match),
-		graph([R1,R2, rdf(AncS, AncMapRel, AncT)])
-	       ].*/
 
 ancestor(R, MaxSteps, Parent, rdf(R, Prop, Parent), Steps) :-
 	rdf_equal(skos:broader, Prop),

@@ -368,10 +368,10 @@ mapped_chk([_|T], Graphs, Rest) :-
 	mapped_chk(T, Graphs, Rest).
 
 is_mapped(C, Graphs) :-
-	has_map([C,_], _, Graph),
+	has_correspondence(align(C,_,_), Graph),
 	memberchk(Graph, Graphs),
 	!.
 is_mapped(C, Graphs) :-
-	has_map([_,C], _, Graph),
+	has_correspondence(align(_,C,_), Graph),
 	memberchk(Graph, Graphs),
 	!.

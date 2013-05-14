@@ -3,7 +3,6 @@
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(amalgame/vocabulary)).
-:- use_module(library(amalgame/map)).
 
 :- public amalgame_module/1.
 :- public filter/3.
@@ -70,11 +69,6 @@ match(align(S, T, Prov0), BackgroundMatches, align(S, T, [Prov|Prov0]), Options)
 	       ].
 
 	/* FIXME: need to make a decision about what to do with align:relation ...
-        has_map([DescS, DescT],_, O, Graph),
-	memberchk(relation(R), O),
-	Prov = [method(descendent_match),
-		graph([R1,R2,rdf(DescS, R, DescT)])
-	       ].
         */
 
 descendent(R, MaxSteps, Child, rdf_reachable(R, Prop, Child), Steps) :-
