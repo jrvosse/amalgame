@@ -1,6 +1,7 @@
 :- module(ag_map,
 	  [
 	   has_correspondence/2,    % align/3, MappingGraph URI
+	   has_correspondence_chk/2,
 	   remove_correspondence/2, % align/3, MappingGraph URI
 	   correspondence_source/2,
 	   correspondence_target/2,
@@ -14,7 +15,6 @@
 	   map_iterator/2,	   % -Map, +GraphList
 	   has_map/4,              % ?Map, ?Format ?Options, ?Graph
 	   has_map/3,		   % ?Map, ?Format ?Graph
-	   has_map_chk/3,	   % ?Map, ?Format ?Graph
 	   same_source/4,          % +List, +Source, -Same, -Rest
 	   same_target/4,          % +List, +Target, -Same, -Rest
 	   supported_map_relations/1 % ?URIList
@@ -92,6 +92,9 @@ has_correspondence(align(E1, E2, P), Graph) :-
 	->  P = Properties1
 	;   P = [[method(preloaded), graph(Graph)]|Properties1]
 	).
+
+has_correspondence_chk(align(E1,E2,_P), Graph):-
+	has_map([E1,E2],_,Graph),!.
 
 %%	remove_correspondence(+C, +G) is semidet.
 %
@@ -219,9 +222,6 @@ has_map([E1, E2], Format, Graph) :-
 	    rdf(E1, RealProp, E2, Graph)
 	).
 
-
-has_map_chk(Map, Format, Graph) :-
-	has_map(Map, Format, Graph),!.
 
 has_edoal_map_([E1,E2], Cell, Graph) :-
 	(   ground(E1)

@@ -292,8 +292,8 @@ count_altLabels(Voc, Count) :-
 count_mapped_concepts(Voc, Count) :-
 	findall(C,
 		(   rdf_has(C, skos:inScheme, Voc),
-		    (	has_map_chk([C,_], _, _)
-		    ;	has_map_chk([_,C], _, _)
+		    (	has_correspondence_chk(align(C, _, _), _)
+		    ;	has_correspondence_chk(align(_, C, _), _)
 		    )
                 ),
 		Concepts),
@@ -370,7 +370,8 @@ make_subvoc(Voc, SubVoc, PortrayURI) :-
 	rdf_assert(SubVoc, rdf:type, amalgame:'DerivedConceptScheme', SubVoc).
 
 classify_concept(C, Voc, mapped, SubVoc, Type) :-
-	(   (has_map_chk([C, _],_ ,_); has_map_chk([_,C], _, _))
+	(   (has_correspondence_chk(align(C, _, _) ,_);
+	     has_correspondence_chk(align(_, C, _), _))
 	->  Type = mapped
 	;   Type = unmapped
 	),
