@@ -164,17 +164,18 @@ del_prov_graphs :-
 	      ).
 
 del_materialized_mappings :-
-	findall(Id, (
-		     rdfs_individual_of(Id, amalgame:'Mapping'),
-		     \+ rdfs_individual_of(Id, amalgame:'EvaluatedMapping'),
-		     \+ rdfs_individual_of(Id, amalgame:'LoadedMapping'),
-		     rdf_graph(Id)
-		    ), Finals),
+	findall(Id, mapping_to_delete(Id), Finals),
 	forall(member(F, Finals),
 	       (   catch(rdf_unload_graph(F), _, true),
-		   debug(ag_expand, 'Deleting final result graph ~w', [F])
+		   debug(ag_expand, 'Deleting materialized result graph ~w', [F])
 	       )
 	      ).
+
+mapping_to_delete(Id) :-
+	rdfs_individual_of(Id, amalgame:'Mapping'),
+	\+ rdfs_individual_of(Id, amalgame:'EvaluatedMapping'),
+	\+ rdfs_individual_of(Id, amalgame:'LoadedMapping'),
+	rdf_graph(Id).
 
 del_materialized_vocs :-
 	findall(Voc,
