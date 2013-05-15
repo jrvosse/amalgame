@@ -9,14 +9,11 @@
 	   nickname/3,             % +Strategy, +MappingGraph, ?Nickname
 	   nickname_clear_cache/0,
 
-	   assert_counts/2,        % +MapList, +ProvGraph
 	   materialize_mapping_graph/2, % +List, +Options
 	   merge_provenance/2,     % +List, -Merged
 	   compare_align/4,        % +Type, ?Order, A1, A2
 	   map_iterator/1,	   % -Map
 	   map_iterator/2,	   % -Map, +GraphList
-	   has_map/4,              % ?Map, ?Format ?Options, ?Graph
-	   has_map/3,		   % ?Map, ?Format ?Graph
 	   same_source/4,          % +List, +Source, -Same, -Rest
 	   same_target/4,          % +List, +Target, -Same, -Rest
 	   supported_map_relations/1 % ?URIList
@@ -255,17 +252,6 @@ has_edoal_map_([E1,E2], Cell, Graph) :-
 	\+ rdf(Cell, align:entity2, _, Graph).
 
 
-%%	retract_map(+Map, +Format, Graph) is det.
-%
-%	retracts Map in Format form Graph if it exists in Graph,
-%	succeeds without doing anything if not.
-
-retract_map([E1,E2], edoal, Graph) :-
-	(   has_edoal_map_([E1, E2], Cell, Graph)
-	->  rdf_retractall(Cell, _,_,Graph)
-	;   true
-	).
-
 prop_to_term(Prop, Value, Term) :-
 	rdf_global_id(NS:Local, Prop),
 	(   NS:Local = align:measure
@@ -375,25 +361,6 @@ mat_alignment_graph([align(S,T,P)|As], Options) :-
         assert_cell(S, T, [prov(P), Relation |Options]),
         mat_alignment_graph(As, Options).
 
-assert_counts([],_).
-assert_counts([A-M|Tail], ProvGraph) :-
-	assert_count(A, M, ProvGraph),
-	assert_counts(Tail, ProvGraph).
-
-assert_count(MapUri, MapList, ProvGraph) :-
-	maplist(correspondence_source, MapList, Ss0),
-	maplist(correspondence_target, MapList, Ts0),
-	sort(Ss0, Ss),
-	sort(Ts0, Ts),
-	length(Ss, SN),
-	length(Ts, TN),
-	length(MapList, Count),
-	rdf_assert(MapUri, amalgame:count,
-		   literal(type('http://www.w3.org/2001/XMLSchema#int', Count)), ProvGraph),
-	rdf_assert(MapUri, amalgame:mappedSourceConcepts,
-		   literal(type('http://www.w3.org/2001/XMLSchema#int', SN)), ProvGraph),
-	rdf_assert(MapUri, amalgame:mappedTargetConcepts,
-		   literal(type('http://www.w3.org/2001/XMLSchema#int', TN)), ProvGraph).
 
 %%	nickname(+Strategy, +Graph, ?Nickname) is det.
 %

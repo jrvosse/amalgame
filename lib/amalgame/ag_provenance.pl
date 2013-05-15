@@ -284,3 +284,23 @@ prov_assert_entity_version(Entity, SourceGraph, TargetGraph) :-
 	     rdf_assert(Entity, owl:versionInfo, literal(Hash), TargetGraph)
 	    )
 	).
+
+assert_counts([],_).
+assert_counts([A-M|Tail], ProvGraph) :-
+	assert_count(A, M, ProvGraph),
+	assert_counts(Tail, ProvGraph).
+
+assert_count(MapUri, MapList, ProvGraph) :-
+	maplist(correspondence_source, MapList, Ss0),
+	maplist(correspondence_target, MapList, Ts0),
+	sort(Ss0, Ss),
+	sort(Ts0, Ts),
+	length(Ss, SN),
+	length(Ts, TN),
+	length(MapList, Count),
+	rdf_assert(MapUri, amalgame:count,
+		   literal(type('http://www.w3.org/2001/XMLSchema#int', Count)), ProvGraph),
+	rdf_assert(MapUri, amalgame:mappedSourceConcepts,
+		   literal(type('http://www.w3.org/2001/XMLSchema#int', SN)), ProvGraph),
+	rdf_assert(MapUri, amalgame:mappedTargetConcepts,
+		   literal(type('http://www.w3.org/2001/XMLSchema#int', TN)), ProvGraph).
