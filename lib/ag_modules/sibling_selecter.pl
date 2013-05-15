@@ -26,10 +26,10 @@ selecter(AlignmentGraph, Sel, [], Und, Options) :-
 	option(type(SourceOrTarget), Options, source),
 	(   SourceOrTarget = target
 	->  partition_(SourceOrTarget, AlignmentGraph, Depth, Sel, Und)
-	;   predsort(ag_map:compare_align(targetplus), AlignmentGraph, SortedAlignmentGraph),
+	;   predsort(ag_map:compare_align(target), AlignmentGraph, SortedAlignmentGraph),
 	    partition_(SourceOrTarget, SortedAlignmentGraph, Depth, Sel0, Und0),
-	    predsort(ag_map:compare_align(sourceplus), Sel0,  Sel),
-	    predsort(ag_map:compare_align(sourceplus), Und0,  Und)
+	    predsort(ag_map:compare_align(source), Sel0,  Sel),
+	    predsort(ag_map:compare_align(source), Und0,  Und)
 	).
 
 

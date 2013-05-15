@@ -61,15 +61,15 @@ concept_selecter(scheme(SourceVoc), Result, Options) :-
 concept_selecter(SourceAlignment, TargetAlignment, Options) :-
 	option(exclude_sources(Exc), Options),!,
 	voc_exclude(source, SourceAlignment, Exc, [], TargetAlignment0),
-	predsort(ag_map:compare_align(targetplus), TargetAlignment0, TargetAlignment).
+	predsort(ag_map:compare_align(target), TargetAlignment0, TargetAlignment).
 
 concept_selecter(SourceAlignment, TargetAlignment, Options) :-
 	option(exclude_targets(Exc), Options),!,
 	debug(align, 'Running target selector', []),
-	predsort(ag_map:compare_align(targetplus), SourceAlignment, SourceAlignmentSorted),
-	predsort(ag_map:compare_align(targetplus), Exc, ExcSorted),
+	predsort(ag_map:compare_align(target), SourceAlignment, SourceAlignmentSorted),
+	predsort(ag_map:compare_align(target), Exc, ExcSorted),
 	voc_exclude(target, SourceAlignmentSorted, ExcSorted, [], TargetAlignment0),
-	predsort(ag_map:compare_align(targetplus), TargetAlignment0, TargetAlignment).
+	predsort(ag_map:compare_align(target), TargetAlignment0, TargetAlignment).
 
 voc_exclude(_Type, L, [], Accum, Result) :- !, append(Accum, L, Result).
 voc_exclude(_Type, [], _, Accum, Accum) :- !.

@@ -269,18 +269,14 @@ prolog:message(map(occurs_min(Min, MappingList))) -->
 %       compare alignment A1 and A2 on the standard order of the url of
 %       their source or target concept, depending on Type.
 
-compare_align(source, Order, align(S1,_,_), align(S2,_,_)) :- compare(Order, S1, S2).
-
-compare_align(target, Order, align(_,T1,_), align(_,T2,_)) :- compare(Order, T1, T2).
-
-compare_align(sourceplus, Order, align(S1,T1,P1), align(S2,T2,P2)) :-
+compare_align(source, Order, align(S1,T1,P1), align(S2,T2,P2)) :-
         (   compare(FirstOrder, S1, S2), FirstOrder \== '='
         ->  FirstOrder = Order
         ;   compare(SecondOrder, T1, T2), SecondOrder \== '='
         ->  SecondOrder = Order
         ;   compare(Order, P1, P2)
         ).
-compare_align(targetplus, Order, align(S1,T1,P1), align(S2,T2,P2)) :-
+compare_align(target, Order, align(S1,T1,P1), align(S2,T2,P2)) :-
         (   compare(FirstOrder, T1, T2), FirstOrder \== '='
         ->  FirstOrder = Order
         ;   compare(SecondOrder, S1, S2), SecondOrder \== '='

@@ -58,7 +58,7 @@ select_n_1([align(S,T,P)|As], A1, A2) :-
 %	mapped to only one source.
 
 select_1_n(Mapping, Sel, Dis) :-
-	predsort(ag_map:compare_align(targetplus), Mapping, TargetSorted),
+	predsort(ag_map:compare_align(target), Mapping, TargetSorted),
 	select_1_n_(TargetSorted, Sel0, Dis0),
 	sort(Sel0, Sel),
 	sort(Dis0, Dis).
