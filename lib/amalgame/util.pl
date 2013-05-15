@@ -28,7 +28,7 @@
 :- use_module(user(user_db)).
 :- use_module(cliopatria(components/label)).
 :- use_module(library(amalgame/caching)).
-:- use_module(library(amalgame/alignment)).
+:- use_module(library(amalgame/map)).
 :- use_module(library(amalgame/ag_evaluation)).
 
 :- multifile

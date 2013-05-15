@@ -14,6 +14,7 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(amalgame/ag_provenance)).
+:- use_module(library(amalgame/map)).
 :- use_module(library(skos/vocabularies)).
 :- use_module(ag_stats).
 
@@ -115,7 +116,7 @@ cache_expand_result(_, _, _, _).
 
 clean_repository :-
 	debug(ag_expand, 'Deleting all graphs made by amalgame', []),
-	retractall(ag_alignment:nickname_cache(_,_,_)),
+	nickname_clear_cache,
 	findall(G, is_amalgame_graph(G), Gs),
 	forall(member(G, Gs),
 	       (   debug(ag_expand, 'Deleting named graph ~p', [G]),

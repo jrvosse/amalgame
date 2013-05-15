@@ -1,7 +1,5 @@
 :-module(ag_alignment,
 	 [
-	  nickname/3,
-
 	  align_stat/2,
 	  align_get_computed_props/2,
 	  align_ensure_stats/1,
@@ -13,9 +11,6 @@
 :- use_module(library(semweb/rdfs)).
 
 :- use_module(map).
-
-:- dynamic
-	nickname_cache/3.
 
 %%	is_alignment_graph(+Graph, ?Format) is semidet.
 %       is_alignment_graph(-Graph, ?Format) is nondet.
@@ -249,22 +244,6 @@ find_target(Graph, Format, Target) :-
 	).
 find_target(_, _, null).
 
-%%	nickname(+Strategy, +Graph, ?Nickname) is det.
-%
-%	Unifies Nickname with the nickname of Graph in Strategy.
-%	Creates Nickname if Graph does not have one yet.
-
-nickname(Strategy, Graph, Nick) :-
-	rdf(Graph,  amalgame:nickname, literal(Nick), Strategy),!.
-nickname(Strategy, Graph, Nick) :-
-	nickname_cache(Strategy, Graph, Nick), !.
-nickname(Strategy, Graph, Nick) :-
-	char_type(Nick, alpha),
-	\+ rdf(_,  amalgame:nickname, literal(Nick), Strategy),
-	\+ nickname_cache(Strategy, _, Nick),
-	!,
-	assert(nickname_cache(Strategy, Graph, Nick)),
-	rdf_assert(Graph, amalgame:nickname, literal(Nick), Strategy).
 
 classify_graph_type(Graph) :-
 	rdfs_individual_of(Graph, amalgame:'Alignment'), !.

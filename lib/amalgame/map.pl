@@ -6,6 +6,8 @@
 	   correspondence_source/2,
 	   correspondence_target/2,
 	   correspondence_evidence/2,
+	   nickname/3,             % +Strategy, +MappingGraph, ?Nickname
+	   nickname_clear_cache/0,
 
 	   assert_counts/2,        % +MapList, +ProvGraph
 	   materialize_mapping_graph/2, % +List, +Options
@@ -38,6 +40,9 @@ align(Source,Target,EvidenceList) terms.
 :- use_module(library(amalgame/edoal)).
 :- use_module(library(amalgame/alignment)).
 :- use_module(library(amalgame/util)).
+
+:- dynamic
+	nickname_cache/3.
 
 %%	correspondence_source(?C,?S) is det.
 %
@@ -392,3 +397,22 @@ assert_count(MapUri, MapList, ProvGraph) :-
 	rdf_assert(MapUri, amalgame:mappedTargetConcepts,
 		   literal(type('http://www.w3.org/2001/XMLSchema#int', TN)), ProvGraph).
 
+%%	nickname(+Strategy, +Graph, ?Nickname) is det.
+%
+%	Unifies Nickname with the nickname of Graph in Strategy.
+%	Creates Nickname if Graph does not have one yet.
+
+nickname(Strategy, Graph, Nick) :-
+	rdf(Graph,  amalgame:nickname, literal(Nick), Strategy),!.
+nickname(Strategy, Graph, Nick) :-
+	nickname_cache(Strategy, Graph, Nick), !.
+nickname(Strategy, Graph, Nick) :-
+	char_type(Nick, alpha),
+	\+ rdf(_,  amalgame:nickname, literal(Nick), Strategy),
+	\+ nickname_cache(Strategy, _, Nick),
+	!,
+	assert(nickname_cache(Strategy, Graph, Nick)),
+	rdf_assert(Graph, amalgame:nickname, literal(Nick), Strategy).
+
+nickname_clear_cache :-
+	retractall(nickname_cache(_,_,_)).

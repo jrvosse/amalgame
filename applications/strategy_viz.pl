@@ -15,7 +15,7 @@
 :- use_module(library(amalgame/caching)).
 :- use_module(library(amalgame/expand_graph)).
 :- use_module(library(amalgame/ag_evaluation)).
-:- use_module(library(amalgame/alignment)).
+:- use_module(library(amalgame/map)).
 
 :- http_handler(amalgame(strategy_viz), http_strategy_viz, []).
 

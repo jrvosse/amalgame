@@ -7,13 +7,15 @@
 :- use_module(library(http/http_json)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
+
 :- use_module(library(semweb/rdf_label)).
 :- use_module(user(user_db)).
+
 :- use_module(library(amalgame/expand_graph)).
 :- use_module(library(amalgame/caching)).
 :- use_module(library(amalgame/ag_provenance)).
-:- use_module(library(amalgame/alignment)).
 :- use_module(library(amalgame/util)).
+:- use_module(library(amalgame/map)).
 
 :- setting(precompute_mapping, boolean, true,
 	   'When true mappings are computed in the background').
