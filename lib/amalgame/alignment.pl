@@ -1,7 +1,6 @@
 :-module(ag_alignment,
 	 [
 	  nickname/3,
-	  select_from_alignment/5,
 
 	  align_stat/2,
 	  align_get_computed_props/2,
@@ -13,9 +12,7 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 
-:- use_module(edoal).
 :- use_module(map).
-:- use_module(ag_provenance).
 
 :- dynamic
 	nickname_cache/3.
