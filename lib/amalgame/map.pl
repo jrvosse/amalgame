@@ -12,8 +12,6 @@
 	   materialize_mapping_graph/2, % +List, +Options
 	   merge_provenance/2,     % +List, -Merged
 	   compare_align/4,        % +Type, ?Order, A1, A2
-	   map_iterator/1,	   % -Map
-	   map_iterator/2,	   % -Map, +GraphList
 	   same_source/4,          % +List, +Source, -Same, -Rest
 	   same_target/4,          % +List, +Target, -Same, -Rest
 	   supported_map_relations/1 % ?URIList
@@ -135,30 +133,6 @@ supported_map_relations(List) :-
 		    \+ rdf_equal(skos:mappingRelation, Relation)
 		),
 		List).
-
-%%	map_iterator(-Map) is nondet.
-%
-%	Iterates over all maps in the triple store. Map is currently of the
-%	form [C1, C2], simply meaning there is a mapping from C1 to C2.
-%	What other information is available about this mapping depends
-%	on the format it is stored in, see has_map/3 for details.
-%
-%	This is a stub implementation.
-%	@tbd make this configurable over a web interface so that we can
-%	restrict the source and target vocabulary.
-
-map_iterator([E1,E2]) :-
-	has_map([E1, E2], _, _).
-
-%%	map_iterator(-Map, +GraphList) is nondet.
-%
-%	iterates over all maps that are present in provided mapping
-%	graphs.
-
-map_iterator([E1,E2], GraphList) :-
-        member(G, GraphList),
-	has_map([E1, E2], _, G).
-
 
 
 %%	has_map(+Map, ?Format, ?Properties, -Graph) is nondet.
