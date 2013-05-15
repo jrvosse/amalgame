@@ -1,19 +1,10 @@
 :- module(am_skosvocs,
           [
-	   is_vocabulary/2,
-	   has_concept/3,
-	   voc_ensure_stats/1,
-	   skos_label/2,
-	   skos_label/3,
-	   topconcepts/2,
-	   voc_languages/2,
 	   voc_languages/3,
-	   assert_voc_version/2,
-	   voc_get_computed_props/2,
-	   voc_clear_stats/1,
 	   voc_ensure_stats/1,
-	   voc_partition/4,
-	   voc_delete_derived/0
+	   voc_languages/2,
+	   voc_clear_stats/1,
+	   voc_ensure_stats/1
           ]).
 
 :- use_module(library(semweb/rdfs)).
@@ -331,107 +322,3 @@ language_used(Voc, Prop, Lang) :-
 	rdf_has(Concept, skos:inScheme, Voc),
 	rdf_has(Concept, Prop, literal(lang(Lang, _))),
 	ground(Lang).
-
-voc_partition(Request, Voc, PartitionType, Partition) :-
-	findall(C, rdf_has(C, skos:inScheme, Voc), Concepts),
-	classify_concepts(Request, Concepts, Voc, PartitionType, [], Partition).
-
-
-classify_concepts(Req, [], Voc, _PartitionType, Partition, Partition) :-
-	memberchk(SubVoc, Partition),
-	(   rdf(SubVoc, amalgame:wasDerivedFrom, Voc)
-	->  rdf(SubVoc, amalgame:wasGeneratedBy, OldActivity),
-	    rdf(OldActivity, amalgame:input, Voc),
-	    prov_clear_activity(OldActivity)
-	;   true
-	),
-	rdf_bnode(Process),
-	Provgraph = amalgame_vocs_prov,
-	prov_was_generated_by(Process, Partition, Provgraph, [was_derived_from([Voc]), request(Req)]),
-	rdf_assert(Process, rdfs:label, literal('Amalgame vocabulary partitioning process'), Provgraph).
-
-classify_concepts(Req, [H|T], Voc, PartitionType, Accum, Result) :-
-	classify_concept(H, Voc, PartitionType, SubVocURI, SubVocLabelURI),
-	(   member(SubVocURI, Accum)
-	->  NewAccum = Accum
-	;   make_subvoc(Voc, SubVocURI, SubVocLabelURI),
-	    NewAccum = [SubVocURI|Accum]
-	),
-	classify_concepts(Req, T, Voc, PartitionType, NewAccum, Result).
-
-make_subvoc(Voc, SubVoc, PortrayURI) :-
-	rdf_display_label(Voc,  VocL),
-	format(atom(SubVocLabel), '~w (~p)', [VocL, PortrayURI]),
-
-	(   rdf_graph(SubVoc) -> rdf_unload_graph(SubVoc); true),
-
-	rdf_assert(SubVoc, rdfs:label, literal(SubVocLabel), SubVoc),
-	rdf_assert(SubVoc, rdf:type, amalgame:'NoAlignmentGraph', SubVoc),
-	rdf_assert(SubVoc, rdf:type, amalgame:'DerivedConceptScheme', SubVoc).
-
-classify_concept(C, Voc, mapped, SubVoc, Type) :-
-	(   (has_correspondence_chk(align(C, _, _) ,_);
-	     has_correspondence_chk(align(_, C, _), _))
-	->  Type = mapped
-	;   Type = unmapped
-	),
-	assign_to_subvoc(C, Voc, Type, SubVoc).
-
-classify_concept(C, Voc, type, SubVoc, Type) :-
-	findall(Type,
-		(   rdfs_individual_of(C, Type)
-		),
-		AllTypes),
-	findall(Type,
-		(   member(Type, AllTypes),
-		    \+ rdf_equal(Type, skos:'Concept'),
-		    \+ (rdfs_subclass_of(SubType, Type),
-			SubType \= Type,
-			member(SubType, AllTypes)
-		       )
-		),
-		Types),
-	Types = [Type|_],
-	assign_to_subvoc(C, Voc, Type, SubVoc).
-
-assign_to_subvoc(C, Voc, Type, SubVoc) :-
-	format(atom(Suffix), '~p',  [Type]),
-	sub_atom(Voc, _, 1, 0, Last),
-	nice_separator(Last, Separator),
-	atomic_list_concat([Voc, Separator, Suffix], SubVoc),
-	rdf_assert(C, skos:inScheme, SubVoc, SubVoc).
-
-nice_separator('/',  ''):- !.
-nice_separator(Last, '_'):- is_alpha(Last), !.
-nice_separator(_,  ''):- !.
-
-
-%%	skos_label(+Concept, -Label, -Options) is det.
-%
-%	Return the most appropriate Label for Concept.
-%       May or may not include specified language
-%      (use ISO code) (code by Victor)
-
-skos_label(Concept, Label, Options) :-
-	memberchk(preflang(PrefLang),Options),
-	rdf_has(Concept, skos:prefLabel, literal(lang(PrefLang, Label))),!.
-skos_label(Concept, Label, Options) :-
-	memberchk(preflang(PrefLang),Options),
-	rdf_has(Concept, skos:altLabel, literal(lang(PrefLang, Label))),!.
-
-skos_label(Concept, Label, _Options) :-
-	rdf_has(Concept, skos:prefLabel, literal(lang(_, Label))),!.
-skos_label(Concept, Label, _Options) :-
-	rdf_has(Concept, skos:altLabel, literal(lang(_, Label))),!.
-
-skos_label(Concept, Label, _) :-
-	rdfs_label(Concept, Label),!.
-skos_label(Concept, Label, _) :-
-	format(atom(Label), '<~p>', [Concept]),!.
-
-% for backwards compatibility
-skos_label(Concept, Label):-
-	skos_label(Concept, Label, []).
-
-topconcepts(Voc, TopConcepts) :-
-	findall(Top, rdf_has(Voc, skos:hasTopConcept, Top), TopConcepts).
