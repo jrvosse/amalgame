@@ -38,7 +38,6 @@ align(Source,Target,EvidenceList) terms.
 :- use_module(library(semweb/rdfs)).
 
 :- use_module(library(amalgame/edoal)).
-:- use_module(library(amalgame/alignment)).
 :- use_module(library(amalgame/util)).
 
 :- dynamic
@@ -363,8 +362,7 @@ materialize_mapping_graph(Input, Options) :-
         ->
             mat_alignment_graph(Input, Options)
         ;   true
-        ),
-        align_ensure_stats(all(Graph)).
+        ).
 
 mat_alignment_graph([], _).
 mat_alignment_graph([align(S,T,P)|As], Options) :-
