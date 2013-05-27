@@ -167,8 +167,11 @@ node_data(Strategy, R, R=json(Props)) :-
 	findall(Type=Value, node_prop(Strategy, R, Type, Value), Props).
 
 node_prop(_, R, uri, R).
-node_prop(_S, R, label, Label) :-
-	rdf_display_label(R, Lit),
+node_prop(S, R, label, Label) :-
+	(   rdf(R, rdfs:label, Lit, S) % use label defined in strategy by user!
+	->  true
+	;   rdf_display_label(R, Lit)
+	),
 	literal_text(Lit, Label).
 node_prop(_S, R, type, Type) :-
 	(   rdfs_individual_of(R, amalgame:'AlignmentStrategy')
