@@ -1,7 +1,5 @@
 :- module(type_select, []).
 
-:- use_module(library(semweb/rdf_db)).
-
 :- public amalgame_module/1.
 :- public parameter/4.
 :- public selecter/3.
@@ -15,4 +13,4 @@ parameter(class, uri, '',
 % done.
 
 selecter(Scheme, and((Scheme), type(Class)), Options) :-
-   	option(class(Class), Options).
+	option(class(Class), Options).
