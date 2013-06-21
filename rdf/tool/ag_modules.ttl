@@ -99,6 +99,11 @@ amalgame:TypeSelect
     skos:definition "Select from a vocabulary the concepts of a specific type."@en ;
     rdfs:subClassOf amalgame:VocabSelecter .
 
+amalgame:PropertyValueSelect
+    rdfs:label "property/value"@en ;
+    skos:definition "Select from a vocabulary the concepts property/value."@en ;
+    rdfs:subClassOf amalgame:VocabSelecter .
+
 amalgame:OverlapComponent
     rdfs:label "overlap"@en ;
     skos:definition "Component that analyzes a set of mappings by creating intersections and differences sets"@en ;

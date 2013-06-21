@@ -26,6 +26,9 @@ vocab_member(E, type(Class)) :-
 vocab_member(E, graph(G)) :-
 	rdf(E, rdf:type, _, G).
 
+vocab_member(E, propvalue(Property, Value)) :-
+	rdf(E, Property, Value).
+
 vocab_member(F, 'http://sws.geonames.org/') :-
 	!,
 	rdfs_individual_of(F, 'http://www.geonames.org/ontology#Feature').

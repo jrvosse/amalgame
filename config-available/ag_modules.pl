@@ -24,6 +24,7 @@
 % Vocabulary filters/selecters
 :- use_module(library(ag_modules/voc_exclude)).
 :- use_module(library(ag_modules/type_select)).
+:- use_module(library(ag_modules/propvalue_select)).
 
 % Mergers
 :- use_module(library(ag_modules/map_merger)).
