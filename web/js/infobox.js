@@ -133,7 +133,7 @@ YUI.add('infobox', function(Y) {
 				uri:uri,
 				label:label,
 				abbrev:abbrev,
-				namespace:namespace,
+				publish_ns:namespace,
 				status:status,
 				default_relation:relation,
 				comment:comment
