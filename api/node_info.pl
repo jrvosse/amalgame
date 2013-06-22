@@ -105,8 +105,8 @@ amalgame_info(URL, Strategy, Stats) :-
 		 'matched target concepts'-TN
 		],
 	mapping_counts(URL, Strategy, MN, SN0, TN0, SPerc, TPerc),
-	concat_atom([SN0, ' (',SPerc,'%)'], SN),
-	concat_atom([TN0, ' (',TPerc,'%)'], TN).
+	atomic_list_concat([SN0, ' (',SPerc,'%)'], SN),
+	atomic_list_concat([TN0, ' (',TPerc,'%)'], TN).
 amalgame_info(Scheme, Strategy,
 	    ['Total concepts'-Total
 	    ]) :-

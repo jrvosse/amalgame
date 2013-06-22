@@ -346,9 +346,7 @@ mapped_descendant_count(Concept, Graphs, Count) :-
 	;   mapped_chk(Descendants, Graphs, Mapped),
 	    length(Descendants, Descendant_Count),
 	    length(Mapped, Mapped_Count),
-	    %Percentage is round((Mapped_Count/Descendant_Count)*100),
-	    concat_atom([Mapped_Count, '/', Descendant_Count], Count)
-	    %concat_atom([Percentage,'%'], Count)
+	    atomic_list_concat([Mapped_Count, '/', Descendant_Count], Count)
 	).
 
 descendant_of(Concept, D) :-

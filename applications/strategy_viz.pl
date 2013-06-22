@@ -205,8 +205,8 @@ amalgame_label(Alignment, Resource, Lang, MaxLen, Label) :-
 	stats_label_list(Alignment, Resource, Stats),
 	(   rdfs_individual_of(Resource, amalgame:'Mapping')
 	->  nickname(Alignment, Resource, Abbreviation),
-	    concat_atom([Abbreviation, '.', Label0, '\n'|Stats], Label)
-	;   concat_atom([Label0, '\n'|Stats], Label)
+	    atomic_list_concat([Abbreviation, '.', Label0, '\n'|Stats], Label)
+	;   atomic_list_concat([Label0, '\n'|Stats], Label)
 	).
 
 stats_label_list(Alignment, Resource, [Count]) :-
