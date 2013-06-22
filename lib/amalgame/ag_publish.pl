@@ -23,10 +23,13 @@ save_mappings(Strategy, Dir, Options) :-
 	absolute_file_name(ProvGraphB, ProvFile,  [relative_to(Dir), extensions([ttl])]),
 	absolute_file_name(void,       VoidFile,  [relative_to(Dir), extensions([ttl])]),
 
+	assert_master_void(Strategy, AllMappingsURI, VoidGraph),
 	select_mappings_to_be_saved(Strategy, Mappings, Options),
 	forall(member(Mapping, Mappings),
-	       save_mapping(Mapping, Strategy, [dir(Dir),
-						prov(ProvGraph)|Options])
+	       save_mapping(Mapping, [strategy(Strategy),
+				      all_mappings(AllMappingsURI),
+				      dir(Dir),
+				      prov(ProvGraph)|Options])
 	      ),
 
 	rdf_save_turtle(StratFile, [graph(Strategy)|Options]),
@@ -71,18 +74,31 @@ find_relation(Mapping, Cell, Default, Relation) :-
 	option(relation(Relation), Pflat, Default), !,
 	Relation \= none.
 
-assert_void(Id, Strategy, ProvGraph) :-
-	rdf_equal(xsd:int, Int),
+assert_master_void(Strategy, URI, Graph) :-
+	rdf_has(Strategy, rdfs:label, literal(Label)),
+	format(atom(Title), '~w full link set', [Label]),
+	variant_sha1(term(Strategy, Title), Hash),
+	rdf_global_id(amexp:Hash, URI),
+	rdf_assert(URI, rdf:type, void:'Linkset', Graph),
+	rdf_assert(URI, amalgame:hasPlan,  Strategy, Graph),
+	rdf_assert(URI, dcterms:title, literal(Title), Graph).
 
+assert_void(Id,Options) :-
+	option(strategy(Strategy), Options),
+	option(prov(ProvGraph), Options),
+	option(all_mappings(All), Options),
+
+	rdf_equal(xsd:int, Int),
 	void_graph(Strategy, Void),
 	rdf_statistics(triples_by_graph(Id, NrOfTriples)),
 	assert_metadata(Id, Strategy, Void),
+	rdf_assert(All, void:subset,      Id,  Void),
 	rdf_assert(Id, void:vocabulary,   amalgame:'', Void),
 	rdf_assert(Id, void:vocabulary,   void:'', Void),
 	rdf_assert(Id, rdf:type,          void:'Linkset', Void),
-	rdf_assert(Id, void:triples, literal(type(Int,NrOfTriples)), Void),
+	rdf_assert(Id, void:triples,      literal(type(Int,NrOfTriples)), Void),
 
-	rdf_assert(Id, amalgame:hasPlan, Strategy, Void),
+	rdf_assert(Id, amalgame:hasPlan,  Strategy, Void),
 	rdf_assert(Id, amalgame:prov,	  ProvGraph, Void).
 
 default_mapping_relation(Id, Default, Options) :-
@@ -105,11 +121,11 @@ prepare_mapping(Id, Strategy, Options) :-
 	;   true
 	).
 
-save_mapping(Id, Strategy, Options) :-
+save_mapping(Id, Options) :-
+	option(strategy(Strategy), Options),
 	(   prepare_mapping(Id, Strategy, Options)
-	->  option(prov(ProvGraph), Options),
-	    default_mapping_relation(Id, Default, Options),
-	    assert_void(Id, Strategy, ProvGraph),
+	->  default_mapping_relation(Id, Default, Options),
+	    assert_void(Id, Options),
 	    add_relation_where_needed(Id, Default),
 
 	    file_base_name(Id, Base),
@@ -164,6 +180,10 @@ is_metadata_triple(S,P,literal(type(T,N)), _Graph) :-
 is_metadata_triple(S,P,literal(type(T,N)), _Graph) :-
 	rdf_has(S, amalgame:mappedTargetConcepts, literal(type(T,N))),
 	rdf_equal(P, void:distinctObjects).
+is_metadata_triple(S,P,O,Graph) :-
+	rdf_has(S, rdfs:label, O, RP),
+	rdf(S,RP,O,Graph),
+	rdf_equal(dcterms:title, P).
 
 select_mappings_to_be_saved(Strategy, Mappings, Options) :-
 	option(status(Status), Options, all),
