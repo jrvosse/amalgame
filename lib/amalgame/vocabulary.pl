@@ -32,6 +32,9 @@ vocab_member(E, graph(G)) :-
 vocab_member(E, propvalue(Property, Value)) :-
 	!,
 	rdf(E, Property, Value).
+vocab_member(E, subtree(Root)) :-
+	!,
+	rdf_reachable(E, skos:broader, Root).
 vocab_member(F, 'http://sws.geonames.org/') :-
 	!,
 	rdfs_individual_of(F, 'http://www.geonames.org/ontology#Feature').
@@ -58,3 +61,8 @@ vocab_member(E, Class) :-
 	rdfs_individual_of(Class, rdfs:'Class'),
 	!,
 	rdfs_individual_of(E, Class).
+
+
+
+
+

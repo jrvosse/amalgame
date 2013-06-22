@@ -101,7 +101,12 @@ amalgame:TypeSelect
 
 amalgame:PropertyValueSelect
     rdfs:label "select facet on property/value"@en ;
-    skos:definition "Select from a vocabulary the concepts property/value."@en ;
+    skos:definition "Select from a vocabulary the concepts with a specific property/value."@en ;
+    rdfs:subClassOf amalgame:VocabSelecter .
+
+amalgame:SubtreeSelect
+    rdfs:label "select facet by subtree"@en ;
+    skos:definition "Select from a vocabulary the concepts in the sub-tree below (using BT/NT) a common parent concept."@en ;
     rdfs:subClassOf amalgame:VocabSelecter .
 
 amalgame:OverlapComponent

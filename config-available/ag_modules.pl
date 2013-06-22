@@ -23,6 +23,7 @@
 
 % Vocabulary filters/selecters
 :- use_module(library(ag_modules/voc_exclude)).
+:- use_module(library(ag_modules/subtree_select)).
 :- use_module(library(ag_modules/type_select)).
 :- use_module(library(ag_modules/propvalue_select)).
 
