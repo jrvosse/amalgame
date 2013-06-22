@@ -88,9 +88,21 @@ http_data_mapping(Request) :-
 sort_key(source, 2).
 sort_key(target, 4).
 
-mapping_label(align(S, T, Prov), align(S,SL,T,TL,Prov)) :-
+mapping_label(align(S, T, Prov), align(S,SLabel, T,TLabel, Prov)) :-
 	rdf_display_label(S, SL),
-	rdf_display_label(T, TL).
+	rdf_display_label(T, TL),
+
+	(   rdf_has(S, skos:notation, literal(Sn))
+	->  format(atom(SLabel), '~w (~w)', [SL, Sn])
+	;   format(atom(SLabel), '~w', [SL])
+	),
+
+	(   rdf_has(T, skos:notation, literal(Tn))
+	->  format(atom(TLabel), '~w (~w)', [TL, Tn])
+	;   format(atom(TLabel), '~w', [TL])
+	).
+
+
 
 select_relation([], _, []).
 select_relation([Head|Tail], PreviousEval, [align(S,SL, T, TL, Relation)|Results]) :-
