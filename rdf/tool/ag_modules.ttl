@@ -95,12 +95,12 @@ amalgame:VocExclude
     rdfs:subClassOf amalgame:VocabSelecter .
 
 amalgame:TypeSelect
-    rdfs:label "type"@en ;
+    rdfs:label "select facet on type"@en ;
     skos:definition "Select from a vocabulary the concepts of a specific type."@en ;
     rdfs:subClassOf amalgame:VocabSelecter .
 
 amalgame:PropertyValueSelect
-    rdfs:label "property/value"@en ;
+    rdfs:label "select facet on property/value"@en ;
     skos:definition "Select from a vocabulary the concepts property/value."@en ;
     rdfs:subClassOf amalgame:VocabSelecter .
 
