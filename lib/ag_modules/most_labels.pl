@@ -1,7 +1,5 @@
 :- module(most_labels, []).
 
-:- use_module(library(semweb/rdf_db)).
-:- use_module(library(semweb/rdfs)).
 :- use_module(library(amalgame/map)).
 
 :- public amalgame_module/1.
@@ -38,8 +36,8 @@ selecter(AlignmentGraph, Sel, Disc, Und, Options) :-
 %       Input is a sorted list of alignment terms.
 
 partition_(_, [], [], [], []).
-partition_(source, [align(S,T,P)|As], Sel, Dis, Und) :-
-	same_source(As, S, Same, Rest),
+partition_(source, [align(S,T,P)|At], Sel, Dis, Und) :-
+	same_target(At, T, Same, Rest),
 	(   most_labels([align(S,T,P)|Same], Selected, Discarded)
 	->  Sel = [Selected|SelRest],
 	    append(Discarded, DisRest, Dis),
@@ -50,6 +48,17 @@ partition_(source, [align(S,T,P)|As], Sel, Dis, Und) :-
 	),
 	partition_(source, Rest, SelRest, DisRest, UndRest).
 
+partition_(target, [align(S,T,P)|As], Sel, Dis, Und) :-
+	same_source(As, S, Same, Rest),
+	(   most_labels([align(S,T,P)|Same], Selected, Discarded)
+	->  Sel = [Selected|SelRest],
+	    append(Discarded, DisRest, Dis),
+	    Und = UndRest
+	;   append([align(S,T,P)|Same], UndRest, Und),
+	    Sel = SelRest,
+	    Dis = DisRest
+	),
+	partition_(target, Rest, SelRest, DisRest, UndRest).
 
 most_labels(As, Selected, Discarded) :-
 	group_label_count(As, Counts),
