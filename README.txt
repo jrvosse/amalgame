@@ -41,8 +41,6 @@ The resulting key requirements for AMALGAME are thus:
 
 ---++ TODO
 
-- Michiel add (voc) exclude and merge to builder interface
-- add overlap func to analyser
 - add merge/stratified overlap to builder
 
 @author Jan Wielemaker
