@@ -5,7 +5,7 @@
 	   cache_result/4,
 	   clean_repository/0,
 	   flush_dependent_caches/3,
-	   flush_expand_cache/0,
+	   flush_expand_cache/1,
 	   flush_expand_cache/2,     % +Id, +Strategy
 	   flush_stats_cache/0,
 	   flush_stats_cache/2 % +Mapping, +Strategy
@@ -33,7 +33,7 @@ user:message_hook(make(done(_)), _, _) :-
 user:message_hook(make(done(_)), _, _) :-
 	debug(ag_expand, 'Flushing expand cache after running make/0', []),
 	flush_prov_cache,
-	flush_expand_cache,
+	flush_expand_cache(_),
 	fail.
 
 flush_stats_cache :-
@@ -134,15 +134,15 @@ is_amalgame_graph(G) :-
 	;   G == amalgame_vocs
 	).
 
-%%	flush_expand_cache(+Id)
+%%	flush_expand_cache(+Strategy)
 %
 %	Retract all cached mappings.
 
-flush_expand_cache :-
+flush_expand_cache(Strategy) :-
 	del_evidence_graphs,
-	del_prov_graphs,
-	del_materialized_vocs,
-	del_materialized_mappings,
+	del_prov_graphs(Strategy),
+	del_materialized_vocs(Strategy),
+	del_materialized_mappings(Strategy),
 	forall(expand_cache(Id-Strategy, _),
 	       flush_expand_cache(Id, Strategy)
 	      ).
@@ -155,33 +155,35 @@ flush_expand_cache(Id, Strategy) :-
 	;   true
 	).
 
-del_prov_graphs :-
-	findall(P,provenance_graph(_,P), ProvGraphs),
+del_prov_graphs(S) :-
+	findall(P,provenance_graph(S,P), ProvGraphs),
 	forall(member(P, ProvGraphs),
 	       (   catch(rdf_unload_graph(P), _, true),
 		   debug(ag_expand, 'Deleting provenance graph ~w', [P])
 	       )
 	      ).
 
-del_materialized_mappings :-
-	findall(Id, mapping_to_delete(Id), Finals),
+del_materialized_mappings(Strategy) :-
+	findall(Id, mapping_to_delete(Id, Strategy), Finals),
 	forall(member(F, Finals),
 	       (   catch(rdf_unload_graph(F), _, true),
 		   debug(ag_expand, 'Deleting materialized result graph ~w', [F])
 	       )
 	      ).
 
-mapping_to_delete(Id) :-
+mapping_to_delete(Id, Strategy) :-
 	rdfs_individual_of(Id, amalgame:'Mapping'),
+	rdf(Id,_,_, Strategy),
 	\+ rdfs_individual_of(Id, amalgame:'EvaluatedMapping'),
 	\+ rdfs_individual_of(Id, amalgame:'LoadedMapping'),
 	rdf_graph(Id).
 
-del_materialized_vocs :-
+del_materialized_vocs(Strategy) :-
 	findall(Voc,
 		(   rdfs_individual_of(Voc, skos:'ConceptScheme'),
 		    rdf_graph(Voc),
-		    rdf_has(Voc, amalgame:wasGeneratedBy, _)
+		    rdf_has(Voc, amalgame:wasGeneratedBy, Process, RP),
+		    rdf(Voc, RP, Process, Strategy)
 		), Vocs),
 	forall(member(V, Vocs),
 	       (   catch(rdf_unload_graph(V), _, true),
