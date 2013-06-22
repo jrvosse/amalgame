@@ -330,13 +330,14 @@ update_node_prop(default_relation=Relation, URI, Strategy) :-
 
 change_ns_if_needed(NS, URI, Strategy, NewStrategy) :-
 	rdf(Strategy, amalgame:publish_ns, OldNS, Strategy),
-	((OldNS == NS; NS == 'same')
-	-> NewStrategy = Strategy
-	;  rdf_retractall(URI, amalgame:publish_ns, OldNS, Strategy),
-	   rdf_assert(URI, amalgame:publish_ns, NS, Strategy),
-	   flush_stats_cache,
-	   change_namespace(OldNS, NS, Strategy, NewStrategy)
-   ).
+	(   (OldNS == NS; NS == 'same')
+	->  NewStrategy = Strategy
+	;   rdf_retractall(URI, amalgame:publish_ns, OldNS, Strategy),
+	    rdf_assert(URI, amalgame:publish_ns, NS, Strategy),
+	    flush_stats_cache,
+	    flush_expand_cache(Strategy),
+	    change_namespace(OldNS, NS, Strategy, NewStrategy)
+	).
 
 %%	http_delete_node(+Request)
 %
@@ -388,8 +389,15 @@ change_namespace(Old, New, Strategy, NewStrategy) :-
 	    atom_concat(New, Local, NewStrategy)
 	;   NewStrategy = Strategy
 	),
-	findall(rdf(S,P,O), tainted_s_ns(S,P,O, Old, Strategy), Results),
-	forall(member(T, Results), fix_s_ns(T, Old, New)),
+	% fix subjects:
+	findall(rdf(S,P,O), tainted_s_ns(S,P,O, Old, Strategy), SResults),
+	forall(member(T, SResults), fix_s_ns(T, Old, New)),
+
+	% fix objects:
+	findall(rdf(S,P,O), tainted_o_ns(S,P,O, Old, Strategy), OResults),
+	forall(member(T, OResults), fix_o_ns(T, Old, New)),
+
+	% fix graphs
 	rdf_transaction(forall(rdf(S,P,O,Strategy),
 			       rdf_update(S,P,O,graph(NewStrategy))
 			      )
@@ -399,8 +407,23 @@ tainted_s_ns(S,P,O,Old,Strategy) :-
 	rdf(S,P,O,Strategy:_),
 	sub_atom(S, 0,_,_,Old).
 
+tainted_o_ns(S,P,O,Old,Strategy) :-
+	rdf(S,P,O,Strategy:_),
+	rdf_is_resource(O),
+	sub_atom(O, 0,_,_,Old).
+
+
 fix_s_ns(rdf(S,P,O), Old, New) :-
 	sub_atom(S,0,Len,After,Old),
 	sub_atom(S,Len,After,0, Local),
 	atom_concat(New,Local,NewS),
 	rdf_update(S,P,O, subject(NewS)).
+
+fix_o_ns(rdf(S,P,O), Old, New) :-
+	sub_atom(O,0,Len,After,Old),
+	sub_atom(O,Len,After,0, Local),
+	atom_concat(New,Local,NewO),
+	rdf_update(S,P,O, object(NewO)).
+
+
+
