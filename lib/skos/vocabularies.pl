@@ -1,7 +1,6 @@
 :- module(am_skosvocs,
           [
 	   voc_languages/3,
-	   voc_ensure_stats/1,
 	   voc_languages/2,
 	   voc_clear_stats/1,
 	   voc_ensure_stats/1
@@ -63,34 +62,6 @@ voc_format(Voc, Format) :-
 	;   Format = null		% no concepts in the scheme
 	),
 	!.
-% voc_format(Voc, owl) :- rdfs_individual_of(Voc, owl:'Ontology'), !.
-
-has_concept(Concept, Format, Voc) :-
-	(   Format = skos
-	;   Format = skosxl
-	),
-	voc_format(Voc, Format),
-	rdf_has(Concept, skos:inScheme, Voc).
-
-has_concept(Concept, owl, Voc) :-
-	voc_format(Voc, owl),
-	rdf(Voc, rdf:type, owl:'Ontology', Graph:_),
-	rdf(Concept, rdf:type, owl:'Class', Graph).
-
-%%	voc_get_computed_props(+Voc, -Props) is det.
-%
-%	Collect all amalgame properties Props of Voc that have been
-%	already computed and asserted in the amalgame named graph.
-%
-
-voc_get_computed_props(Voc, Props) :-
-	findall([PropLn, Value],
-		(   rdf(Voc, Prop, Value, amalgame_vocs),
-		    rdf_global_id(amalgame:PropLn, Prop)
-		),
-		GraphProps
-	       ),
-	maplist(=.., Props, GraphProps).
 
 voc_clear_stats(all) :-
 	(   rdf_graph(amalgame_vocs)
@@ -103,14 +74,6 @@ voc_clear_stats(all) :-
 voc_clear_stats(Graph) :-
 	rdf_retractall(Graph, _, _, amalgame_vocs),
 	print_message(informational, map(cleared, 'vocabulary statistics', Graph, all)).
-
-voc_delete_derived :-
-	findall(Voc, rdf(Voc, rdf:type, amalgame:'DerivedConceptScheme'), Derived),
-	forall(member(Voc, Derived),
-	       ( rdf_unload_graph(Voc),
-		 print_message(informational, map(cleared, 'vocabulary', Voc, 1))
-	       )
-	      ).
 
 
 %%	voc_ensure_stats(+Type) is det.
