@@ -139,7 +139,8 @@ js_focus_node(Alignment, URI, NodeProps) :-
 
 %%	js_alignment_nodes(+Alignment, -Nodes)
 %
-%	Nodes contains all nodes in alignment with their OPM type.
+%	Nodes contains all nodes in alignment with their Strategy type
+%	(process, vocab, strategy or mapping).
 
 js_alignment_nodes(Strategy, Nodes) :-
 	findall(S, graph_resource(Strategy, S), Nodes0),
