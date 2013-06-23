@@ -205,10 +205,8 @@ prov_program(Graph, Program) :-
 	current_program_uri(Graph, Program),!.
 
 prov_program(Graph, Program)  :-
-
-
-	(  current_prolog_flag(version_git, PL_version)
-	-> true
+	(   current_prolog_flag(version_git, PL_version)
+	->  true
 	;   current_prolog_flag(version, PL_version)
 	),
 	findall(M-U-V,
@@ -220,8 +218,7 @@ prov_program(Graph, Program)  :-
 	Prolog = 'swi-prolog'-'http://www.swi-prolog.org'-PL_version,
 	All = [Prolog|MUVs],
 	variant_sha1(All, Hash),
-	atom_concat('/ns/amalgame/version/x', Hash, Local),
-	rdf_global_id(amexp:Local, Program),
+	atomic_list_concat(['http://localhost/ns/amalgame/version/x', Hash], Program),
 	assert(current_program_uri(Graph, Program)),
 	rdf_assert(Program, rdfs:label, literal('Amalgame alignment platform'), Graph),
 	rdf_assert(Program, rdf:type,   prov:'SoftwareAgent', Graph),
