@@ -13,8 +13,6 @@
 	    list_offset/3,
 	    list_limit/4,
 	    sort_by_arg/3,
-	    sort_by_arg/4,
-	    group_by_arg/3,
 	    remove_resource/2 % +Resource, +Graph
 	  ]).
 
@@ -306,28 +304,6 @@ sort_by_arg(List, Arg, Sorted) :-
 	maplist(arg_key(Arg), List, Pairs),
 	keysort(Pairs, SortedPairs),
 	pairs_values(SortedPairs, Sorted).
-
-%%	sort_by_arg(+ListOfTerms, +Arg, +Direction, -SortedList)
-%
-%	SortedList contains the Terms from ListOfTerms sorted by their
-%	nth Arg.
-
-sort_by_arg(List, Arg, Direction, Sorted) :-
-	sort_by_arg(List, Arg, Sorted0),
-	(   Direction == desc
-	->  reverse(Sorted0, Sorted)
-	;   Sorted = Sorted0
-	).
-
-%%	group_by_arg(+ListOfTerms, +Arg, -GroupedList)
-%
-%	GroupedList contains the Terms from ListOfTerms grouped by their
-%	nth Arg.
-
-group_by_arg(List, Arg, Sorted) :-
-	maplist(arg_key(Arg), List, Pairs),
-	keysort(Pairs, SortedPairs),
-	group_pairs_by_key(SortedPairs, Sorted).
 
 arg_key(Args, Term, Keys-Term) :-
 	is_list(Args),
