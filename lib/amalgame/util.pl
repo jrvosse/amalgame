@@ -10,7 +10,6 @@
 	    is_edm_collection/1,
 	    has_write_permission/0,
 
-	    find_unique/4,              % +Var, +Goal, +Max, -Results
 	    list_offset/3,
 	    list_limit/4,
 	    sort_by_arg/3,
@@ -33,9 +32,6 @@
 
 :- multifile
 	eq:menu_item/2.
-
-:- meta_predicate
-        find_unique(-, 0, +, -).
 
 eq:menu_item(900=Handler, Label) :-
 	(   (logged_on(User, X), X \== User)
@@ -264,31 +260,6 @@ is_edm_collection_(EDM, Graph, Class) :-
 	rdfs_individual_of(Agent, Class),
 	rdf(Agent, rdf:type, _, Graph:_),
 	atom_concat(Graph, '_Agent', EDM).
-
-
-
-
-%%      find_unique(Var, :Goal, +MaxResults, -SortedSet)
-%
-%       Find at most MaxResults distinct solutions for Var in Goal.
-
-find_unique(T, G, inf, Ts) :- !,
-        findall(T, G, Raw),
-        sort(Raw, Ts).
-find_unique(T, G, Max, Ts) :-
-        empty_nb_set(Set),
-        State = count(0),
-        (       G,
-                add_nb_set(T, Set, true),
-                arg(1, State, C0),
-                C is C0 + 1,
-                nb_setarg(1, State, C),
-                C == Max
-        ->      true
-        ;       true
-        ),
-        nb_set_to_list(Set, Ts).
-
 
 %%	list_offset(+List, +N, -SmallerList)
 %
