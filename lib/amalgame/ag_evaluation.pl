@@ -1,6 +1,7 @@
 :- module(ag_evaluation, [
+			  evaluation_graph/3,
 			  is_empty_eval_graph/1,
-			  evaluation_graph/3
+			  delete_empty_eval_graphs/1
 			 ]).
 
 :- use_module(library(semweb/rdf_db)).
@@ -10,6 +11,7 @@
 is_empty_eval_graph(Eval) :-
 	   rdfs_individual_of(Eval, amalgame:'EvaluatedMapping'),
 	   \+ rdf_graph(Eval).
+
 
 evaluation_graph(Strategy, Mapping, EvalGraph) :-
 	rdf(EvalGraph, amalgame:evaluationOf, Mapping, Strategy),
@@ -51,4 +53,9 @@ delete_eval_graph_admin(Strategy, Mapping, EvalGraph) :-
 	rdf_retractall(EvalGraph, _, _, Strategy),
 	rdf_retractall(EvalProcess, _, _, Strategy).
 
+
+delete_empty_eval_graphs(Strategy) :-
+	forall(rdf(EvalGraph, amalgame:evaluationOf, Mapping, Strategy),
+		delete_eval_graph_admin(Strategy, Mapping, EvalGraph)
+	      ).
 

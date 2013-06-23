@@ -23,6 +23,7 @@ save_mappings(Strategy, Dir, Options) :-
 	absolute_file_name(ProvGraphB, ProvFile,  [relative_to(Dir), extensions([ttl])]),
 	absolute_file_name(void,       VoidFile,  [relative_to(Dir), extensions([ttl])]),
 
+	delete_empty_eval_graphs(Strategy), % good time for some cleanup...
 	assert_master_void(Strategy, AllMappingsURI, VoidGraph),
 	select_mappings_to_be_saved(Strategy, Mappings, Options),
 	forall(member(Mapping, Mappings),
