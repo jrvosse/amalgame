@@ -1,5 +1,8 @@
 :- module(ag_util_components,
-	  [ html_eq_header//1,
+	  [
+	    mint_node_uri/3,
+
+	    html_eq_header//1,
 	    assert_user_provenance/2,
 	    amalgame_alignment/2,
 	    js_mappings/2,
@@ -27,6 +30,17 @@
 :- use_module(library(amalgame/caching)).
 :- use_module(library(amalgame/map)).
 :- use_module(library(amalgame/ag_evaluation)).
+
+mint_node_uri(Strategy, Type, URI) :-
+	ground(Type),
+	ground(Strategy),
+	rdf_has(Strategy, amalgame:publish_ns, NS),
+	repeat,
+	gensym(Type, Local),
+	atomic_concat(NS, Local, URI),
+	\+ rdf_subject(URI),
+	\+ rdf_graph(URI),
+	!.
 
 :- multifile
 	eq:menu_item/2.

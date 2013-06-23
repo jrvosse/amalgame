@@ -18,10 +18,13 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 
+:- use_module(user(user_db)).
 :- use_module(library(version)).
 :- use_module(library(prov_schema)).
+
 :- use_module(library(amalgame/map)).
-:- use_module(user(user_db)).
+:- use_module(library(amalgame/util)).
+
 
 :- dynamic
 	current_program_uri/2.
@@ -35,19 +38,12 @@ flush_prov_cache :-
 %	True if Graph is the provenance graph associated with strategy.
 
 provenance_graph(Strategy, Graph) :-
-	rdf(Graph, amalgame:hasPlan, Strategy, Graph),
-	!.
-
-provenance_graph(Strategy, Graph) :-
-	ground(Strategy),
-	rdf(Strategy, amalgame:publish_ns, NS),
-	(   atomic_list_concat([NS, prov],  Graph), \+ rdf_graph(Graph)
+	(   rdf(Graph, amalgame:hasPlan, Strategy, Graph)
 	->  true
-	;   repeat, gensym('provgraph', Local),
-	    atomic_list_concat([NS, Local], Graph),
-	    \+ rdf_graph(Graph)
-	),
-	create_prov_graph(Strategy, Graph).
+	;   ground(Strategy),
+	    mint_node_uri(Strategy, provBundle, Graph),
+	    create_prov_graph(Strategy, Graph)
+	).
 
 create_prov_graph(Strategy, Graph) :-
 	format(atom(Label), 'Provenance graph for strategy ~p', [Strategy]),

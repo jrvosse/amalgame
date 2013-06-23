@@ -8,6 +8,7 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(amalgame/ag_provenance)).
+:- use_module(library(amalgame/util)).
 
 
 evaluation_graph_chk(Strategy, Mapping, EvalGraph) :-
@@ -21,15 +22,8 @@ evaluation_graph(Strategy, Mapping, EvalGraph) :-
 	).
 
 create_evaluation_graph(Strategy, Mapping, EvalGraph) :-
-	repeat,
-	gensym(evaluation_process, EvalProcess),
-	\+ rdf_subject(EvalProcess),
-
-	repeat,
-	gensym(evaluation_result, EvalGraph),
-	\+ rdf_subject(EvalGraph),
-	\+ rdf_graph(EvalGraph),
-	!,
+	mint_node_uri(Strategy, evaluation_process, EvalProcess),
+	mint_node_uri(Strategy, evaluation_result, EvalGraph),
 
 	format(atom(Comment), 'Manual evaluation of ~w', [Mapping]),
 

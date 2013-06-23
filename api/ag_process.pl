@@ -203,11 +203,7 @@ assert_output(Process, Type, Graph, Input, _, MainOutput) :-
 	new_output(OutputClass, Process, amalgame:wasGeneratedBy, Input, Graph, MainOutput).
 
 new_output(Type, Process, P, Input, Strategy, OutputURI) :-
-	rdf(Strategy, amalgame:publish_ns, NS),
-	repeat,
-	gensym(dataset, Local),
-	atomic_concat(NS, Local, OutputURI),
-	\+ rdf(OutputURI, _, _), !,
+	mint_node_uri(Strategy, dataset, OutputURI),
 	rdf_assert(OutputURI, rdf:type, Type, Strategy),
 	rdf_assert(OutputURI, amalgame:status, amalgame:intermediate, Strategy),
         rdf_assert(OutputURI, P, Process, Strategy),
