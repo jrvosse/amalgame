@@ -5,10 +5,11 @@
 	 update_amalgame_prov/2,                      % -Strategy, +Mapping
 	 flush_prov_cache/0,
 	 remove_old_prov/2,                           % +Process, +ProvGraph
+	 is_amalgame_graph/1,
 
 	 prov_was_generated_by/4,   % +Activity, +Entities, +Graph, +Options
 	 prov_clear_activity/1,	    % +Process (bnode)
-	 prov_assert_entity_version/3,
+	 prov_get_entity_version/3,
 	 current_program_uri/2
 
 	]).
@@ -258,20 +259,17 @@ get_xml_dateTime(T, TimeStamp) :-
 %	graph TargetGraph. SourceGraph is the main named graph in which
 %	Entity is defined.
 
-prov_assert_entity_version(Entity, SourceGraph, TargetGraph) :-
+prov_get_entity_version(Entity, SourceGraph, Version) :-
 	rdf_graph_property(SourceGraph, source(SourceFileURL)),
 	uri_file_name(SourceFileURL, Filename),
 	file_directory_name(Filename, Dirname),
 	register_git_module(Entity, [directory(Dirname), home_url(Entity)]),
-	(   git_module_property(Entity, version(Version))
-	->  format(atom(VersionS),  'GIT version: ~w', [Version]),
-	    rdf_assert(Entity, owl:versionInfo, literal(VersionS), TargetGraph)
-	;   (rdf_graph_property(SourceGraph, hash(Hash)),
-	     rdf_graph_property(SourceGraph, source_last_modified(LastModified)),
-	     format_time(atom(Mod), 'Last-Modified: %Y-%m-%dT%H-%M-%S%Oz', LastModified),
-	     rdf_assert(Entity, owl:versionInfo, literal(Mod), TargetGraph),
-	     rdf_assert(Entity, owl:versionInfo, literal(Hash), TargetGraph)
-	    )
+	(   git_module_property(Entity, version(GitVersion))
+	->  format(atom(Version),  'GIT version: ~w', [GitVersion])
+	;   rdf_graph_property(SourceGraph, hash(Hash)),
+	    rdf_graph_property(SourceGraph, source_last_modified(LastModified)),
+	    format_time(atom(Time), 'Last-Modified: %Y-%m-%dT%H-%M-%S%Oz', LastModified),
+	    format(atom(Version), '~w hash: ~w', [Time, Hash])
 	).
 
 assert_counts([],_).
@@ -293,3 +291,16 @@ assert_count(MapUri, MapList, ProvGraph) :-
 		   literal(type('http://www.w3.org/2001/XMLSchema#int', SN)), ProvGraph),
 	rdf_assert(MapUri, amalgame:mappedTargetConcepts,
 		   literal(type('http://www.w3.org/2001/XMLSchema#int', TN)), ProvGraph).
+
+%%	is_amalgame_graph(?G) is nondet
+%
+%	True if G is a named graph created by amalgame
+
+is_amalgame_graph(G) :-
+	rdf_graph(G),
+	(   rdf(G, amalgame:hasPlan, _, _) % G is provenance graph
+	;   rdf(_, amalgame:hasPlan, _, G) % G is the void graph
+	;   rdfs_individual_of(G, amalgame:'AlignmentStrategy')
+	;   once(rdf(G, align:map, _, G))	 % G is mapping graph
+	).
+

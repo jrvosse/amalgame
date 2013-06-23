@@ -29,11 +29,17 @@ user:message_hook(make(done(_)), _, _) :-
 	debug(ag_expand, 'Flushing stats cache after running make/0', []),
 	flush_stats_cache,
 	fail.
-
 user:message_hook(make(done(_)), _, _) :-
 	debug(ag_expand, 'Flushing expand cache after running make/0', []),
-	flush_prov_cache,
 	flush_expand_cache(_),
+	fail.
+user:message_hook(make(done(_)), _, _) :-
+	debug(ag_expand, 'Flushing prov program version cache after running make/0', []),
+	flush_prov_cache,
+	fail.
+user:message_hook(make(done(_)), _, _) :-
+	debug(ag_expand, 'Flushing vocabulary statistics cache after running make/0', []),
+	voc_clear_stats(all),
 	fail.
 
 flush_stats_cache :-
@@ -123,16 +129,6 @@ clean_repository :-
 		   rdf_unload_graph(G)
 	       )
 	      ).
-
-is_amalgame_graph(G) :-
-	rdf_graph(G),
-	(   rdf(G, amalgame:hasPlan, _, _) % G is provenance graph
-	;   rdf(_, amalgame:hasPlan, _, G) % G is the void graph
-	;   rdfs_individual_of(G, amalgame:'AlignmentStrategy')
-	;   once(rdf(G, align:map, _, G))	 % G is mapping graph
-	;   G == amalgame
-	;   G == amalgame_vocs
-	).
 
 %%	flush_expand_cache(+Strategy)
 %

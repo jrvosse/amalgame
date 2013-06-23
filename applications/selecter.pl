@@ -7,13 +7,14 @@
 :- use_module(library(http/http_path)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/html_write)).
-:- use_module(library(yui3_beta)).
 :- use_module(library(semweb/rdf_db)).
-:- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(semweb/rdf_file_type)).
-:- use_module(library(skos/vocabularies)).
+
 :- use_module(user(user_db)).
+
+:- use_module(library(yui3_beta)).
+:- use_module(library(skos/vocabularies)).
 :- use_module(components(label)).
 :- use_module(library(amalgame/util)).
 
@@ -108,7 +109,7 @@ http_eq_upload_url(Request) :-
 
 
 find_schemes(Schemes) :-
-	findall(C, rdfs_individual_of(C, skos:'ConceptScheme'), Cs),
+	findall(C, is_vocabulary(C,_Format), Cs),
 	findall(G, is_edm_collection(G), Gs),
 	append(Cs, Gs, All),
 	maplist(scheme_label, All, Labeled),
@@ -202,18 +203,12 @@ html_vocab_rows([]) --> !.
 html_vocab_rows([Scheme|Vs]) -->
 % rdf_estimate_complexity(_, skos:inScheme, Scheme, Count)
 	{
-	 (   voc_ensure_stats(all(Scheme))
-	 ->  rdf(Scheme, amalgame:numberOfConcepts,   literal(type(_,ConceptCount))),
-	     rdf(Scheme, amalgame:numberOfPrefLabels, literal(type(_,PrefCount))),
-	     rdf(Scheme, amalgame:numberOfAltLabels, literal(type(_, AltCount))),
-	     rdf(Scheme, amalgame:numberOfMappedConcepts, literal(type(_, MappedCount))),
-	     voc_languages(Scheme, skos:prefLabel, PrefLangs),
-	     voc_languages(Scheme, skos:altLabel, AltLangs)
-	 ;   ConceptCount = 0,
-	     PrefCount = 0, AltCount = 0,
-	     MappedCount = 0,
-	     PrefLangs=[], AltLangs=[]
-	 ),
+	 voc_property(Scheme, numberOfConcepts(ConceptCount)),
+	 voc_property(Scheme, numberOfPrefLabels(PrefCount)),
+	 voc_property(Scheme, numberOfAltLabels(AltCount)),
+	 voc_property(Scheme, numberOfMappedConcepts(MappedCount)),
+	 voc_languages(Scheme, skos:prefLabel, PrefLangs),
+	 voc_languages(Scheme, skos:altLabel, AltLangs),
 	 (   ConceptCount > 0
 	 ->  Perc is (100*MappedCount)/ConceptCount,
 	     format(atom(MPercent), '(~2f%)', [Perc])
@@ -332,7 +327,7 @@ html_scheme_name(Graph) -->
 
 graph_label(Graph, Label) :-
 	rdf_display_label(Graph, Lit),
-	literal_text(Lit, Label).
+	literal_text(Lit, Label),!.
 graph_label(Graph, Graph).
 
 

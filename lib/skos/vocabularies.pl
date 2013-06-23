@@ -1,9 +1,10 @@
 :- module(am_skosvocs,
           [
+	   is_vocabulary/2,
+	   voc_property/2,
 	   voc_languages/3,
 	   voc_languages/2,
-	   voc_clear_stats/1,
-	   voc_ensure_stats/1
+	   voc_clear_stats/1
           ]).
 
 :- use_module(library(semweb/rdfs)).
@@ -12,20 +13,15 @@
 :- use_module(library(amalgame/map)).
 :- use_module(library(amalgame/ag_provenance)).
 
-/** <module> Compute and store vocabulary-oriented statistics as RDF.
+/** <module> Compute and store vocabulary-oriented statistics.
 
 Currently supported statistical properties include:
+* version(Literal)
+* format(oneof([skos,skosxl,null]))
 * numberOfConcepts(xsd:int)
 * numberOfPrefLabels(xsd:int)
 * numberOfAltLabels(xsd:int)
 * numberOfMappedConcepts(xsd:int)
-
-Side effect: These statistics will also be asserted as RDF
-triples to the 'amalgame_vocs' named graph, using similarly named
-properties with the 'amalgame:' namespace prefix. These asserted
-triples will be used in subsequent calls for efficiency reasons.
-
-See also http_clear_cache/1.
 
 @author Jacco van Ossenbruggen
 */
@@ -35,118 +31,83 @@ See also http_clear_cache/1.
 	voc_stats_cache/2.
 
 :- rdf_meta
+	voc_property(r, -),
 	voc_languages(r,-),
 	voc_languages(r,r,-),
 	voc_languages_used(r,r,-).
 
-is_vocabulary(Voc, Format):-
-        ground(Voc),!,
-        voc_format(Voc, Format).
-is_vocabulary(Voc, Format) :-
-	var(Voc),
-	rdf(Voc, amalgame:vocformat, literal(Format), amalgame_vocs).
+voc_property(Voc, P) :-
+	(   voc_stats_cache(Voc, P)
+	->  true
+	;   voc_ensure_stats(Voc, P)
+	).
 
-voc_format(Voc, Format) :-
-        rdf(Voc, amalgame:vocformat, literal(Format), amalgame_vocs), !.
-voc_format(Voc, Format) :-
+is_vocabulary(Voc, Format):-
+	ground(Voc),!,
+	(   voc_stats_cache(Voc, format(Format))
+	->  true
+	;   voc_ensure_stats(Voc, format(Format))
+	).
+
+is_vocabulary(Voc, Format):-
+	var(Voc),
+	findall(V-F, voc_ensure_stats(V,format(F)), _),
+	!,
+	voc_stats_cache(Voc, format(Format)).
+
+voc_clear_stats(all) :-
+	retractall(voc_stats_cache(_,_)),
+	print_message(informational, map(cleared, 'vocabulary statistics', all_vocs, all)).
+
+voc_clear_stats(Voc) :-
+	retractall(voc_stats_cache(Voc, _)),
+	print_message(informational, map(cleared, 'vocabulary statistics', Voc, all)).
+
+
+voc_ensure_stats(Voc, format(Format)) :-
 	rdfs_individual_of(Voc, skos:'ConceptScheme'),
+	\+ rdf(Voc, amalgame:wasGeneratedBy, _),
 	(   rdf_has(Concept, skos:inScheme, Voc)
 	->  (   rdf_has(Concept, skosxl:prefLabel, _)
 	    ->  Format = skosxl
 	    ;   rdf_has(Concept, skos:prefLabel, _)
 	    ->  Format = skos
-	    ;	rdf_has(Concept, skos:altLabel, _)
-	    ->	Format = skos
+	    ;   rdf_has(Concept, skos:altLabel, _)
+	    ->  Format = skos
 	    ;   Format = null           % no concepts with known labels
 	    )
 	;   Format = null		% no concepts in the scheme
 	),
-	!.
-
-voc_clear_stats(all) :-
-	(   rdf_graph(amalgame_vocs)
-	->  rdf_unload_graph(amalgame_vocs),
-	    print_message(informational, map(cleared, 'vocabulary statistics', amalgame_vocs, all))
-	;   true
-	).
+	assert(voc_stats_cache(Voc, format(Format))).
 
 
-voc_clear_stats(Graph) :-
-	rdf_retractall(Graph, _, _, amalgame_vocs),
-	print_message(informational, map(cleared, 'vocabulary statistics', Graph, all)).
 
-
-%%	voc_ensure_stats(+Type) is det.
-%
-%	Ensures that the statistical properties of Type are asserted in
-%	the amalgame graph.
-
-voc_ensure_stats(found) :-
-        findall(Voc,
-		(   rdfs_individual_of(Voc, skos:'ConceptScheme')
-		),
-		Vocs
-	       ),
-	forall(member(Voc, Vocs),
-	       (
-	       voc_format(Voc, Format),
-	       rdf_assert(Voc, amalgame:vocformat, literal(Format), amalgame_vocs)
-	       )
-	      ).
-
-voc_ensure_stats(all) :-
-	voc_ensure_stats(found),
-	findall(V, is_vocabulary(V, _Format), Vocs),!,
-	length(Vocs, N),
-	print_message(informational,
-		      map(found, 'SKOS vocabularies (ConceptSchemes)', repository, N)),
-	forall(member(V, Vocs),voc_ensure_stats(all(V))).
-
-voc_ensure_stats(all(V)) :-
-	voc_ensure_stats(version(V)),
-	voc_ensure_stats(numberOfConcepts(V)),
-	voc_ensure_stats(numberOfPrefLabels(V)),
-	voc_ensure_stats(numberOfAltLabels(V)),
-	voc_ensure_stats(numberOfMappedConcepts(V)).
-
-voc_ensure_stats(version(Voc)) :-
-	(   rdf_has(Voc, owl:versionInfo, literal(_))
+voc_ensure_stats(Voc, version(Version)) :-
+	(   rdf_has(Voc, owl:versionInfo, literal(Version))
 	->  true
 	;   rdf(Voc, amalgame:wasGeneratedBy, _)
-	->  true
-	;   assert_voc_version(Voc, amalgame_vocs)
+	->  Version = amalgame_generated
+	;   assert_voc_version(Voc, Version)
 	->  true
 	;   debug(info, 'Failed to ensure version stats for ~', [Voc])
 	),!.
 
 
-voc_ensure_stats(numberOfConcepts(Voc)) :-
-	(   rdf(Voc,amalgame:numberOfConcepts, literal(type(_, Count)))
-	->  true
-	;   count_concepts(Voc, Count),
-	    assert_voc_props(Voc:[numberOfConcepts(literal(type('http://www.w3.org/2001/XMLSchema#int', Count)))])
-	),!.
+voc_ensure_stats(Voc, numberOfConcepts(Count)) :-
+	count_concepts(Voc, Count),
+	assert_voc_prop(Voc, numberOfConcepts(Count)).
 
-voc_ensure_stats(numberOfPrefLabels(Voc)) :-
-	(   rdf(Voc,amalgame:numberOfPrefLabels, literal(type(_, Count)))
-	->  true
-	;   count_prefLabels(Voc, Count),
-	    assert_voc_props(Voc:[numberOfPrefLabels(literal(type('http://www.w3.org/2001/XMLSchema#int', Count)))])
-	),!.
+voc_ensure_stats(Voc, numberOfPrefLabels(Count)) :-
+	count_prefLabels(Voc, Count),
+	assert_voc_prop(Voc, numberOfPrefLabels(Count)).
 
-voc_ensure_stats(numberOfAltLabels(Voc)) :-
-	(   rdf(Voc,amalgame:numberOfAltLabels, literal(type(_, Count)))
-	->  true
-	;   count_altLabels(Voc, Count),
-	    assert_voc_props(Voc:[numberOfAltLabels(literal(type('http://www.w3.org/2001/XMLSchema#int', Count)))])
-	),!.
+voc_ensure_stats(Voc, numberOfAltLabels(Count)) :-
+	count_altLabels(Voc, Count),
+	assert_voc_prop(Voc,numberOfAltLabels(Count)).
 
-voc_ensure_stats(numberOfMappedConcepts(Voc)) :-
-	(   rdf(Voc,amalgame:numberOfMappedConcepts, literal(type(_, Count)))
-	->  true
-	;   count_mapped_concepts(Voc, Count),
-	    assert_voc_props(Voc:[numberOfMappedConcepts(literal(type('http://www.w3.org/2001/XMLSchema#int', Count)))])
-	),!.
+voc_ensure_stats(Voc, numberOfMappedConcepts(Count)) :-
+	count_mapped_concepts(Voc, Count),
+	assert_voc_prop(Voc, numberOfMappedConcepts(Count)).
 
 voc_languages(Voc, L) :-
 	(   voc_stats_cache(Voc, languages(L))
@@ -156,50 +117,36 @@ voc_languages(Voc, L) :-
 	).
 
 voc_languages(Voc, P, L) :-
-	(   voc_stats_cache(Voc, P-languages(L))
+	(   voc_stats_cache(Voc, languages(P,L))
 	->  true
 	;   voc_languages_used(Voc, P, L),
-	    assert(voc_stats_cache(Voc, P-languages(L)))
+	    assert(voc_stats_cache(Voc, languages(P,L)))
 	).
 %%	assert_voc_version(+Voc, +TargetGraph) is det.
 %
 %	Assert version of Voc using RDF triples in named graph TargetGraph.
 
-assert_voc_version(Voc, TargetGraph) :-
+assert_voc_version(Voc, Version) :-
 	(   rdf(Voc, amalgame:subSchemeOf, SuperVoc)
-	->  assert_subvoc_version(Voc, SuperVoc, TargetGraph)
-	;   assert_supervoc_version(Voc, TargetGraph)
+	->  assert_subvoc_version(Voc, SuperVoc, Version)
+	;   assert_supervoc_version(Voc, Version)
 	).
 
-assert_subvoc_version(Voc, SuperVoc, TargetGraph) :-
-	voc_ensure_stats(version(SuperVoc)),
+assert_subvoc_version(Voc, SuperVoc, Version) :-
 	rdf_has(SuperVoc, owl:versionInfo, Version),
-	rdf_assert(Voc,   owl:versionInfo, Version, TargetGraph).
+	assert(voc_stats_cache(Voc, version(Version))).
 
-assert_supervoc_version(Voc, TargetGraph) :-
+assert_supervoc_version(Voc, Version) :-
 	rdf(_, skos:inScheme, Voc, SourceGraph:_),!,
-	prov_assert_entity_version(Voc, SourceGraph, TargetGraph).
+	prov_get_entity_version(Voc, SourceGraph, Version),
+	assert(voc_stats_cache(Voc, version(Version))).
 
 
-assert_voc_props([]).
-assert_voc_props([Head|Tail]) :-
-	assert_voc_props(Head),
-	assert_voc_props(Tail),!.
-
-assert_voc_props(Voc:Props) :-
-	rdf_equal(amalgame:'', NS),
-	(   rdfs_individual_of(Voc, skos:'ConceptScheme')
-	->  true
-	;   rdf_assert(Voc, rdf:type, skos:'ConceptScheme', amalgame_vocs)
-	),
-	forall(member(M,Props),
-	       (   M =.. [PropName, Value],
-		   format(atom(URI), '~w~w', [NS,PropName]),
-		   rdf_assert(Voc, URI, Value, amalgame_vocs)
-	       )).
+assert_voc_prop(Voc, M) :-
+	assert(voc_stats_cache(Voc, M)).
 
 count_concepts(Voc, Count) :-
-	voc_format(Voc, Format),
+	voc_property(Voc, format(Format)),
 	(   Format == skos
 	;   Format == skosxl
 	),
@@ -210,15 +157,16 @@ count_concepts(Voc, Count) :-
 	print_message(informational, map(found, 'SKOS Concepts', Voc, Count)).
 
 count_concepts(Voc, Count) :-
-	voc_format(Voc, owl),
+	voc_property(Voc, format(owl)),
 	rdf(Voc, rdf:type, owl:'Ontology', Graph),
 	findall(Concept,
 		rdf(Concept, rdf:type, owl:'Class', Graph),
 		Concepts),
 	length(Concepts, Count),
-	print_message(informational, map(found, 'SKOS Concepts', Voc, Count)).
+	print_message(informational, map(found, 'OWL Classes', Voc, Count)).
 
-count_concepts(Voc, 0) :- voc_format(Voc, null).
+count_concepts(Voc, 0) :-
+	voc_property(Voc, format(null)).
 
 count_prefLabels(Voc, Count) :-
 	findall(Label,
