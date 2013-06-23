@@ -82,7 +82,6 @@ http_add_process(Request) :-
 %%	update_process(+Process, +Alignment, +Params)
 %
 %	Update the parameters of Process.
-
 update_process(Process, Graph, Params) :-
 	provenance_graph(Graph, ProvGraph),
 	flush_dependent_caches(Process, Graph, ProvGraph),
@@ -332,7 +331,9 @@ change_ns_if_needed(NS, URI, Strategy, NewStrategy) :-
 	rdf(Strategy, amalgame:publish_ns, OldNS, Strategy),
 	(   (OldNS == NS; NS == 'same')
 	->  NewStrategy = Strategy
-	;   rdf_retractall(URI, amalgame:publish_ns, OldNS, Strategy),
+	;   provenance_graph(Strategy, Prov),
+	    rdf_unload_graph(Prov),
+	    rdf_retractall(URI, amalgame:publish_ns, OldNS, Strategy),
 	    rdf_assert(URI, amalgame:publish_ns, NS, Strategy),
 	    flush_stats_cache,
 	    flush_expand_cache(Strategy),
