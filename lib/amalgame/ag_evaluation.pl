@@ -1,5 +1,6 @@
 :- module(ag_evaluation, [
-			  evaluation_graph/3,
+			  evaluation_graph_chk/3, % check if eval graph exist
+			  evaluation_graph/3,     % check or create if not
 			  is_empty_eval_graph/1,
 			  delete_empty_eval_graphs/1
 			 ]).
@@ -8,16 +9,18 @@
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(amalgame/ag_provenance)).
 
-is_empty_eval_graph(Eval) :-
-	   rdfs_individual_of(Eval, amalgame:'EvaluatedMapping'),
-	   \+ rdf_graph(Eval).
 
-
-evaluation_graph(Strategy, Mapping, EvalGraph) :-
+evaluation_graph_chk(Strategy, Mapping, EvalGraph) :-
 	rdf(EvalGraph, amalgame:evaluationOf, Mapping, Strategy),
 	!.
 
 evaluation_graph(Strategy, Mapping, EvalGraph) :-
+	(   evaluation_graph_chk(Strategy, Mapping, EvalGraph)
+	->  true
+	;   create_evaluation_graph(Strategy, Mapping, EvalGraph)
+	).
+
+create_evaluation_graph(Strategy, Mapping, EvalGraph) :-
 	repeat,
 	gensym(evaluation_process, EvalProcess),
 	\+ rdf_subject(EvalProcess),
@@ -45,6 +48,17 @@ evaluation_graph(Strategy, Mapping, EvalGraph) :-
 	provenance_graph(Strategy, ProvGraph),
 	prov_was_generated_by(EvalProcess, [EvalGraph], ProvGraph, Options).
 
+
+delete_empty_eval_graphs(Strategy) :-
+	forall(rdf(EvalGraph, amalgame:evaluationOf, Mapping, Strategy),
+		delete_eval_graph_admin(Strategy, Mapping, EvalGraph)
+	      ).
+
+is_empty_eval_graph(Eval) :-
+	   rdfs_individual_of(Eval, amalgame:'EvaluatedMapping'),
+	   \+ rdf_graph(Eval).
+
+
 delete_eval_graph_admin(Strategy, Mapping, EvalGraph) :-
 	% Beware, this will delete all metadata about your manual evaluations!
 	rdf(EvalGraph, amalgame:evaluationOf, Mapping, Strategy),
@@ -52,10 +66,3 @@ delete_eval_graph_admin(Strategy, Mapping, EvalGraph) :-
 	!,
 	rdf_retractall(EvalGraph, _, _, Strategy),
 	rdf_retractall(EvalProcess, _, _, Strategy).
-
-
-delete_empty_eval_graphs(Strategy) :-
-	forall(rdf(EvalGraph, amalgame:evaluationOf, Mapping, Strategy),
-		delete_eval_graph_admin(Strategy, Mapping, EvalGraph)
-	      ).
-
