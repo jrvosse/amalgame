@@ -9,7 +9,6 @@
 	 prov_was_generated_by/4,   % +Activity, +Entities, +Graph, +Options
 	 prov_clear_activity/1,	    % +Process (bnode)
 	 prov_assert_entity_version/3,
-	 clear_prov_cache/0,
 	 current_program_uri/2
 
 	]).
@@ -27,7 +26,7 @@
 :- dynamic
 	current_program_uri/2.
 
-clear_prov_cache :-
+flush_prov_cache :-
 	retractall(current_program_uri(_,_)).
 
 
@@ -58,9 +57,6 @@ create_prov_graph(Strategy, Graph) :-
 	% Copy Strategy triples to empty prov graph:
 	findall(rdf(Strategy,P,O), rdf(Strategy,P,O,Strategy), STriples),
 	forall(member(rdf(S,P,O), STriples), rdf_assert(S,P,O,Graph)).
-
-flush_prov_cache :-
-	clear_prov_cache.
 
 update_amalgame_prov(Strategy, Mapping) :-
 	provenance_graph(Strategy, ProvGraph),
