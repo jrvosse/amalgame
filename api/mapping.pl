@@ -66,8 +66,9 @@ http_data_mapping(Request) :-
 
 	(   rdfs_individual_of(URL, amalgame:'EvaluatedMapping')
 	->  expand_node(Strategy, URL, PreviousEvaluation)
-	;   evaluation_graph(Strategy, URL, Prev),
-	    expand_node(Strategy, Prev, PreviousEvaluation)
+	;   evaluation_graph_chk(Strategy, URL, Prev)
+	->  expand_node(Strategy, Prev, PreviousEvaluation)
+	;   PreviousEvaluation = []
 	),
 	expand_node(Strategy, URL, Mapping0),
 	length(Mapping0, Count),

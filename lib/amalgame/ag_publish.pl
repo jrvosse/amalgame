@@ -208,12 +208,14 @@ select_mappings_to_be_saved(Strategy, Mappings, Options) :-
 augment_with_evaluation_relations(Strategy, Id, Mapping, Augmented) :-
 	(   rdfs_individual_of(Id, amalgame:'EvaluatedMapping')
 	->  expand_node(Strategy, Id, PreviousEvaluation)
-	;   evaluation_graph(Strategy, Id, Prev),
-	    expand_node(Strategy, Prev, PreviousEvaluation)
+	;   evaluation_graph_chk(Strategy, Id, Prev)
+	->  expand_node(Strategy, Prev, PreviousEvaluation)
+	;   PreviousEvaluation = []
 	),
 	augment_relation(Mapping, PreviousEvaluation, Augmented).
 
 augment_relation([], _, []).
+augment_relation(M, [], M).
 augment_relation([Head|Tail], PreviousEval, [align(S, T, [Relation|Prov]) | Results]) :-
 	Head = align(S, T, Prov),
 	(   PreviousEval = [PHead|PTail],
