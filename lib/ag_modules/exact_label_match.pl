@@ -24,7 +24,7 @@ parameter(targetlabel, oneof(LabelProps), Default,
 	rdf_equal(Default, rdfs:label),
 	label_list(LabelProps).
 parameter(language, oneof(['any'|L]), 'any', 'Language of source label') :-
-	voc_languages(all, L).
+	voc_property(all, languages(L)).
 parameter(matchacross_lang, boolean, true,
 	  'Allow labels from different language to be matched').
 parameter(matchacross_type, boolean, true,

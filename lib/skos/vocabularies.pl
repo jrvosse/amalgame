@@ -1,9 +1,7 @@
-:- module(am_skosvocs,
+:- module(am_vocstats,
           [
 	   is_vocabulary/2,
 	   voc_property/2,
-	   voc_languages/3,
-	   voc_languages/2,
 	   voc_clear_stats/1
           ]).
 
@@ -37,9 +35,10 @@ Currently supported statistical properties include:
 	voc_languages_used(r,r,-).
 
 voc_property(Voc, P) :-
-	(   voc_stats_cache(Voc, P)
+	rdf_global_term(P, PG),
+	(   voc_stats_cache(Voc, PG)
 	->  true
-	;   voc_ensure_stats(Voc, P)
+	;   voc_ensure_stats(Voc, PG)
 	).
 
 assert_voc_prop(Voc, M) :-
@@ -103,20 +102,13 @@ voc_ensure_stats(Voc, numberOfAltLabels(Count)) :-
 voc_ensure_stats(Voc, numberOfMappedConcepts(Count)) :-
 	(   count_mapped_concepts(Voc, Count) -> true ; Count = 0),
 	assert_voc_prop(Voc, numberOfMappedConcepts(Count)).
+voc_ensure_stats(Voc, languages(L)) :-
+	(   voc_languages_used(Voc, L) -> true ; L = []),
+	assert(voc_stats_cache(Voc, languages(L))).
+voc_ensure_stats(Voc, languages(P,L)) :-
+	(   voc_languages_used(Voc, P, L) -> true ; L = []),
+	assert(voc_stats_cache(Voc, languages(P,L))).
 
-voc_languages(Voc, L) :-
-	(   voc_stats_cache(Voc, languages(L))
-	->  true
-	;   voc_languages_used(Voc, L),
-	    assert(voc_stats_cache(Voc, languages(L)))
-	).
-
-voc_languages(Voc, P, L) :-
-	(   voc_stats_cache(Voc, languages(P,L))
-	->  true
-	;   voc_languages_used(Voc, P, L),
-	    assert(voc_stats_cache(Voc, languages(P,L)))
-	).
 %%	assert_voc_version(+Voc, +TargetGraph) is det.
 %
 %	Assert version of Voc using RDF triples in named graph TargetGraph.

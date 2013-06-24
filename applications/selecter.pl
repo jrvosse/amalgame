@@ -207,8 +207,8 @@ html_vocab_rows([Scheme|Vs]) -->
 	 voc_property(Scheme, numberOfPrefLabels(PrefCount)),
 	 voc_property(Scheme, numberOfAltLabels(AltCount)),
 	 voc_property(Scheme, numberOfMappedConcepts(MappedCount)),
-	 voc_languages(Scheme, skos:prefLabel, PrefLangs),
-	 voc_languages(Scheme, skos:altLabel, AltLangs),
+         voc_property(Scheme, languages(skos:prefLabel, PrefLangs)),
+	 voc_property(Scheme, languages(skos:altLabel, AltLangs)),
 	 (   ConceptCount > 0
 	 ->  Perc is (100*MappedCount)/ConceptCount,
 	     format(atom(MPercent), '(~2f%)', [Perc])
