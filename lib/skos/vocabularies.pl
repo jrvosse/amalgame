@@ -10,8 +10,9 @@
 
 :- use_module(library(amalgame/map)).
 :- use_module(library(amalgame/ag_provenance)).
+:- use_module(library(amalgame/vocabulary)).
 
-/** <module> Compute and store vocabulary-oriented statistics.
+/** <module> Compute and cache vocabulary-oriented properties and statistics.
 
 Currently supported statistical properties include:
 * version(Literal)
@@ -20,6 +21,8 @@ Currently supported statistical properties include:
 * numberOfPrefLabels(xsd:int)
 * numberOfAltLabels(xsd:int)
 * numberOfMappedConcepts(xsd:int)
+* languages(list)
+* languages(label_property, list)
 
 @author Jacco van Ossenbruggen
 */
@@ -130,31 +133,15 @@ assert_supervoc_version(Voc, Version) :-
 
 
 count_concepts(Voc, Count) :-
-	voc_property(Voc, format(Format)),
-	(   Format == skos
-	;   Format == skosxl
-	),
 	findall(Concept,
-		rdf_has(Concept, skos:inScheme, Voc),
+		vocab_member(Concept, Voc),
 		Concepts),
 	length(Concepts, Count),
-	print_message(informational, map(found, 'SKOS Concepts', Voc, Count)).
-
-count_concepts(Voc, Count) :-
-	voc_property(Voc, format(owl)),
-	rdf(Voc, rdf:type, owl:'Ontology', Graph),
-	findall(Concept,
-		rdf(Concept, rdf:type, owl:'Class', Graph),
-		Concepts),
-	length(Concepts, Count),
-	print_message(informational, map(found, 'OWL Classes', Voc, Count)).
-
-count_concepts(Voc, 0) :-
-	voc_property(Voc, format(null)).
+	print_message(informational, map(found, 'Concepts', Voc, Count)).
 
 count_prefLabels(Voc, Count) :-
 	findall(Label,
-		(   rdf_has(Concept, skos:inScheme, Voc),
+		(   vocab_member(Concept, Voc),
 		    (	rdf_has(Concept, skos:prefLabel, literal(Label))
 		    ;	rdf_has(Concept, skosxl:prefLabel, Label)
 		    )
@@ -165,7 +152,7 @@ count_prefLabels(Voc, Count) :-
 
 count_altLabels(Voc, Count) :-
 	findall(Label,
-		(   rdf_has(Concept, skos:inScheme, Voc),
+		(   vocab_member(Concept, Voc),
 		    (	rdf_has(Concept, skos:altLabel, literal(Label))
 		    ;	rdf_has(Concept, skosxl:altLabel, Label)
 		    )
@@ -176,7 +163,7 @@ count_altLabels(Voc, Count) :-
 
 count_mapped_concepts(Voc, Count) :-
 	findall(C,
-		(   rdf_has(C, skos:inScheme, Voc),
+		(   vocab_member(C, Voc),
 		    (	has_correspondence_chk(align(C, _, _), _)
 		    ;	has_correspondence_chk(align(_, C, _), _)
 		    )
