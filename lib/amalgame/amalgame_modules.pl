@@ -18,22 +18,23 @@
 	amalgame_module_id(r,-),
 	amalgame_modules_of_type(r,-).
 
-%%	current_amalgame_module(?URI, ?ModuleName)
+%%	current_amalgame_module(?URI, ?ModuleName) is nondet.
 %
 %	True if Module is an amalgame module identified by URI.
+%	@see amalgame_module_id/2 for a det version that throws an 
+%	existence_error if there is no module
 
 current_amalgame_module(URI, Module) :-
 	current_predicate(Module:amalgame_module/1),
 	Module:amalgame_module(URI0),
 	rdf_global_id(URI0, URI).
 
-%%	amalgame_module_id(+URI, -Module)
+%%	amalgame_module_id(+URI, -Module) is det.
 %
-%	True if Module is an amalgame module with URI and of type Class.
-%
+%	True if Module is an amalgame module identified by URI.
 %	@error existence_error(amalgame_module)
-%	@see current_amalgame_module/1 for a version that fails if there
-%	is no module
+%	@see current_amalgame_module/2 for a notdet version 
+%	that fails if there is no module.
 
 amalgame_module_id(URI, Module) :-
 	(   current_amalgame_module(URI, M)
@@ -41,7 +42,7 @@ amalgame_module_id(URI, Module) :-
 	;   throw(error(existence_error(amalgame_module, [URI]), _))
 	).
 
-%%	amalgame_modules_of_type(+Class, -Modules)
+%%	amalgame_modules_of_type(+Class, -Modules) is det.
 %
 %	Modules are loaded amalgame modules of type Class.
 
@@ -55,7 +56,7 @@ amalgame_modules_of_type(Class, Modules) :-
 	sort(LabeledModules, Sorted),
 	pairs_values(Sorted, Modules).
 
-%%	amalgame_module_parameters(+Module,-Parameters)
+%%	amalgame_module_parameters(+Module,-Parameters) is det.
 %
 %       Parameters is a list of parameters for Module.
 
