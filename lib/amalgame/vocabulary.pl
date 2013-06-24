@@ -51,11 +51,13 @@ vocab_member(E, Alignable) :-
 	!,
 	vocab_member(E, graph(Graph)),
 	vocab_member(E, type(Class)).
+/*
 vocab_member(I, EDMGraph) :-
 	atom(EDMGraph),
 	rdf(_, 'http://www.europeana.eu/schemas/edm/country',_, EDMGraph),
 	!,
 	rdf(I, 'http://www.europeana.eu/schemas/edm/country', _, EDMGraph).
+*/
 vocab_member(E, Class) :-
 	atom(Class),
 	rdfs_individual_of(Class, rdfs:'Class'),

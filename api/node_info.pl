@@ -114,16 +114,6 @@ amalgame_info(Scheme, Strategy,
 	!,
 	concept_count(Scheme, Strategy, Total).
 
-amalgame_info(EDMGraph, _Strategy,
-	    ['Total concepts'-Total
-	    ]) :-
-	P='http://www.europeana.eu/schemas/edm/country',
-	rdf(_, P, _, EDMGraph),
-	!,
-	findall(I,rdf(I,P,_,EDMGraph),Is),
-	sort(Is, Sorted),
-	length(Sorted, Total).
-
 amalgame_info(URL, Strategy,
 	       ['type'   - \(cp_label:rdf_link(Type)),
 		'about'   - Definition

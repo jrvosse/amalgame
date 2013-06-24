@@ -10,7 +10,6 @@
 	    js_alignment_nodes/2,
 	    now_xsd/1,
 	    xsd_timestamp/2,
-	    is_edm_collection/1,
 	    has_write_permission/0,
 
 	    list_offset/3,
@@ -191,8 +190,6 @@ node_prop(_S, R, type, Type) :-
 	->  Type = process
 	;   Type = vocab
 	).
-node_prop(_S, EDM, type, vocab) :-
-	is_edm_collection(EDM).
 node_prop(S, R, secondary_inputs, Inputs) :-
 	findall(I,
 		(   rdf_has(R, amalgame:secondary_input, I, RP),
@@ -252,27 +249,6 @@ xsd_timestamp(Time, Atom) :-
         format_time(atom(Atom),
                     '%FT%T%:z',
                     Date, posix).
-
-is_edm_collection(EDM) :-
-	once(rdf(_,'http://www.europeana.eu/schemas/edm/country', _, EDM:_)).
-
-is_edm_collection(EDM) :-
-	findall(Target-Graph-Class, is_edm_collection_(Target, Graph, Class), Results0),
-	sort(Results0, Results),
-	forall(member(Target-Graph-Class, Results),
-	       (   rdf_assert(Target, rdf:type, amalgame:'Alignable', amalgame),
-		   rdf_assert(Target, amalgame:graph, Graph, amalgame),
-		   rdf_assert(Target, amalgame:class, Class, amalgame)
-	       )
-	      ),
-	!,
-	member(EDM-_-_, Results).
-
-is_edm_collection_(EDM, Graph, Class) :-
-	rdf_equal(Class,  'http://www.europeana.eu/schemas/edm/Agent'),
-	rdfs_individual_of(Agent, Class),
-	rdf(Agent, rdf:type, _, Graph:_),
-	atom_concat(Graph, '_Agent', EDM).
 
 %%	list_offset(+List, +N, -SmallerList)
 %
