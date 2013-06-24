@@ -5,7 +5,7 @@
 :- use_module(library(snowball)).
 :- use_module(library(amalgame/lit_distance)).
 :- use_module(library(amalgame/vocabulary)).
-:- use_module(library(skos/vocabularies)).
+:- use_module(library(amalgame/voc_stats)).
 :- use_module(string_match_util).
 
 :- public amalgame_module/1.

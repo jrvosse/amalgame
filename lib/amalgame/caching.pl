@@ -15,7 +15,7 @@
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(amalgame/ag_provenance)).
 :- use_module(library(amalgame/map)).
-:- use_module(library(skos/vocabularies)).
+:- use_module(library(amalgame/voc_stats)).
 :- use_module(ag_stats).
 
 :- dynamic

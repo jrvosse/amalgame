@@ -14,9 +14,9 @@
 :- use_module(user(user_db)).
 
 :- use_module(library(yui3_beta)).
-:- use_module(library(skos/vocabularies)).
 :- use_module(components(label)).
 :- use_module(library(amalgame/util)).
+:- use_module(library(amalgame/voc_stats)).
 
 :- use_module(applications(skos_browser)).
 

@@ -5,7 +5,7 @@
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(isub)).
 :- use_module(library(amalgame/vocabulary)).
-:- use_module(library(skos/vocabularies)).
+:- use_module(library(amalgame/voc_stats)).
 :- use_module(string_match_util).
 
 :- public filter/3.
