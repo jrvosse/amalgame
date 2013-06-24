@@ -77,12 +77,14 @@ find_relation(Mapping, Cell, Default, Relation) :-
 
 assert_master_void(Strategy, URI, Graph) :-
 	rdf_has(Strategy, rdfs:label, literal(Label)),
+	rdf_has(Strategy, rdfs:comment, Comment),
 	rdf_has(Strategy, amalgame:publish_ns, NS),
 	format(atom(Title), '~w full link set', [Label]),
 	variant_sha1(term(Strategy, Title), Hash),
 	atom_concat(NS, Hash, URI),
 	rdf_assert(URI, rdf:type, void:'Linkset', Graph),
 	rdf_assert(URI, amalgame:hasPlan,  Strategy, Graph),
+	rdf_assert(URI, dcterms:description, Comment, Graph),
 	rdf_assert(URI, dcterms:title, literal(Title), Graph).
 
 assert_void(Id,Options) :-
