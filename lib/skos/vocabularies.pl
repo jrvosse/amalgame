@@ -42,6 +42,19 @@ voc_property(Voc, P) :-
 	;   voc_ensure_stats(Voc, P)
 	).
 
+assert_voc_prop(Voc, M) :-
+	assert(voc_stats_cache(Voc, M)).
+
+
+voc_clear_stats(all) :-
+	retractall(voc_stats_cache(_,_)),
+	print_message(informational, map(cleared, 'vocabulary statistics', all_vocs, all)).
+
+voc_clear_stats(Voc) :-
+	retractall(voc_stats_cache(Voc, _)),
+	print_message(informational, map(cleared, 'vocabulary statistics', Voc, all)).
+
+
 is_vocabulary(Voc, Format):-
 	ground(Voc),!,
 	(   voc_stats_cache(Voc, format(Format))
@@ -55,32 +68,14 @@ is_vocabulary(Voc, Format):-
 	!,
 	voc_stats_cache(Voc, format(Format)).
 
-voc_clear_stats(all) :-
-	retractall(voc_stats_cache(_,_)),
-	print_message(informational, map(cleared, 'vocabulary statistics', all_vocs, all)).
-
-voc_clear_stats(Voc) :-
-	retractall(voc_stats_cache(Voc, _)),
-	print_message(informational, map(cleared, 'vocabulary statistics', Voc, all)).
-
-
 voc_ensure_stats(Voc, format(Format)) :-
 	rdfs_individual_of(Voc, skos:'ConceptScheme'),
 	\+ rdf(Voc, amalgame:wasGeneratedBy, _),
-	(   rdf_has(Concept, skos:inScheme, Voc)
-	->  (   rdf_has(Concept, skosxl:prefLabel, _)
-	    ->  Format = skosxl
-	    ;   rdf_has(Concept, skos:prefLabel, _)
-	    ->  Format = skos
-	    ;   rdf_has(Concept, skos:altLabel, _)
-	    ->  Format = skos
-	    ;   Format = null           % no concepts with known labels
-	    )
-	;   Format = null		% no concepts in the scheme
-	),
-	assert(voc_stats_cache(Voc, format(Format))).
-
-
+	(   voc_stats_cache(Voc, format(Format))
+	->  true
+	;   voc_find_format(Voc, Format),
+	    assert(voc_stats_cache(Voc, format(Format)))
+	).
 
 voc_ensure_stats(Voc, version(Version)) :-
 	(   rdf_has(Voc, owl:versionInfo, literal(Version))
@@ -94,19 +89,19 @@ voc_ensure_stats(Voc, version(Version)) :-
 
 
 voc_ensure_stats(Voc, numberOfConcepts(Count)) :-
-	count_concepts(Voc, Count),
+	(   count_concepts(Voc, Count) -> true ; Count = 0),
 	assert_voc_prop(Voc, numberOfConcepts(Count)).
 
 voc_ensure_stats(Voc, numberOfPrefLabels(Count)) :-
-	count_prefLabels(Voc, Count),
+	(   count_prefLabels(Voc, Count) -> true ; Count = 0),
 	assert_voc_prop(Voc, numberOfPrefLabels(Count)).
 
 voc_ensure_stats(Voc, numberOfAltLabels(Count)) :-
-	count_altLabels(Voc, Count),
+	(   count_altLabels(Voc, Count) -> true ; Count = 0),
 	assert_voc_prop(Voc,numberOfAltLabels(Count)).
 
 voc_ensure_stats(Voc, numberOfMappedConcepts(Count)) :-
-	count_mapped_concepts(Voc, Count),
+	(   count_mapped_concepts(Voc, Count) -> true ; Count = 0),
 	assert_voc_prop(Voc, numberOfMappedConcepts(Count)).
 
 voc_languages(Voc, L) :-
@@ -141,9 +136,6 @@ assert_supervoc_version(Voc, Version) :-
 	prov_get_entity_version(Voc, SourceGraph, Version),
 	assert(voc_stats_cache(Voc, version(Version))).
 
-
-assert_voc_prop(Voc, M) :-
-	assert(voc_stats_cache(Voc, M)).
 
 count_concepts(Voc, Count) :-
 	voc_property(Voc, format(Format)),
@@ -232,3 +224,18 @@ language_used(Voc, Prop, Lang) :-
 	rdf_has(Concept, skos:inScheme, Voc),
 	rdf_has(Concept, Prop, literal(lang(Lang, _))),
 	ground(Lang).
+
+voc_find_format(Voc, Format) :-
+	ground(Voc),
+	(   rdf_has(Concept, skos:inScheme, Voc)
+	->  (   rdf_has(Concept, skosxl:prefLabel, _)
+	    ->  Format = skosxl
+	    ;   rdf_has(Concept, skos:prefLabel, _)
+	    ->  Format = skos
+	    ;   rdf_has(Concept, skos:altLabel, _)
+	    ->  Format = skos
+	    ;   Format = null           % no concepts with known labels
+	    )
+	;   Format = null		% no concepts in the scheme
+	).
+
