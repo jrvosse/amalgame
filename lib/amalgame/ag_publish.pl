@@ -150,7 +150,10 @@ save_mapping(Id, Options) :-
 	).
 
 save_flat_triples(Filename, Id, Options) :-
+	option(strategy(Strategy), Options),
 	atomic_concat(Id, '_flat_triples', SimpleGraph),
+	rdf_unload_graph(SimpleGraph),
+	assert_metadata(Id, Strategy, SimpleGraph),
 	edoal_to_triples(Id, SimpleGraph, Options),
 	rdf_save_turtle(Filename, [graph(SimpleGraph)|Options]),
 	rdf_unload_graph(SimpleGraph).
