@@ -27,16 +27,17 @@ create_evaluation_graph(Strategy, Mapping, EvalGraph) :-
 
 	format(atom(Comment), 'Manual evaluation of ~w', [Mapping]),
 
-	rdf_assert(EvalProcess, rdf:type, amalgame:'EvaluationProcess', Strategy),
-	rdf_assert(EvalProcess, rdfs:label, literal('Manual evaluation process'), Strategy),
-	rdf_assert(EvalProcess, amalgame:input,	Mapping, Strategy),
+	rdf_assert(EvalProcess, rdf:type,       amalgame:'EvaluationProcess',         Strategy),
+	rdf_assert(EvalProcess, rdfs:label,     literal('Manual evaluation process'), Strategy),
+	rdf_assert(EvalProcess, amalgame:input,	Mapping,                              Strategy),
 
-	rdf_assert(EvalGraph, rdf:type, amalgame:'EvaluatedMapping', Strategy),
-	rdf_assert(EvalGraph, rdfs:label, literal('Evaluation results'), Strategy),
-	rdf_assert(EvalGraph, rdfs:comment, literal(Comment), Strategy),
-	rdf_assert(EvalGraph, amalgame:wasGeneratedBy, EvalProcess, Strategy),
-	rdf_assert(EvalGraph, amalgame:evaluationOf, Mapping, Strategy),
-	rdf_assert(EvalGraph, amalgame:status, amalgame:intermediate, Strategy),
+	rdf_assert(EvalGraph, rdf:type,     amalgame:'EvaluatedMapping',   Strategy),
+	rdf_assert(EvalGraph, rdfs:label,   literal('Evaluation results'), Strategy),
+	rdf_assert(EvalGraph, rdfs:comment, literal(Comment),              Strategy),
+
+	rdf_assert(EvalGraph, amalgame:wasGeneratedBy, EvalProcess,           Strategy),
+	rdf_assert(EvalGraph, amalgame:evaluationOf,   Mapping,               Strategy),
+	rdf_assert(EvalGraph, amalgame:status, 	       amalgame:intermediate, Strategy),
 
 	Options = [was_derived_from([Mapping])],
 	provenance_graph(Strategy, ProvGraph),
