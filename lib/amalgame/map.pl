@@ -9,6 +9,9 @@
 	   nickname/3,             % +Strategy, +MappingGraph, ?Nickname
 	   nickname_clear_cache/0,
 
+	   augment_with_evaluation_relations/4,
+
+	   mapping_relation/2,
 	   materialize_mapping_graph/2, % +List, +Options
 	   merge_provenance/2,     % +List, -Merged
 	   compare_align/4,        % +Type, ?Order, A1, A2
@@ -34,6 +37,8 @@ align(Source,Target,EvidenceList) terms.
 
 :- use_module(library(amalgame/edoal)).
 :- use_module(library(amalgame/util)).
+:- use_module(library(amalgame/expand_graph)).
+:- use_module(library(amalgame/ag_evaluation)).
 
 :- dynamic
 	nickname_cache/3.
@@ -122,11 +127,22 @@ mapping_props([
 	       rdfs:comment
 	      ]).
 
-mapping_relation(skos, skos:mappingRelation).
-mapping_relation(dc,   dcterms:replaces).
-mapping_relation(owl,  owl:sameAs).
+%%	mapping_relation(+Id, +URI)
+%
+%	Available mapping relations.
+
+mapping_relation(exact,     skos:exactMatch).
+mapping_relation(close,     skos:closeMatch).
+mapping_relation(narrower,  skos:narrowMatch).
+mapping_relation(broader,   skos:broadMatch).
+mapping_relation(related,   skos:relatedMatch).
+mapping_relation(replaces,  dcterms:replaces).
 mapping_relation(unrelated, 'http://purl.org/vocabularies/amalgame/evaluator#unrelated').
 mapping_relation(unsure,    'http://purl.org/vocabularies/amalgame/evaluator#unsure').
+
+% mapping_relation(skos, skos:mappingRelation).
+% mapping_relation(owl_sameAs,  owl:sameAs).
+
 
 supported_map_relations(List) :-
 	findall(Relation,
@@ -353,3 +369,28 @@ nickname(Strategy, Graph, Nick) :-
 
 nickname_clear_cache :-
 	retractall(nickname_cache(_,_,_)).
+
+augment_with_evaluation_relations(Strategy, Id, Mapping, Augmented) :-
+	(   evaluation_graph_chk(Strategy, Id, Prev)
+	->  expand_node(Strategy, Prev, PreviousEvaluation),
+	    augment_relation(Mapping, PreviousEvaluation, Augmented)
+	;   Mapping = Augmented
+	).
+
+augment_relation([], _, []).
+augment_relation(M, [], M).
+augment_relation([Head|Tail], PreviousEval, [align(S, T, [Relation|Prov]) | Results]) :-
+	Head = align(S, T, Prov),
+	(   PreviousEval = [PHead|PTail],
+	    PHead = align(S, T, PrevP),
+	    flatten(PrevP, PrevPflat)
+	->  option(relation(Rel), PrevPflat),
+	    NewP = PTail,
+	    Relation =  relation(Rel)
+	;   option(relation(Rel), Prov)
+	->  NewP =  PreviousEval,
+	    Relation = relation(Rel)
+	;   Relation =  nill,
+	    NewP = PreviousEval
+	),
+	augment_relation(Tail ,NewP, Results).

@@ -1,5 +1,5 @@
 :- module(eq_mapping,
-	  [ mapping_relation/2
+	  [
 	  ]).
 
 :- use_module(library(http/http_dispatch)).
@@ -7,7 +7,6 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_json)).
 :- use_module(library(semweb/rdf_db)).
-:- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(settings)).
 :- use_module(user(user_db)).
@@ -29,18 +28,6 @@
 :- http_handler(amalgame(data/mapping), http_data_mapping, []).
 :- http_handler(amalgame(data/evaluate), http_data_evaluate, []).
 :- http_handler(amalgame(private/correspondence), http_correspondence, []).
-
-%%	mapping_relation(+Id, +URI)
-%
-%	Available mapping relations.
-
-mapping_relation(exact,     'http://www.w3.org/2004/02/skos/core#exactMatch').
-mapping_relation(close,     'http://www.w3.org/2004/02/skos/core#closeMatch').
-mapping_relation(narrower,  'http://www.w3.org/2004/02/skos/core#narrowMatch').
-mapping_relation(broader,   'http://www.w3.org/2004/02/skos/core#broadMatch').
-mapping_relation(related,   'http://www.w3.org/2004/02/skos/core#relatedMatch').
-mapping_relation(unrelated, 'http://purl.org/vocabularies/amalgame/evaluator#unrelated').
-mapping_relation(unsure,    'http://purl.org/vocabularies/amalgame/evaluator#unsure').
 
 %%	http_data_mapping(+Request)
 %
@@ -64,18 +51,12 @@ http_data_mapping(Request) :-
 				  description('first result that is returned')])
 		       ]),
 
-	(   rdfs_individual_of(URL, amalgame:'EvaluatedMapping')
-	->  expand_node(Strategy, URL, PreviousEvaluation)
-	;   evaluation_graph_chk(Strategy, URL, Prev)
-	->  expand_node(Strategy, Prev, PreviousEvaluation)
-	;   PreviousEvaluation = []
-	),
 	expand_node(Strategy, URL, Mapping0),
 	length(Mapping0, Count),
-	maplist(mapping_label, Mapping0, Mapping1),
-	select_relation(Mapping1, PreviousEvaluation, Mapping2),
+	augment_with_evaluation_relations(Strategy, URL, Mapping0, Augmented),
+	maplist(mapping_label, Augmented, Labeled),
 	sort_key(SortBy, SortKey),
-	sort_by_arg(Mapping2, SortKey, MSorted),
+	sort_by_arg(Labeled, SortKey, MSorted),
 	list_offset(MSorted, Offset, MOffset),
 	list_limit(MOffset, Limit, MLimit, _),
 	mapping_data(MLimit, Mapping),
@@ -89,7 +70,7 @@ http_data_mapping(Request) :-
 sort_key(source, 2).
 sort_key(target, 4).
 
-mapping_label(align(S, T, Prov), align(S,SLabel, T,TLabel, Prov)) :-
+mapping_label(align(S, T, Prov), align(S,SLabel, T,TLabel, Relation)) :-
 	rdf_display_label(S, SL),
 	rdf_display_label(T, TL),
 
@@ -101,29 +82,12 @@ mapping_label(align(S, T, Prov), align(S,SLabel, T,TLabel, Prov)) :-
 	(   rdf_has(T, skos:notation, literal(Tn))
 	->  format(atom(TLabel), '~w (~w)', [TL, Tn])
 	;   format(atom(TLabel), '~w', [TL])
-	).
-
-
-
-select_relation([], _, []).
-select_relation([Head|Tail], PreviousEval, [align(S,SL, T, TL, Relation)|Results]) :-
-	Head = align(S,SL,T,TL, Prov),
-	(   PreviousEval = [PHead|PTail],
-	    PHead = align(S, T, PrevP),
-	    flatten(PrevP, PrevPflat)
-	->  option(relation(Rel), PrevPflat),
-	    relation_label(Rel, RLabel),
-	    NewP = PTail,
-	    Relation = json([uri=Rel, label=RLabel])
-	;   option(relation(Rel), Prov)
-	->  relation_label(Rel, RLabel),
-	    NewP =  PreviousEval,
-	    Relation = json([uri=Rel, label=RLabel])
-	;   Relation =  nill,
-	    NewP = PreviousEval
 	),
-	select_relation(Tail ,NewP, Results).
-
+	(   option(relation(Rel), Prov)
+	->  relation_label(Rel, RLabel),
+	    Relation = json([uri=Rel, label=RLabel])
+	;   Relation = nil
+	).
 
 mapping_data([], []).
 mapping_data([Align|As], [json(Data)|Os]) :-
