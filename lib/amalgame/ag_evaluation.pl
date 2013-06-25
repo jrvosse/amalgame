@@ -37,7 +37,7 @@ create_evaluation_graph(Strategy, Mapping, EvalGraph) :-
 
 	rdf_assert(EvalGraph, amalgame:wasGeneratedBy, EvalProcess,           Strategy),
 	rdf_assert(EvalGraph, amalgame:evaluationOf,   Mapping,               Strategy),
-	rdf_assert(EvalGraph, amalgame:status, 	       amalgame:intermediate, Strategy),
+	rdf_assert(EvalGraph, amalgame:status,	       amalgame:intermediate, Strategy),
 
 	Options = [was_derived_from([Mapping])],
 	provenance_graph(Strategy, ProvGraph),
@@ -45,7 +45,9 @@ create_evaluation_graph(Strategy, Mapping, EvalGraph) :-
 
 
 delete_empty_eval_graphs(Strategy) :-
-	forall(rdf(EvalGraph, amalgame:evaluationOf, Mapping, Strategy),
+	forall((rdf(EvalGraph, amalgame:evaluationOf, Mapping, Strategy),
+		is_empty_eval_graph(EvalGraph)
+		),
 		delete_eval_graph_admin(Strategy, Mapping, EvalGraph)
 	      ).
 
