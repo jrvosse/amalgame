@@ -17,7 +17,7 @@
 :- use_module(library(amalgame/util)).
 :- use_module(library(amalgame/map)).
 
-:- setting(precompute_mapping, boolean, true,
+:- setting(amalgame:precompute_mapping, boolean, true,
 	   'When true mappings are computed in the background').
 
 :- http_handler(amalgame(data/addprocess), http_add_process, []).
@@ -121,7 +121,7 @@ new_process(Type, Alignment, Source, Target, Input, SecInputs, Params, Focus) :-
 	    )),
 
 	% precompute results to speed things up
-	(   setting(precompute_mapping, true)
+	(   setting(amalgame:precompute_mapping, true)
 	->  precompute(URI, Alignment)
 	;   true).
 

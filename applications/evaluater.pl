@@ -24,9 +24,6 @@ amalgame_module(amalgame:'EvaluationProcess').
 
 eq:menu_item(210=http_eq_evaluate, 'evaluate').
 
-:- setting(rows_per_page, integer, 100,
-	   'Maximum number of mappings shown.').
-
 % http handlers for this applications
 
 :- http_handler(amalgame(evaluate), http_eq_evaluate, []).

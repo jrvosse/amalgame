@@ -20,7 +20,7 @@
 :- use_module(library(amalgame/expand_graph)).
 :- use_module(library(amalgame/util)).
 
-:- setting(rows_per_page, integer, 100,
+:- setting(amalgame:rows_per_page, integer, 100,
 	   'Maximum number of mappings shown.').
 
 % http handlers for this applications
@@ -34,7 +34,7 @@
 %	Emit JSON object with mappings for a URL.
 
 http_data_mapping(Request) :-
-	setting(rows_per_page, RowsPerPage),
+	setting(amalgame:rows_per_page, RowsPerPage),
 	http_parameters(Request,
 			[ url(URL,
 			      [description('URL of mapping or evaluation graph')]),

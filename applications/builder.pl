@@ -271,7 +271,7 @@ fix_publish_ns(S) :-
 % backward compatibility
 	(   rdf(S, amalgame:publish_ns, _,S)
 	->  true
-	;   setting(eq_publisher:default_namespace, NS),
+	;   setting(amalgame:default_publish_namespace, NS),
 	    rdf_assert(S, amalgame:publish_ns, NS, S)
 	).
 

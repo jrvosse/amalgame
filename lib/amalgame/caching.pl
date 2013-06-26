@@ -22,7 +22,7 @@
 	expand_cache/2,
 	stats_cache/2.
 
-:- setting(cache_time, float, 0.5,
+:- setting(amalgame:cache_time, float, 0.05,
 	   'Minimum execution time to cache results').
 
 user:message_hook(make(done(_)), _, _) :-
@@ -113,7 +113,7 @@ cache_result_stats(Process, _Strategy, _Result) :-
 	fail.
 
 cache_expand_result(ExecTime, Process, Strategy, Result) :-
-	setting(cache_time, CacheTime),
+	setting(amalgame:cache_time, CacheTime),
 	ExecTime > CacheTime,
 	!,
 	assert(expand_cache(Process-Strategy, Result)).

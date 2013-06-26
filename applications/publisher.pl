@@ -17,10 +17,8 @@
 :- multifile
 	eq:menu_item/2.
 
-:- setting(default_namespace, atom, 'http://localhost/ns/',
+:- setting(amalgame:default_publish_namespace, atom, 'http://localhost/ns/',
 	   'Default namespace to use on alignment results. Can be changed later.').
-
-:- setting(default_namespace, NS), rdf_register_ns(amresult, NS).
 
 % http handlers for this applications
 :- http_handler(amalgame(publish),      http_eq_publish, []).

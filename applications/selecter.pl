@@ -437,7 +437,7 @@ add_schemes([Scheme|Ss], Strategy) :-
 	add_schemes(Ss, Strategy).
 
 new_strategy_name(Strategy, NS) :-
-	setting(eq_publisher:default_namespace, NS),
+	setting(amalgame:default_publish_namespace, NS),
 	repeat,
 	gensym(strategy, Local),
 	atomic_list_concat([NS,Local], Strategy),

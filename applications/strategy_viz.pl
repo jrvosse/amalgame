@@ -19,7 +19,7 @@
 
 :- http_handler(amalgame(strategy_viz), http_strategy_viz, []).
 
-:- setting(secondary_input, oneof([show,hide]), show,
+:- setting(amalgame:secondary_input, oneof([show,hide]), show,
 	   'Show or hide arrows for amalgame:secondary_input').
 
 strategy_viz_options(Alignment,
@@ -115,7 +115,7 @@ amalgame_graph_triple(Graph,S,P,O) :-
 
 is_amalgame_property(P) :-
 	rdfs_subproperty_of(P, prov:used),
-	(   setting(secondary_input, hide)
+	(   setting(amalgame:secondary_input, hide)
 	->  \+ rdf_equal(amalgame:secondary_input, P)
 	;   true
 	),

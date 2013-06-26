@@ -41,7 +41,7 @@ mapping_in_alignment(Alignment, Mapping, Label) :-
 
 
 http_data_voc(Request) :-
-	setting(eq_mapping:rows_per_page, RowsPerPage),
+	setting(amalgame:rows_per_page, RowsPerPage),
 	http_parameters(Request,
 			[ url(URL,
 			      [description('URL of scheme or vocabulary')]),
