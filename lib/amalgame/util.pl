@@ -196,8 +196,11 @@ node_prop(S, R, secondary_inputs, Inputs) :-
 		    rdf(R, RP, I, S)
 
 		), Inputs).
-node_prop(S, R, namespace, NS) :-
-	rdf(R, amalgame:publish_ns, NS, S).
+node_prop(S, R, local, Local) :-
+	rdf(S, amalgame:publish_ns, NS, S),
+	sub_atom(R, 0, L, _, NS),
+	sub_atom(R, L, _, 0, Local).
+
 node_prop(S, R, status, Status) :-
 	rdf(R, amalgame:status, Status, S).
 node_prop(S, R, default_relation, Relation) :-
@@ -210,6 +213,8 @@ node_prop(_, R, link, Link) :-
 node_prop(S, R, abbrev, Nick) :-
 	rdfs_individual_of(R, amalgame:'Mapping'),
 	nickname(S,R,Nick).
+node_prop(S, R, namespace, NS) :-
+	rdf(R, amalgame:publish_ns, NS, S).
 
 
 %%	http:convert_parameter(+Type, +In, -URI) is semidet.

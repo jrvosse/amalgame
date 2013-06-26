@@ -172,6 +172,7 @@ YUI.add('infobox', function(Y) {
 			if(selected) {
 				var uri = selected.uri,
 					link = selected.link||uri,
+					local = selected.local||uri,
 					label = selected.label||uri,
 					type = selected.type||"",
 					comment = selected.comment||"",
@@ -187,7 +188,7 @@ YUI.add('infobox', function(Y) {
 				NODE_ABBREV.set("value", abbrev);
 				Y.one('#namespace').set("value", namespace);
 				NODE_TYPE.setContent(type);
-				NODE_URI.setContent('<a href="'+link+'">'+uri+'</a>');
+				NODE_URI.setContent('<a href="'+link+'">'+local+'</a>');
 
 				// the status row is only shown for mappings
 				if(type=="mapping") {
