@@ -117,10 +117,10 @@ html_options -->
 	     ]).
 
 html_buttons -->
-	html([ button([class(cancel)], cancel),
-	       button([class(submit)], submit),
-	       button([class(prev)], prev),
-	       button([class(next)], next)
+	html([ button([type(button), class(cancel)], cancel),
+	       button([type(button), class(submit)], submit),
+	       button([type(button), class(prev)], prev),
+	       button([type(button), class(next)], next)
 	     ]).
 
 
