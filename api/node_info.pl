@@ -100,13 +100,20 @@ html_form(Params, URI) -->
 amalgame_info(URL, Strategy, Stats) :-
 	rdfs_individual_of(URL, amalgame:'Mapping'),
 	!,
-	Stats = ['total matches'-MN,
+	BasicStats = ['total matches'-MN,
 		 'matched source concepts'-SN,
 		 'matched target concepts'-TN
 		],
 	mapping_counts(URL, Strategy, MN, SN0, TN0, SPerc, TPerc),
 	atomic_list_concat([SN0, ' (',SPerc,'%)'], SN),
-	atomic_list_concat([TN0, ' (',TPerc,'%)'], TN).
+	atomic_list_concat([TN0, ' (',TPerc,'%)'], TN),
+
+	(   rdf(URL, amalgame:default_relation, _R)
+	->  reference_counts(URL, Strategy, ReferenceStats)
+	;   ReferenceStats = []
+	),
+	append(BasicStats, ReferenceStats, Stats).
+
 amalgame_info(Scheme, Strategy,
 	    ['Total concepts'-Total
 	    ]) :-

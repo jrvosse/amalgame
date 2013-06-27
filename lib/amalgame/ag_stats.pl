@@ -2,6 +2,7 @@
 :- module(ag_stats,[
 		    mapping_counts/7,
 		    concept_count/3,
+		    reference_counts/3,
 		    mapping_stats/4,
 		    vocab_stats/2
 		   ]).
@@ -10,6 +11,7 @@
 :- use_module(library(amalgame/expand_graph)).
 :- use_module(library(amalgame/caching)).
 :- use_module(library(amalgame/vocabulary)).
+:- use_module(library(amalgame/ag_evaluation)).
 
 %%	mapping_counts(+MappingURI,+Strat,?MappingN,?SourceN,?TargetN,?SourcePerc,?TargetPerc)
 %	is det.
@@ -45,6 +47,14 @@ concept_count_(Vocab, Strategy, Count) :-
 	),
 	stats_cache(Vocab-Strategy, stats(Count)).
 
+reference_counts(Id, Strategy, Stats) :-
+	with_mutex(Id, reference_counts_(Id, Strategy, Stats)).
+
+reference_counts_(Id, Strategy, Stats) :-
+	(   stats_cache(Id-Strategy, refs(Stats))
+	->  true
+	;   compute_reference_counts(Id, Strategy, Stats)
+	).
 
 %%	mapping_stats(+URL, +Mapping, +Strategy, -Stats)
 %
@@ -111,4 +121,65 @@ vocab_source(V, _S, V).
 
 align_source(align(S,_,_), S).
 align_target(align(_,T,_), T).
+
+compute_reference_counts(Id, Strategy, Stats) :-
+	evaluation_graph_chk(Strategy, Id, Ref),
+	expand_node(Strategy, Id, Mappings),
+	expand_node(Strategy, Ref, References),
+	rdf(Id, amalgame:default_relation, Relation),
+	compare_against_ref(Mappings, References, Relation,
+			    partition([],[],[],[]), Stats),
+	assert(stats_cache(Id-Strategy, refs(Stats))).
+
+part_ref_stats(partition(Matches,Conflicts,Unknowns, Missing), Stats) :-
+	Stats = [ 'matching with ref. relations'-MLengthS,
+		  'conflicting with  ref. relations'-CLengthS,
+		  'not yet in reference'-ULengthS,
+		  'in ref. but missing here'-MisLengthS
+		],
+	length(Matches, MLength),
+	length(Conflicts, CLength),
+	length(Unknowns, ULength),
+	length(Missing, MisLength),
+	TotalFound is MLength + CLength + ULength,
+	TotalEval is MLength + CLength + MisLength,
+	rounded_perc(TotalFound, MLength, MLengthPerc),
+	rounded_perc(TotalFound, CLength, CLengthPerc),
+	rounded_perc(TotalFound, ULength, ULengthPerc),
+	rounded_perc(TotalEval,  MisLength, MisLengthPerc),
+	format(atom(MLengthS), '~d (~w%)', [MLength, MLengthPerc]),
+	format(atom(CLengthS), '~d (~w%)', [CLength, CLengthPerc]),
+	format(atom(ULengthS), '~d (~w%)', [ULength, ULengthPerc]),
+	format(atom(MisLengthS), '~d (~w%)', [MisLength, MisLengthPerc]).
+
+compare_against_ref([], Missing,  _, partition(Ma, Co, Un, Mi), Stats) :-
+	append(Mi, Missing, Mi2),
+	part_ref_stats(partition(Ma, Co, Un, Mi2), Stats).
+
+compare_against_ref(Unknowns, [], _, partition(Ma, Co, Un, Mi), Stats) :-
+	append(Un, Unknowns, Un2),
+	part_ref_stats(partition(Ma, Co, Un2, Mi), Stats).
+
+compare_against_ref([align(S,T,P)|MT],[align(SR,TR,[PR])|RT], Rel,
+		    partition(Matches,Conflicts,Unknown,Missing), Stats):-
+	compare(SOrder, S, SR),
+	compare(TOrder, T, TR),
+	(   SOrder == <
+	->  compare_against_ref(MT, [align(SR,TR,[PR])|RT], Rel,
+				partition(Matches,Conflicts,[align(S,T,P)|Unknown],Missing), Stats)
+	;   SOrder == >
+	->  compare_against_ref([align(S,T,P)|MT], RT, Rel,
+				partition(Matches,Conflicts, Unknown, [align(SR,TR,[PR])|Missing]), Stats)
+	;   TOrder == <
+	->  compare_against_ref(MT, [align(SR,TR,[PR])|RT], Rel,
+				partition(Matches,Conflicts,[align(S,T,P)|Unknown],Missing), Stats)
+	;   TOrder == >
+	->  compare_against_ref([align(S,T,P)|MT], RT, Rel,
+				partition(Matches,Conflicts, Unknown, [align(SR,TR,[PR])|Missing]), Stats)
+	;   option(relation(Rel), PR)
+	->  compare_against_ref(MT, RT, Rel,
+				partition([align(S,T,P)|Matches], Conflicts, Unknowns, Missing), Stats)
+	;   compare_against_ref(MT, RT, Rel,
+				partition(Matches, [align(S,T,P)|Conflicts], Unknowns, Missing), Stats)
+	).
 
