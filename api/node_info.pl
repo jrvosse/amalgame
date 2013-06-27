@@ -108,8 +108,9 @@ amalgame_info(URL, Strategy, Stats) :-
 	atomic_list_concat([SN0, ' (',SPerc,'%)'], SN),
 	atomic_list_concat([TN0, ' (',TPerc,'%)'], TN),
 
-	(   rdf(URL, amalgame:default_relation, _R)
-	->  reference_counts(URL, Strategy, ReferenceStats)
+	(   rdf(URL, amalgame:default_relation, _R),
+	    reference_counts(URL, Strategy, ReferenceStats)
+	->  true
 	;   ReferenceStats = []
 	),
 	append(BasicStats, ReferenceStats, Stats).
