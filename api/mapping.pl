@@ -127,7 +127,8 @@ http_data_evaluate(Request) :-
 			]),
 
 	evaluation_graph(Alignment, Mapping, Graph),
-	flush_stats_cache(Graph, Alignment),
+	flush_refs_cache(Alignment),           % to recompute all reference stats
+	flush_stats_cache(Graph, Alignment),   % to recompute G's basic stats
 	(   has_correspondence(align(Source, Target, EvalProv), Graph)
 	->  remove_correspondence(align(Source, Target, EvalProv), Graph)
 	;   EvalProv = [] % Fixme, we want to use the prov from Mapping here!

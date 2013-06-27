@@ -5,10 +5,12 @@
 	   cache_result/4,
 	   clean_repository/0,
 	   flush_dependent_caches/3,
-	   flush_expand_cache/1,
+	   flush_expand_cache/1,     % ?Strategy
 	   flush_expand_cache/2,     % +Id, +Strategy
-	   flush_stats_cache/0,
-	   flush_stats_cache/2 % +Mapping, +Strategy
+	   flush_refs_cache/1,       % ?Strategy
+	   flush_refs_cache/2,
+	   flush_stats_cache/1, % ?Strategy
+	   flush_stats_cache/2  % +Mapping, +Strategy
 	  ]).
 
 :- use_module(library(semweb/rdf_db)).
@@ -27,7 +29,7 @@
 
 user:message_hook(make(done(_)), _, _) :-
 	debug(ag_expand, 'Flushing stats cache after running make/0', []),
-	flush_stats_cache,
+	flush_stats_cache(_),
 	fail.
 user:message_hook(make(done(_)), _, _) :-
 	debug(ag_expand, 'Flushing expand cache after running make/0', []),
@@ -42,11 +44,17 @@ user:message_hook(make(done(_)), _, _) :-
 	voc_clear_stats(all),
 	fail.
 
-flush_stats_cache :-
-	retractall(stats_cache(_,_)).
+flush_stats_cache(Strategy) :-
+	flush_stats_cache(_Mapping, Strategy).
 
 flush_stats_cache(Mapping, Strategy) :-
 	retractall(stats_cache(Mapping-Strategy,_)).
+
+flush_refs_cache(Strategy) :-
+	flush_refs_cache(_Mapping,Strategy).
+
+flush_refs_cache(Mapping, Strategy) :-
+	retractall(stats_cache(Mapping-Strategy, refs(_))).
 
 cache_result(_ExecTime, Id, Strategy, Result) :-
 	rdfs_individual_of(Id, amalgame:'Mapping'),
@@ -58,6 +66,58 @@ cache_result(_ExecTime, Id, Strategy, Result) :-
 cache_result(ExecTime, Process, Strategy, Result) :-
 	cache_expand_result(ExecTime, Process, Strategy, Result),
 	cache_result_stats(Process, Strategy, Result).
+
+clean_repository :-
+	debug(ag_expand, 'Deleting all graphs made by amalgame', []),
+	nickname_clear_cache,
+	findall(G, is_amalgame_graph(G), Gs),
+	forall(member(G, Gs),
+	       (   debug(ag_expand, 'Deleting named graph ~p', [G]),
+		   rdf_unload_graph(G)
+	       )
+	      ).
+
+%%	flush_expand_cache(+Strategy)
+%
+%	Retract all cached mappings.
+
+flush_expand_cache(Strategy) :-
+	del_evidence_graphs,
+	del_prov_graphs(Strategy),
+	del_materialized_vocs(Strategy),
+	del_materialized_mappings(Strategy),
+	forall(expand_cache(Id-Strategy, _),
+	       flush_expand_cache(Id, Strategy)
+	      ).
+
+flush_expand_cache(Id, Strategy) :-
+	(   expand_cache(Id-Strategy, _) % make sure Id is bounded to something in the cache
+	->  retractall(expand_cache(Id-Strategy, _)),
+	    catch(rdf_unload_graph(Id), _, true),
+	    debug(ag_expand, 'flush cache and unloading graph for ~p', [Id])
+	;   true
+	).
+
+flush_dependent_caches(Process, Strategy, ProvGraph) :-
+	flush_expand_cache(Process, Strategy),
+	findall(Result,
+		(   rdf_has(Result, amalgame:wasGeneratedBy, Process, RP),
+		    rdf(Result, RP, Process, Strategy)
+		), Results),
+	forall(member(Result, Results),
+	       flush_stats_cache(Result, Strategy)
+	      ),
+	findall(DepProcess,
+		(   member(Result, Results),
+		    rdf_has(DepProcess, amalgame:input, Result, RP),
+		    rdf(DepProcess, RP, Result, Strategy)
+		),
+		Deps),
+	forall(member(Dep, Deps),
+	       flush_dependent_caches(Dep, Strategy, ProvGraph)),
+
+	remove_old_prov(Process, ProvGraph).
+
 
 cache_result_stats(_Process, Strategy, overlap(List)) :-
 	forall(member(Id-Mapping, List),
@@ -120,36 +180,6 @@ cache_expand_result(ExecTime, Process, Strategy, Result) :-
 
 cache_expand_result(_, _, _, _).
 
-clean_repository :-
-	debug(ag_expand, 'Deleting all graphs made by amalgame', []),
-	nickname_clear_cache,
-	findall(G, is_amalgame_graph(G), Gs),
-	forall(member(G, Gs),
-	       (   debug(ag_expand, 'Deleting named graph ~p', [G]),
-		   rdf_unload_graph(G)
-	       )
-	      ).
-
-%%	flush_expand_cache(+Strategy)
-%
-%	Retract all cached mappings.
-
-flush_expand_cache(Strategy) :-
-	del_evidence_graphs,
-	del_prov_graphs(Strategy),
-	del_materialized_vocs(Strategy),
-	del_materialized_mappings(Strategy),
-	forall(expand_cache(Id-Strategy, _),
-	       flush_expand_cache(Id, Strategy)
-	      ).
-
-flush_expand_cache(Id, Strategy) :-
-	(   expand_cache(Id-Strategy, _) % make sure Id is bounded to something in the cache
-	->  retractall(expand_cache(Id-Strategy, _)),
-	    catch(rdf_unload_graph(Id), _, true),
-	    debug(ag_expand, 'flush cache and unloading graph for ~p', [Id])
-	;   true
-	).
 
 del_prov_graphs(S) :-
 	findall(P,provenance_graph(S,P), ProvGraphs),
@@ -204,24 +234,4 @@ del_bnode_graphs :-
 del_empty_graphs :-
 	forall(rdf_graph_property(Graph, triples(0)),
 	       rdf_unload_graph(Graph)).
-
-flush_dependent_caches(Process, Strategy, ProvGraph) :-
-	flush_expand_cache(Process, Strategy),
-	findall(Result,
-		(   rdf_has(Result, amalgame:wasGeneratedBy, Process, RP),
-		    rdf(Result, RP, Process, Strategy)
-		), Results),
-	forall(member(Result, Results),
-	       flush_stats_cache(Result, Strategy)
-	      ),
-	findall(DepProcess,
-		(   member(Result, Results),
-		    rdf_has(DepProcess, amalgame:input, Result, RP),
-		    rdf(DepProcess, RP, Result, Strategy)
-		),
-		Deps),
-	forall(member(Dep, Deps),
-	       flush_dependent_caches(Dep, Strategy, ProvGraph)),
-
-	remove_old_prov(Process, ProvGraph).
 
