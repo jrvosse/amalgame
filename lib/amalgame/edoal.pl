@@ -111,7 +111,6 @@ assert_cell(C1, C2, Options) :-
 	->  assert_provlist(Prov, Cell, Graph, Options)
 	;   true
 	),
-	% re-instated the method asserter for Anna's stratify needs ...
 	(   option(method(MethodList), Options)
 	->  assert_methodlist(MethodList, Cell, Graph)
 	;   true
