@@ -159,7 +159,7 @@ YUI.add('evaluater', function(Y) {
 			var c = cs[0];
 			c.alignment = this.get("alignment");
 			c.mapping   = this.get("selected");
-			c.mode      = nav == "setall"?"all":"once";
+			c.mode      = nav == "setall"?"all":"one";
 			if (c.relation) {
 			  this._submitCorrespondence(c);
 			}
