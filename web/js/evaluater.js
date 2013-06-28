@@ -74,9 +74,10 @@ YUI.add('evaluater', function(Y) {
 			this.mappinglist.on("mappingSelect", this._onMappingSelect, this);
 			this.mappinglist.on("wrapAround", this._onWrapAround, this);
 			this.mappingtable.on("rowSelect", this._onCorrespondenceSelect, this);
-			NODE_DETAIL.all(".submit").on("click", this._onSubmit, this);
-			NODE_DETAIL.all(".next").on("click", this._onSubmit, this, "next");
-			NODE_DETAIL.all(".prev").on("click", this._onSubmit, this, "prev");
+			NODE_DETAIL.all(".setall").on("click", this._onSubmit, this, "setall");
+			NODE_DETAIL.all(".submit").on("click", this._onSubmit, this, "submit");
+			NODE_DETAIL.all(".next").on(  "click", this._onSubmit, this, "next");
+			NODE_DETAIL.all(".prev").on(  "click", this._onSubmit, this, "prev");
 			NODE_DETAIL.all(".cancel").on("click", this._onCancel, this);
 
 			NODE_SOURCE_ALL.on("click", this._fetchDetail, this);
@@ -176,7 +177,10 @@ YUI.add('evaluater', function(Y) {
 			  this._target = nextRecord.get("target").uri;
 			  this._selectedRow = nextRow;
 			  this._fetchDetail();
+			} else if (nav == "setall") {
+			  this.mappingtable.loadData(); // reload if all have been set at once
 			}
+			this._fetchInfo(c.mapping);
 		},
 
 		_onWrapAround : function(e) {
