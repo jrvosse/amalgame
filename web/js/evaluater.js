@@ -179,7 +179,6 @@ YUI.add('evaluater', function(Y) {
 			  this._selectedRow = nextRow;
 			  this._fetchDetail();
 			}
-			this._fetchInfo(c.mapping);
 		},
 
 		_onWrapAround : function(e) {
@@ -218,12 +217,13 @@ YUI.add('evaluater', function(Y) {
 			Y.io(server, {
 				data:c,
 				on:{success:function(e,o) {
-					var r = Y.JSON.parse(o.responseText);
-					row.one(".relation").setContent(r.relation.label);
-					if (c.mode == "all") {
-			  			Y.log("reload mapping table");
+					if (c.mode == "one") {
+						var r = Y.JSON.parse(o.responseText);
+						row.one(".relation").setContent(r.relation.label);
+					} else {
 			  			oSelf.mappingtable.loadData(); // reload if all have been set at once
 					}
+					oSelf._fetchInfo(c.mapping);
 				}}
 			});
 		},
