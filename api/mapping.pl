@@ -86,7 +86,7 @@ mapping_label(align(S, T, Prov), align(S,SLabel, T,TLabel, Relation)) :-
 	(   option(relation(Rel), Prov)
 	->  relation_label(Rel, RLabel),
 	    Relation = json([uri=Rel, label=RLabel])
-	;   Relation = nil
+	;   Relation = @(null)
 	).
 
 mapping_data([], []).
