@@ -178,8 +178,6 @@ YUI.add('evaluater', function(Y) {
 			  this._target = nextRecord.get("target").uri;
 			  this._selectedRow = nextRow;
 			  this._fetchDetail();
-			} else if (nav == "setall") {
-			  this.mappingtable.loadData(); // reload if all have been set at once
 			}
 			this._fetchInfo(c.mapping);
 		},
@@ -214,6 +212,7 @@ YUI.add('evaluater', function(Y) {
 
 		_submitCorrespondence : function(c) {
 			var server = this.get("paths").evaluate,
+				oSelf = this,
 				row = this._selectedRow;
 
 			Y.io(server, {
@@ -221,6 +220,10 @@ YUI.add('evaluater', function(Y) {
 				on:{success:function(e,o) {
 					var r = Y.JSON.parse(o.responseText);
 					row.one(".relation").setContent(r.relation.label);
+					if (c.mode == "all") {
+			  			Y.log("reload mapping table");
+			  			oSelf.mappingtable.loadData(); // reload if all have been set at once
+					}
 				}}
 			});
 		},
