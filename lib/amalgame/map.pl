@@ -379,18 +379,26 @@ augment_with_evaluation_relations(Strategy, Id, Mapping, Augmented) :-
 
 augment_relation([], _, []).
 augment_relation(M, [], M).
-augment_relation([Head|Tail], PreviousEval, [align(S, T, [Relation|Prov]) | Results]) :-
+augment_relation(Mappings, Reference, NewResults) :-
+	Mappings = [Head|Tail],
+	Reference = [RHead|RTail],
 	Head = align(S, T, Prov),
-	(   PreviousEval = [PHead|PTail],
-	    PHead = align(S, T, PrevP),
-	    flatten(PrevP, PrevPflat)
-	->  option(relation(Rel), PrevPflat),
-	    NewP = PTail,
-	    Relation =  relation(Rel)
-	;   option(relation(Rel), Prov)
-	->  NewP =  PreviousEval,
-	    Relation = relation(Rel)
-	;   Relation =  nill,
-	    NewP = PreviousEval
+	RHead = align(SR, TR, RProv),
+	compare(Comp, align(S,T), align(SR,TR)),
+	(   Comp == =
+	->  member(Manual, RProv),
+	    member(method(manual_evaluation), Manual),
+	    option(relation(Rel), Manual),
+	    NProv = [[relation(Rel)]|Prov],
+	    NewResults =  [align(S,T,NProv)|Results],
+	    NewMappings = Tail,
+	    NewRef= RTail
+	;   Comp == <
+	->  NewResults = [align(S,T,Prov)|Results],
+	    NewMappings = Tail,
+	    NewRef = Reference
+	;   NewResults = Results,
+	    NewMappings = Mappings,
+	    NewRef = RTail
 	),
-	augment_relation(Tail ,NewP, Results).
+	augment_relation(NewMappings ,NewRef, Results).
