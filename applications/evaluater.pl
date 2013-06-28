@@ -114,7 +114,9 @@ html_options -->
 	     ]).
 
 html_buttons -->
-	html([ button([type(button), class(cancel)], cancel),
+	html([
+	       button([type(button), class(setall)], 'apply to all'),
+	       button([type(button), class(cancel)], cancel),
 	       button([type(button), class(submit)], submit),
 	       button([type(button), class(prev)], prev),
 	       button([type(button), class(next)], next)

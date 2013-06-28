@@ -109,7 +109,6 @@ relation_label(R, R).
 
 http_data_evaluate(Request) :-
 	logged_on(User0, anonymous),
-	user_property(User0, url(User)),
 	http_parameters(Request,
 			[  source(Source,
 				  [description('Source of mapping')]),
@@ -123,29 +122,31 @@ http_data_evaluate(Request) :-
 				     [description('Alignment strategy graph')]),
 			   comment(Comment,
 				   [default(''),
-				    description('Explanation of action')])
+				    description('Explanation of action')]),
+			   mode(Mode,
+				[default(one), oneof([all,one]),
+				description('Apply to one or all correspondences of this mapping')])
 			]),
 
 	evaluation_graph(Alignment, Mapping, Graph),
 	flush_refs_cache(Alignment),           % to recompute all reference stats
 	flush_stats_cache(Graph, Alignment),   % to recompute G's basic stats
-	(   has_correspondence(align(Source, Target, EvalProv), Graph)
-	->  remove_correspondence(align(Source, Target, EvalProv), Graph)
-	;   EvalProv = [] % Fixme, we want to use the prov from Mapping here!
-	),
-	now_xsd(Now),
-	Options = [
-		   graph(Graph),
-		   prov([[method(manual_evaluation),
-			 user(User),
-			 date(Now),
-			 comment(Comment),
-			 relation(Relation)]|EvalProv])
-		  ],
-	debug(ag_expand, 'assert cell options: ~w', Options),
-	mapping_relation(RLabel, Relation),
-	assert_cell(Source, Target, Options),
+	user_property(User0, url(User)),
 
+	Options = [
+		   user(User),
+		   comment(Comment),
+		   evaluation_graph(Graph),
+		   strategy(Alignment),
+		   mapping(Mapping)
+		  ],
+
+	(   Mode == one
+	->  assert_relation(Source, Relation, Target, Options)
+	;   assert_relations(Mapping, Relation, Options)
+	),
+
+	mapping_relation(RLabel, Relation),
 	rdf_display_label(Source, SLabel),
 	rdf_display_label(Target, TLabel),
 	reply_json(json([source=json([uri=Source, label=SLabel]),
@@ -187,6 +188,39 @@ http_correspondence(Request) :-
 	phrase(html_correspondences(Cs, Relations), HTML),
 	format('Content-type: ~w~n~n', [Type]),
 	print_html(HTML).
+
+assert_relations(Mapping, Relation, Options) :-
+	option(strategy(Strategy), Options),
+	expand_node(Strategy, Mapping, Mappings),
+	forall(member(align(Source, Target, Prov), Mappings),
+	       assert_relation(Source, Relation, Target, [prov(Prov)|Options])
+	      ).
+
+assert_relation(Source, Relation, Target, Options) :-
+	option(evaluation_graph(Graph), Options, eval),
+	option(comment(Comment), Options, ''),
+	option(user(User), Options, ''),
+	option(prov(Prov), Options, []),
+
+	(   has_correspondence(align(Source, Target, OldProv), Graph)
+	->  remove_correspondence(align(Source, Target, OldProv), Graph)
+	;   true
+	),
+	now_xsd(Now),
+	NewProv = [ method(manual_evaluation),
+		    user(User),
+		    date(Now),
+		    comment(Comment),
+		    relation(Relation)
+		  ],
+	AssertOptions = [
+		   graph(Graph),
+		   prov([NewProv|Prov])
+		  ],
+	append(AssertOptions, Options, NewOptions),
+	debug(ag_expand, 'assert cell options: ~w', NewOptions),
+	assert_cell(Source, Target, NewOptions).
+
 
 html_correspondences([], _) --> !.
 html_correspondences([align(Source,Target,Evidence)|Cs], Relations) -->
