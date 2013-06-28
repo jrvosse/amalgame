@@ -83,7 +83,8 @@ mapping_label(align(S, T, Prov), align(S,SLabel, T,TLabel, Relation)) :-
 	->  format(atom(TLabel), '~w (~w)', [TL, Tn])
 	;   format(atom(TLabel), '~w', [TL])
 	),
-	(   option(relation(Rel), Prov)
+	append(Prov, FlatProv),
+	(   option(relation(Rel), FlatProv)
 	->  relation_label(Rel, RLabel),
 	    Relation = json([uri=Rel, label=RLabel])
 	;   Relation = @(null)
