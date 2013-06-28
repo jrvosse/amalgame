@@ -31,7 +31,7 @@
 
 cliopatria:display_link(literal(type(XSD,L)), _Options) -->
 	{
-	 rdf_equal(XSD, xsd:date)
+	 rdf_equal(XSD, xsd:dateTime)
 	},
 	format_xsd_timestamp(L).
 
@@ -82,7 +82,6 @@ user:body(amalgame(search), Body) -->
 user:body(user(Style), Body) -->
         user:body(cliopatria(Style), Body).
 
-
 format_xsd_timestamp(L) -->
 	{
 	 sub_atom(L,St,_Wt,_Et,'T'),
@@ -90,4 +89,4 @@ format_xsd_timestamp(L) -->
 	 sub_atom(L,0,St,_,DatePart),
 	 sub_atom(L,ST,_,ET,TimePart)
 	},
-	html(span(class('time:instant'), [TimePart, ' ',DatePart])).
+	html(span(class('time:instant'), [TimePart, ' on ',DatePart])).

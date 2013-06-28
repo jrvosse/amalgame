@@ -107,7 +107,7 @@ assert_user_provenance(R, Graph) :-
 	),
 	now_xsd(Time),
 	rdf_assert(R, dcterms:creator, Agent, Graph),
-	rdf_assert(R, dcterms:date, literal(type(xsd:date, Time)), Graph).
+	rdf_assert(R, dcterms:date, literal(type(xsd:dateTime, Time)), Graph).
 
 
 %%	amalgame_alignment(?Alignment, ?Schemes)
@@ -239,7 +239,7 @@ http:convert_parameter(uri, In, URI) :-
 
 %%	now_xsd(-Text:atom)
 %
-%	Text is the current time in xsd:date format.
+%	Text is the current time in xsd:dateTime format.
 
 now_xsd(Text) :-
 	get_time(TimeStamp),
@@ -247,7 +247,7 @@ now_xsd(Text) :-
 
 %%	xsd_timestamp(+Time:timestamp, -Text:atom) is det.
 %
-%	Generate a description of a Time in xsd:date format
+%	Generate a description of a Time in xsd:dateTime format
 
 xsd_timestamp(Time, Atom) :-
 	stamp_date_time(Time, Date, 'UTC'),
