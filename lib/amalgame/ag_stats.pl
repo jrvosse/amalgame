@@ -160,23 +160,25 @@ compare_against_ref(Unknowns, [], _, partition(Ma, Co, Un, Mi), Stats) :-
 	append(Un, Unknowns, Un2),
 	part_ref_stats(partition(Ma, Co, Un2, Mi), Stats).
 
-compare_against_ref([align(S,T,P)|MT],[align(SR,TR,[PR])|RT], Rel,
+compare_against_ref([align(S,T,P)|MT],[align(SR,TR,PR)|RT], Rel,
 		    partition(Matches,Conflicts,Unknown,Missing), Stats):-
 	compare(SOrder, S, SR),
 	compare(TOrder, T, TR),
 	(   SOrder == <
-	->  compare_against_ref(MT, [align(SR,TR,[PR])|RT], Rel,
+	->  compare_against_ref(MT, [align(SR,TR,PR)|RT], Rel,
 				partition(Matches,Conflicts,[align(S,T,P)|Unknown],Missing), Stats)
 	;   SOrder == >
 	->  compare_against_ref([align(S,T,P)|MT], RT, Rel,
-				partition(Matches,Conflicts, Unknown, [align(SR,TR,[PR])|Missing]), Stats)
+				partition(Matches,Conflicts, Unknown, [align(SR,TR,PR)|Missing]), Stats)
 	;   TOrder == <
-	->  compare_against_ref(MT, [align(SR,TR,[PR])|RT], Rel,
+	->  compare_against_ref(MT, [align(SR,TR,PR)|RT], Rel,
 				partition(Matches,Conflicts,[align(S,T,P)|Unknown],Missing), Stats)
 	;   TOrder == >
 	->  compare_against_ref([align(S,T,P)|MT], RT, Rel,
-				partition(Matches,Conflicts, Unknown, [align(SR,TR,[PR])|Missing]), Stats)
-	;   option(relation(Rel), PR)
+				partition(Matches,Conflicts, Unknown, [align(SR,TR,PR)|Missing]), Stats)
+	;   member(Manual, PR),
+	    member(method(manual_evaluation), Manual),
+	    option(relation(Rel), Manual)
 	->  compare_against_ref(MT, RT, Rel,
 				partition([align(S,T,P)|Matches], Conflicts, Unknowns, Missing), Stats)
 	;   compare_against_ref(MT, RT, Rel,
