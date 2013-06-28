@@ -46,6 +46,11 @@
 }
 #mappinginfo td {
 	padding: 2px;
+	overflow: hide;
+}
+#mappinginfo th {
+	white-space: nowrap;
+	font-size: 0.9em;
 }
 
 /* mapping table */
