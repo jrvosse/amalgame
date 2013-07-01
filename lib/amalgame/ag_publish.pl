@@ -12,6 +12,8 @@
 :- use_module(library(amalgame/edoal)).
 
 save_mappings(Strategy, Dir, Options) :-
+	delete_empty_eval_graphs(Strategy), % good time for some cleanup...
+
 	provenance_graph(Strategy, ProvGraph),
 	void_graph(Strategy, VoidGraph),
 	(   rdf_graph(VoidGraph) -> rdf_unload_graph(VoidGraph); true),
@@ -23,7 +25,6 @@ save_mappings(Strategy, Dir, Options) :-
 	absolute_file_name(ProvGraphB, ProvFile,  [relative_to(Dir), extensions([ttl])]),
 	absolute_file_name(void,       VoidFile,  [relative_to(Dir), extensions([ttl])]),
 
-	delete_empty_eval_graphs(Strategy), % good time for some cleanup...
 	assert_master_void(Strategy, AllMappingsURI, VoidGraph),
 	select_mappings_to_be_saved(Strategy, Mappings, Options),
 	forall(member(Mapping, Mappings),
@@ -134,19 +135,27 @@ save_mapping(Id, Options) :-
 	    assert_void(Id, Options),
 	    add_relation_where_needed(Id, Default),
 
+	    (	rdf(_, amalgame:evidenceGraph, _, Id)
+	    ->	Ext = trig,
+		findall(G, rdf(_, amalgame:evidenceGraph, G, Id), EvidenceGraphs)
+	    ;	Ext = ttl
+	    ),
 	    file_base_name(Id, Base),
 	    option(dir(Dir), Options, tmpdir),
 	    atomic_concat(edoal_, Base, EdoalBase),
 	    absolute_file_name(Base,       Filename, [relative_to(Dir), extensions([ttl])]),
-	    absolute_file_name(EdoalBase, EdoalName, [relative_to(Dir), extensions([ttl])]),
-
-	    (   option(format(edoal), Options)
-	    ->  rdf_save_turtle(EdoalName, [graph(Id)|Options])
-	    ;   option(format(both), Options)
-	    ->  rdf_save_turtle(EdoalName, [graph(Id)|Options]),
-		save_flat_triples(Filename, Id, Options)
-	    ;   option(format(simple), Options)
+	    absolute_file_name(EdoalBase, EdoalName, [relative_to(Dir), extensions([Ext])]),
+	    option(format(Format), Options),
+	    (   (Format == edoal ; Format == both)
+	    ->  (   Ext = ttl
+		->  rdf_save_turtle(EdoalName, [graph(Id)|Options])
+		;   rdf_save_trig(EdoalName, [graphs([Id|EvidenceGraphs])|Options])
+		)
+	    ;	true
+	    ),
+	    (   (Format == simple ; Format == both)
 	    ->  save_flat_triples(Filename, Id, Options)
+	    ;	true
 	    )
 	;   true % probably an empty evaluation graph, no need to save it
 	).
