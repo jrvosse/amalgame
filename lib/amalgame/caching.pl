@@ -193,7 +193,7 @@ del_materialized_mappings(Strategy) :-
 	sort(ToDelete, Sorted),
 	forall(member(F, Sorted),
 	       (   catch(rdf_unload_graph(F), _, true),
-		   del_evidence_graphs(Id),
+		   del_evidence_graphs(F),
 		   debug(ag_expand, 'Deleting materialized mapping graph ~w', [F])
 	       )
 	      ).
