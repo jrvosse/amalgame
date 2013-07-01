@@ -141,8 +141,9 @@ assert_provlist([P|ProvList], Cell, Graph, Options) :-
 assert_prov_elem(graph, ValueGraph, Subject, TargetGraph, Options) :-
 	!,
 	(   option(evidence_graphs(enabled), Options)
-	->  rdf_assert(Subject, amalgame:evidenceGraph, Subject, TargetGraph),
-	    rdf_assert_triples(ValueGraph, Subject)
+	->  atom_concat(Subject, '_evidence_graph', EG),
+	rdf_assert(Subject, amalgame:evidenceGraph, EG, TargetGraph),
+	    rdf_assert_triples(ValueGraph, EG)
 	;   true
 	).
 assert_prov_elem(relation, Relation, Subject, Graph, _Options) :-
