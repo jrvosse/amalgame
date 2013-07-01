@@ -12,7 +12,6 @@
 :- use_module(user(user_db)).
 :- use_module(components(label)).
 :- use_module(components(graphviz)).
-
 :- use_module(library(amalgame/caching)).
 :- use_module(library(amalgame/ag_evaluation)).
 :- use_module(library(amalgame/edoal)).
@@ -194,7 +193,8 @@ assert_relations(Mapping, Relation, Options) :-
 	option(strategy(Strategy), Options),
 	expand_node(Strategy, Mapping, Mappings),
 	forall(member(align(Source, Target, Prov), Mappings),
-	       assert_relation(Source, Relation, Target, [prov(Prov)|Options])
+	       assert_relation(Source, Relation, Target,
+			       [prov(Prov)|Options])
 	      ).
 
 assert_relation(Source, Relation, Target, Options) :-
@@ -215,9 +215,10 @@ assert_relation(Source, Relation, Target, Options) :-
 		    relation(Relation)
 		  ],
 	AssertOptions = [
-		   graph(Graph),
-		   prov([NewProv|Prov])
-		  ],
+			 evidence_graphs(enabled),
+			 graph(Graph),
+			 prov([NewProv|Prov])
+			],
 	append(AssertOptions, Options, NewOptions),
 	debug(ag_expand, 'assert cell options: ~w', NewOptions),
 	assert_cell(Source, Target, NewOptions).
@@ -254,10 +255,18 @@ html_correspondence(Source, Target, Evidence, Relations) -->
 html_evidences([],_,_) --> !.
 html_evidences([E|Es],Source,Target) -->
 	{ option(method(Method), E, ''),
-	  option(graph(Graph), E, [])
+	  option(graph(Graph), E, []),
+	  (   option(date(Date), E)
+	  ->  At = span([class(date)], [' at: ', Date])
+	  ;   At = ''
+	  ),
+	  (   option(user(User), E)
+	  ->  By = span([class(who)], [' by: ', \rdf_link(User)])
+	  ;   By = ''
+	  )
 	},
 	html(div(class(evidence),
-		 [ div(class(method), ['match: ', Method]),
+		 [ div(class(method), ['match: ', Method, By, At]),
 		   div(class('graph yui3-g'),
 		       [ div(class('source yui3-u-1-2'),
 			     \html_evidence_graph(Graph, Source, 'LR')),
