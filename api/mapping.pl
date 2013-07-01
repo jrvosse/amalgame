@@ -176,14 +176,17 @@ http_correspondence(Request) :-
 				  description('Include all target')])
 			]),
 	findall(R-L, mapping_relation(L, R), Relations),
-	expand_node(Strategy, Mapping, Ms),
 	(   AllSource
 	->  A = align(Source,_,_)
 	;   AllTarget
 	->  A = align(_,Target,_)
 	;   A = align(Source,Target,_)
 	),
-	findall(A, member(A, Ms), Cs),
+	(   rdf_graph(Mapping)
+	->  findall(A, has_correspondence(A, Mapping), Cs)
+	;   expand_node(Strategy, Mapping, Ms),
+	    findall(A, member(A, Ms), Cs)
+	),
 	html_current_option(content_type(Type)),
 	phrase(html_correspondences(Cs, Relations), HTML),
 	format('Content-type: ~w~n~n', [Type]),
