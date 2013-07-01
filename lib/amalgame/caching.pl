@@ -82,7 +82,6 @@ clean_repository :-
 %	Retract all cached mappings.
 
 flush_expand_cache(Strategy) :-
-	del_evidence_graphs,
 	del_prov_graphs(Strategy),
 	del_materialized_vocs(Strategy),
 	del_materialized_mappings(Strategy),
@@ -193,9 +192,22 @@ del_materialized_mappings(Strategy) :-
 	findall(Id, mapping_to_delete(Id, Strategy), Finals),
 	forall(member(F, Finals),
 	       (   catch(rdf_unload_graph(F), _, true),
+		   del_evidence_graphs(Id),
 		   debug(ag_expand, 'Deleting materialized result graph ~w', [F])
 	       )
 	      ).
+
+del_evidence_graphs(Mapping) :-
+	forall(
+	    (
+	    rdf(Mapping, align:map, Cell, Mapping),
+	    rdf(Cell, amalgame:evidence, Bnode, Mapping),
+	    rdf(Bnode, amalgame:evidenceGraph, Bnode, Mapping),
+	    rdf_graph(Bnode),
+	    rdf_is_bnode(Bnode)
+	    ),
+	    rdf_unload_graph(Bnode)).
+
 
 mapping_to_delete(Id, Strategy) :-
 	rdfs_individual_of(Id, amalgame:'Mapping'),
@@ -217,13 +229,6 @@ del_materialized_vocs(Strategy) :-
 		   debug(ag_expand, 'Deleting materialized vocab graph ~w', [V])
 	       )
 	      ).
-
-del_evidence_graphs :-
-	forall((rdf_graph(Bnode),
-		rdf_is_bnode(Bnode),
-		rdf(Bnode, amalgame:evidenceGraph, Bnode)
-	       ),
-	       rdf_unload_graph(Bnode)).
 
 del_bnode_graphs :-
 	forall((rdf_graph(Bnode),
