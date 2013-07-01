@@ -90,11 +90,6 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 	;   true
 	),
 
-	Prov = [method(exact_label),
-		graph([rdf(Source, SourceProp, literal(lang(SourceLang, SourceLabel))),
-		       rdf(Target, TargetProp, literal(lang(TargetLang, TargetLabel)))])
-	       ],
-
 	rdf_has(Source, MatchProp1, literal(lang(SourceLang, SourceLabel)), SourceProp),
 	rdf_has(Target, MatchProp2, SearchTarget, TargetProp),
 	Source \== Target,
@@ -105,5 +100,19 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 	),
 
 	% if matching label has no lang tag, these are still not grounded:
-	(   var(SourceLang) -> SourceLang = undefined; true),
-	(   var(TargetLang) -> TargetLang = undefined; true).
+	(   var(SourceLang)
+	->  SourceTerm = literal(SourceLabel)
+	;   SourceTerm = literal(lang(SourceLang, SourceLabel))
+	),
+
+	(   var(TargetLang)
+	->  TargetTerm = literal(TargetLabel)
+	;   TargetTerm = literal(lang(TargetLang, TargetLabel))
+	),
+
+	Prov = [method(exact_label),
+		graph([rdf(Source, SourceProp, SourceTerm),
+		       rdf(Target, TargetProp, TargetTerm)])
+	       ].
+
+
