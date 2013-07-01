@@ -3,6 +3,13 @@
 /** <module> Setup amalgame
 */
 
+:- current_prolog_flag(version, Version),
+   (   Version < 60318
+   ->  format('Fatal: amalgame needs SWI-Prolog version 6.3.18 or higher~n', []),
+       halt
+   ;   true
+   ).
+
 :- use_module(library(semweb/rdf_library)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_dirindex)).
@@ -24,7 +31,7 @@ http:location(img,		 root(img),                  [ priority(-100) ]).
 :- rdf_load_library(amalgame).
 :- rdf_load_library(dc).
 
-/* Now all namespaces should have been defined and we can load the amalgame code: */
+/* Now all namespaces should have been defined, we can load the amalgame code: */
 :- use_module(applications(selecter)).
 :- use_module(applications(builder)).
 :- use_module(applications(analyser)).
