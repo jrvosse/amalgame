@@ -75,10 +75,7 @@ YUI.add('vocabulary', function(Y) {
 		},
 
 		_initBrowser : function() {
-			var selected = this.get("selected"),
-				alignment = this.get("alignment"),
-				vocabulary = (selected.type=="vocabulary") ? selected.uri : null,
-				fetchConceptsURL = this.get("paths").concepts;
+			var fetchConceptsURL = this.get("paths").concepts;
 
 			// We define a datasource to simplify
 			// access to the vocabularys later and add caching support
