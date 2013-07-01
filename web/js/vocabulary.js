@@ -37,17 +37,17 @@ YUI.add('vocabulary', function(Y) {
 		initializer: function(args) {
 			// hide the browser on start
 			NODE_BROWSER.addClass("hidden");
-			
- 			this._initHeader();
+
+			this._initHeader();
 			this._initBrowser();
 			this.after("selectedChange", this._onSelectedChange, this);
-			
+
 			this._currentMappings = {};
 		},
 
 		_initHeader : function() {
 			var oSelf = this;
-			
+
 			var selected = this.get("selected");
 			var mappingHeader = NODE_BROWSER.appendChild(Node.create('<div class="header"></div>'));
 			var titleBox = mappingHeader.appendChild(Node.create('<div class="title-box" title="click to show options"></div>'));
@@ -55,31 +55,31 @@ YUI.add('vocabulary', function(Y) {
 			var mappingSelect = mappingHeader.appendChild(Node.create('<div class="mapping-select"></div>'));
 			mappingSelect.appendChild('<span>highlight mappings from: </span>');
 			mappingList = mappingSelect.appendChild(Node.create('<ul class="mappings"></ul>'));
-		
-			
+
+
 			mappingList.delegate('click', function(e) {
 				var graphs = [];
 				mappingList.all('input').each(function(o) {
 					if(o.get("checked")) {
 						graphs.push(o.get("value"));
-					}	
+					}
 				});
 				oSelf.browser.updateAll({graph:graphs});
 			}, 'input');
-			
+
 			titleBox.on("click", function(e) {
 				mappingSelect.toggleClass("hidden");
 			});
-			
+
 			this.mappingList = mappingList;
-		},	
-		
+		},
+
 		_initBrowser : function() {
 			var selected = this.get("selected"),
 				alignment = this.get("alignment"),
 				vocabulary = (selected.type=="vocabulary") ? selected.uri : null,
 				fetchConceptsURL = this.get("paths").concepts;
-				
+
 			// We define a datasource to simplify
 			// access to the vocabularys later and add caching support
 			var DS = new Y.DataSource.IO({
@@ -99,20 +99,23 @@ YUI.add('vocabulary', function(Y) {
 			this.browser = new Y.mazzle.ColumnBrowser({
 				datasource:DS,
 				autoLoad:false,
+				maxNumberItems: 25,
 				searchEnabled: false,
 				columns: [
-			    	{   request: fetchConceptsURL,
-						params: {type:'topconcept'}
-			    	},
-			    	{   request: fetchConceptsURL,
-						params: {type:'child'},
-						repeat: true
-			    	}
+				{   request: fetchConceptsURL,
+				    params: {type:'topconcept'},
+				    options: [{'value':'inscheme', 'label':'all concepts'},
+					      {'value':'topconcept', 'selected':'true', 'label':'top concepts'}]
+				},
+				{   request: fetchConceptsURL,
+				    params: {type:'child'},
+				    repeat: true
+				}
 				]
 			});
 			this.browser.render(NODE_BROWSER);
 		},
-		
+
 		_onSelectedChange : function() {
 			var selected = this.get("selected");
 			if(selected.type=="vocab") {
@@ -124,12 +127,12 @@ YUI.add('vocabulary', function(Y) {
 				NODE_BROWSER.addClass("hidden");
 			}
 		},
-		
+
 		fetchMappings : function() {
 			var alignment = this.get("alignment"),
 				mappingNode = this.mappingList,
 				currentMappings = this._currentMappings;
-				
+
 			function formatMappings(e,o) {
 				var mappings = Y.JSON.parse(o.responseText);
 				for (var i=0; i < mappings.length; i++) {
@@ -144,7 +147,7 @@ YUI.add('vocabulary', function(Y) {
 					}
 				}
 			}
-			
+
 			Y.io(this.get("paths").mappinglist, {
 				data: {
 					'alignment':alignment
