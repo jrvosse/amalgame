@@ -6,11 +6,10 @@
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/html_write)).
 :- use_module(library(semweb/rdf_db)).
-:- use_module(library(semweb/rdf_label)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(amalgame/amalgame_modules)).
 :- use_module(library(amalgame/ag_stats)).
-:- use_module(cliopatria(components/label)). % we need rdf_link//1 from this module
+:- use_module(components(label)). % we need rdf_link//1 from this module
 
 :- use_module(library(amalgame/ag_controls)).
 
