@@ -189,11 +189,12 @@ del_prov_graphs(S) :-
 	      ).
 
 del_materialized_mappings(Strategy) :-
-	findall(Id, mapping_to_delete(Id, Strategy), Finals),
-	forall(member(F, Finals),
+	findall(Id, mapping_to_delete(Id, Strategy), ToDelete),
+	sort(ToDelete, Sorted),
+	forall(member(F, Sorted),
 	       (   catch(rdf_unload_graph(F), _, true),
 		   del_evidence_graphs(Id),
-		   debug(ag_expand, 'Deleting materialized result graph ~w', [F])
+		   debug(ag_expand, 'Deleting materialized mapping graph ~w', [F])
 	       )
 	      ).
 
