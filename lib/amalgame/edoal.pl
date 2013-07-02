@@ -142,7 +142,7 @@ assert_prov_elem(graph, ValueGraph, Subject, TargetGraph, Options) :-
 	!,
 	(   option(evidence_graphs(enabled), Options)
 	->  atom_concat(Subject, '_evidence_graph', EG),
-	rdf_assert(Subject, amalgame:evidenceGraph, EG, TargetGraph),
+	    rdf_assert(Subject, amalgame:evidenceGraph, EG, TargetGraph),
 	    rdf_assert_triples(ValueGraph, EG)
 	;   true
 	).
