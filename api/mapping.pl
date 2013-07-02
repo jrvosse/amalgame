@@ -182,7 +182,7 @@ http_correspondence(Request) :-
 	->  A = align(_,Target,_)
 	;   A = align(Source,Target,_)
 	),
-	(   rdf_graph(Mapping)
+	(   rdf(_, amalgame:evidenceGraph, _, Mapping)
 	->  findall(A, has_correspondence(A, Mapping), Cs)
 	;   expand_node(Strategy, Mapping, Ms),
 	    findall(A, member(A, Ms), Cs)
