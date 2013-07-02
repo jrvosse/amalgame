@@ -78,7 +78,6 @@ http_eq_build(Request) :-
 %	application.
 
 html_page(Strategy, Focus) :-
-	html_set_options([dialect(html)]),
 	reply_html_page(equalizer(main),
 			[ title(['Align vocabularies'])
 			],

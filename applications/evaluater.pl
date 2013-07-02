@@ -50,7 +50,6 @@ http_eq_evaluate(Request) :-
 	html_page(Alignment, SelectedMapping).
 
 html_page(Alignment, Mapping) :-
-	html_set_options([dialect(html)]),
 	reply_html_page(equalizer(main),
 			[ title(['Align vocabularies'])
 			],

@@ -77,7 +77,6 @@ http_eq_publish(Request) :-
 %	application.
 
 html_page(Alignment, Focus) :-
-	html_set_options([dialect(html)]),
 	findall(R, status_option(R), StatusOptions),
 	supported_map_relations(MapRelations),
 	rdf_equal(skos:closeMatch, DefaultRelationIfNoneGiven),
