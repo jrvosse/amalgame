@@ -118,14 +118,7 @@ remove_correspondence(align(E1, E2, Prov), Graph) :-
 
 
 :- rdf_meta
-	mapping_props(t),
 	mapping_relation(+, r).
-
-mapping_props([
-	       align:measure,
-	       align:relation,
-	       rdfs:comment
-	      ]).
 
 %%	mapping_relation(+Id, +URI)
 %
@@ -169,17 +162,6 @@ supported_map_relations(List) :-
 
 has_map([E1, E2], edoal, Properties, Graph) :-
 	has_edoal_map_([E1, E2], Cell, Graph),
-	mapping_props(Props),
-	findall(Term,
-		(   member(Prop, Props),
-		    rdf(Cell, Prop, Value, Graph),
-		    prop_to_term(Prop, Value, Term)
-		),
-		DirectProperties0),
-	(   DirectProperties0 \= []
-	->  DirectProperties = [[method(direct) | DirectProperties0]]
-	;   DirectProperties = []
-	),
 	findall(Bnode, rdf(Cell, amalgame:evidence, Bnode, Graph), Bnodes),
 	findall(Prov,
 		(   member(Bnode, Bnodes),
@@ -189,9 +171,7 @@ has_map([E1, E2], edoal, Properties, Graph) :-
 			    ),
 			    Prov)
 		),
-		ProvList),
-	append(DirectProperties, ProvList, Properties).
-
+		Properties).
 
 has_map([E1, E2], Format, [relation(RealProp)], Graph) :-
 	mapping_relation(Format,MappingProp),
