@@ -29,8 +29,11 @@ vocab_member(E, type(Class)) :-
 vocab_member(E, graph(G)) :-
 	!,
 	rdf(E, rdf:type, _, G).
-vocab_member(E, propvalue(Property, Value)) :-
-	!,
+vocab_member(E, propvalue(any, Value)) :- !,
+	rdf(E, _Property, Value).
+vocab_member(E, propvalue(Property, any)) :- !,
+	rdf(E, Property, _Value).
+vocab_member(E, propvalue(Property, Value)) :- !,
 	rdf(E, Property, Value).
 vocab_member(E, subtree(Root)) :-
 	!,
