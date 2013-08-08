@@ -24,7 +24,12 @@ http_json_hint(Request) :-
 				 optional(true)
 			       ])
 			]),
-	find_hint(Strategy, [focus(Focus), lastAction(LastAction)], Hint),
+	(   find_hint(Strategy, [focus(Focus), lastAction(LastAction)], Hint)
+	->  true
+	;   find_hint(Strategy, [focus(_), lastAction(LastAction)], Hint)
+	->  true
+	;   Hint = json([])
+	),
 	reply_json(Hint).
 
 find_hint(Strategy, Context, Hint) :-
@@ -112,7 +117,7 @@ find_hint(Strategy, Context, Hint) :-
 find_hint(Strategy, Context, Hint) :-
 	option(focus(Focus), Context),
 	Focus == Strategy,
-	needs_disambiguation(Strategy, Focus, Mapping),
+	needs_disambiguation(Strategy, _, Mapping),
 	!,
 	% Mmm, current focus is on the strategy node.  Suggest the user focusses on a mapping node that needs work.
 	rdf_display_label(Mapping, L),
@@ -226,7 +231,6 @@ find_hint(Strategy, Context, Hint) :-
 		    text(Text)
 		     ]).
 
-find_hint(_, _, json([])).
 
 /*
  todo: if more than one mapping is in need for disambiguation,
@@ -244,7 +248,7 @@ needs_disambiguation(Strategy, Focus, Mapping) :-
 
 	(   memberchk(Focus, Endpoints0)
 	->  Endpoints = [Focus|Endpoints0]
-	;   Endpoints = Endpoints0
+	;   fail % Endpoints = Endpoints0
 	),
 	member(Mapping, Endpoints),
 	\+ hints_mapping_counts(Mapping, Strategy, N, N, N, _, _).   %  differs from the total number of mappings
@@ -253,11 +257,6 @@ is_known_to_be_disambiguous(Strategy, Focus, Focus) :-
 	rdf_has(Focus, amalgame:discardedBy, Process),
 	rdfs_individual_of(Process, amalgame:'AritySelect'),
 	is_endpoint(Strategy, Focus).
-
-is_known_to_be_disambiguous(Strategy, _, Mapping) :-
-	rdf_has(Mapping, amalgame:discardedBy, Process),
-	rdfs_individual_of(Process, amalgame:'AritySelect'),
-	is_endpoint(Strategy, Mapping).
 
 %%	is_endpoint(+Strategy, ?Mapping) is nondet.
 %
