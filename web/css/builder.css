@@ -279,7 +279,8 @@ img.explain {
 	display: none;
 }
 #detail .options {
-	display: none;
+	display: default;
+	text-align: right;
 }
 #detail .buttons {
 	text-align: right;
