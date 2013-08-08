@@ -80,7 +80,7 @@ amalgame:MostGeneric
 
 amalgame:SiblingSelecter
     rdfs:label "sibling selecter"@en ;
-    skos:definition "Select the siblings (if any) among alternatives for the same source/target (according to the provenance data.)"@en ;
+    skos:definition "Select the siblings (if any) among alternatives for the same source/target. This is used, for example, when a single source with two labels matches on two distinct but very similar targets and both mappings need to be preserved. "@en ;
     rdfs:subClassOf amalgame:MappingSelecter .
 
 amalgame:MapMerger
