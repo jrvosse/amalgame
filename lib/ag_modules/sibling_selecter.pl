@@ -38,7 +38,8 @@ partition_(_, [], _, [], []).
 partition_(target, [A|As], Depth, Sel, Und) :-
 	A = align(S,T,_),
 	same_source(As, S, Same, Rest),
-	(   rdf_reachable(T, skos:broader, Parent, Depth, _),
+	(   Same \= [],
+	    rdf_reachable(T, skos:broader, Parent, Depth, _),
 	    siblings(target, Same, Parent, Depth)
 	->  append([A|Same], SelRest, Sel),
 	    Und = UndRest
@@ -50,7 +51,8 @@ partition_(target, [A|As], Depth, Sel, Und) :-
 partition_(source, [A|As], Depth, Sel, Und) :-
 	A = align(S,T,_),
 	same_target(As, T, Same, Rest),
-	(   rdf_reachable(S, skos:broader, Parent, Depth, _),
+	(   Same \= [],
+	    rdf_reachable(S, skos:broader, Parent, Depth, _),
 	    siblings(source, Same, Parent, Depth)
 	->  append([A|Same], SelRest, Sel),
 	    Und = UndRest
