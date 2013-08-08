@@ -193,7 +193,8 @@ find_correspondences(Mapping, Strategy, Source, Target, true, true, Cs):-
 	    findall(As, member(As, Ms), Ss),
 	    findall(At, member(At, Ms), Ts)
 	),
-	append(Ss, Ts, Cs).
+	append(Ss, Ts, Cs0),
+	sort(Cs0, Cs).
 
 find_correspondences(Mapping, Strategy, Source, Target, AllSource, AllTarget, Cs):-
 % Other 3 cases:
