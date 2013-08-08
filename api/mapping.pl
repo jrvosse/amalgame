@@ -175,22 +175,42 @@ http_correspondence(Request) :-
 				 [boolean, default(false),
 				  description('Include all target')])
 			]),
+	find_correspondences(Mapping, Strategy, Source, Target, AllSource, AllTarget, Cs),
+	html_current_option(content_type(Type)),
 	findall(R-L, mapping_relation(L, R), Relations),
-	(   AllSource
-	->  A = align(Source,_,_)
-	;   AllTarget
-	->  A = align(_,Target,_)
-	;   A = align(Source,Target,_)
+	phrase(html_correspondences(Cs, Relations), HTML),
+	format('Content-type: ~w~n~n', [Type]),
+	print_html(HTML).
+
+find_correspondences(Mapping, Strategy, Source, Target, true, true, Cs):-
+% Case we need all alignments involving Source or Target
+	As = align(Source, _, _),
+	At = align(_, Target, _),
+	(   rdf(_, amalgame:evidenceGraph, _, Mapping)
+	->  findall(As, has_correspondence(As, Mapping), Ss),
+	    findall(At, has_correspondence(At, Mapping), Ts)
+	;   expand_node(Strategy, Mapping, Ms),
+	    findall(As, member(As, Ms), Ss),
+	    findall(At, member(At, Ms), Ts)
 	),
+	append(Ss, Ts, Cs).
+
+find_correspondences(Mapping, Strategy, Source, Target, AllSource, AllTarget, Cs):-
+% Other 3 cases:
+	(   AllSource, \+ AllTarget
+	->  A = align(Source,_,_)
+	;   AllTarget, \+ AllSource
+	->  A = align(_,Target,_)
+	;   \+ AllSource, \+ AllTarget
+	->  A = align(Source,Target,_)
+	),
+	!
+	,
 	(   rdf(_, amalgame:evidenceGraph, _, Mapping)
 	->  findall(A, has_correspondence(A, Mapping), Cs)
 	;   expand_node(Strategy, Mapping, Ms),
 	    findall(A, member(A, Ms), Cs)
-	),
-	html_current_option(content_type(Type)),
-	phrase(html_correspondences(Cs, Relations), HTML),
-	format('Content-type: ~w~n~n', [Type]),
-	print_html(HTML).
+	).
 
 assert_relations(Mapping, Relation, Options) :-
 	option(strategy(Strategy), Options),
