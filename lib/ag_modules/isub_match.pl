@@ -24,19 +24,16 @@ parameter(targetlabel, oneof(LabelProps), Default,
 	  '(Super)Property to get the label of the target by') :-
 	rdf_equal(Default, rdfs:label),
 	label_list(LabelProps).
-parameter(threshold, float, -1.0,
+parameter(threshold, float, 0.0,
 	  'threshold edit distance').
 parameter(language, oneof(['any'|L]), 'any', 'Language of source label') :-
 	voc_property(all, languages(L)).
 parameter(matchacross_lang,
 	  boolean, true,
 	  'Allow labels from different language to be matched').
-
-/* Not correctly implemented yet
-   parameter(case_sensitive, boolean, false,
-	  'When true the case of labels must be equal').
-
-*/
+parameter(normalize,
+	  boolean, false,
+	  '(Case) normalize strings as described in the isub article').
 
 %%      filter(+MappingsIn, -MappingsOut, +Options)
 %
@@ -76,8 +73,8 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 	option(threshold(Threshold), Options, 0.0),
 	option(sourcelabel(MatchProp1), Options, DefaultProp),
 	option(targetlabel(MatchProp2), Options, DefaultProp),
-	option(case_sensitive(CaseSensitive), Options, false),
 	option(matchacross_lang(MatchAcross), Options, true),
+	option(normalize(Normalize), Options, false),
 	option(language(Lang), Options, 'any'),
 
 	(   Lang == 'any'
@@ -85,22 +82,20 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 	;   SourceLang = Lang
 	),
 
-	(   CaseSensitive
-	->  SearchTarget=literal(lang(TargetLang, SourceLabel))
-	;   SearchTarget=literal(exact(SourceLabel), lang(TargetLang, TargetLit))
-	),
-
 	% If we cannot match across languages, set target language to source language
 	(   MatchAcross == false
 	->  TargetLang = SourceLang
 	;   true
 	),
+
+	SearchTarget=literal(lang(TargetLang, TargetLit)),
+
 	(   rdf_has(Source, MatchProp1,  literal(lang(SourceLang, SourceLit)), SourceProp),
 	    rdf_has(Target, MatchProp2, SearchTarget, TargetProp),
 	    Source \== Target
 	->  literal_text(SourceLit, SourceTxt),
 	    literal_text(TargetLit, TargetTxt),
-	    isub(SourceTxt, TargetTxt, true, Similarity)
+	    isub(SourceTxt, TargetTxt, Normalize, Similarity)
 	;   Similarity = 0
 	),
 	Similarity > Threshold,
@@ -109,3 +104,10 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 		graph([rdf(Source, SourceProp, SourceLit),
 		       rdf(Target, TargetProp, TargetLit)])
 	       ].
+
+
+
+
+
+
+
