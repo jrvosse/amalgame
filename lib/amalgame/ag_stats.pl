@@ -131,7 +131,7 @@ compute_reference_counts(Id, Strategy, Stats) :-
 			    partition([],[],[],[]), Stats),
 	assert(stats_cache(Id-Strategy, refs(Stats))).
 
-part_ref_stats(partition(Matches,Conflicts,Unknowns, Missing), Stats) :-
+part_ref_stats(partition(Matches,Conflicts,Unknown, Missing), Stats) :-
 	Stats = [ 'matching with ref. relations'-MLengthS,
 		  'conflicting with  ref. relations'-CLengthS,
 		  'not yet in reference'-ULengthS,
@@ -139,7 +139,7 @@ part_ref_stats(partition(Matches,Conflicts,Unknowns, Missing), Stats) :-
 		],
 	length(Matches, MLength),
 	length(Conflicts, CLength),
-	length(Unknowns, ULength),
+	length(Unknown, ULength),
 	length(Missing, MisLength),
 	TotalFound is MLength + CLength + ULength,
 	TotalEval is MLength + CLength + MisLength,
@@ -156,8 +156,8 @@ compare_against_ref([], Missing,  _, partition(Ma, Co, Un, Mi), Stats) :-
 	append(Mi, Missing, Mi2),
 	part_ref_stats(partition(Ma, Co, Un, Mi2), Stats).
 
-compare_against_ref(Unknowns, [], _, partition(Ma, Co, Un, Mi), Stats) :-
-	append(Un, Unknowns, Un2),
+compare_against_ref(Unknown, [], _, partition(Ma, Co, Un, Mi), Stats) :-
+	append(Un, Unknown, Un2),
 	part_ref_stats(partition(Ma, Co, Un2, Mi), Stats).
 
 compare_against_ref([align(S,T,P)|MT],[align(SR,TR,PR)|RT], Rel,
@@ -180,8 +180,8 @@ compare_against_ref([align(S,T,P)|MT],[align(SR,TR,PR)|RT], Rel,
 	    member(method(manual_evaluation), Manual),
 	    option(relation(Rel), Manual)
 	->  compare_against_ref(MT, RT, Rel,
-				partition([align(S,T,P)|Matches], Conflicts, Unknowns, Missing), Stats)
+				partition([align(S,T,P)|Matches], Conflicts, Unknown, Missing), Stats)
 	;   compare_against_ref(MT, RT, Rel,
-				partition(Matches, [align(S,T,P)|Conflicts], Unknowns, Missing), Stats)
+				partition(Matches, [align(S,T,P)|Conflicts], Unknown, Missing), Stats)
 	).
 
