@@ -155,6 +155,7 @@ find_hint(Strategy, Context, Hint) :-
 find_hint(Strategy, Context, Hint) :-
 	% if focus node has been evaluated, maybe it can be get final status?
 	option(focus(Focus), Context),
+	ground(Focus),
 	rdf(Eval, amalgame:evaluationOf, Focus, Strategy),
 	rdf_graph(Eval), % check eval graph ain't empty ...
 	rdf(Focus, amalgame:status, Status, Strategy),
@@ -179,6 +180,7 @@ find_hint(Strategy, Context, Hint) :-
 	% if focus node is unambigious, small and not yet evaluated,
 	% this might be a good idea to do.
 	option(focus(Focus), Context),
+	ground(Focus),
 	\+ rdf(Focus, amalgame:evaluationOf, _, Strategy),
 	hints_mapping_counts(Focus, Strategy, N,N,N,_,_),
 	N > 0, N < 51,
@@ -198,6 +200,7 @@ find_hint(Strategy, Context, Hint) :-
 find_hint(Strategy, Context, Hint) :-
 	% if focus node is unambigious and large maybe we should take a sample?
 	option(focus(Focus), Context),
+	ground(Focus),
 	is_endpoint(Strategy, Focus),
 	hints_mapping_counts(Focus, Strategy, N,N,N,_,_),
 	N > 50,
@@ -268,16 +271,13 @@ is_known_to_be_disambiguous(Strategy, Focus, Focus) :-
 
 is_endpoint(Strategy, Mapping) :-
 	rdf(Mapping, rdf:type, amalgame:'Mapping', Strategy),
-	 \+ rdf(_Process, amalgame:input, Mapping, Strategy),
-	 !.
-is_endpoint(Strategy, Mapping) :-
-	rdf(Mapping, rdf:type, amalgame:'Mapping', Strategy),
-	forall(rdf(Process, amalgame:input, Mapping, Strategy),
+	(   rdf(_Process, amalgame:input, Mapping, Strategy)
+	->  forall(rdf(Process, amalgame:input, Mapping, Strategy),
 	       (   rdfs_individual_of(Process,amalgame:'EvaluationProcess')
-		   % rdf(EvalResults, amalgame:wasGeneratedBy, Process, Strategy)
-		   % \+ rdf_graph(EvalResults)
 	       )
-	      ).
+	      )
+	;   true
+	).
 
 %%	is_result_of_process_type(?Mapping, ?Type) is nondet.
 %
