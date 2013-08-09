@@ -280,6 +280,11 @@ html_evidences([],_,_) --> !.
 html_evidences([E|Es],Source,Target) -->
 	{ option(method(Method), E, ''),
 	  option(graph(Graph), E, []),
+	  (   option(match(Match), E)
+	  ->  format(atom(MatchAtom), ' (~2f)' , [Match]),
+	      Mt = span([class(match)], MatchAtom)
+	  ;   Mt = ''
+	  ),
 	  (   option(date(Date), E)
 	  ->  At = span([class(date)], [' at: ', Date])
 	  ;   At = ''
@@ -290,7 +295,7 @@ html_evidences([E|Es],Source,Target) -->
 	  )
 	},
 	html(div(class(evidence),
-		 [ div(class(method), ['match: ', Method, By, At]),
+		 [ div(class(method), ['match: ', Method, By, At, Mt]),
 		   div(class('graph yui3-g'),
 		       [ div(class('source yui3-u-1-2'),
 			     \html_evidence_graph(Graph, Source, 'LR')),
