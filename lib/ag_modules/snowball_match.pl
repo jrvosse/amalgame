@@ -74,7 +74,7 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 	option(edit_distance(Edit_Distance), Options, 0),
 
 	(   Lang == 'any'
-	->  var(SourceLang)
+	->  SourceLang = _
 	;   SourceLang = Lang
 	),
 	% If we can't match across languages, set target language to source language

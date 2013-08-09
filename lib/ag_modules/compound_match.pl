@@ -70,7 +70,7 @@ match(align(Source, TargetScheme, Prov0), Results, Options) :-
 	option(language(Lang), Options, 'any'),
 
 	(   Lang == 'any'
-	->  var(SourceLang)
+	->  SourceLang = _
 	;   SourceLang = Lang
 	),
 
