@@ -65,12 +65,12 @@ amalgame:BestNumeric
 
 amalgame:MostMethods
     rdfs:label "most methods"@en ;
-    skos:definition "Select correspondences that have been matched by the most methods (according to their provenance data.)"@en ;
+    skos:definition "Select correspondences that have been matched by the most methods (according to their evidence data.)"@en ;
     rdfs:subClassOf amalgame:MappingSelecter .
 
 amalgame:MostLabels
     rdfs:label "most labels"@en ;
-    skos:definition "Select correspondences that have been matched on the most labels (according to their provenance data.)"@en ;
+    skos:definition "Select correspondences that have been matched on the most labels (according to their evidence data.)"@en ;
     rdfs:subClassOf amalgame:MappingSelecter .
 
 amalgame:MostGeneric
