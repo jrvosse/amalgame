@@ -54,7 +54,7 @@ http_add_process(Request) :-
 			  process(Process,
 				  [uri,
 				   description('URI of the process')]),
-			  alignment(Alignment,
+			  alignment(Strategy,
 				    [uri,
 				     description('URI of the alignment graph to which the process is added')]),
 			  update(Update,
@@ -67,19 +67,59 @@ http_add_process(Request) :-
 	findall(secondary_input=S,member(secondary_input=S, Params1), SecParams),
 	subtract(Params1, SecParams, Params),
 	(   Update == true
-	->  rdf_retractall(Process, amalgame:secondary_input, _, Alignment),
-	    update_process(Process, Alignment, Params),
+	->  rdf_retractall(Process, amalgame:secondary_input, _, Strategy),
+	    update_process(Process, Strategy, Params),
 	    Focus = Process
 	;   ((nonvar(Source), nonvar(Target)) ; nonvar(Input))
-	->  new_process(Process, Alignment, Source, Target, Input, SecInputs, Params, Focus)
+	->  new_process(Process, Strategy, Source, Target, Input, SecInputs, Params, Focus)
 	;   true
 	),
-	js_focus_node(Alignment, Focus, FocusNode),
-	js_alignment_nodes(Alignment, Nodes),
+	js_focus_node(Strategy, Focus, FocusNode),
+	js_alignment_nodes(Strategy, Nodes),
 	reply_json(json([focus=json(FocusNode),
 			 nodes=json(Nodes)])).
 
-%%	update_process(+Process, +Alignment, +Params)
+
+%%	http_update_node(+Request)
+%
+%	Change properties of a URI in Strategy and return the new
+%	nodes in Strategy.
+
+http_update_node(Request) :-
+	authorized(write(default, _)),
+	http_parameters(Request,
+			[ alignment(Strategy,
+				    [uri,
+				     description('URI of alignment')
+				    ]),
+			  uri(URI,
+				[uri,
+				 description('URI of input resource')]),
+			  publish_ns(PublishNS,
+				     [uri,
+				      description('Optional uri of new publication namespace'),
+				      default('same')
+				     ])
+			],
+			[form_data(Params)
+			]),
+	rdf_transaction(update_node_props(Params, URI, Strategy)),
+	update_amalgame_prov(Strategy, URI),
+	change_ns_if_needed(PublishNS, URI, Strategy, NewStrategy),
+	js_alignment_nodes(NewStrategy, Nodes),
+	js_focus_node(NewStrategy, URI, FocusNode),
+
+	reply_json(json([alignment=NewStrategy,
+			 nodes=json(Nodes),
+			 focus=json(FocusNode)
+			])),
+
+	% precompute results to speed things up
+	(   setting(amalgame:precompute_mapping, true)
+	->  precompute_mapping(Strategy, URI)
+	;   true).
+
+%%	update_process(+Process, +Strategy, +Params)
 %
 %	Update the parameters of Process.
 update_process(Process, Graph, Params) :-
@@ -102,35 +142,38 @@ is_dependent_chk(Mapping, Process, Strategy) :-
 	is_dependent_chk(OtherMapping, Process, Strategy),!.
 
 
-%%	new_process(+Process, +Alignment, +Source, +Target, +Input,
+%%	new_process(+Process, +Strategy, +Source, +Target, +Input,
 %%	+SecInputs, +Params, -NewFocus)
 %
 %	Create new amalgame process.
 
-new_process(Type, Alignment, Source, Target, Input, SecInputs, Params, Focus) :-
+new_process(Type, Strategy, Source, Target, Input, SecInputs, Params, Focus) :-
 	% hack needed till we have nested rdf transactions:
-	retractall(ag_alignment:nickname_cache(Alignment,_,_)),
+	retractall(ag_alignment:nickname_cache(Strategy,_,_)),
 
 	rdf_bnode(URI),
 	rdf_transaction( % this rdf_transaction is to make it MT safe
-	    (	assert_process(URI, Type, Alignment, Params),
-		assert_user_provenance(URI, Alignment),
-		assert_input(URI, Type, Alignment, Source, Target, Input),
-		assert_secondary_inputs(SecInputs, URI, Type, Alignment),
-		assert_output(URI, Type, Alignment, Input, SecInputs, Focus)
+	    (	assert_process(URI, Type, Strategy, Params),
+		assert_user_provenance(URI, Strategy),
+		assert_input(URI, Type, Strategy, Source, Target, Input),
+		assert_secondary_inputs(SecInputs, URI, Type, Strategy),
+		assert_output(URI, Type, Strategy, Input, SecInputs, Focus)
 	    )),
 
 	% precompute results to speed things up
 	(   setting(amalgame:precompute_mapping, true)
-	->  precompute(URI, Alignment)
+	->  precompute_process(Strategy, URI)
 	;   true).
 
-precompute(Process, Alignment) :-
-	rdf_has(Output, amalgame:wasGeneratedBy, Process, RP),
-	rdf(Output, RP, Process, Alignment),
+precompute_process(Strategy, Process) :-
+	rdf_has(Mapping, amalgame:wasGeneratedBy, Process, RP),
+	rdf(Mapping, RP, Process, Strategy),
+	precompute_mapping(Strategy, Mapping).
+
+precompute_mapping(Strategy, Mapping) :-
 	thread_create( % Write debug output to server console, cannot write to client:
 	    (	set_stream(user_output, alias(current_output)),
-		expand_node(Alignment, Output, _)
+		expand_node(Strategy, Mapping, _)
 	    ),
 	    _,[ detached(true) ]).
 
@@ -240,80 +283,41 @@ process_label(P, Lit) :-
 
 
 
-%%	http_update_node(+Request)
-%
-%	Change properties of a URI in Alignment and return the new
-%	nodes in Alignment.
-
-http_update_node(Request) :-
-	authorized(write(default, _)),
-	http_parameters(Request,
-			[ alignment(Alignment,
-				    [uri,
-				     description('URI of alignment')
-				    ]),
-			  uri(URI,
-				[uri,
-				 description('URI of input resource')]),
-			  publish_ns(PublishNS,
-				     [uri,
-				      description('Optional uri of new publication namespace'),
-				      default('same')
-				     ])
-			],
-			[form_data(Params)
-			]),
-	rdf_transaction(update_node_props(Params, URI, Alignment)),
-	update_amalgame_prov(Alignment, URI),
-	change_ns_if_needed(PublishNS, URI, Alignment, NewAlignment),
-	js_alignment_nodes(NewAlignment, Nodes),
-	js_focus_node(NewAlignment, URI, FocusNode),
-	reply_json(json([alignment=NewAlignment,
-			 nodes=json(Nodes),
-			 focus=json(FocusNode)
-			])).
 
 update_node_props([], _, _).
-update_node_props([T|Ts], URI, Alignment) :-
-	update_node_prop(T, URI, Alignment),
+update_node_props([T|Ts], URI, Strategy) :-
+	update_node_prop(T, URI, Strategy),
 	!,
-	update_node_props(Ts, URI, Alignment).
-update_node_props([_|Ts], URI, Alignment) :-
-	update_node_props(Ts, URI, Alignment).
+	update_node_props(Ts, URI, Strategy).
+update_node_props([_|Ts], URI, Strategy) :-
+	update_node_props(Ts, URI, Strategy).
 
 
-update_node_prop(label=Label, URI, Alignment) :-
-	rdf_retractall(URI, rdfs:label, _, Alignment),
+update_node_prop(label=Label, URI, Strategy) :-
+	rdf_retractall(URI, rdfs:label, _, Strategy),
 	(   Label == ''
 	->  true
-	;   rdf_assert(URI, rdfs:label, literal(Label), Alignment)
+	;   rdf_assert(URI, rdfs:label, literal(Label), Strategy)
 	).
 
-update_node_prop(abbrev=Abbrev, URI, Alignment) :-
-	rdf_retractall(URI, amalgame:nickname, _, Alignment),
+update_node_prop(abbrev=Abbrev, URI, Strategy) :-
+	rdf_retractall(URI, amalgame:nickname, _, Strategy),
 	(   Abbrev == ''
 	->  true
-	;   rdf_assert(URI, amalgame:nickname, literal(Abbrev), Alignment)
+	;   rdf_assert(URI, amalgame:nickname, literal(Abbrev), Strategy)
 	).
 
-update_node_prop(comment=Comment, URI, Alignment) :-
-	rdf_retractall(URI, rdfs:comment, _, Alignment),
+update_node_prop(comment=Comment, URI, Strategy) :-
+	rdf_retractall(URI, rdfs:comment, _, Strategy),
 	(   Comment == ''
 	->  true
-	;   rdf_assert(URI, rdfs:comment, literal(Comment), Alignment)
+	;   rdf_assert(URI, rdfs:comment, literal(Comment), Strategy)
 	).
-update_node_prop(status=Status, URI, Alignment) :-
-	rdf_retractall(URI, amalgame:status, _, Alignment),
+update_node_prop(status=Status, URI, Strategy) :-
+	rdf_retractall(URI, amalgame:status, _, Strategy),
 	(   Status == ''
 	->  true
-	;   rdf_assert(URI, amalgame:status, Status, Alignment)
-	),
-	(   rdf_equal(Status, amalgame:final)
-	->  thread_create(
-		(   set_stream(user_output, alias(current_output)),
-		    expand_node(Alignment, URI, _)
-		), _, [ detached(true) ])
-	;   true
+	;   rdf_assert(URI, amalgame:status, Status, Strategy)
 	).
 
 update_node_prop(default_relation=Relation, URI, Strategy) :-
@@ -322,6 +326,7 @@ update_node_prop(default_relation=Relation, URI, Strategy) :-
 	->  true
 	;   rdf_assert(URI, amalgame:default_relation, Relation, Strategy)
 	).
+
 
 change_ns_if_needed(NS, URI, Strategy, NewStrategy) :-
 	rdf(Strategy, amalgame:publish_ns, OldNS, Strategy),
@@ -338,13 +343,13 @@ change_ns_if_needed(NS, URI, Strategy, NewStrategy) :-
 
 %%	http_delete_node(+Request)
 %
-%	delete URI in Alignment and all that are connected to it and
-%	return the new nodes in Alignment.
+%	delete URI in Strategy and all that are connected to it and
+%	return the new nodes in Strategy.
 
 http_delete_node(Request) :-
 	authorized(write(default, _)),
 	http_parameters(Request,
-			[ alignment(Alignment,
+			[ alignment(Strategy,
 				    [uri,
 				     description('URI of alignment')
 				    ]),
@@ -352,11 +357,11 @@ http_delete_node(Request) :-
 				[uri,
 				 description('URI of input resource')])
 			]),
-	rdf_transaction((process_retract(URI, Alignment),
-			 node_retract(URI, Alignment)
+	rdf_transaction((process_retract(URI, Strategy),
+			 node_retract(URI, Strategy)
 			)),
-	js_alignment_nodes(Alignment, Nodes),
-	js_focus_node(Alignment, Alignment, FocusNode),
+	js_alignment_nodes(Strategy, Nodes),
+	js_focus_node(Strategy, Strategy, FocusNode),
 	reply_json(json([nodes=json(Nodes),
 			 focus=json(FocusNode)
 			])).
