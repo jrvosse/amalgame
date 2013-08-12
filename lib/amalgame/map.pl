@@ -242,7 +242,7 @@ prop_to_term(Prop, Value, Term) :-
 
 atom_to_skos_relation(literal('='), R) :- rdf_equal(skos:exactMatch, R),!.
 atom_to_skos_relation(literal('<'), R) :- rdf_equal(skos:broadMatch, R),!.
-atom_to_skos_relation(literal('<'), R) :- rdf_equal(skos:narrowMatch, R),!.
+atom_to_skos_relation(literal('>'), R) :- rdf_equal(skos:narrowMatch, R),!.
 atom_to_skos_relation(literal(_), R) :- rdf_equal(skos:relatedMatch, R),!.
 atom_to_skos_relation(URL, URL) :- !.
 
@@ -321,12 +321,12 @@ materialize_mapping_graph(Input, Options) :-
 mat_alignment_graph([], _).
 mat_alignment_graph([align(S,T,P)|As], Options) :-
         (   flatten(P, Pflat), member(relation(R), Pflat)
-	->  Relation = relation(R)
+	->  Relation = relation(R), NewProv=[]
 	;   option(default_relation(R), Options)
-	->  Relation = relation(R)
+	->  Relation = relation(R), NewProv=[method(default_relation), Relation]
 	;   Relation = foo(bar)
 	),
-        assert_cell(S, T, [prov(P), Relation |Options]),
+        assert_cell(S, T, [prov([NewProv|P]), Relation |Options]),
         mat_alignment_graph(As, Options).
 
 
