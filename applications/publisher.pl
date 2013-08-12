@@ -78,6 +78,7 @@ http_eq_publish(Request) :-
 
 html_page(Alignment, Focus) :-
 	findall(R, status_option(R), StatusOptions),
+	rdf_equal(amalgame:final, DefaultStatus),
 	supported_map_relations(MapRelations),
 	rdf_equal(skos:closeMatch, DefaultRelationIfNoneGiven),
 	reply_html_page(equalizer(main),
@@ -95,7 +96,7 @@ html_page(Alignment, Focus) :-
 					   ['Publish ',
 					    input([type(hidden), name(alignment), value(Alignment)]),
 					    select([name(status), autocomplete(off)],
-						   [ \html_options([all|StatusOptions],all)]),
+						   [ \html_options([all|StatusOptions],DefaultStatus)]),
 					    ' mappings.',
 					    br([]),
 					    'Default map relation to use when missing: ',
@@ -106,9 +107,9 @@ html_page(Alignment, Focus) :-
 					    'RDF format to use:',
 					    select([name(format)],
 						   [
-						    option(value(both), 'EDOAL and simple flat triples'),
-						    option(value(edoal), 'EDOAL cells only'),
-						    option(value(simple), 'Simple mapping triples only')
+						    option([value(both)], 'EDOAL and simple flat triples'),
+						    option([value(edoal)], 'EDOAL cells only'),
+						    option([value(simple), selected(selected)], 'Simple mapping triples only')
 						   ]),
 
 					    button([type(submit)],'Go')
