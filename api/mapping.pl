@@ -52,7 +52,7 @@ http_data_mapping(Request) :-
 
 	expand_node(Strategy, URL, Mapping0),
 	length(Mapping0, Count),
-	augment_with_evaluation_relations(Strategy, URL, Mapping0, Augmented),
+	augment_relations(Strategy, URL, Mapping0, Augmented, []),
 	maplist(mapping_label, Augmented, Labeled),
 	sort_key(SortBy, SortKey),
 	sort_by_arg(Labeled, SortKey, MSorted),

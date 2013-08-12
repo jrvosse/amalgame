@@ -9,7 +9,7 @@
 	   nickname/3,             % +Strategy, +MappingGraph, ?Nickname
 	   nickname_clear_cache/0,
 
-	   augment_with_evaluation_relations/4,
+	   augment_relations/5,
 
 	   mapping_relation/2,
 	   materialize_mapping_graph/2, % +List, +Options
@@ -313,8 +313,7 @@ materialize_mapping_graph(Input, Options) :-
         ;   true
         ),
         (   memberchk(align(_,_,_), Input)
-        ->
-            mat_alignment_graph(Input, Options)
+        ->  mat_alignment_graph(Input, Options)
         ;   true
         ).
 
@@ -324,7 +323,7 @@ mat_alignment_graph([align(S,T,P)|As], Options) :-
 	->  Relation = relation(R), NewProv=[]
 	;   option(default_relation(R), Options)
 	->  Relation = relation(R), NewProv=[method(default_relation), Relation]
-	;   Relation = foo(bar)
+	;   Relation = foo(bar), NewProv=[]
 	),
         assert_cell(S, T, [prov([NewProv|P]), Relation |Options]),
         mat_alignment_graph(As, Options).
@@ -350,16 +349,27 @@ nickname(Strategy, Graph, Nick) :-
 nickname_clear_cache :-
 	retractall(nickname_cache(_,_,_)).
 
-augment_with_evaluation_relations(Strategy, Id, Mapping, Augmented) :-
+augment_relations(Strategy, Id, Mapping, Augmented, Options) :-
 	(   evaluation_graph_chk(Strategy, Id, Prev)
-	->  expand_node(Strategy, Prev, PreviousEvaluation),
-	    augment_relation(Mapping, PreviousEvaluation, Augmented)
-	;   Mapping = Augmented
-	).
+	->  expand_node(Strategy, Prev, PreviousEvaluation)
+	;   PreviousEvaluation = []
+	),
+	augment_relation(Mapping, PreviousEvaluation, Augmented, Options).
 
-augment_relation([], _, []).
-augment_relation(M, [], M).
-augment_relation(Mappings, Reference, NewResults) :-
+
+augment_relation([], _, [], _) :- !.
+augment_relation(M, [], M, []):- !.
+augment_relation([align(S,T,Prov)|Tail], [], NewResults, Options) :-
+	!,
+	(   option(default_relation(DefaultRelation), Options)
+	->  Default = [method(default_relation), relation(DefaultRelation)],
+	    NProv = [Default|Prov]
+	;   NProv = Prov
+	),
+	NewResults = [align(S,T,NProv)|Results],
+	augment_relation(Tail , [], Results, Options).
+
+augment_relation(Mappings, Reference, NewResults, Options) :-
 	Mappings = [Head|Tail],
 	Reference = [RHead|RTail],
 	Head = align(S, T, Prov),
@@ -368,17 +378,22 @@ augment_relation(Mappings, Reference, NewResults) :-
 	(   Comp == =
 	->  member(Manual, RProv),
 	    member(method(manual_evaluation), Manual),
-	    option(relation(Rel), Manual),
-	    NProv = [[relation(Rel)]|Prov],
+	    option(relation(_Rel), Manual),
+	    NProv = [Manual|Prov],
 	    NewResults =  [align(S,T,NProv)|Results],
 	    NewMappings = Tail,
 	    NewRef= RTail
 	;   Comp == <
-	->  NewResults = [align(S,T,Prov)|Results],
+	->  (	option(default_relation(DefaultRelation), Options)
+	    ->	Default = [method(default_relation), relation(DefaultRelation)],
+		NProv = [Default|Prov]
+	    ;	NProv = Prov
+	    ),
+	    NewResults = [align(S,T,NProv)|Results],
 	    NewMappings = Tail,
 	    NewRef = Reference
 	;   NewResults = Results,
 	    NewMappings = Mappings,
 	    NewRef = RTail
 	),
-	augment_relation(NewMappings ,NewRef, Results).
+	augment_relation(NewMappings ,NewRef, Results, Options).

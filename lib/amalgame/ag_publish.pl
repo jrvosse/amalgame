@@ -122,43 +122,40 @@ prepare_mapping(Id, Strategy, Options) :-
 	(   \+ rdf_graph(Id)
 	->  expand_node(Strategy, Id, Mapping),
 	    Mapping = [_|_],
-	    augment_with_evaluation_relations(Strategy, Id, Mapping, Augmented),
 	    default_mapping_relation(Id, Default, Options),
-	    materialize_mapping_graph(Augmented, [graph(Id), default_relation(Default)|Options])
+	    augment_relations(Strategy, Id, Mapping, Augmented, [default_relation(Default)]),
+	    materialize_mapping_graph(Augmented, [graph(Id) | Options])
 	;   true
 	).
 
 save_mapping(Id, Options) :-
 	option(strategy(Strategy), Options),
-	(   prepare_mapping(Id, Strategy, Options)
-	->  default_mapping_relation(Id, Default, Options),
-	    assert_void(Id, Options),
-	    add_relation_where_needed(Id, Default),
+	prepare_mapping(Id, Strategy, Options),
+	assert_void(Id, Options),
 
-	    (	rdf(_, amalgame:evidenceGraph, _, Id)
-	    ->	Ext = trig,
-		findall(G, rdf(_, amalgame:evidenceGraph, G, Id), EvidenceGraphs)
-	    ;	Ext = ttl
-	    ),
-	    file_base_name(Id, Base),
-	    option(dir(Dir), Options, tmpdir),
-	    atomic_concat(edoal_, Base, EdoalBase),
-	    absolute_file_name(Base,       Filename, [relative_to(Dir), extensions([ttl])]),
-	    absolute_file_name(EdoalBase, EdoalName, [relative_to(Dir), extensions([Ext])]),
-	    option(format(Format), Options),
-	    (   (Format == edoal ; Format == both)
-	    ->  (   Ext = ttl
-		->  rdf_save_turtle(EdoalName, [graph(Id)|Options])
-		;   rdf_save_trig(EdoalName, [graphs([Id|EvidenceGraphs])|Options])
-		)
-	    ;	true
-	    ),
-	    (   (Format == simple ; Format == both)
-	    ->  save_flat_triples(Filename, Id, Options)
-	    ;	true
+	(   rdf(_, amalgame:evidenceGraph, _, Id)
+	->  Ext = trig,
+	    findall(G, rdf(_, amalgame:evidenceGraph, G, Id), EvidenceGraphs)
+	;   Ext = ttl
+	),
+	file_base_name(Id, Base),
+	option(dir(Dir), Options, tmpdir),
+	atomic_concat(edoal_, Base, EdoalBase),
+	absolute_file_name(Base,       Filename, [relative_to(Dir), extensions([ttl])]),
+	absolute_file_name(EdoalBase, EdoalName, [relative_to(Dir), extensions([Ext])]),
+	option(format(Format), Options),
+	(   (Format == edoal ; Format == both)
+	->  (   Ext = ttl
+	    ->  rdf_save_turtle(EdoalName, [graph(Id)|Options])
+	    ;   rdf_save_trig(EdoalName, [graphs([Id|EvidenceGraphs])|Options])
 	    )
-	;   true % probably an empty evaluation graph, no need to save it
+	;   true
+	),
+	(   (Format == simple ; Format == both)
+	->  save_flat_triples(Filename, Id, Options)
+	;   true
 	).
+
 
 save_flat_triples(Filename, Id, Options) :-
 	option(strategy(Strategy), Options),
