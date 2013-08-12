@@ -147,9 +147,6 @@ do_expand_process(Strategy, Process, Result, Time) :-
 	).
 
 
-
-
-
 materialize_results_if_needed(Strategy, Process, Results) :-
 	findall(Id-RP,
 		(   rdf_has(Id, amalgame:wasGeneratedBy, Process, RP),
@@ -165,29 +162,11 @@ materialize_results_if_needed(Strategy, Process, Results) :-
 	    )
 	      ).
 
-%%	materialize_if_needed(+Id, Mapping) is det.
-%
-%	materialize result in Mapping in named graph Id if this graph
-%	does not exist yet and if the resource with the same
-%	Id has the amalgame:status amalgame:final.
-
-needs_materialization(Id, _, _) :-
-	rdf_graph(Id), !, % Already materialized in a prev. run
-	fail.
 needs_materialization(_Id, Process, _Strategy) :-
 	rdfs_individual_of(Process, ProcessType),
 	rdf(ProcessType, amalgame:materialize, amalgame:always),
 	!.
-needs_materialization(Id, _, Strategy) :-
-	rdf(Id, amalgame:status, amalgame:final, Strategy).
 
-/*
-needs_materialization(Id, _, Strategy) :-
-	rdf_has(Id, amalgame:status, Status, Strategy),
-	\+ rdf_equal(Status, amalgame:final),
-	!, % Not a final graph, no need to materalize.
-	fail.
-*/
 materialize(Id, Mapping) :-
 	(   rdf_has(Id, amalgame:recordEvidence, amalgame:enabled)
 	->  Enabled = enabled
