@@ -4,7 +4,7 @@
 	   stats_cache/2,
 	   cache_result/4,
 	   clean_repository/0,
-	   flush_dependent_caches/3,
+	   flush_dependent_caches/2,
 	   flush_expand_cache/1,     % ?Strategy
 	   flush_expand_cache/2,     % +Id, +Strategy
 	   flush_refs_cache/1,       % ?Strategy
@@ -28,11 +28,11 @@
 	   'Minimum execution time to cache results').
 
 user:message_hook(make(done(_)), _, _) :-
-	debug(ag_expand, 'Flushing stats cache after running make/0', []),
+	debug(ag_expand, 'Flushing mapping statistics cache after running make/0', []),
 	flush_stats_cache(_),
 	fail.
 user:message_hook(make(done(_)), _, _) :-
-	debug(ag_expand, 'Flushing expand cache after running make/0', []),
+	debug(ag_expand, 'Flushing expand mapping cache after running make/0', []),
 	flush_expand_cache(_),
 	fail.
 user:message_hook(make(done(_)), _, _) :-
@@ -92,19 +92,26 @@ flush_expand_cache(Strategy) :-
 flush_expand_cache(Id, Strategy) :-
 	(   expand_cache(Id-Strategy, _) % make sure Id is bounded to something in the cache
 	->  retractall(expand_cache(Id-Strategy, _)),
-	    catch(rdf_unload_graph(Id), _, true),
-	    debug(ag_expand, 'flush cache and unloading graph for ~p', [Id])
+	    debug(ag_expand, 'flush expand mapping cache for results of process ~p', [Id])
 	;   true
 	).
 
-flush_dependent_caches(Process, Strategy, ProvGraph) :-
+flush_dependent_caches(Id, Strategy) :-
+	(   rdf_has(Id, amalgame:wasGeneratedBy, Process, RP),
+	    rdf(Id, RP, Process, Strategy)
+	->  true
+	;   Process = Id
+	),
 	flush_expand_cache(Process, Strategy),
 	findall(Result,
 		(   rdf_has(Result, amalgame:wasGeneratedBy, Process, RP),
 		    rdf(Result, RP, Process, Strategy)
 		), Results),
 	forall(member(Result, Results),
-	       flush_stats_cache(Result, Strategy)
+	       (   flush_stats_cache(Result, Strategy),
+		   catch(rdf_unload_graph(Result), _, true),
+		   debug(ag_expand, 'flush stats cache for ~p and unloading any materialized graphs', [Result])
+	       )
 	      ),
 	findall(DepProcess,
 		(   member(Result, Results),
@@ -113,8 +120,9 @@ flush_dependent_caches(Process, Strategy, ProvGraph) :-
 		),
 		Deps),
 	forall(member(Dep, Deps),
-	       flush_dependent_caches(Dep, Strategy, ProvGraph)),
+	       flush_dependent_caches(Dep, Strategy)),
 
+	provenance_graph(Strategy, ProvGraph),
 	remove_old_prov(Process, ProvGraph).
 
 

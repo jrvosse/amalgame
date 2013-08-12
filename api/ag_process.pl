@@ -123,8 +123,7 @@ http_update_node(Request) :-
 %
 %	Update the parameters of Process.
 update_process(Process, Graph, Params) :-
-	provenance_graph(Graph, ProvGraph),
-	flush_dependent_caches(Process, Graph, ProvGraph),
+	flush_dependent_caches(Process, Graph),
 	uri_query_components(Search, Params),
 	rdf_transaction((rdf_retractall(Process, amalgame:parameters, _),
 			 rdf_assert(Process, amalgame:parameters, literal(Search), Graph)
@@ -322,6 +321,7 @@ update_node_prop(status=Status, URI, Strategy) :-
 
 update_node_prop(default_relation=Relation, URI, Strategy) :-
 	rdf_retractall(URI, amalgame:default_relation, _, Strategy),
+	flush_dependent_caches(URI, Strategy),
 	(   Relation == ''
 	->  true
 	;   rdf_assert(URI, amalgame:default_relation, Relation, Strategy)
