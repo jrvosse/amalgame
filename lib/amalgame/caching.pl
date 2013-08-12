@@ -68,7 +68,7 @@ cache_result(ExecTime, Process, Strategy, Result) :-
 	cache_result_stats(Process, Strategy, Result).
 
 clean_repository :-
-	debug(ag_expand, 'Deleting all graphs made by amalgame', []),
+	debug(ag_expand, 'Deleting all graphs made by amalgame, including strategies!', []),
 	nickname_clear_cache,
 	findall(G, is_amalgame_graph(G), Gs),
 	forall(member(G, Gs),
