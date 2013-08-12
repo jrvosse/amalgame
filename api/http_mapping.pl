@@ -38,7 +38,7 @@ mappings([Source|Ss], TargetScheme, Relation, [Source=[]|Rest]) :-
 	mappings(Ss, TargetScheme, Relation, Rest).
 
 source_mapping(Source, TargetScheme, Relation, Mapping) :-
-Mapping = json([target=TargetObj,
+	Mapping = json([target=TargetObj,
 			targetScheme=TargetSchemeObj,
 			relation=RelationObj,
 			evidence=json(Properties)
@@ -68,9 +68,8 @@ mapping(Source, Target, Cell) :-
 
 %%	relation_chk(?Relation, +Evidence)
 %
-%	Check for existence of Relation in Evidence in case Relation is
-%	instantiated. Otherwise intantiate with Relation or set to @null
-%	if not existent.
+%	Check for existence of align:relation predicate in resource Evidence,
+%	Unified with Relation or set to @null if predicate not existent.
 
 relation_chk(Relation, Evidence) :-
 	nonvar(Relation),
