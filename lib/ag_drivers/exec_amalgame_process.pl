@@ -7,7 +7,7 @@
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(amalgame/expand_graph)).
 :- use_module(library(amalgame/map)).
-
+:- use_module(library(ag_modules/map_merger)).
 
 :- multifile
 	exec_amalgame_process/7,
@@ -43,6 +43,11 @@ select_result_mapping(_Id, Mapping, P, Mapping) :-
 	is_list(Mapping),
 	rdf_equal(amalgame:wasGeneratedBy, P).
 
+collect_snd_input(Process, Strategy, SecInput):-
+	findall(S, rdf(Process, amalgame:secondary_input, S), SecInputs),
+	maplist(expand_node(Strategy), SecInputs, SecInputNF),
+	merger(SecInputNF, SecInput, []).
+
 %%	exec_amalgame_process(+Type,+Process,+Strategy,+Module,-Result,-Time,+Options)
 %
 %
@@ -56,9 +61,7 @@ select_result_mapping(_Id, Mapping, P, Mapping) :-
 exec_amalgame_process(Type, Process, Strategy, Module, Mapping, Time, Options) :-
 	rdfs_subclass_of(Type, amalgame:'Matcher'),
 	!,
-	findall(S, rdf(Process, amalgame:secondary_input, S), SecInputs),
-	maplist(expand_node(Strategy), SecInputs, SecInputNF),
-	flatten(SecInputNF, SecInput),
+	collect_snd_input(Process, Strategy, SecInput),
 	(   rdf(Process, amalgame:source, SourceId, Strategy),
 	    rdf(Process, amalgame:target, TargetId, Strategy)
 	->  expand_node(Strategy, SourceId, Source),
@@ -69,7 +72,6 @@ exec_amalgame_process(Type, Process, Strategy, Module, Mapping, Time, Options) :
 	    timed_call(Module:filter(MappingIn, Mapping0, [snd_input(SecInput)|Options]), Time)
 	),
 	merge_provenance(Mapping0, Mapping).
-
 exec_amalgame_process(Class, Process, Strategy, Module, Result, Time, Options) :-
 	rdfs_subclass_of(Class, amalgame:'VocExclude'),
 	rdf(NewVocab, amalgame:wasGeneratedBy, Process, Strategy),
