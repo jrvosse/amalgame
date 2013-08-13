@@ -189,10 +189,13 @@ process_color(R, '#FF99CC') :-
 	!.
 process_color(_, '#DDDDDD').
 
-artifact_color(R, '#CCFF99') :-
+artifact_color(R, '#ACFF89') :-
 	rdf(R, amalgame:status, amalgame:final),
 	!.
-artifact_color(_R, '#FFFFFF').
+artifact_color(R, '#FFFFFF') :-
+	rdf(R, amalgame:status, amalgame:discarded),
+	!.
+artifact_color(_R, '#EEFFEE').
 
 
 %%	amalgame_label(+Alignment, +Resource, +Lang, +MaxLenth, -Label)
