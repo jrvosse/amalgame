@@ -289,13 +289,23 @@ html_evidences([E|Es],Source,Target) -->
 	  ->  At = span([class(date)], [' at: ', Date])
 	  ;   At = ''
 	  ),
+	  (   option(source(MSource), E)
+	  ->  format(atom(SrcAtom), ' (on: ~p' , [MSource]),
+	      Src =  span([class(source)], SrcAtom)
+	  ;   Src = ''
+	  ),
+	  (   option(target(MTarget), E)
+	  ->  format(atom(TrgAtom), '/~p)' , [MTarget]),
+	      Trg =  span([class(target)], TrgAtom)
+	  ;   Trg = ''
+	  ),
 	  (   option(user(User), E)
 	  ->  By = span([class(who)], [' by: ', \rdf_link(User)])
 	  ;   By = ''
 	  )
 	},
 	html(div(class(evidence),
-		 [ div(class(method), ['match: ', Method, By, At, Mt]),
+		 [ div(class(method), ['match: ', Method, By, At, Mt, Src, Trg]),
 		   div(class('graph yui3-g'),
 		       [ div(class('source yui3-u-1-2'),
 			     \html_evidence_graph(Graph, Source, 'LR')),
@@ -312,8 +322,11 @@ html_evidence_graph(Graph,Node,Layout) -->
 			graph_attributes([rankdir(Layout)])]).
 
 evidence_graph(Graph, Node, NodeTriples) :-
-	T = rdf(Node, _, _), % FIX me, this should include more triples
-	findall(T, member(T, Graph), NodeTriples).
+	findall(rdf(S,P,O),
+		(   member(rdf(S,P,O), Graph),
+		    (	S == Node ; O == Node)
+		),
+		NodeTriples).
 
 
 html_resource_context('',_) --> !.

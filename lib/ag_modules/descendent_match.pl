@@ -64,21 +64,20 @@ match(align(S, T, Prov0), BackgroundMatches, align(S, T, [Prov|Prov0]), Options)
 	descendent(T, MaxSteps, DescT, R2, Steps2),
 	get_assoc(DescS-DescT, BackgroundMatches, _),
 	Prov = [method(descendent_match),
-		source_descendent(DescS),
-		target_descendent(DescT),
-		source_steps(Steps1),
-		target_steps(Steps2),
+		source(DescS),
+		target(DescT),
+		steps(Steps1-Steps2),
 		graph([R1,R2])
 	       ].
 
 	/* FIXME: need to make a decision about what to do with align:relation ...
         */
 
-descendent(R, MaxSteps, Child, rdf_reachable(R, Prop, Child), Steps) :-
+descendent(R, MaxSteps, Child, rdf(R, Prop, Child), Steps) :-
 	rdf_equal(skos:narrower, Prop),
 	rdf_reachable(R, Prop, Child, MaxSteps, Steps),
 	\+ R == Child.
-descendent(R, MaxSteps, Child, rdf_reachable(Child, Prop, R), Steps) :-
+descendent(R, MaxSteps, Child, rdf(Child, Prop, R), Steps) :-
 	rdf_equal(skos:broader, Prop),
 	rdf_reachable(Child, Prop, R, MaxSteps, Steps),
 	\+ R == Child,
