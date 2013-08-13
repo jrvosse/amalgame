@@ -22,7 +22,8 @@ parameter(steps, integer, 1,
 filter(In, Out, Options) :-
 	option(snd_input(SecList), Options),
 	findall(S-T-P, member(align(S,T,P), SecList), KeyValueList),
-	list_to_assoc(KeyValueList, BackgroundMatches),
+	keysort(KeyValueList, Deduped),
+	ord_list_to_assoc(Deduped, BackgroundMatches),
 	filter_(In, BackgroundMatches, Out, Options).
 
 filter_([], _, [], _).
@@ -46,7 +47,9 @@ filter_([_|Cs], BackgroundMatches, Mappings, Options) :-
 
 matcher(Source, Target, Mappings, Options) :-
 	option(snd_input(SecList), Options),
-	list_to_assoc(SecList, BackgroundMatches),
+	findall(S-T-P, member(align(S,T,P), SecList), KeyValueList),
+	keysort(KeyValueList, Deduped),
+	ord_list_to_assoc(Deduped, BackgroundMatches),
 	findall(M, align(Source, Target, BackgroundMatches, M, Options), Mappings0),
 	sort(Mappings0, Mappings).
 
