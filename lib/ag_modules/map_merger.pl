@@ -1,6 +1,7 @@
-:- module(map_merger, []).
+:- module(map_merger, [
+	      merger/3   % also used by for other modules
+	  ]).
 
-:- use_module(library(semweb/rdf_db)).
 :- use_module(library(amalgame/map)).
 
 :- public amalgame_module/1.
