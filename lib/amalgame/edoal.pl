@@ -127,6 +127,8 @@ assert_provlist([], _, _,_).
 assert_provlist([P|ProvList], Cell, Graph, Options) :-
 	memberchk(method(direct), P), !,
 	assert_provlist(ProvList, Cell, Graph, Options).
+assert_provlist([[]|ProvList], Cell, Graph, Options) :-
+	assert_provlist(ProvList, Cell, Graph, Options).
 
 assert_provlist([P|ProvList], Cell, Graph, Options) :-
 	rdf_bnode(B),
