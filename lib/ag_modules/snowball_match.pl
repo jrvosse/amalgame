@@ -85,12 +85,12 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 
 	rdf_has(Source, MatchProp1, literal(lang(SourceLang, SourceLabel)), SourceProp),
 
+	(   sub_atom(SourceLabel, 0, PrefixLength, _, Prefix)
+	->  true
+	;   Prefix=SourceLabel
+	),
 	downcase_atom(SourceLabel, SourceLabel0),
 	snowball(Snowball_Language, SourceLabel0, SourceStem),
-	(   sub_atom(SourceStem, 0, PrefixLength, _, Prefix)
-	->  true
-	;   Prefix=SourceStem
-	),
 
 	rdf_has(Target, MatchProp2, literal(prefix(Prefix), lang(TargetLang, TargetLabel)), TargetProp),
 	\+ Source == Target,
