@@ -91,6 +91,7 @@ assert_master_void(Strategy, URI, Graph) :-
 	).
 
 assert_void(Id,Options) :-
+	option(format(Format), Options),
 	option(strategy(Strategy), Options),
 	option(prov(ProvGraph), Options),
 	option(all_mappings(All), Options),
@@ -101,7 +102,14 @@ assert_void(Id,Options) :-
 	assert_metadata(Id, Strategy, Void),
 	rdf_assert(All, void:subset,      Id,  Void),
 	rdf_assert(Id, void:vocabulary,   amalgame:'', Void),
-	rdf_assert(Id, void:vocabulary,   void:'', Void),
+	rdf_assert(Id, void:vocabulary,   skos:'', Void),
+	rdf_assert(Id, void:vocabulary,   align:'', Void),
+	(   Format \= edoal
+	->  rdf_assert(Id, void:vocabulary,   void:'', Void),
+	    rdf_assert(Id, void:vocabulary,   prov:'', Void),
+	    rdf_assert(Id, void:vocabulary,   dcterms:'', Void)
+	;   true
+	),
 	rdf_assert(Id, rdf:type,          void:'Linkset', Void),
 	rdf_assert(Id, void:triples,      literal(type(Int,NrOfTriples)), Void),
 
