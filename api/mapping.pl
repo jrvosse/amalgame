@@ -73,13 +73,15 @@ mapping_label(align(S, T, Prov), align(S,SLabel, T,TLabel, Relation)) :-
 	rdf_display_label(S, SL),
 	rdf_display_label(T, TL),
 
-	(   rdf_has(S, skos:notation, literal(Sn))
-	->  format(atom(SLabel), '~w (~w)', [SL, Sn])
+	(   rdf_has(S, skos:notation, SN)
+	->  literal_text(SN, Sn),
+	    format(atom(SLabel), '~w (~w)', [SL, Sn])
 	;   format(atom(SLabel), '~w', [SL])
 	),
 
-	(   rdf_has(T, skos:notation, literal(Tn))
-	->  format(atom(TLabel), '~w (~w)', [TL, Tn])
+	(   rdf_has(T, skos:notation, TN)
+	->  literal_text(TN, Tn),
+	    format(atom(TLabel), '~w (~w)', [TL, Tn])
 	;   format(atom(TLabel), '~w', [TL])
 	),
 	append(Prov, FlatProv),
