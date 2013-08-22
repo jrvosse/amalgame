@@ -25,6 +25,8 @@ save_mappings(Strategy, Dir, Options) :-
 	absolute_file_name(ProvGraphB, ProvFile,  [relative_to(Dir), extensions([ttl])]),
 	absolute_file_name(void,       VoidFile,  [relative_to(Dir), extensions([ttl])]),
 
+	rdf_save_turtle(StratFile, [graph(Strategy)|Options]),
+
 	assert_master_void(Strategy, AllMappingsURI, VoidGraph),
 	select_mappings_to_be_saved(Strategy, Mappings, Options),
 	forall(member(Mapping, Mappings),
@@ -34,9 +36,12 @@ save_mappings(Strategy, Dir, Options) :-
 				      prov(ProvGraph)|Options])
 	      ),
 
-	rdf_save_turtle(StratFile, [graph(Strategy)|Options]),
+
 	rdf_save_turtle(ProvFile,  [graph(ProvGraph)|Options]),
-	rdf_save_turtle(VoidFile,  [graph(VoidGraph)|Options]),
+	(   Mappings \= []
+	->  rdf_save_turtle(VoidFile, [graph(VoidGraph)|Options])
+	;   true
+	),
 	rdf_unload_graph(VoidGraph).
 
 void_graph(Strategy, VoidGraph) :-

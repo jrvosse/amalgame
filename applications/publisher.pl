@@ -96,7 +96,7 @@ html_page(Alignment, Focus) :-
 					   ['Publish ',
 					    input([type(hidden), name(alignment), value(Alignment)]),
 					    select([name(status), autocomplete(off)],
-						   [ \html_options([all|StatusOptions],DefaultStatus)]),
+						   [ \html_options([no,all|StatusOptions],DefaultStatus)]),
 					    ' mappings.',
 					    br([]),
 					    'Default map relation to use when missing: ',
