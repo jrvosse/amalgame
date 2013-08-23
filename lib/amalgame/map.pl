@@ -339,12 +339,23 @@ nickname(Strategy, Graph, Nick) :-
 nickname(Strategy, Graph, Nick) :-
 	nickname_cache(Strategy, Graph, Nick), !.
 nickname(Strategy, Graph, Nick) :-
+	create_nickname(Strategy, Graph, '', Nick).
+
+create_nickname(Strategy, Graph, Postfix, Nickname) :-
 	char_type(Nick, alpha),
-	\+ rdf(_,  amalgame:nickname, literal(Nick), Strategy),
-	\+ nickname_cache(Strategy, _, Nick),
+	char_type(Nick, ascii),
+	format(atom(Nickname), '~w~w', [Nick, Postfix]),
+	\+ rdf(_,  amalgame:nickname, literal(Nickname), Strategy),
+	\+ nickname_cache(Strategy, _, Nickname),
 	!,
-	assert(nickname_cache(Strategy, Graph, Nick)),
-	rdf_assert(Graph, amalgame:nickname, literal(Nick), Strategy).
+	assert(nickname_cache(Strategy, Graph, Nickname)),
+	rdf_assert(Graph, amalgame:nickname, literal(Nickname), Strategy).
+
+create_nickname(Strategy, Graph, _Postfix, Nickname) :-
+	% all nicknames with or without Postfix are taken, generate new prefix:
+	gensym('',Postfix),
+	create_nickname(Strategy, Graph, Postfix, Nickname).
+
 
 nickname_clear_cache :-
 	retractall(nickname_cache(_,_,_)).
