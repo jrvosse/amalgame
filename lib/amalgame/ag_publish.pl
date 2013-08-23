@@ -82,7 +82,7 @@ find_relation(Mapping, Cell, Default, Relation) :-
 	Relation \= none.
 
 assert_master_void(Strategy, URI, Graph) :-
-	rdf_has(Strategy, rdfs:label, literal(Label)),
+	(   rdf_has(Strategy, rdfs:label, literal(Label)) -> true ; Label = 'Strategy'),
 	rdf_has(Strategy, amalgame:publish_ns, NS),
 	format(atom(Title), '~w full link set', [Label]),
 	variant_sha1(term(Strategy, Title), Hash),
