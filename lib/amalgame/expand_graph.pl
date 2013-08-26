@@ -92,7 +92,7 @@ expand_vocab(Strategy, Id, Vocab) :-
 
 expand_vocab(Strategy, Vocab, Vocab) :-
 	rdf_equal(amalgame:preloaded, Preloaded),
-	cache_result(0, Preloaded, Strategy, scheme(Vocab)).
+	cache_result(0, Preloaded, Strategy, vocspec(scheme(Vocab))).
 
 
 %%	expand_process(+Strategy, +Process, -Result, -Time)

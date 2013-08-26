@@ -164,15 +164,15 @@ cache_result_stats(Process, Strategy, mapspec(mapping(Result))) :-
 	assert(stats_cache(D-Strategy, Dstats)).
 
 
-cache_result_stats(Process, Strategy, SchemeSpec) :-
-	(   SchemeSpec = scheme(Id)
+cache_result_stats(Process, Strategy, vocspec(VocSpec)) :-
+	(   VocSpec = scheme(Id)
 	->  true
-	;   SchemeSpec = and(_,_)
+	;   VocSpec = and(_,_)
 	->  rdf(Id, amalgame:wasGeneratedBy, Process, Strategy)
 	;   fail
 	),
 	!,
-	vocab_stats(SchemeSpec, Count),
+	vocab_stats(VocSpec, Count),
 	retractall(stats_cache(Id-Strategy,_)),
 	assert(stats_cache(Id-Strategy, stats(Count))).
 

@@ -94,8 +94,7 @@ exec_amalgame_process(Class, Process, Strategy, Module, MapSpec, Time, Options) 
 	% We need the ids, not the values in most analyzers
 	timed_call(Module:analyzer(Inputs, Process, Strategy, Result, Options), Time),
 	MapSpec = mapspec(Result). % Result = overlap([..]).
-
-exec_amalgame_process(Class, Process, Strategy, Module, Result, Time, Options) :-
+exec_amalgame_process(Class, Process, Strategy, Module, VocSpec, Time, Options) :-
 	rdfs_subclass_of(Class, amalgame:'VocExclude'),
 	rdf(NewVocab, amalgame:wasGeneratedBy, Process, Strategy),
 	NewVocOption = new_scheme(NewVocab),
@@ -105,17 +104,15 @@ exec_amalgame_process(Class, Process, Strategy, Module, Result, Time, Options) :
 	findall(S, rdf_has(Process, amalgame:secondary_input, S), Ss),
 	maplist(expand_node(Strategy), Ss, Expanded),
 	append(Expanded, Mapping),
-	timed_call(Module:exclude(Vocab, Mapping, Result, [NewVocOption|Options]), Time).
-
-
-exec_amalgame_process(Class, Process, Strategy, Module, Result, Time, Options) :-
+	timed_call(Module:exclude(Vocab, Mapping, Result, [NewVocOption|Options]), Time),
+	VocSpec=vocspec(Result). % vocspec(scheme(URI))
+exec_amalgame_process(Class, Process, Strategy, Module, VocSpec, Time, Options) :-
 	rdfs_subclass_of(Class, amalgame:'VocabSelecter'),
 	!,
 	once(rdf(Process, amalgame:input, Input, Strategy)),
 	expand_node(Strategy, Input, Vocab),
-	timed_call(Module:selecter(Vocab, Result, Options), Time).
-
-
+	timed_call(Module:selecter(Vocab, Result, Options), Time),
+	VocSpec=vocspec(Result). % vocspec(and(_,_))
 exec_amalgame_process(Class, Process,_,_, _, _, _) :-
 	throw(error(existence_error(mapping_process, [Class, Process]), _)).
 
