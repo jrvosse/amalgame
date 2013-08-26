@@ -9,9 +9,7 @@
 
 	 prov_was_generated_by/4,   % +Activity, +Entities, +Graph, +Options
 	 prov_clear_activity/1,	    % +Process (bnode)
-	 prov_get_entity_version/3,
-	 current_program_uri/2
-
+	 prov_get_entity_version/3
 	]).
 
 :- use_module(library(http/http_host)).
@@ -28,10 +26,10 @@
 
 
 :- dynamic
-	current_program_uri/2.
+	current_prov_uri/2.
 
 flush_prov_cache :-
-	retractall(current_program_uri(_,_)).
+	retractall(current_prov_uri(_,_)).
 
 
 %%	provenance_graph(+Strategy, ?Graph) is det.
@@ -156,12 +154,20 @@ prov_was_generated_by(Process, Artifacts, Graph, Options) :-
 	       )
 	      ),
 	prov_program(Graph, Program),
-	prov_agent(Graph, Agent),
+	prov_person(Graph, Person),
+
+	provenance_graph(Strategy, Graph),
+	prov_association(Program, Strategy, Graph, ProgramAssociation),
+	prov_association(Person,  Strategy, Graph, PersonAssociation),
+
+	rdf_assert(Process, prov:wasAssociatedWith, Program, Graph),
+	rdf_assert(Process, prov:wasAssociatedWith, Person,   Graph),
+	rdf_assert(Process, prov:qualifiedAssociation,  ProgramAssociation, Graph),
+	rdf_assert(Process, prov:qualifiedAssociation,  PersonAssociation,  Graph),
+
 	get_time(Now),
 	get_xml_dateTime(Now, NowXML),
 	rdf_assert(Process, prov:endedAtTime,   literal(type(xsd:dateTime, NowXML)) , Graph),
-	rdf_assert(Process, prov:wasAssociatedWith, Program, Graph),
-	rdf_assert(Process, prov:wasAssociatedWith, Agent,   Graph),
 
 	(   memberchk(was_derived_from(Sources), Options)
 	->  forall(member(Source, Sources),
@@ -196,7 +202,7 @@ prov_clear_activity(Activity) :-
 	rdf_retractall(_, _, Activity, _).
 
 prov_program(Graph, Program) :-
-	current_program_uri(Graph, Program),!.
+	current_prov_uri(Graph, program(Program)),!.
 
 prov_program(Graph, Program)  :-
 	(   current_prolog_flag(version_git, PL_version)
@@ -213,7 +219,7 @@ prov_program(Graph, Program)  :-
 	All = [Prolog|MUVs],
 	variant_sha1(All, Hash),
 	atomic_list_concat(['http://localhost/ns/amalgame/version/x', Hash], Program),
-	assert(current_program_uri(Graph, Program)),
+	assert(current_prov_uri(Graph, program(Program))),
 	rdf_assert(Program, rdfs:label, literal('Amalgame alignment platform'), Graph),
 	rdf_assert(Program, rdf:type,   prov:'SoftwareAgent', Graph),
 
@@ -230,25 +236,44 @@ prov_program(Graph, Program)  :-
 	      ),
 	!.
 
-prov_agent(Graph, Agent) :-
+prov_person(Graph, Person) :-
+	current_prov_uri(Graph, person(Person)),!.
+
+prov_person(Graph, Person) :-
 	(
 	http_in_session(_)
 	->
 	   logged_on(User, anonymous),
-	   user_property(User, url(Agent)),
+	   user_property(User, url(Person)),
 	   (   user_property(User, realname(UserName))
 	   ->  true
 	   ;   user_property(User, openid(UserName))
 	   ->  true
-	   ;   UserName = Agent
+	   ;   UserName = Person
 	   )
 	;
-	 rdf_bnode(Agent),
+	 rdf_bnode(Person),
 	 UserName = 'anonymous user (not logged in)'
 	),
+	assert(current_prov_uri(Graph, person(Person))),
+	rdf_assert(Person, rdfs:label, literal(UserName),  Graph),
+	rdf_assert(Person, rdf:type,   prov:'Person',	  Graph).
 
-	rdf_assert(Agent, rdfs:label, literal(UserName),  Graph),
-	rdf_assert(Agent, rdf:type,   prov:'Agent',	  Graph).
+prov_association(Agent, _Strategy, _Graph, Association):-
+	current_prov_uri(Agent, association(Association)), !.
+prov_association(Agent, Strategy, Graph, Association):-
+	(   rdfs_individual_of(Agent, prov:'Person')
+	->  rdf_equal(Role, amalgame:user_executing_strategy)
+	;   rdf_equal(Role, amalgame:program_executing_strategy)
+	),
+	rdf_bnode(Association),
+	rdf_assert(Association, rdf:type, prov:'Association', Graph),
+	rdf_assert(Association, prov:agent, Agent, Graph),
+	rdf_assert(Association, prov:hadPlan, Strategy, Graph),
+	rdf_assert(Association, prov:hadRole, Role, Graph),
+	assert(current_prov_uri(Agent, association(Association))).
+
+
 
 get_xml_dateTime(T, TimeStamp) :-
 	format_time(atom(TimeStamp), '%Y-%m-%dT%H-%M-%S%Oz', T).
