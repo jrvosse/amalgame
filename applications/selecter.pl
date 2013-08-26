@@ -17,6 +17,7 @@
 :- use_module(components(label)).
 :- use_module(library(amalgame/util)).
 :- use_module(library(amalgame/voc_stats)).
+:- use_module(library(amalgame/ag_provenance)).
 
 :- use_module(applications(skos_browser)).
 
@@ -438,6 +439,7 @@ add_schemes([Scheme|Ss], Strategy) :-
 
 new_strategy_name(Strategy, NS) :-
 	setting(amalgame:default_publish_namespace, NS),
+	reset_gensym(strategy),
 	repeat,
 	gensym(strategy, Local),
 	atomic_list_concat([NS,Local], Strategy),
@@ -458,7 +460,11 @@ build_redirect(Request, [Strategy|_]) :-
 delete_redirect(Request, Strategies) :-
 	authorized(write(default, _)),
 	forall(member(Strategy, Strategies),
-	       rdf_unload_graph(Strategy)),
+	       (   provenance_graph(Strategy, Prov),
+		   rdf_unload_graph(Strategy),
+		   rdf_unload_graph(Prov)
+	       )
+	      ),
 	http_link_to_id(http_eq, [], Redirect),
 	http_redirect(moved, Redirect, Request).
 

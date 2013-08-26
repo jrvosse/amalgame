@@ -30,13 +30,19 @@
 :- use_module(library(amalgame/map)).
 :- use_module(library(amalgame/ag_evaluation)).
 
+%%	mint_node_uri(+Strategy, +Type, -URI) is det.
+%
+%	URI is a new URI in the publish_ns namespace of Strategy, with a
+%	Local part that is equal to gensym(Type, Local),
+%	such that URI is not already a RDF subject or RDF named graph.
 mint_node_uri(Strategy, Type, URI) :-
 	ground(Type),
 	ground(Strategy),
 	rdf_has(Strategy, amalgame:publish_ns, NS),
+	atomic_concat(NS, Type, Base),
+	reset_gensym(Base),
 	repeat,
-	gensym(Type, Local),
-	atomic_concat(NS, Local, URI),
+	gensym(Base, URI),
 	\+ rdf_subject(URI),
 	\+ rdf_graph(URI),
 	!.
