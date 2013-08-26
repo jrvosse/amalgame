@@ -84,8 +84,9 @@ add_amalgame_prov(Strategy, Process, Results) :-
 		),
 		InputTriples),
 
-	(   Results = scheme(Vocab)
-	->  Artifacts = [Vocab]
+	(   Results = vocspec(_)
+	->  rdf(Vocab, amalgame:wasGeneratedBy, Process, Strategy),
+	    Artifacts = [Vocab]
 	;   assert_counts(Results, ProvGraph),
 	    pairs_keys(Results, Artifacts)
 	),
