@@ -20,7 +20,11 @@
 %	@param OutputType is an RDF property
 %	@error existence_error(mapping_select)
 
-select_result_mapping(_Id, select(Selected, Discarded, Undecided), OutputType, Mapping) :-
+select_result_mapping(_Id, mapspec(mapping(Mapping)), P, Mapping) :-
+	is_list(Mapping),
+	rdf_equal(amalgame:wasGeneratedBy, P).
+
+select_result_mapping(_Id, mapspec(select(Selected, Discarded, Undecided)), OutputType, Mapping) :-
 	!,
 	(   rdf_equal(amalgame:selectedBy, OutputType)
 	->  Mapping = Selected
@@ -31,17 +35,13 @@ select_result_mapping(_Id, select(Selected, Discarded, Undecided), OutputType, M
 	;   throw(error(existence_error(mapping_selector, OutputType), _))
 	).
 
-select_result_mapping(Id, overlap(List), P, Mapping) :-
+select_result_mapping(Id, mapspec(overlap(List)), P, Mapping) :-
 	!,
 	rdf_equal(amalgame:wasGeneratedBy, P),
 	(   member(Id-Mapping, List)
 	->  true
 	;   Mapping=[]
 	).
-
-select_result_mapping(_Id, Mapping, P, Mapping) :-
-	is_list(Mapping),
-	rdf_equal(amalgame:wasGeneratedBy, P).
 
 collect_snd_input(Process, Strategy, SecInput):-
 	findall(S, rdf(Process, amalgame:secondary_input, S), SecInputs),
@@ -58,7 +58,7 @@ collect_snd_input(Process, Strategy, SecInput):-
 %
 %       @error existence_error(mapping_process)
 
-exec_amalgame_process(Type, Process, Strategy, Module, Mapping, Time, Options) :-
+exec_amalgame_process(Type, Process, Strategy, Module, MapSpec, Time, Options) :-
 	rdfs_subclass_of(Type, amalgame:'Matcher'),
 	!,
 	collect_snd_input(Process, Strategy, SecInput),
@@ -71,7 +71,30 @@ exec_amalgame_process(Type, Process, Strategy, Module, Mapping, Time, Options) :
 	->  expand_node(Strategy, InputId, MappingIn),
 	    timed_call(Module:filter(MappingIn, Mapping0, [snd_input(SecInput)|Options]), Time)
 	),
-	merge_provenance(Mapping0, Mapping).
+	merge_provenance(Mapping0, Mapping),
+	MapSpec = mapspec(mapping(Mapping)).
+exec_amalgame_process(Class, Process, Strategy, Module, MapSpec, Time, Options) :-
+	rdfs_subclass_of(Class, amalgame:'MappingSelecter'),
+	!,
+	MapSpec = mapspec(select(Selected, Discarded, Undecided)),
+	once(rdf(Process, amalgame:input, InputId, Strategy)),
+	expand_node(Strategy, InputId, MappingIn),
+	timed_call(Module:selecter(MappingIn, Selected, Discarded, Undecided, Options), Time).
+exec_amalgame_process(Class, Process, Strategy, Module, MapSpec, Time, Options) :-
+	rdfs_subclass_of(Class, amalgame:'MapMerger'),
+	!,
+	findall(Input, rdf(Process, amalgame:input, Input, Strategy), Inputs),
+	maplist(expand_node(Strategy), Inputs, Expanded),
+	timed_call(Module:merger(Expanded, Result, Options), Time),
+	MapSpec = mapspec(mapping(Result)).
+exec_amalgame_process(Class, Process, Strategy, Module, MapSpec, Time, Options) :-
+	rdfs_subclass_of(Class, amalgame:'OverlapComponent'),
+	!,
+	findall(Input, rdf(Process, amalgame:input, Input, Strategy), Inputs),
+	% We need the ids, not the values in most analyzers
+	timed_call(Module:analyzer(Inputs, Process, Strategy, Result, Options), Time),
+	MapSpec = mapspec(Result). % Result = overlap([..]).
+
 exec_amalgame_process(Class, Process, Strategy, Module, Result, Time, Options) :-
 	rdfs_subclass_of(Class, amalgame:'VocExclude'),
 	rdf(NewVocab, amalgame:wasGeneratedBy, Process, Strategy),
@@ -83,31 +106,15 @@ exec_amalgame_process(Class, Process, Strategy, Module, Result, Time, Options) :
 	maplist(expand_node(Strategy), Ss, Expanded),
 	append(Expanded, Mapping),
 	timed_call(Module:exclude(Vocab, Mapping, Result, [NewVocOption|Options]), Time).
-exec_amalgame_process(Class, Process, Strategy, Module, Result, Time, Options) :-
-	rdfs_subclass_of(Class, amalgame:'MappingSelecter'),
-	!,
-	Result = select(Selected, Discarded, Undecided),
-	once(rdf(Process, amalgame:input, InputId, Strategy)),
-	expand_node(Strategy, InputId, MappingIn),
-	timed_call(Module:selecter(MappingIn, Selected, Discarded, Undecided, Options), Time).
+
+
 exec_amalgame_process(Class, Process, Strategy, Module, Result, Time, Options) :-
 	rdfs_subclass_of(Class, amalgame:'VocabSelecter'),
 	!,
 	once(rdf(Process, amalgame:input, Input, Strategy)),
 	expand_node(Strategy, Input, Vocab),
 	timed_call(Module:selecter(Vocab, Result, Options), Time).
-exec_amalgame_process(Class, Process, Strategy, Module, Result, Time, Options) :-
-	rdfs_subclass_of(Class, amalgame:'MapMerger'),
-	!,
-	findall(Input, rdf(Process, amalgame:input, Input, Strategy), Inputs),
-	maplist(expand_node(Strategy), Inputs, Expanded),
-	timed_call(Module:merger(Expanded, Result, Options), Time).
-exec_amalgame_process(Class, Process, Strategy, Module, Result, Time, Options) :-
-	rdfs_subclass_of(Class, amalgame:'OverlapComponent'),
-	!,
-	findall(Input, rdf(Process, amalgame:input, Input, Strategy), Inputs),
-	% We need the ids, not the values in most analyzers
-	timed_call(Module:analyzer(Inputs, Process, Strategy, Result, Options), Time).
+
 
 exec_amalgame_process(Class, Process,_,_, _, _, _) :-
 	throw(error(existence_error(mapping_process, [Class, Process]), _)).
@@ -118,3 +125,4 @@ timed_call(Goal, Time) :-
 	call(Goal),
 	thread_statistics(Me, cputime, T1),
         Time is T1 - T0.
+

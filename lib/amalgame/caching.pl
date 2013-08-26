@@ -127,7 +127,7 @@ flush_dependent_caches(Id, Strategy) :-
 	remove_old_prov(Process, ProvGraph).
 
 
-cache_result_stats(_Process, Strategy, overlap(List)) :-
+cache_result_stats(_Process, Strategy, mapspec(overlap(List))) :-
 	forall(member(Id-Mapping, List),
 	       (   mapping_stats(Id, Mapping, Strategy, Stats),
 		   flush_stats_cache(Id, Strategy),
@@ -135,7 +135,7 @@ cache_result_stats(_Process, Strategy, overlap(List)) :-
 	       )
 	      ).
 
-cache_result_stats(Process, Strategy, select(Sel, Disc, Undec)) :-
+cache_result_stats(Process, Strategy, mapspec(select(Sel, Disc, Undec))) :-
 	rdf(S, amalgame:selectedBy, Process, Strategy),
 	!,
 	mapping_stats(S, Sel, Strategy,  Sstats),
@@ -155,6 +155,14 @@ cache_result_stats(Process, Strategy, select(Sel, Disc, Undec)) :-
 	    assert(stats_cache(U-Strategy, Ustats))
 	;   true
 	).
+cache_result_stats(Process, Strategy, mapspec(mapping(Result))) :-
+	rdf_has(D, amalgame:wasGeneratedBy, Process, RP),
+	rdf(D, RP, Process, Strategy),
+	!,
+	flush_stats_cache(D, Strategy),
+	mapping_stats(D, Result, Strategy, Dstats),
+	assert(stats_cache(D-Strategy, Dstats)).
+
 
 cache_result_stats(Process, Strategy, SchemeSpec) :-
 	(   SchemeSpec = scheme(Id)
@@ -167,14 +175,6 @@ cache_result_stats(Process, Strategy, SchemeSpec) :-
 	vocab_stats(SchemeSpec, Count),
 	retractall(stats_cache(Id-Strategy,_)),
 	assert(stats_cache(Id-Strategy, stats(Count))).
-
-cache_result_stats(Process, Strategy, Result) :-
-	rdf_has(D, amalgame:wasGeneratedBy, Process, RP),
-	rdf(D, RP, Process, Strategy),
-	!,
-	flush_stats_cache(D, Strategy),
-	mapping_stats(D, Result, Strategy, Dstats),
-	assert(stats_cache(D-Strategy, Dstats)).
 
 cache_result_stats(Process, _Strategy, _Result) :-
 	debug(ag_caching, 'Error: do not know how to cache stats of ~p', [Process]),
