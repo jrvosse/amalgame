@@ -12,6 +12,9 @@
 %	@param VocabDef is a URI of a skos:ConceptScheme or a definition
 %	of a subset thereof.
 
+vocab_member(C, vocspec(Spec)) :-
+	!,
+	vocab_member(C, Spec).
 vocab_member(C, not(Def)) :-
 	ground(C),
 	ground(Def),

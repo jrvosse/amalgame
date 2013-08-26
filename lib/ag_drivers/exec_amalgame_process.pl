@@ -110,7 +110,7 @@ exec_amalgame_process(Class, Process, Strategy, Module, VocSpec, Time, Options) 
 	rdfs_subclass_of(Class, amalgame:'VocabSelecter'),
 	!,
 	once(rdf(Process, amalgame:input, Input, Strategy)),
-	expand_node(Strategy, Input, Vocab),
+	expand_node(Strategy, Input, vocspec(Vocab)),
 	timed_call(Module:selecter(Vocab, Result, Options), Time),
 	VocSpec=vocspec(Result). % vocspec(and(_,_))
 exec_amalgame_process(Class, Process,_,_, _, _, _) :-

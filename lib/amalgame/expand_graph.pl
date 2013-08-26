@@ -90,7 +90,7 @@ expand_vocab(Strategy, Id, Vocab) :-
 		   )
 		  ).
 
-expand_vocab(Strategy, Vocab, Vocab) :-
+expand_vocab(Strategy, Vocab, vocspec(scheme(Vocab))) :-
 	rdf_equal(amalgame:preloaded, Preloaded),
 	cache_result(0, Preloaded, Strategy, vocspec(scheme(Vocab))).
 
@@ -125,7 +125,7 @@ do_expand_process(Strategy, Process, Result, Time) :-
 
 
 	% Provenance admin:
-	(   Result = scheme(_)   % Result is a single vocabulary
+	(   Result = vocspec(_)   % Result is a single vocabulary
 	->  add_amalgame_prov(Strategy, Process, Result)
 	;   findall(URI-Mapping, % Result is one or more mappings
 		    (   rdf_has(URI, amalgame:wasGeneratedBy, Process, OutputType),
