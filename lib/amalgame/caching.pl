@@ -177,7 +177,7 @@ cache_result_stats(Process, Strategy, Result) :-
 	assert(stats_cache(D-Strategy, Dstats)).
 
 cache_result_stats(Process, _Strategy, _Result) :-
-	debug(ag_expand, 'Error: do not know how to cache stats of ~p', [Process]),
+	debug(ag_caching, 'Error: do not know how to cache stats of ~p', [Process]),
 	fail.
 
 cache_expand_result(ExecTime, Process, Strategy, Result) :-
@@ -201,8 +201,8 @@ del_materialized_mappings(Strategy) :-
 	findall(Id, mapping_to_delete(Id, Strategy), ToDelete),
 	sort(ToDelete, Sorted),
 	forall(member(F, Sorted),
-	       (   catch(rdf_unload_graph(F), _, true),
-		   del_evidence_graphs(F),
+	       (   del_evidence_graphs(F),
+		   catch(rdf_unload_graph(F), _, true),
 		   debug(ag_expand, 'Deleting materialized mapping graph ~w', [F])
 	       )
 	      ).
@@ -212,11 +212,10 @@ del_evidence_graphs(Mapping) :-
 	    (
 	    rdf(Mapping, align:map, Cell, Mapping),
 	    rdf(Cell, amalgame:evidence, Bnode, Mapping),
-	    rdf(Bnode, amalgame:evidenceGraph, Bnode, Mapping),
-	    rdf_graph(Bnode),
-	    rdf_is_bnode(Bnode)
+	    rdf(Bnode, amalgame:evidenceGraph, EvGraph, Mapping),
+	    rdf_graph(EvGraph)
 	    ),
-	    rdf_unload_graph(Bnode)).
+	    rdf_unload_graph(EvGraph)).
 
 
 mapping_to_delete(Id, Strategy) :-
