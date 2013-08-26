@@ -43,7 +43,6 @@ expand_node_(Strategy, Id, Result) :-
 %          scheme(Scheme) or type(Class)
 
 expand_mapping(Strategy, Id, Mapping) :-
-	debug(ag_expand, 'Expanding mapping ~p', [Id]),
 	(   % we should not exploit materialized graphs
 	    % until the evidence is properly serialized ... :-(
 	    (	rdf_graph(Id), rdf(Id, amalgame:recordEvidence, amalgame:enabled))
@@ -53,6 +52,8 @@ expand_mapping(Strategy, Id, Mapping) :-
 	    rdf(Process, rdf:type, amalgame:'SelectPreloaded')
 	),
 	!,
+	debug(ag_expand, 'Using & caching already materialized mapping ~p', [Id]),
+
 	findall(C, has_correspondence(C,Id), Mapping0),
 	sort(Mapping0, Mapping),
 	cache_result(0, Id, Strategy, Mapping).
@@ -69,7 +70,7 @@ expand_mapping(Strategy, Id, Mapping) :-
 	materialize_results_if_needed(Strategy, Process, Result),
 	select_result_mapping(Id, Result, OutputType, Mapping),
 	length(Mapping, Count),
-	debug(ag_expand, 'Found ~w mappings for ~p', [Count, Id]).
+	debug(ag_expand, 'Computed & cached ~w mappings for ~p', [Count, Id]).
 
 
 
