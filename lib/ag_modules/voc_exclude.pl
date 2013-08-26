@@ -1,8 +1,6 @@
 :- module(voc_exclude, []).
 
 :- use_module(library(semweb/rdf_db)).
-:- use_module(library(amalgame/map)).
-:- use_module(library(amalgame/expand_graph)).
 :- use_module(library(amalgame/vocabulary)).
 
 :- public amalgame_module/1.
