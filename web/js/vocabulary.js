@@ -72,6 +72,7 @@ YUI.add('vocabulary', function(Y) {
 			});
 
 			this.mappingList = mappingList;
+			this.mappingSelect = mappingSelect;
 		},
 
 		_initBrowser : function() {
@@ -128,10 +129,16 @@ YUI.add('vocabulary', function(Y) {
 		fetchMappings : function() {
 			var alignment = this.get("alignment"),
 				mappingNode = this.mappingList,
+				mappingSelect = this.mappingSelect,
 				currentMappings = this._currentMappings;
 
 			function formatMappings(e,o) {
 				var mappings = Y.JSON.parse(o.responseText);
+				if (mappings.length > 0) {
+					mappingSelect.removeClass("hidden");
+				} else {
+					mappingSelect.addClass("hidden");
+				}
 				for (var i=0; i < mappings.length; i++) {
 					var mapping = mappings[i],
 						uri = mapping['uri'],
