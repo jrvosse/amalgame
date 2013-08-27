@@ -17,7 +17,7 @@
 :- use_module(api(hints)).
 :- use_module(api(node_info)).
 :- use_module(api(mappinglist)).
-:- use_module(api(skos_concepts)).
+:- use_module(api(virtual_concepts)).
 :- use_module(api(ag_process)).
 
 :- multifile
@@ -203,7 +203,7 @@ js_path(evaluate, Path) :-
 js_path(cinfo, Path) :-
 	http_location_by_id(http_correspondence, Path).
 js_path(concepts, Path) :-
-	http_location_by_id(http_concepts, Path).
+	http_location_by_id(http_virtual_concepts, Path).
 js_path(mappinglist, Path) :-
 	http_location_by_id(http_mapping_list, Path).
 
