@@ -29,15 +29,20 @@
 
 http_mapping_list(Request) :-
 	http_parameters(Request,
-			[ alignment(Alignment, [description('URL of strategy')])
+			[ alignment(Alignment, [description('URL of strategy')]),
+			  status(Status, [default(finalized)])
 			]),
 	Obj = json([uri=URI, label=Label]),
-	findall(Obj, mapping_in_alignment(Alignment, URI, Label), Mappings),
+	findall(Obj, mapping_in_alignment(Alignment, URI, Label, [status(Status)]), Mappings),
 	reply_json(Mappings).
 
-mapping_in_alignment(Alignment, Mapping, Label) :-
-	rdf(Mapping, rdf:type, amalgame:'Mapping', Alignment),
-	rdf_display_label(Mapping, Label).
+mapping_in_alignment(Alignment, MappingId, Label, Options) :-
+	rdf(MappingId, rdf:type, amalgame:'Mapping', Alignment),
+	(   option(status(finalized), Options)
+	->  rdf_graph(MappingId)
+	;   true
+	),
+	rdf_display_label(MappingId, Label).
 
 
 http_data_voc(Request) :-
