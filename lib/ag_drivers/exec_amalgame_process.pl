@@ -66,20 +66,24 @@ exec_amalgame_process(Type, Process, Strategy, Module, MapSpec, Time, Options) :
 	    rdf(Process, amalgame:target, TargetId, Strategy)
 	->  expand_node(Strategy, SourceId, Source),
 	    expand_node(Strategy, TargetId, Target),
-	    timed_call(Module:matcher(Source, Target, Mapping0, [snd_input(SecInput)|Options]), Time)
+	    timed_call(Module:matcher(Source, Target, Mapping0,
+				      [snd_input(SecInput)|Options]), Time)
 	;   rdf(Process, amalgame:input, InputId)
 	->  expand_node(Strategy, InputId, MappingIn),
-	    timed_call(Module:filter(MappingIn, Mapping0, [snd_input(SecInput)|Options]), Time)
+	    timed_call(Module:filter(MappingIn, Mapping0,
+				     [snd_input(SecInput)|Options]), Time)
 	),
 	merge_provenance(Mapping0, Mapping),
 	MapSpec = mapspec(mapping(Mapping)).
 exec_amalgame_process(Class, Process, Strategy, Module, MapSpec, Time, Options) :-
 	rdfs_subclass_of(Class, amalgame:'MappingSelecter'),
 	!,
+	collect_snd_input(Process, Strategy, SecInput),
 	MapSpec = mapspec(select(Selected, Discarded, Undecided)),
 	once(rdf(Process, amalgame:input, InputId, Strategy)),
 	expand_node(Strategy, InputId, MappingIn),
-	timed_call(Module:selecter(MappingIn, Selected, Discarded, Undecided, Options), Time).
+	timed_call(Module:selecter(MappingIn, Selected, Discarded, Undecided,
+				   [snd_input(SecInput)|Options]), Time).
 exec_amalgame_process(Class, Process, Strategy, Module, MapSpec, Time, Options) :-
 	rdfs_subclass_of(Class, amalgame:'MapMerger'),
 	!,
