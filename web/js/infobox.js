@@ -48,6 +48,9 @@ YUI.add('infobox', function(Y) {
 		paths : {
 			value: null
 		},
+		nodes : {
+			value: null
+		},
 		selected: {
 			value: null
 		}
