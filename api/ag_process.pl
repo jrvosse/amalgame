@@ -68,7 +68,7 @@ http_add_process(Request) :-
 	subtract(Params1, SecParams, Params),
 	(   Update == true
 	->  rdf_retractall(Process, amalgame:secondary_input, _, Strategy),
-	    update_process(Process, Strategy, Params),
+	    update_process(Process, Strategy, SecInputs, Params),
 	    Focus = Process
 	;   ((nonvar(Source), nonvar(Target)) ; nonvar(Input))
 	->  new_process(Process, Strategy, Source, Target, Input, SecInputs, Params, Focus)
@@ -119,14 +119,16 @@ http_update_node(Request) :-
 	->  precompute_mapping(Strategy, URI)
 	;   true).
 
-%%	update_process(+Process, +Strategy, +Params)
+%%	update_process(+Process, +Strategy, +SecInputs, +Params)
 %
 %	Update the parameters of Process.
-update_process(Process, Graph, Params) :-
-	flush_dependent_caches(Process, Graph),
+update_process(Process, Strategy, SecInputs, Params) :-
+	flush_dependent_caches(Process, Strategy),
 	uri_query_components(Search, Params),
+	rdf(Process, rdf:type, Type, Strategy),
+	assert_secondary_inputs(SecInputs, Process, Type, Strategy),
 	rdf_transaction((rdf_retractall(Process, amalgame:parameters, _),
-			 rdf_assert(Process, amalgame:parameters, literal(Search), Graph)
+			 rdf_assert(Process, amalgame:parameters, literal(Search), Strategy)
 			)).
 
 is_dependent_chk(Mapping, Process, Strategy) :-
