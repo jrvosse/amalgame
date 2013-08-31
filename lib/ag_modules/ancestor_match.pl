@@ -105,10 +105,13 @@ selecter(In, Sel, Dis, Und, Options) :-
 	).
 
 selecter_(_, [], _, [], [], [], _).
-selecter_(target, [Head|Tail], BackgroundMatches, Sel, Dis, Und, Options) :-
-	Head = align(S,_,_),
-	same_source(Tail, S, Same, Rest),
-	selecter_(target, Rest, BackgroundMatches, TailSel, TailDis, TailUnd, Options),
+selecter_(Type, [Head|Tail], BackgroundMatches, Sel, Dis, Und, Options) :-
+	Head = align(S,T,_),
+	(   Type == target
+	->  same_source(Tail, S, Same, Rest)
+	;   same_target(Tail, T, Same, Rest)
+	),
+	selecter_(Type, Rest, BackgroundMatches, TailSel, TailDis, TailUnd, Options),
 	Candidates = [Head|Same],
 	maplist(ancester_count(BackgroundMatches, Options), Candidates, Counts),
 	keysort(Counts, [BestCount-BestCorr|DisgardedSame0]),
@@ -121,24 +124,6 @@ selecter_(target, [Head|Tail], BackgroundMatches, Sel, Dis, Und, Options) :-
 	    Dis = TailDis,
 	    append([Candidates, TailUnd], Und)
 	).
-selecter_(source, [Head|Tail], BackgroundMatches, Sel, Dis, Und, Options) :-
-	Head = align(_,T,_),
-	same_target(Tail, T, Same, Rest),
-	selecter_(source, Rest, BackgroundMatches, TailSel, TailDis, TailUnd, Options),
-	Candidates = [Head|Same],
-	maplist(ancester_count(BackgroundMatches, Options), Candidates, Counts),
-	keysort(Counts, [BestCount-align(S,T,P)|DisgardedSame0]),
-	(   Same \= [], BestCount < 1
-	->  match(align(S,T,P), BackgroundMatches, align(S,T,Pnew), Options),
-	    append([[align(S,T,Pnew)], TailSel], Sel),
-	    pairs_values(DisgardedSame0, DisgardedSame),
-	    append([DisgardedSame, TailDis], Dis),
-	    Und = TailUnd
-	;   Sel = TailSel,
-	    Dis = TailDis,
-	    append([Candidates, TailUnd], Und)
-	).
-
 
 ancester_count(BackgroundMatches, Options, Corr, Count-Corr) :-
 	answer_count(Pnew,
