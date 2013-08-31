@@ -329,6 +329,7 @@ module_input_type(_, '').
 module_special_type(M, secinput) :-
 	(   rdfs_subclass_of(M, amalgame:'Subtracter')
 	;   rdfs_subclass_of(M, amalgame:'AncestorMatcher')
+	;   rdfs_subclass_of(M, amalgame:'AncestorSelecter')
 	;   rdfs_subclass_of(M, amalgame:'DescendentMatcher')
 	;   rdfs_subclass_of(M, amalgame:'RelatedMatcher')
 	;   rdfs_subclass_of(M, amalgame:'SetOperator')
