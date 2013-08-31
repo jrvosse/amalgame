@@ -38,6 +38,11 @@ amalgame:AncestorMatcher
     skos:definition "Matcher looking for 1 or more ancestors that have already been mapped."@en ;
     rdfs:subClassOf amalgame:Matcher .
 
+amalgame:AncestorSelecter
+    rdfs:label "structure/ancestor"@en ;
+    skos:definition "Select mappings with the most already mapped ancestors."@en ;
+    rdfs:subClassOf amalgame:MappingSelecter .
+
 amalgame:DescendentMatcher
     rdfs:label "structure/descendent"@en ;
     skos:definition "Matcher looking for 1 or more descendents that have already been mapped."@en ;

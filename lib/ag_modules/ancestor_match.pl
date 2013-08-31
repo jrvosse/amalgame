@@ -3,17 +3,24 @@
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(amalgame/vocabulary)).
+:- use_module(library(amalgame/map)).
+:- use_module(library(count)).
 
 :- public amalgame_module/1.
 :- public filter/3.
 :- public matcher/4.
+:- public selecter/5.
 :- public parameter/4.
 
 amalgame_module(amalgame:'AncestorMatcher').
 amalgame_module(amalgame:'AncestorFilter').
+amalgame_module(amalgame:'AncestorSelecter').
 
 parameter(steps, integer, 1,
 	  'depth of search, defaults to 1, e.g. direct parents only').
+parameter(type,
+          oneof([source, target]), target,
+          'Select best targets with most matching parents from alternative targets (or sources)').
 
 %%	filter(+MappingsIn, -MappingsOut, +Options)
 %
@@ -81,3 +88,62 @@ ancestor(R, MaxSteps, Parent, rdf(R, Broader, Parent), Steps) :-
 	rdf_reachable(Parent, Narrower, R, MaxSteps, Steps),
 	\+ R == Parent,
 	\+ rdf_reachable(R, Broader, Parent).
+
+selecter(In, Sel, Dis, Und, Options) :-
+	option(snd_input(SecList), Options),
+	option(type(SourceOrTarget), Options, source),
+	findall(S-T-P, member(align(S,T,P), SecList), KeyValueList),
+	keysort(KeyValueList, Deduped),
+	ord_list_to_assoc(Deduped, BackgroundMatches),
+	(   SourceOrTarget = target
+	->  selecter_(SourceOrTarget, In, BackgroundMatches, Sel, Dis, Und, Options)
+	;   predsort(ag_map:compare_align(target), In, InT),
+	    selecter_(SourceOrTarget, InT, BackgroundMatches, Sel0, Dis0, Und0, Options),
+	    predsort(ag_map:compare_align(source), Sel0,  Sel),
+	    predsort(ag_map:compare_align(source), Dis0,  Dis),
+	    predsort(ag_map:compare_align(source), Und0,  Und)
+	).
+
+selecter_(_, [], _, [], [], [], _).
+selecter_(target, [Head|Tail], BackgroundMatches, Sel, Dis, Und, Options) :-
+	Head = align(S,_,_),
+	same_source(Tail, S, Same, Rest),
+	selecter_(target, Rest, BackgroundMatches, TailSel, TailDis, TailUnd, Options),
+	Candidates = [Head|Same],
+	maplist(ancester_count(BackgroundMatches, Options), Candidates, Counts),
+	keysort(Counts, [BestCount-BestCorr|DisgardedSame0]),
+	(   Same \= [], BestCount < 1
+	->  append([[BestCorr],    TailSel], Sel),
+	    pairs_values(DisgardedSame0, DisgardedSame),
+	    append([DisgardedSame, TailDis], Dis),
+	    Und = TailUnd
+	;   Sel = TailSel,
+	    Dis = TailDis,
+	    append([Candidates, TailUnd], Und)
+	).
+selecter_(source, [Head|Tail], BackgroundMatches, Sel, Dis, Und, Options) :-
+	Head = align(_,T,_),
+	same_target(Tail, T, Same, Rest),
+	selecter_(source, Rest, BackgroundMatches, TailSel, TailDis, TailUnd, Options),
+	Candidates = [Head|Same],
+	maplist(ancester_count(BackgroundMatches, Options), Candidates, Counts),
+	keysort(Counts, [BestCount-align(S,T,P)|DisgardedSame0]),
+	(   Same \= [], BestCount < 1
+	->  match(align(S,T,P), BackgroundMatches, align(S,T,Pnew), Options),
+	    append([[align(S,T,Pnew)], TailSel], Sel),
+	    pairs_values(DisgardedSame0, DisgardedSame),
+	    append([DisgardedSame, TailDis], Dis),
+	    Und = TailUnd
+	;   Sel = TailSel,
+	    Dis = TailDis,
+	    append([Candidates, TailUnd], Und)
+	).
+
+
+ancester_count(BackgroundMatches, Options, Corr, Count-Corr) :-
+	answer_count(Pnew,
+		     match(Corr, BackgroundMatches, align(_S,_T,Pnew), Options),
+		     10,
+		     Count0),
+	Count is 1/(1+Count0).
+
