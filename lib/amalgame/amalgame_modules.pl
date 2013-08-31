@@ -16,12 +16,13 @@
 :- rdf_meta
 	amalgame_module_property(r,?),
 	amalgame_module_id(r,-),
-	amalgame_modules_of_type(r,-).
+	amalgame_modules_of_type(r,-),
+	current_amalgame_module(r, ?).
 
 %%	current_amalgame_module(?URI, ?ModuleName) is nondet.
 %
 %	True if Module is an amalgame module identified by URI.
-%	@see amalgame_module_id/2 for a det version that throws an 
+%	@see amalgame_module_id/2 for a det version that throws an
 %	existence_error if there is no module
 
 current_amalgame_module(URI, Module) :-
@@ -33,7 +34,7 @@ current_amalgame_module(URI, Module) :-
 %
 %	True if Module is an amalgame module identified by URI.
 %	@error existence_error(amalgame_module)
-%	@see current_amalgame_module/2 for a notdet version 
+%	@see current_amalgame_module/2 for a notdet version
 %	that fails if there is no module.
 
 amalgame_module_id(URI, Module) :-
