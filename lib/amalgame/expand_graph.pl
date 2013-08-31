@@ -178,3 +178,10 @@ materialize(Id, Mapping) :-
 
 
 
+run_strategy :-
+	run_strategy(_).
+
+run_strategy(Strategy) :-
+	rdfs_individual_of(Strategy, amalgame:'AlignmentStrategy'),
+	findall(M, rdf(M, amalgame:status, _, Strategy), Fs),
+	forall(member(F, Fs), expand_node(Strategy, F, _)).
