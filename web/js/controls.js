@@ -216,11 +216,16 @@ YUI.add('controls', function(Y) {
 			for (var uri in nodes) {
 				var m = nodes[uri];
 				if(m.type == "mapping") {
+					if (m.label == m.local) { 
+						label = m.label; 
+					} else { 
+						label = m.label + ' (' + m.local +')'; 
+					}	
 					var status = m.status?m.status:'unspecified';
 					var checked=status.match('final')?'checked':''
 					HTML += '<div><input type="checkbox" name="secondary_input" value="'
 					+uri+'" ' +checked +' class="' + checked +'">'
-					+'<span class="mapping_label">'+m.abbrev+':'+m.label+'</span></div>';
+					+'<span class="mapping_label">'+m.abbrev+':'+label+'</span></div>';
 				}
 			}
 			return HTML;

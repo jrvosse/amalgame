@@ -294,12 +294,17 @@ YUI.add('infobox', function(Y) {
 			var nodes = this.get("nodes");
 			for (var uri in nodes) {
 				var m = nodes[uri];
+				if (m.label == m.local) {
+					label = m.label;
+				} else {
+					label = m.label + ' (' + m.local +')';
+				}
 				if(m.type == "mapping") {
 					var index = selected.indexOf(uri);
 					var checked = (index == -1)?'':'checked';
 					HTML += '<div><input type="checkbox" name="secondary_input" value="'
 					+uri+'" ' +checked +' class="' + checked +'">'
-					+'<span>'+m.label+'</span></div>';
+					+'<span>'+m.abbrev+':'+label+'</span></div>';
 				}
 			}
 			return HTML;
