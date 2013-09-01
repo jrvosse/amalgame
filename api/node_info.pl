@@ -93,9 +93,9 @@ html_form(Params, URI) -->
 
 
 
-%%	amalgame_info(+Mapping, -Info)
+%%	amalgame_info(+MappingId, +Strategy, -Info)
 %
-%	Stats of a resourcemapping
+%	Stats of a resource (mapping)
 
 amalgame_info(URL, Strategy, Stats) :-
 	rdfs_individual_of(URL, amalgame:'Mapping'),
@@ -123,15 +123,18 @@ amalgame_info(Scheme, Strategy,
 	concept_count(Scheme, Strategy, Total).
 
 amalgame_info(URL, Strategy,
-	       ['type'   - \(cp_label:rdf_link(Type)),
-		'about'   - Definition
-	       ]) :-
+	       ['type'   - \(cp_label:rdf_link(Type)) | Optional ]) :-
 	rdfs_individual_of(URL, amalgame:'Process'),
 	rdf(URL, rdf:type, Type, Strategy),
-	(   rdf_has(Type, skos:definition, literal(Definition))
-	->  true
-	;   Definition = '-'
-	).
+	(   rdf_has(URL, amalgame:input, InputMapping)
+	->  Input = [input - \(cp_label:rdf_link(InputMapping))]
+	;   Input = []
+	),
+	(   rdf_has(Type, skos:definition, literal(DefLit))
+	->  Definition = [about - DefLit]
+	;   Definition = []
+	),
+	append([Definition, Input],Optional).
 
 amalgame_info(_URL, _Strategy, []).
 
@@ -212,6 +215,3 @@ override_options([H|T], Current, [V|Results]) :-
 	V=parameter(Id, Type, Value,   Desc),
 	Opt =.. [Id, Value],
 	option(Opt, Current, Default).
-
-
-
