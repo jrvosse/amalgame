@@ -44,13 +44,13 @@ http_virtual_concepts(Request) :-
 	    length(Sorted, Total),
 	    list_offset(Sorted, Offset, OffsetResults),
 	    list_limit(OffsetResults, Limit, LimitResults, _),
-	    skos_concepts:concept_results(LimitResults, Graphs, JSONResults),
+	    concept_results(LimitResults, Graphs, JSONResults),
 	    reply_json(json([parent=Parent,
 			 offset=Offset,
 			 limit=Limit,
 			 totalNumberOfResults=Total,
 			 results=JSONResults]))
-	;   skos_concepts:http_concepts(Request)
+	;   http_concepts(Request)
 	).
 
 virtual_concepts(Id, Concepts) :-
