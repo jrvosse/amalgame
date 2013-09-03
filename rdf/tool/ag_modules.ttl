@@ -34,16 +34,19 @@ amalgame:IsubMatcher
     rdfs:subClassOf amalgame:Matcher .
 
 amalgame:AncestorMatcher
+    amalgame:need_secondary_inputs true ;
     rdfs:label "structure/ancestor"@en ;
     skos:definition "Matcher looking for 1 or more ancestors that have already been mapped."@en ;
     rdfs:subClassOf amalgame:Matcher .
 
 amalgame:AncestorSelecter
+    amalgame:need_secondary_inputs true ;
     rdfs:label "structure/ancestor"@en ;
     skos:definition "Select mappings with the most already mapped ancestors."@en ;
     rdfs:subClassOf amalgame:MappingSelecter .
 
 amalgame:DescendentMatcher
+    amalgame:need_secondary_inputs true ;
     rdfs:label "structure/descendent"@en ;
     skos:definition "Matcher looking for 1 or more descendents that have already been mapped."@en ;
     rdfs:subClassOf amalgame:Matcher .
@@ -55,6 +58,7 @@ amalgame:DescendentSelecter
     rdfs:subClassOf amalgame:MappingSelecter .
 
 amalgame:RelatedMatcher
+    amalgame:need_secondary_inputs true ;
     rdfs:label "structure/related"@en ;
     skos:definition "Matcher looking for 1 or more related concepts that have already been mapped."@en ;
     rdfs:subClassOf amalgame:Matcher .
@@ -95,11 +99,13 @@ amalgame:SiblingSelecter
     rdfs:subClassOf amalgame:MappingSelecter .
 
 amalgame:MapMerger
+    amalgame:need_secondary_inputs true ;
     rdfs:label "mapping merger"@en ;
     skos:definition "Merge two or more mappings into one new mapping. This can, for example, to collect the good mappings made by different processes."@en ;
     rdfs:subClassOf amalgame:SetOperator .
 
 amalgame:VocExclude
+    amalgame:need_secondary_inputs true ;
     rdfs:label "subtract mapped concepts"@en ;
     skos:definition "Subtract from a vocabulary the sources or targets from a given mapping to create a vocabulary with the unmapped concepts."@en ;
     rdfs:subClassOf amalgame:Subtracter ;
@@ -121,6 +127,7 @@ amalgame:SubtreeSelect
     rdfs:subClassOf amalgame:VocabSelecter .
 
 amalgame:OverlapComponent
+    amalgame:need_secondary_inputs true ;
     rdfs:label "overlap"@en ;
     skos:definition "Component that analyzes a set of mappings by creating intersections and differences sets"@en ;
     rdfs:subClassOf amalgame:SetOperator .

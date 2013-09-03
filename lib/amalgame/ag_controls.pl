@@ -327,13 +327,7 @@ module_input_type(_, '').
 %	control in the UI.
 
 module_special_type(M, secinput) :-
-	(   rdfs_subclass_of(M, amalgame:'Subtracter')
-	;   rdfs_subclass_of(M, amalgame:'AncestorMatcher')
-	;   rdfs_subclass_of(M, amalgame:'AncestorSelecter')
-	;   rdfs_subclass_of(M, amalgame:'DescendentMatcher')
-	;   rdfs_subclass_of(M, amalgame:'RelatedMatcher')
-	;   rdfs_subclass_of(M, amalgame:'SetOperator')
-	),
+	rdf_has(M, amalgame:need_secondary_inputs, literal(type(xsd:boolean, true))),
 	!.
 module_special_type(M,preloaded) :-
 	rdfs_subclass_of(M, amalgame:'SelectPreLoaded'),
