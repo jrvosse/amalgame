@@ -16,7 +16,7 @@ body {
 }
 #controls .content {
 	border: 1px solid #808080;
-	overflow: auto;
+	overflow: scroll;
 	background-color: #FFF;
 	height: 100%;
 }
@@ -196,9 +196,10 @@ img.explain {
 	background-color: white;
 	border: 1pt black solid;
 	    }
-#hint 
+#hint.c 
 {
 	background-color: #FFFFE2;
+	padding: 5px 5px;
 }
 #exec_hint
 {
