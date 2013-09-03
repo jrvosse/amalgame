@@ -48,6 +48,12 @@ amalgame:DescendentMatcher
     skos:definition "Matcher looking for 1 or more descendents that have already been mapped."@en ;
     rdfs:subClassOf amalgame:Matcher .
 
+amalgame:DescendentSelecter
+    amalgame:need_secondary_inputs true ;
+    rdfs:label "structure/descendent"@en ;
+    skos:definition "Select mappings with the most already mapped descendents."@en ;
+    rdfs:subClassOf amalgame:MappingSelecter .
+
 amalgame:RelatedMatcher
     rdfs:label "structure/related"@en ;
     skos:definition "Matcher looking for 1 or more related concepts that have already been mapped."@en ;
