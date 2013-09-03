@@ -28,18 +28,18 @@ html_controls  -->
 			      'Suggestion for next step',
 			      div([id(hint), class('hint help c')], 'No hints available.')
 			     ),
-	    \html_control_set(analyze_control_set, false,
-			      'Step 1: analyze',
-			      \html_analyzers_control(Analyzers)),
+	    \html_control_set(current_control_set, true,
+			      'About the selected node',
+			      \html_info_control),
 	    \html_control_set(match_control_set, false,
-			      'Step 2a: match or ...',
+			      'Matchers',
 			      \html_match_control(Matchers)),
 	    \html_control_set(select_control_set, false,
-			      'Step 2b:	... select',
+			      'Selectors',
 			      \html_select_control(Selecters)),
-	    \html_control_set(current_control_set, true,
-			      'Current node details',
-			      \html_info_control)
+	    \html_control_set(analyze_control_set, false,
+			      'Combine & compare',
+			      \html_analyzers_control(Analyzers))
 	     ]).
 
 html_control_set(Id, Active, Header, Body) -->
