@@ -1,16 +1,28 @@
-@prefix    align: <http://knowledgeweb.semanticweb.org/heterogeneity/alignment#> .
 @prefix amalgame: <http://purl.org/vocabularies/amalgame#> .
+@prefix evaluator:<http://purl.org/vocabularies/amalgame/evaluator#> .
+@prefix     skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix    align: <http://knowledgeweb.semanticweb.org/heterogeneity/alignment#> .
 @prefix     prov: <http://www.w3.org/ns/prov#> .
 @prefix      owl: <http://www.w3.org/2002/07/owl#> .
 @prefix      rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix     rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix     skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix     xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+amalgame:AlignmentStrategy
+    a prov:Plan ;
+    rdfs:label "alignment strategy"@en ;
+    rdfs:comment "RDF representation of an alignment strategy that can be loaded and executed by Amalgame"@en.
 
 amalgame:Process
     rdfs:label "process"@en ;
-    skos:definition "Top class for all amalgame processes"@en ;
+    rdfs:comment "Top class for all amalgame processes"@en ;
     rdfs:subClassOf prov:Activity .
+
+amalgame:parameters
+    a rdf:Property ;
+    rdfs:domain amalgame:Process ;
+    rdfs:range rdfs:Literal .
+
 amalgame:Matcher
     rdfs:label "matcher"@en ;
     skos:definition "Component that creates a mapping given a source and target vocabulary"@en ;
@@ -164,6 +176,11 @@ amalgame:member a rdf:Property ;
 	rdfs:domain amalgame:OverlapAlignment ;
 	rdfs:range amalgame:Alignment .
 
+amalgame:overlap_set
+	a rdf:Property ;
+	rdfs:domain amalgame:Alignment ;
+	rdfs:range rdfs:Literal .
+
 amalgame:count a rdf:Property, owl:FunctionalProperty ;
 	rdfs:label "total map count" ;
 	rdfs:comment "The number of mappings in this Aligment" ;
@@ -195,14 +212,6 @@ amalgame:format a rdf:Property , owl:FunctionalProperty ;
 	rdfs:comment "The format of the mappings in this Aligment, assuming a graph contains only one format." ;
 	rdfs:domain amalgame:Alignment ;
 	rdfs:range rdfs:Literal .
-
-amalgame:mappedSourceConcepts a rdf:Property, owl:FunctionalProperty ;
-	rdfs:domain amalgame:Alignment ;
-	rdfs:range xsd:int .
-
-amalgame:mappedTargetConcepts a rdf:Property, owl:FunctionalProperty ;
-	rdfs:domain amalgame:Alignment ;
-	rdfs:range xsd:int .
 
 amalgame:nickname a rdf:Property , owl:FunctionalProperty ;
 	rdfs:domain amalgame:Alignment ;
@@ -291,3 +300,19 @@ amalgame:intermediate a amalgame:Status ;
 
 amalgame:discarded a amalgame:Status ;
 	rdfs:comment "Status indicating that a Mapping has not insufficient quality to be useful, even for further processing, and can be discarded from the further analysis."@en .
+
+amalgame:publish_ns 
+	a rdf:Property ;
+	rdfs:domain amalgame:AlignmentStrategy ;
+	rdfs:comment "Namespace prefix to publish results of the strategy in"@en .
+
+amalgame:default_relation
+	a rdf:Property ;
+	rdfs:domain amalgame:Alignment ;
+	rdfs:range rdf:Property .
+
+evaluator:unrelated
+    a rdf:Property ;
+    rdfs:subPropertyOf owl:differentFrom ;
+    rdfs:label "unrelated"@en ;
+    rdfs:comment "property used to explicitly indicate that two concepts are not related"@en .
