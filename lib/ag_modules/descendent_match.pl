@@ -4,7 +4,6 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(amalgame/vocabulary)).
 :- use_module(library(amalgame/map)).
-:- use_module(string_match_util).
 
 :- public amalgame_module/1.
 :- public filter/3.
@@ -116,7 +115,7 @@ selecter_(Type, [Head|Tail], BackgroundMatches, Sel, Dis, Und, Options) :-
 	Candidates = [Head|Same],
 	maplist(descendent_count(BackgroundMatches, Options), Candidates, Counts0),
 	keysort(Counts0, Counts),
-	zero_keys(Counts, Zero, NonZero),
+	partition(=(0-_), Counts, Zero, NonZero),
 	(   NonZero \= []
 	->  pairs_values(Zero,   DisgardedSame),
 	    pairs_values(NonZero, SelectedSame),

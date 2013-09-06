@@ -1,7 +1,6 @@
 :- module(ag_string_match_util,
 	  [label_list/1,
-	   matching_types/2,
-	   zero_keys/3
+	   matching_types/2
 	  ]).
 
 :- use_module(library(semweb/rdf_db)).
@@ -45,13 +44,3 @@ matching_types(S1, S2) :-
 	;
 	true)
 	,!.
-%%	zero_keys(+Pairs, -ZeroKeyPairs, -NonZeroKeyPairs) is det.
-%
-%	Pairs is a keysorted list of pairs with nonneg integer keys,
-%	which is partioned in a list of zero key pairs and non-zero key
-%	pairs.
-zero_keys([], [], []) :- !.
-zero_keys([0-Value|Tail], [0-Value|ZeroTail], NonZeroTail) :-
-	!,
-	zero_keys(Tail, ZeroTail, NonZeroTail).
-zero_keys(Pairs, [], Pairs) :- !.
