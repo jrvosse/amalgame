@@ -301,13 +301,23 @@ html_evidences([E|Es],Source,Target) -->
 	      Trg =  span([class(target)], TrgAtom)
 	  ;   Trg = ''
 	  ),
+	  (   option(source_stem(SourceStem), E)
+	  ->  format(atom(SStemAtom), ' (source stem: ~w)' , [SourceStem]),
+	      Ss = span([class(source_stem)], SStemAtom)
+	  ;   Ss = ''
+	  ),
+	  (   option(target_stem(TargetStem), E)
+	  ->  format(atom(TStemAtom), ' (source stem: ~w)' , [TargetStem]),
+	      Ts = span([class(source_stem)], TStemAtom)
+	  ;   Ts = ''
+	  ),
 	  (   option(user(User), E)
 	  ->  By = span([class(who)], [' by: ', \rdf_link(User)])
 	  ;   By = ''
 	  )
 	},
 	html(div(class(evidence),
-		 [ div(class(method), ['match: ', Method, By, At, Mt, Src, Trg]),
+		 [ div(class(method), ['match: ', Method, By, At, Mt, Src, Trg, Ss, Ts]),
 		   div(class('graph yui3-g'),
 		       [ div(class('source yui3-u-1-2'),
 			     \html_evidence_graph(Graph, Source, 'LR')),
