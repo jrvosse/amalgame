@@ -21,6 +21,10 @@ amalgame_module(amalgame:'MostMethods').
 selecter(AlignmentGraph, S, D, U, _Options) :-
 	partition_(AlignmentGraph, S, D, U).
 
+ap(align(S,T,P), align(S,T,Pnew)) :-
+	append(P, [[method(most_methods)]], Pnew).
+
+
 partition_([], [], [], []).
 partition_([align(S,T,P)|As], Sel, Dis, Und) :-
 	same_source(As, S, Same, Rest),
@@ -36,9 +40,11 @@ partition_([align(S,T,P)|As], Sel, Dis, Und) :-
 
 most_methods(As, Selected, [A|T]) :-
 	group_method_count(As, Counts),
-	sort(Counts, [N-Selected,N1-A|T0]),
+	sort(Counts, [N-Selected0,N1-A|T0]),
 	pairs_values(T0, T),
-	\+ N == N1.
+	\+ N == N1,
+	maplist(ap, [Selected0], [Selected]).
+
 
 group_method_count([], []).
 group_method_count([Align|As], [Count-Align|Ts]) :-

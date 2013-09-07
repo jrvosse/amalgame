@@ -54,7 +54,9 @@ partition_(source, [A|As], Sel, Dis, Und) :-
 	),
 	partition_(source, Rest, SelRest, DisRest, UndRest).
 
-hierarchy_related([], _, G, G, []).
+hierarchy_related([], _, align(S,T,P), align(S,T,Pnew), []) :-
+	append(P, [[method(most_generic)]], Pnew).
+
 hierarchy_related([A|As], target, G0, G, [A1|Rest]) :-
 	A = align(_,T,_),
 	G0 = align(_,T0,_),

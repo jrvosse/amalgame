@@ -102,11 +102,12 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 	;   literal_distance(SourceStem, TargetStem, Distance),
 	    Distance =< Edit_Distance
 	),
+	Match is 1 / (1 + Distance),
 	Prov = [method(snowball),
 		prefix(Prefix),
 		source_stem(SourceStem),
 		target_stem(TargetStem),
-		literal_distance(Distance),
+		match(Match),
 		graph([rdf(Source, SourceProp, literal(lang(SourceLang, SourceLabel))),
 		       rdf(Target, TargetProp, literal(lang(TargetLang, TargetLabel)))])
 	       ],

@@ -21,7 +21,7 @@ amalgame_module(amalgame:'SiblingSelecter').
 %
 %
 
-selecter(AlignmentGraph, Sel, [], Und, Options) :-
+selecter(AlignmentGraph, SelP, [], Und, Options) :-
 	option(depth(Depth), Options, 2),
 	option(type(SourceOrTarget), Options, source),
 	(   SourceOrTarget = target
@@ -30,7 +30,11 @@ selecter(AlignmentGraph, Sel, [], Und, Options) :-
 	    partition_(SourceOrTarget, SortedAlignmentGraph, Depth, Sel0, Und0),
 	    predsort(ag_map:compare_align(source), Sel0,  Sel),
 	    predsort(ag_map:compare_align(source), Und0,  Und)
-	).
+	),
+	maplist(ap, Sel, SelP).
+
+ap(align(S,T,P), align(S,T,Pnew)) :-
+	append(P, [[method(sibling_select)]], Pnew).
 
 
 
