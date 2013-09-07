@@ -52,7 +52,7 @@ create_evaluation_graph(Strategy, Mapping, EvalGraph) :-
 	),
 	rdf_assert(EvalGraph, rdfs:comment, literal(Comment),	 Strategy),
 	provenance_graph(Strategy, ProvGraph),
-	prov_was_generated_by(EvalProcess, [EvalGraph], ProvGraph, Options).
+	prov_was_generated_by(EvalProcess, [EvalGraph], ProvGraph, [strategy(Strategy)|Options]).
 
 
 delete_empty_eval_graphs(Strategy) :-

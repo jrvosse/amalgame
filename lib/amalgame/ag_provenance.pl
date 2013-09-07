@@ -89,7 +89,7 @@ add_amalgame_prov(Strategy, Process, Results) :-
 	    pairs_keys(Results, Artifacts)
 	),
 
-	prov_was_generated_by(Process, Artifacts, ProvGraph, []),
+	prov_was_generated_by(Process, Artifacts, ProvGraph, [strategy(Strategy)]),
 
 	% Generate prov:wasDerivedFrom triples between Mappings
 	findall(rdf(Target, ProvWDF, Source),
@@ -143,6 +143,7 @@ remove_old_prov(Process, ProvGraph) :-
 %	derived from the given list of source entities
 %	* request(Request) to record information about the request URI
 %	used in the web service to create Entities.
+%	* strategy(Strategy)
 
 prov_was_generated_by(_, [], _, _) :- !.
 prov_was_generated_by(Process, Artifacts, Graph, Options) :-
@@ -156,7 +157,7 @@ prov_was_generated_by(Process, Artifacts, Graph, Options) :-
 	prov_program(Graph, Program),
 	prov_person(Graph, Person),
 
-	provenance_graph(Strategy, Graph),
+	option(strategy(Strategy), Options),
 	prov_association(Program, Strategy, Graph, ProgramAssociation),
 	prov_association(Person,  Strategy, Graph, PersonAssociation),
 
