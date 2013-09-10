@@ -9,6 +9,7 @@
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(amalgame/amalgame_modules)).
 :- use_module(library(amalgame/ag_stats)).
+:- use_module(library(amalgame/voc_stats)).
 :- use_module(components(label)). % we need rdf_link//1 from this module
 
 :- use_module(library(amalgame/ag_controls)).
@@ -116,11 +117,19 @@ amalgame_info(URL, Strategy, Stats) :-
 	append(BasicStats, ReferenceStats, Stats).
 
 amalgame_info(Scheme, Strategy,
-	    ['Total concepts'-Total
+	    ['Total concepts'-Total,
+	     '# prefLabels'-span([PrefCount, ' (',
+				  \(ag_util_components):html_showlist(PrefLangs), ')']),
+	     '# altLabels'- span([AltCount,' (',
+				  \(ag_util_components):html_showlist(AltLangs),  ')'])
 	    ]) :-
 	rdfs_individual_of(Scheme, skos:'ConceptScheme'),
 	!,
-	concept_count(Scheme, Strategy, Total).
+	concept_count(Scheme, Strategy, Total),
+	voc_property(Scheme, numberOfPrefLabels(PrefCount)),
+	voc_property(Scheme, numberOfAltLabels(AltCount)),
+	voc_property(Scheme, languages(skos:prefLabel, PrefLangs)),
+	voc_property(Scheme, languages(skos:altLabel, AltLangs)).
 
 amalgame_info(URL, Strategy,
 	       ['type'   - \(cp_label:rdf_link(Type)) | Optional ]) :-
