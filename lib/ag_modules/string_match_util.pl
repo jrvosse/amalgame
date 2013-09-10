@@ -1,11 +1,14 @@
 :- module(ag_string_match_util,
 	  [label_list/1,
-	   matching_types/2
+	   matching_types/2,
+	   strategy_languages/2
 	  ]).
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_label)).
+
+:- use_module(library(amalgame/voc_stats)).
 
 %%	labels_list(-L) is det.
 %
@@ -44,3 +47,12 @@ matching_types(S1, S2) :-
 	;
 	true)
 	,!.
+
+strategy_languages(Strategy, Languages) :-
+	findall(Voc, rdf_has(Strategy, amalgame:includes, Voc), Vocs),
+	maplist(lang_used, Vocs, Langs),
+	append(Langs, Languages0),
+	sort(Languages0, Languages).
+
+lang_used(Voc, Langs) :-
+	voc_property(Voc, languages(Langs)).

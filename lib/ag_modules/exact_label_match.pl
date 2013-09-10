@@ -3,8 +3,6 @@
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(amalgame/vocabulary)).
-:- use_module(library(amalgame/voc_stats)).
-
 :- use_module(string_match_util).
 
 :- public amalgame_module/1.
@@ -24,7 +22,7 @@ parameter(targetlabel, oneof(LabelProps), Default,
 	rdf_equal(Default, rdfs:label),
 	label_list(LabelProps).
 parameter(language, oneof(['any'|L]), 'any', 'Language of source label') :-
-	voc_property(all, languages(L)).
+	strategy_languages(_S,L).
 parameter(matchacross_lang, boolean, true,
 	  'Allow labels from different language to be matched').
 parameter(matchacross_type, boolean, true,

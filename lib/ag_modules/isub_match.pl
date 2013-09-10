@@ -5,7 +5,6 @@
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(isub)).
 :- use_module(library(amalgame/vocabulary)).
-:- use_module(library(amalgame/voc_stats)).
 :- use_module(string_match_util).
 
 :- public filter/3.
@@ -27,7 +26,7 @@ parameter(targetlabel, oneof(LabelProps), Default,
 parameter(threshold, float, 0.0,
 	  'threshold edit distance').
 parameter(language, oneof(['any'|L]), 'any', 'Language of source label') :-
-	voc_property(all, languages(L)).
+	strategy_languages(_,L).
 parameter(matchacross_lang,
 	  boolean, true,
 	  'Allow labels from different language to be matched').
