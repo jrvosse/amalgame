@@ -39,7 +39,10 @@ http_virtual_concepts(Request) :-
 				])
 			]),
 	(   ( is_virtual_scheme(Parent), var(Query), Type == inscheme)
-	->  virtual_concepts(Parent, Concepts),
+	->  findall(Label-C, (
+		    vocab_member(C, Parent),
+		    rdf_display_label(C, Label)
+		), Concepts),
 	    sort(Concepts, Sorted),
 	    length(Sorted, Total),
 	    list_offset(Sorted, Offset, OffsetResults),
@@ -53,15 +56,3 @@ http_virtual_concepts(Request) :-
 	;   http_concepts(Request)
 	).
 
-virtual_concepts(Id, Concepts) :-
-	rdf(Id, amalgame:wasGeneratedBy, _, Strategy),
-	rdfs_individual_of(Strategy, amalgame:'AlignmentStrategy'),
-	expand_node(Strategy, Id, VocSpec),
-	findall(Label-C, (
-		    vocab_member(C, VocSpec),
-		    rdf_display_label(C, Label)
-		), Concepts).
-
-is_virtual_scheme(NodeId) :-
-	ground(NodeId),
-	\+ rdf_has(_, skos:inScheme, NodeId).
