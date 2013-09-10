@@ -21,12 +21,12 @@ Currently supported statistical properties include:
 * numberOfPrefLabels(xsd:int)
 * numberOfAltLabels(xsd:int)
 * numberOfMappedConcepts(xsd:int)
+* numberOfHomonyms(label_property, xsd:int)
 * languages(list)
 * languages(label_property, list)
 
 @author Jacco van Ossenbruggen
 */
-
 
 :- dynamic
 	voc_stats_cache/2.
@@ -35,7 +35,8 @@ Currently supported statistical properties include:
 	voc_property(r, -),
 	voc_languages(r,-),
 	voc_languages(r,r,-),
-	voc_languages_used(r,r,-).
+	voc_languages_used(r,r,-),
+	count_homonyms(r,r,-).
 
 voc_property(Voc, P) :-
 	rdf_global_term(P, PG),
@@ -111,6 +112,9 @@ voc_ensure_stats(Voc, languages(L)) :-
 voc_ensure_stats(Voc, languages(P,L)) :-
 	(   voc_languages_used(Voc, P, L) -> true ; L = []),
 	assert(voc_stats_cache(Voc, languages(P,L))).
+voc_ensure_stats(Voc, numberOfHomonyms(P, Count)) :-
+	(   count_homonyms(Voc, P, Count) -> true ; Count = 0),
+	assert_voc_prop(Voc, numberOfHomonyms(P, Count)).
 
 %%	assert_voc_version(+Voc, +TargetGraph) is det.
 %
@@ -160,6 +164,20 @@ count_altLabels(Voc, Count) :-
 		Labels),
 	length(Labels, Count),
 	print_message(informational, map(found, 'SKOS alternative labels', Voc, Count)).
+
+count_homonyms(Voc, Prop, Count) :-
+	findall(Label-Concept,
+		(   vocab_member(Concept, Voc),
+		    rdf_has(Concept, Prop, literal(Label))
+		),
+		Labels),
+	keysort(Labels, Sorted),
+	group_pairs_by_key(Sorted, Grouped),
+	include(is_homonym, Grouped, Homonyms),
+	length(Homonyms, Count).
+
+is_homonym(_Label-Concepts) :-
+	length(Concepts, N), N > 1.
 
 count_mapped_concepts(Voc, Count) :-
 	findall(C,

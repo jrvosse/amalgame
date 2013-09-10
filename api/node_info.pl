@@ -121,7 +121,9 @@ amalgame_info(Scheme, Strategy,
 	     '# prefLabels'-span([PrefCount, ' (',
 				  \(ag_util_components):html_showlist(PrefLangs), ')']),
 	     '# altLabels'- span([AltCount,' (',
-				  \(ag_util_components):html_showlist(AltLangs),  ')'])
+				  \(ag_util_components):html_showlist(AltLangs),  ')']),
+	     '# pref. homonyms' - PrefHoms,
+	     '# alt. homonyms' - AltHoms
 	    ]) :-
 	rdfs_individual_of(Scheme, skos:'ConceptScheme'),
 	!,
@@ -129,7 +131,10 @@ amalgame_info(Scheme, Strategy,
 	voc_property(Scheme, numberOfPrefLabels(PrefCount)),
 	voc_property(Scheme, numberOfAltLabels(AltCount)),
 	voc_property(Scheme, languages(skos:prefLabel, PrefLangs)),
-	voc_property(Scheme, languages(skos:altLabel, AltLangs)).
+	voc_property(Scheme, languages(skos:altLabel, AltLangs)),
+	voc_property(Scheme, numberOfHomonyms(skos:prefLabel, PrefHoms)),
+	voc_property(Scheme, numberOfHomonyms(skos:altLabel, AltHoms)).
+
 
 amalgame_info(URL, Strategy,
 	       ['type'   - \(cp_label:rdf_link(Type)) | Optional ]) :-
