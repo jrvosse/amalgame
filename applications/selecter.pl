@@ -220,9 +220,9 @@ html_vocab_rows([Scheme|Vs]) -->
 		 td(\html_scheme_name(Scheme)),
 		 td(class(count), ConceptCount),
 		 td([span(class(prefLabel), PrefCount),
-		     span(class(preflangs), [' (', \showlist(PrefLangs), ')'])]),
+		     span(class(preflangs), [' (', \html_showlist(PrefLangs), ')'])]),
 		 td([span(class(altLabel), AltCount),
-		      span(class(altlangs), [' (', \showlist(AltLangs),  ')'])]),
+		      span(class(altlangs), [' (', \html_showlist(AltLangs),  ')'])]),
 		 td(class(mapped), MappedCount),
 		 td(class(pmapped), MPercent)
 		])),
@@ -507,8 +507,3 @@ cp_graph(Source, Target, false) :-
 	findall(rdf(S,P,O), rdf(S,P,O,Source), Triples),
 	forall(member(rdf(S,P,O), Triples),
 	       rdf_assert(S,P,O,Target)).
-
-showlist([]) --> !.
-showlist([H]) -->  html(H),!.
-showlist([H1,H2|Tail]) -->  html([H1,', ']), showlist([H2|Tail]).
-

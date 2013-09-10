@@ -1,8 +1,10 @@
 :- module(ag_util_components,
 	  [
-	    mint_node_uri/3,
+	      html_eq_header//1,
+	      html_showlist//1,
 
-	    html_eq_header//1,
+	      mint_node_uri/3,
+
 	    assert_user_provenance/2,
 	    amalgame_alignment/2,
 	    js_mappings/2,
@@ -341,4 +343,9 @@ remove_resource(R, G) :-
 	rdf_retractall(R,_,_,G),
 	rdf_retractall(_,R,_,G),
 	rdf_retractall(_,_,R,G).
+
+
+html_showlist([]) --> !.
+html_showlist([H]) -->  html(H),!.
+html_showlist([H1,H2|Tail]) -->  html([H1,', ']), html_showlist([H2|Tail]).
 
