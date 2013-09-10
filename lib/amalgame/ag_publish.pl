@@ -103,7 +103,7 @@ assert_void(Id,Options) :-
 
 	rdf_equal(xsd:int, Int),
 	void_graph(Strategy, Void),
-	rdf_statistics(triples_by_graph(Id, NrOfTriples)),
+	(   rdf_statistics(triples_by_graph(Id, NrOfTriples)) -> true; NrOfTriples=0),
 	assert_metadata(Id, Strategy, Void),
 	rdf_assert(All, void:subset,      Id,  Void),
 	rdf_assert(Id, void:vocabulary,   amalgame:'', Void),
@@ -134,11 +134,13 @@ default_mapping_relation(Id, Default, Options) :-
 prepare_mapping(Id, Strategy, Options) :-
 	(   \+ rdf_graph(Id)
 	->  expand_node(Strategy, Id, Mapping),
-	    Mapping = [_|_],
-	    default_mapping_relation(Id, Default, Options),
-	    augment_relations(Strategy, Id, Mapping, Augmented, [default_relation(Default)]),
-	    materialize_mapping_graph(Augmented, [graph(Id) | Options])
-	;   true
+	    (	Mapping = [_|_]
+	    ->	default_mapping_relation(Id, Default, Options),
+		augment_relations(Strategy, Id, Mapping, Augmented, [default_relation(Default)]),
+		materialize_mapping_graph(Augmented, [graph(Id) | Options])
+	    ;	true % empty mapping, do nothing
+	    )
+	;   true % already materialized in a previous run, do nothing
 	).
 
 save_mapping(Id, Options) :-
