@@ -195,18 +195,18 @@ voc_languages_used(Voc, Prop, Langs) :-
 	).
 
 language_used(Voc, Lang) :-
-	rdf_has(Concept, skos:inScheme, Voc),
+	vocab_member(Concept, Voc),
 	rdf(Concept, _, literal(lang(Lang, _))),
 	ground(Lang).
 
 language_used(Voc, Prop, Lang) :-
-	rdf_has(Concept, skos:inScheme, Voc),
+	vocab_member(Concept, Voc),
 	rdf_has(Concept, Prop, literal(lang(Lang, _))),
 	ground(Lang).
 
 voc_find_format(Voc, Format) :-
 	ground(Voc),
-	(   rdf_has(Concept, skos:inScheme, Voc)
+	(   vocab_member(Concept, Voc)
 	->  (   rdf_has(Concept, skosxl:prefLabel, _)
 	    ->  Format = skosxl
 	    ;   rdf_has(Concept, skos:prefLabel, _)
