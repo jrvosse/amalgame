@@ -24,8 +24,9 @@
 	expand_cache/2,
 	stats_cache/2.
 
-:- setting(amalgame:cache_time, float, 0.05,
-	   'Minimum execution time to cache results').
+:- setting(amalgame:cache_time, float, 0.0,
+	   'Minimum execution time to cache intermediate \c
+	   results, defaults to 0.0, caching everything').
 
 user:message_hook(make(done(_)), _, _) :-
 	debug(ag_expand, 'Flushing mapping statistics cache after running make/0', []),
