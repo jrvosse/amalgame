@@ -18,12 +18,18 @@
 %	Result is a term defined by the type of output of the
 %	components.
 %
+%	@param Id
+%          if Id is a mapping, Result is [align(c1,c2,evidence)]
+%          if Id is a Vocabulary Result is a vocspec/1 term that can
+%          be used as the second argument to vocab_member/2.
+
 expand_node(Strategy, Id, Result) :-
 	ground(Strategy),
 	ground(Id),
 	with_mutex(Id, expand_node_(Strategy, Id, Result)).
 
 expand_node_(Strategy, Id, Result) :-
+	% Try if we get this result from the expand_cache first:
 	rdf_has(Id, amalgame:wasGeneratedBy, Process, OutputType),
 	rdf(Id, OutputType, Process, Strategy),
 	expand_cache(Process-Strategy, ProcessResult),
@@ -40,6 +46,7 @@ expand_node_(Strategy, Id, Result) :-
 
 
 expand_node_(Strategy, Id, Result) :-
+	% Cache miss, we need to really do some work ...
 	(   rdfs_individual_of(Id, amalgame:'Mapping')
 	->  expand_mapping(Strategy, Id, Result)
 	;   rdfs_individual_of(Id, skos:'ConceptScheme')
@@ -49,32 +56,17 @@ expand_node_(Strategy, Id, Result) :-
 
 %%	expand_mapping(+Strategy, +Id, -Result) is det.
 %
-%	Generate the Result corresponding to Id.
-%	We use a mutex so that the next thread will use the cached
-%	version.
+%	Generate the Result corresponding to mapping Id.
 %
-%	@param Id
-%          if Id is a Mapping Result is [align(c1,c2,prov)]
-%          if Id is a Vocabulary Result is an assoc or one of
-%          scheme(Scheme) or type(Class)
 
 expand_mapping(Strategy, Id, Mapping) :-
-	(   % we should not exploit materialized graphs
-	    % until the evidence is properly serialized ... :-(
-	    (	rdf_graph(Id), rdf(Id, amalgame:recordEvidence, amalgame:enabled))
-	;   rdfs_individual_of(Id, amalgame:'EvaluatedMapping')
-	;   rdfs_individual_of(Id, amalgame:'LoadedMapping')
-	;   rdf_has(Id, amalgame:wasGeneratedBy, Process),
-	    rdf(Process, rdf:type, amalgame:'SelectPreloaded')
-	),
+	exploit_materialized_graph(Strategy, Id),
 	!,
 	debug(ag_expand, 'Using & caching already materialized mapping ~p', [Id]),
 
 	findall(C, has_correspondence(C,Id), Mapping0),
 	sort(Mapping0, Mapping),
 	cache_result(0, Id, Strategy, Mapping).
-
-
 
 expand_mapping(Strategy, Id, Mapping) :-
 	rdf_has(Id, amalgame:wasGeneratedBy, Process, OutputType),
@@ -85,10 +77,14 @@ expand_mapping(Strategy, Id, Mapping) :-
 	materialize_results_if_needed(Strategy, Process, Result),
 	select_result_mapping(Id, Result, OutputType, Mapping).
 
-% length(Mapping, Count).
-% debug(ag_expand, 'Computed & cached ~w mappings for ~p', [Count, Id]).
-
-
+% we should not exploit materialized graphs
+% until the evidence is properly serialized ... :-(
+exploit_materialized_graph(Strategy, Id) :-
+	(   rdf_graph(Id), rdf(Id, amalgame:recordEvidence, amalgame:enabled, Strategy))
+	;   rdfs_individual_of(Id, amalgame:'EvaluatedMapping')
+	;   rdfs_individual_of(Id, amalgame:'LoadedMapping')
+	;   rdf_has(Id, amalgame:wasGeneratedBy, Process),
+	    rdf(Process, rdf:type, amalgame:'SelectPreloaded').
 
 %%	expand_vocab(+Strategy, +Id, -Concepts) is det.
 %
@@ -187,8 +183,6 @@ materialize(Id, Mapping) :-
 	),
 	% voc_clear_stats(all),
 	materialize_mapping_graph(Mapping, [graph(Id), evidence_graphs(Enabled)]).
-
-
 
 run_strategy :-
 	run_strategy(_).
