@@ -24,6 +24,22 @@ expand_node(Strategy, Id, Result) :-
 	with_mutex(Id, expand_node_(Strategy, Id, Result)).
 
 expand_node_(Strategy, Id, Result) :-
+	rdf_has(Id, amalgame:wasGeneratedBy, Process, OutputType),
+	rdf(Id, OutputType, Process, Strategy),
+	expand_cache(Process-Strategy, ProcessResult),
+	!,
+	debug(ag_expand, 'Output ~p of process ~p taken from cache',
+	      [Id, Process]),
+
+	(   rdfs_individual_of(Id, amalgame:'Mapping')
+	->  select_result_mapping(Id, ProcessResult, OutputType, Result)
+	;   rdfs_individual_of(Id, skos:'ConceptScheme')
+	->  Result = ProcessResult
+	;   Result = error(Id)
+	).
+
+
+expand_node_(Strategy, Id, Result) :-
 	(   rdfs_individual_of(Id, amalgame:'Mapping')
 	->  expand_mapping(Strategy, Id, Result)
 	;   rdfs_individual_of(Id, skos:'ConceptScheme')
@@ -65,12 +81,12 @@ expand_mapping(Strategy, Id, Mapping) :-
 	rdf(Id, OutputType, Process, Strategy),
 	!,
 	with_mutex(Process,
-		   (   expand_process(Strategy, Process, Result, Time),
-		       cache_result(Time, Process, Strategy, Result))),
+		   expand_process(Strategy, Process, Result)),
 	materialize_results_if_needed(Strategy, Process, Result),
-	select_result_mapping(Id, Result, OutputType, Mapping),
-	length(Mapping, Count),
-	debug(ag_expand, 'Computed & cached ~w mappings for ~p', [Count, Id]).
+	select_result_mapping(Id, Result, OutputType, Mapping).
+
+% length(Mapping, Count).
+% debug(ag_expand, 'Computed & cached ~w mappings for ~p', [Count, Id]).
 
 
 
@@ -81,14 +97,11 @@ expand_mapping(Strategy, Id, Mapping) :-
 %	of concepts derived by a vocabulary process,
 
 expand_vocab(Strategy, Id, Vocab) :-
-	rdf_has(Id, amalgame:wasGeneratedBy, Process ,OutputType),
+	rdf_has(Id, amalgame:wasGeneratedBy, Process, OutputType),
 	rdf(Id, OutputType, Process, Strategy),
 	!,
 	with_mutex(Process,
-		   (   expand_process(Strategy, Process, Vocab, Time),
-		       cache_result(Time, Process, Strategy, Vocab)
-		   )
-		  ).
+		   expand_process(Strategy, Process, Vocab)).
 
 expand_vocab(Strategy, Vocab, vocspec(scheme(Vocab))) :-
 	rdf_equal(amalgame:preloaded, Preloaded),
@@ -99,15 +112,8 @@ expand_vocab(Strategy, Vocab, vocspec(scheme(Vocab))) :-
 %
 %	Expand Process according to Strategy to generate Result.
 
-expand_process(Strategy, Process, Result, Time) :-
+expand_process(Strategy, Process, Result) :-
 	ground(Process),
-	(   expand_cache(Process-Strategy, Result)
-	->  Time = 0,
-	    debug(ag_expand, 'Output of process ~p taken from cache', [Process])
-	;   do_expand_process(Strategy, Process, Result, Time)
-	).
-
-do_expand_process(Strategy, Process, Result, Time) :-
 	rdf(Process, rdf:type, Type, Strategy),
 
 	% Do not try multiple types if something fails below...
@@ -119,10 +125,12 @@ do_expand_process(Strategy, Process, Result, Time) :-
 	exec_amalgame_process(Type, Process, Strategy,
 			      Module, Result, Time, Options),
 	(   ground(Result)
-	->  debug(ag_expand, 'Output of process ~p (~p) computed in ~ws', [Process,Type,Time])
+	->  debug(ag_expand, 'Output of process ~p (~p) computed in ~ws',
+		  [Process,Type,Time])
 	;   throw(error(instantiation_error, 'Mappings results not grounded'))
 	),
 
+	cache_result(Time, Process, Strategy, Result),
 
 	% Provenance admin:
 	(   Result = vocspec(_)   % Result is a single vocabulary
@@ -136,6 +144,10 @@ do_expand_process(Strategy, Process, Result, Time) :-
 	    add_amalgame_prov(Strategy, Process, Artifacts)
 	),
 
+	preload_hack(Strategy, Process, Type, Options).
+
+
+preload_hack(Strategy, Process, Type, Options) :-
 	% HACK: this is needed to get preloaded graphs in the strategy graph
         % because we cannot select a mapping that has not been generated within the
 	% builder as an input mapping...
