@@ -12,6 +12,7 @@
 :- use_module(library(semweb/rdf_library)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_dirindex)).
+:- use_module(library(http/http_server_files)).
 
 :- use_module(library(skos_schema)).
 :- use_module(library(void_schema)).
@@ -42,11 +43,13 @@ http:location(img,		 root(img),                  [ priority(-100) ]).
 
 % add local web directories from which static files are served.
 
-:- asserta(user:file_search_path(alignment_results, web(alignment_results))).
-:- asserta(user:file_search_path(img, web(img))).
+user:file_search_path(alignment_results, web(alignment_results)).
+user:file_search_path(img, web(img)).
 
-:- http_handler(alignment_results(.), serve_static(alignment_results), [prefix]).
-:- http_handler(img(.),               serve_static(img),               [prefix]).
+:- http_handler(alignment_results(.),
+		serve_static(alignment_results), [prefix]).
+:- http_handler(img(.),
+		serve_files_in_directory(img),	 [prefix]).
 
 serve_static(Alias, Request) :-
 	memberchk(path(PathInfo), Request),
