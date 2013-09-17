@@ -46,7 +46,7 @@ expand_node_(Strategy, Id, Result) :-
 
 
 expand_node_(Strategy, Id, Result) :-
-	% Cache miss, we need to really do some work ...
+	% Cache miss, we need to do the work ...
 	(   rdfs_individual_of(Id, amalgame:'Mapping')
 	->  expand_mapping(Strategy, Id, Result)
 	;   rdfs_individual_of(Id, skos:'ConceptScheme')
@@ -66,7 +66,12 @@ expand_mapping(Strategy, Id, Mapping) :-
 
 	findall(C, has_correspondence(C,Id), Mapping0),
 	sort(Mapping0, Mapping),
-	cache_result(0, Id, Strategy, Mapping).
+
+	(   rdf_has(Id, amalgame:wasGeneratedBy, Process, OutputType),
+	    rdf(Id, OutputType, Process, Strategy)
+	->  cache_result(0.1, Process, Strategy, mapspec(mapping(Mapping)))
+	;   cache_result(0.1, Id, Strategy, Mapping)
+	).
 
 expand_mapping(Strategy, Id, Mapping) :-
 	rdf_has(Id, amalgame:wasGeneratedBy, Process, OutputType),
