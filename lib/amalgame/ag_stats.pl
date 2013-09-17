@@ -13,6 +13,7 @@
 :- use_module(library(amalgame/vocabulary)).
 :- use_module(library(amalgame/ag_evaluation)).
 :- use_module(library(amalgame/util)).
+:- use_module(library(amalgame/map)).
 
 %%	mapping_counts(+MappingURI,+Strat,?MappingN,?SourceN,?TargetN,?SourcePerc,?TargetPerc)
 %	is det.
@@ -89,6 +90,15 @@ vocab_stats(Scheme, Count):-
 %	Source and Target are the recursive source and target
 %	vocabularies of Mapping.
 
+mapping_sources(Manual, Strategy, SV, TV) :-
+	rdf_has(Manual, amalgame:evaluationOf, Strategy),
+	!,
+	has_correspondence_chk(align(SC,TC,_), Manual),
+	rdf_has(Strategy, amalgame:includes, SV),
+	vocab_member(SC, scheme(SV)),
+	rdf_has(Strategy, amalgame:includes, TV),
+	vocab_member(TC, scheme(TV)).
+
 mapping_sources(URL, Strategy, S, T) :-
 	rdf_has(URL, amalgame:wasGeneratedBy, Process, RealProp),
 	rdf(URL, RealProp, Process, Strategy),
@@ -100,6 +110,8 @@ mapping_sources(URL, Strategy, S, T) :-
 	;   rdf(Process, amalgame:input, Input, Strategy)
 	->  mapping_sources(Input, Strategy, S, T)
 	).
+
+
 
 vocab_source(V, Strategy, S) :-
 	rdf_has(V, amalgame:wasGeneratedBy, Process, Strategy),
