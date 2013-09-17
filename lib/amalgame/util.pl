@@ -5,19 +5,22 @@
 
 	      mint_node_uri/3,
 
-	    assert_user_provenance/2,
-	    amalgame_alignment/2,
-	    js_mappings/2,
-	    js_focus_node/3,
-	    js_alignment_nodes/2,
-	    now_xsd/1,
-	    xsd_timestamp/2,
-	    has_write_permission/0,
+	      assert_user_provenance/2,
+	      amalgame_alignment/2,
 
-	    list_offset/3,
-	    list_limit/4,
-	    sort_by_arg/3,
-	    remove_resource/2 % +Resource, +Graph
+	      js_mappings/2,
+	      js_focus_node/3,
+	      js_alignment_nodes/2,
+
+	      now_xsd/1,
+	      xsd_timestamp/2,
+	      has_write_permission/0,
+
+	      rounded_perc/3,
+	      list_offset/3,
+	      list_limit/4,
+	      sort_by_arg/3,
+	      remove_resource/2 % +Resource, +Graph
 	  ]).
 
 
@@ -349,3 +352,16 @@ html_showlist([]) --> !.
 html_showlist([H]) -->  html(H),!.
 html_showlist([H1,H2|Tail]) -->  html([H1,', ']), html_showlist([H2|Tail]).
 
+rounded_perc(0, _, 0.0) :- !.
+rounded_perc(_, 0, 0.0) :- !.
+rounded_perc(Total, V, Perc) :-
+	Perc0 is V/Total,
+	dyn_perc_round(Perc0, Perc, 100).
+
+dyn_perc_round(P0, P, N) :-
+	P1 is round(P0*N),
+	(   P1 == 0
+	->  N1 is N*10,
+	    dyn_perc_round(P0, P, N1)
+	;   P is P1/(N/100)
+	).

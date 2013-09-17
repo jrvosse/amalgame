@@ -10,6 +10,7 @@
 :- use_module(library(amalgame/amalgame_modules)).
 :- use_module(library(amalgame/ag_stats)).
 :- use_module(library(amalgame/voc_stats)).
+:- use_module(library(amalgame/util)).
 :- use_module(components(label)). % we need rdf_link//1 from this module
 
 :- use_module(library(amalgame/ag_controls)).
@@ -122,8 +123,8 @@ amalgame_info(Scheme, Strategy,
 				  \(ag_util_components):html_showlist(PrefLangs), ')']),
 	     '# altLabels'- span([AltCount,' (',
 				  \(ag_util_components):html_showlist(AltLangs),  ')']),
-	     '# pref. homonyms' - PrefHoms,
-	     '# alt. homonyms' - AltHoms
+	     '# ambiguous prefs:'-span([PrefHoms, ' (', PrefHomsP, '%)']),
+	     '# ambiguous alts:' -span([AltHoms,  ' (', AltHomsP,  '%)'])
 	    ]) :-
 	rdfs_individual_of(Scheme, skos:'ConceptScheme'),
 	!,
@@ -133,7 +134,9 @@ amalgame_info(Scheme, Strategy,
 	voc_property(Scheme, languages(skos:prefLabel, PrefLangs)),
 	voc_property(Scheme, languages(skos:altLabel, AltLangs)),
 	voc_property(Scheme, numberOfHomonyms(skos:prefLabel, PrefHoms)),
-	voc_property(Scheme, numberOfHomonyms(skos:altLabel, AltHoms)).
+	voc_property(Scheme, numberOfHomonyms(skos:altLabel, AltHoms)),
+	rounded_perc(PrefCount, PrefHoms, PrefHomsP),
+	rounded_perc(AltCount, AltHoms, AltHomsP).
 
 
 amalgame_info(URL, Strategy,

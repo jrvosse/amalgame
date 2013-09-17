@@ -12,6 +12,7 @@
 :- use_module(library(amalgame/caching)).
 :- use_module(library(amalgame/vocabulary)).
 :- use_module(library(amalgame/ag_evaluation)).
+:- use_module(library(amalgame/util)).
 
 %%	mapping_counts(+MappingURI,+Strat,?MappingN,?SourceN,?TargetN,?SourcePerc,?TargetPerc)
 %	is det.
@@ -81,19 +82,7 @@ vocab_stats(Scheme, Count):-
 	findall(C, vocab_member(C, Scheme), Cs),
 	length(Cs, Count).
 
-rounded_perc(0, _, 0.0) :- !.
-rounded_perc(_, 0, 0.0) :- !.
-rounded_perc(Total, V, Perc) :-
-	Perc0 is V/Total,
-	dyn_perc_round(Perc0, Perc, 100).
 
-dyn_perc_round(P0, P, N) :-
-	P1 is round(P0*N),
-	(   P1 == 0
-	->  N1 is N*10,
-	    dyn_perc_round(P0, P, N1)
-	;   P is P1/(N/100)
-	).
 
 %%	mapping_sources(+MappingURI, Strategy, -Source, -Target)
 %
@@ -177,7 +166,9 @@ compare_against_ref([align(S,T,P)|MT],[align(SR,TR,PR)|RT], Rel,
 	->  compare_against_ref([align(S,T,P)|MT], RT, Rel,
 				partition(Matches,Conflicts, Unknown, [align(SR,TR,PR)|Missing]), Stats)
 	;   member(Manual, PR),
-	    member(method(manual_evaluation), Manual),
+	    (	member(method(manual_evaluation), Manual)
+	    ;	member(method(preloaded), Manual)
+	    ),
 	    option(relation(Rel), Manual)
 	->  compare_against_ref(MT, RT, Rel,
 				partition([align(S,T,P)|Matches], Conflicts, Unknown, Missing), Stats)
