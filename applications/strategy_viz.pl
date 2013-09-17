@@ -13,7 +13,7 @@
 :- use_module(components(label)).
 :- use_module(components(graphviz)).
 :- use_module(library(amalgame/caching)).
-:- use_module(library(amalgame/expand_graph)).
+:- use_module(library(amalgame/ag_stats)).
 :- use_module(library(amalgame/ag_evaluation)).
 :- use_module(library(amalgame/map)).
 
@@ -52,8 +52,8 @@ http_strategy_viz(Request) :-
 			       description('URI of a node that should be expanded first')
 			      ])
 			]),
-	% When a node has been selected, make sure it is expanded so we know the stats
-	(   ground(Selected) -> expand_node(Alignment, Selected, _); true),
+	% When a node has been selected, make sure we know the stats
+	(   ground(Selected) -> node_stats(Alignment, Selected, _); true),
 
 	(   Format \== html
 	->  reply_alignment_graph(Alignment, Format)
@@ -216,6 +216,13 @@ amalgame_label(Alignment, Resource, Lang, MaxLen, Label) :-
 stats_label_list(Alignment, Resource, [Count]) :-
 	stats_cache(Resource-Alignment, vstats(Count)),
 	!.
+stats_label_list(Alignment, Resource, [IPerc, '% (', SPerc, '% ', TPerc, '%)']) :-
+	stats_cache(Resource-Alignment, mstats(Stats)),
+	option(sourcePercentage(SPerc), Stats),
+	option(targetPercentage(TPerc), Stats),
+	option(inputPercentage(IPerc), Stats),
+	!.
+
 stats_label_list(Alignment, Resource, [SPerc, '% - ', TPerc, '%']) :-
 	stats_cache(Resource-Alignment, mstats(Stats)),
 	option(sourcePercentage(SPerc), Stats),
