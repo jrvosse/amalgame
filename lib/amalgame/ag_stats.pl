@@ -1,4 +1,5 @@
 :- module(ag_stats,[
+	      node_stats/3,
 	      mapping_counts/3,
 	      concept_count/3,
 	      reference_counts/3,
@@ -7,6 +8,7 @@
 	  ]).
 
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdfs)).
 :- use_module(library(amalgame/expand_graph)).
 :- use_module(library(amalgame/caching)).
 :- use_module(library(amalgame/vocabulary)).
@@ -14,14 +16,18 @@
 :- use_module(library(amalgame/util)).
 :- use_module(library(amalgame/map)).
 
-%%	mapping_counts(+MappingURI,+Strat,?MappingN,?SourceN,?TargetN,?SourcePerc,?TargetPerc)
+node_stats(Strategy, Node, Stats) :-
+	(   rdfs_individual_of(Node, amalgame:'Mapping')
+	->  mapping_counts(Node, Strategy, Stats)
+	;   rdfs_individual_of(Node, skos:'ConceptScheme')
+	->  concept_count(Node, Strategy, Stats)
+	;   Stats = []
+	).
+
+%%	mapping_counts(+MappingURI,+Strategy, Stats)
 %	is det.
 %
 %	Counts for the mappings in MappingURI.
-%
-%       @param MappingN is the number of total correspondences
-%       @param SourceN is the number of source concepts mapped
-%       @param TargetN is the number of target concepts mapped
 
 mapping_counts(URL, Strategy, Stats) :-
 	with_mutex(URL,	mapping_counts_(URL, Strategy, Stats)).
@@ -74,6 +80,7 @@ mapping_stats(URL, Mapping, Strategy, Stats) :-
 		    mappedTargetConcepts(TN),
 		    sourcePercentage(SPerc),
 		    targetPercentage(TPerc)
+		    | Extra
 		]),
 	(   mapping_vocab_sources(URL, Strategy, InputS, InputT)
 	->  concept_count(InputS, Strategy, SourceN),
@@ -81,7 +88,24 @@ mapping_stats(URL, Mapping, Strategy, Stats) :-
 	    rounded_perc(SourceN, SN, SPerc),
 	    rounded_perc(TargetN, TN, TPerc)
 	;   SPerc = 100, TPerc = 100
+	),
+	findall(Input, has_mapping_input(URL, Strategy, Input), Inputs),
+	(   Inputs \= []
+	->  maplist(expand_node(Strategy), Inputs, InputMappings),
+	    append(InputMappings, Merged),
+	    sort(Merged, Unique),
+	    length(Unique, IML),
+	    rounded_perc(IML,MN,IP),
+	    Extra = [ inputPercentage(IP)]
+	;   Extra = []
 	).
+
+has_mapping_input(URL, Strategy, Input) :-
+	rdf_has(URL, prov:wasGeneratedBy, Process, RP),
+	rdf(URL, RP, Process, Strategy),
+	rdf_has(Process, amalgame:input, Input),
+	rdfs_individual_of(Input, amalgame:'Mapping').
+
 
 vocab_stats(Scheme, Count):-
 	findall(C, vocab_member(C, Scheme), Cs),
