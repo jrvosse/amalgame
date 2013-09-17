@@ -1,6 +1,5 @@
 :- module(ag_stats,[
 	      node_stats/3,
-	      mapping_counts/3,
 	      concept_count/3,
 	      reference_counts/3,
 	      mapping_stats/4,

@@ -106,7 +106,7 @@ amalgame_info(URL, Strategy, Stats) :-
 		 'matched source concepts'-SN,
 		 'matched target concepts'-TN
 		],
-	mapping_counts(URL, Strategy, MStats),
+	node_stats(Strategy, URL, MStats),
 	option(totalCount(MN), MStats),
 	option(mappedSourceConcepts(SN0), MStats),
 	option(mappedTargetConcepts(TN0), MStats),
