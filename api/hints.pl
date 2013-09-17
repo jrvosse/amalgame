@@ -97,7 +97,7 @@ find_hint(Strategy, Context, Hint) :-
 find_hint(Strategy, Context, Hint) :-
 	option(focus(Focus), Context),
 	Focus == Strategy,
-	\+ hints_mapping_counts(_,_,_,_,_,_,_),
+	\+ hints_mapping_counts(_,_,_),
 	!,
 	% this is typically the case for a reloaded strategy,
 	% when no mappings have been expanded yet. Let's expand a random endpoint mapping.
@@ -182,7 +182,10 @@ find_hint(Strategy, Context, Hint) :-
 	option(focus(Focus), Context),
 	ground(Focus),
 	\+ rdf(Focus, amalgame:evaluationOf, _, Strategy),
-	hints_mapping_counts(Focus, Strategy, N,N,N,_,_),
+	hints_mapping_counts(Focus, Strategy, Stats),
+	option(total_count(N), Stats),
+	option(source_count(N), Stats),
+	option(target_count(N), Stats),
 	N > 0, N < 51,
 	!,
 	format(atom(Text), 'Evaluate: this dataset only contains ~w non-ambigious mappings, that is good!  It has not yet been evaluated, however.  Manual inspection could help you decide if the quality is sufficient.', [N]),
@@ -202,7 +205,10 @@ find_hint(Strategy, Context, Hint) :-
 	option(focus(Focus), Context),
 	ground(Focus),
 	is_endpoint(Strategy, Focus),
-	hints_mapping_counts(Focus, Strategy, N,N,N,_,_),
+	hints_mapping_counts(Focus, Strategy, Stats),
+	option(total_count(N), Stats),
+	option(source_count(N), Stats),
+	option(target_count(N), Stats),
 	N > 50,
 	!,
 	rdf_equal(Process, amalgame:'Sampler'),
@@ -254,7 +260,12 @@ needs_disambiguation(Strategy, Focus, Mapping) :-
 	;   fail % Endpoints = Endpoints0
 	),
 	member(Mapping, Endpoints),
-	\+ hints_mapping_counts(Mapping, Strategy, N, N, N, _, _).   %  differs from the total number of mappings
+	hints_mapping_counts(Mapping, Strategy, Stats),
+	option(total_count(N), Stats),
+	option(source_count(SC), Stats),
+	option(target_count(TC), Stats),
+	N \= SC,
+	N \= TC.
 
 is_known_to_be_disambiguous(Strategy, Focus, Focus) :-
 	rdf_has(Focus, amalgame:discardedBy, Process),
@@ -292,7 +303,8 @@ is_result_of_process_type(Mapping, Type) :-
 % These are variants that just take things from the cache but
 % never expand/compute something.
 
-hints_mapping_counts(Id, Strategy, MN, SN, TN, SPerc, TPerc) :-
-	stats_cache(Id-Strategy, stats(MN, SN, TN, SPerc, TPerc)).
-hints_concept_count(Vocab, Strategy, Count) :-
-	stats_cache(Vocab-Strategy, stats(Count)).
+hints_mapping_counts(Id, Strategy, Stats) :-
+	stats_cache(Id-Strategy, Stats).
+
+hints_concept_count(Id, Strategy, Stats) :-
+	stats_cache(Id-Strategy, Stats).

@@ -1,11 +1,10 @@
-
 :- module(ag_stats,[
-		    mapping_counts/7,
-		    concept_count/3,
-		    reference_counts/3,
-		    mapping_stats/4,
-		    vocab_stats/2
-		   ]).
+	      mapping_counts/3,
+	      concept_count/3,
+	      reference_counts/3,
+	      mapping_stats/4,
+	      vocab_stats/2
+	  ]).
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(amalgame/expand_graph)).
@@ -24,16 +23,15 @@
 %       @param SourceN is the number of source concepts mapped
 %       @param TargetN is the number of target concepts mapped
 
-mapping_counts(URL, Strategy, MN, SN, TN, SPerc, TPerc) :-
-	with_mutex(URL, mapping_counts_(URL, Strategy, MN, SN, TN, SPerc, TPerc)).
+mapping_counts(URL, Strategy, Stats) :-
+	with_mutex(URL,	mapping_counts_(URL, Strategy, Stats)).
 
-mapping_counts_(URL, Strategy, MN, SN, TN, SPerc, TPerc) :-
+mapping_counts_(URL, Strategy, Stats) :-
 	(   stats_cache(URL-Strategy, _)
 	->  true
 	;   expand_node(Strategy, URL, _Mapping)
 	),
-	stats_cache(URL-Strategy, stats(MN, SN, TN, SPerc, TPerc)).
-
+	stats_cache(URL-Strategy, mstats(Stats)).
 
 %%	concept_count(+Vocab, +Strategy, -Count)
 %
@@ -47,7 +45,7 @@ concept_count_(Vocab, Strategy, Count) :-
 	->  true
 	;   expand_node(Strategy, Vocab, _Scheme)
 	),
-	stats_cache(Vocab-Strategy, stats(Count)).
+	stats_cache(Vocab-Strategy, vstats(Count)).
 
 reference_counts(Id, Strategy, Stats) :-
 	with_mutex(Id, reference_counts_(Id, Strategy, Stats)).
@@ -70,7 +68,13 @@ mapping_stats(URL, Mapping, Strategy, Stats) :-
 	length(Mapping, MN),
 	length(Ss, SN),
 	length(Ts, TN),
-	Stats = stats(MN, SN, TN, SPerc, TPerc),
+	Stats = mstats([
+		    total_count(MN),
+		    source_count(SN),
+		    target_count(TN),
+		    source_perc(SPerc),
+		    target_perc(TPerc)
+		]),
 	(   mapping_sources(URL, Strategy, InputS, InputT)
 	->  concept_count(InputS, Strategy, SourceN),
 	    concept_count(InputT, Strategy, TargetN),

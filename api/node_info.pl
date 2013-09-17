@@ -106,7 +106,15 @@ amalgame_info(URL, Strategy, Stats) :-
 		 'matched source concepts'-SN,
 		 'matched target concepts'-TN
 		],
-	mapping_counts(URL, Strategy, MN, SN0, TN0, SPerc, TPerc),
+	mapping_counts(URL, Strategy, MStats),
+	option(total_count(MN), MStats),
+	option(source_count(SN0), MStats),
+	option(target_count(TN0), MStats),
+	option(source_perc(SPerc), MStats),
+	option(target_perc(TPerc), MStats),
+
+
+	% MN, SN0, TN0, SPerc, TPerc),
 	atomic_list_concat([SN0, ' (',SPerc,'%)'], SN),
 	atomic_list_concat([TN0, ' (',TPerc,'%)'], TN),
 

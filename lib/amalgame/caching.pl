@@ -175,7 +175,7 @@ cache_result_stats(Process, Strategy, vocspec(VocSpec)) :-
 	!,
 	vocab_stats(VocSpec, Count),
 	retractall(stats_cache(Id-Strategy,_)),
-	assert(stats_cache(Id-Strategy, stats(Count))).
+	assert(stats_cache(Id-Strategy, vstats(Count))).
 
 cache_result_stats(Process, _Strategy, _Result) :-
 	debug(ag_caching, 'Error: do not know how to cache stats of ~p', [Process]),
