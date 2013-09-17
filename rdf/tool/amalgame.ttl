@@ -181,7 +181,7 @@ amalgame:overlap_set
 	rdfs:domain amalgame:Alignment ;
 	rdfs:range rdfs:Literal .
 
-amalgame:count a rdf:Property, owl:FunctionalProperty ;
+amalgame:totalCount a rdf:Property, owl:FunctionalProperty ;
 	rdfs:label "total map count" ;
 	rdfs:comment "The number of mappings in this Aligment" ;
 	rdfs:domain amalgame:Alignment ;
@@ -200,18 +200,6 @@ amalgame:mappedSourceConcepts a rdf:Property, owl:FunctionalProperty ;
 amalgame:mappedTargetConcepts a rdf:Property, owl:FunctionalProperty ;
 	rdfs:domain amalgame:Alignment ;
 	rdfs:range xsd:int .
-
-amalgame:count a rdf:Property, owl:FunctionalProperty ;
-	rdfs:label "total map count" ;
-	rdfs:comment "The number of mappings in this Aligment" ;
-	rdfs:domain amalgame:Alignment ;
-	rdfs:range xsd:int .
-
-amalgame:format a rdf:Property , owl:FunctionalProperty ;
-	rdfs:label "mapping format" ;
-	rdfs:comment "The format of the mappings in this Aligment, assuming a graph contains only one format." ;
-	rdfs:domain amalgame:Alignment ;
-	rdfs:range rdfs:Literal .
 
 amalgame:nickname a rdf:Property , owl:FunctionalProperty ;
 	rdfs:domain amalgame:Alignment ;

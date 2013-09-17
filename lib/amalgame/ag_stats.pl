@@ -69,13 +69,13 @@ mapping_stats(URL, Mapping, Strategy, Stats) :-
 	length(Ss, SN),
 	length(Ts, TN),
 	Stats = mstats([
-		    total_count(MN),
-		    source_count(SN),
-		    target_count(TN),
-		    source_perc(SPerc),
-		    target_perc(TPerc)
+		    totalCount(MN),
+		    mappedSourceConcepts(SN),
+		    mappedTargetConcepts(TN),
+		    sourcePercentage(SPerc),
+		    targetPercentage(TPerc)
 		]),
-	(   mapping_sources(URL, Strategy, InputS, InputT)
+	(   mapping_vocab_sources(URL, Strategy, InputS, InputT)
 	->  concept_count(InputS, Strategy, SourceN),
 	    concept_count(InputT, Strategy, TargetN),
 	    rounded_perc(SourceN, SN, SPerc),
@@ -89,12 +89,12 @@ vocab_stats(Scheme, Count):-
 
 
 
-%%	mapping_sources(+MappingURI, Strategy, -Source, -Target)
+%%	mapping_vocab_sources(+MappingURI, Strategy, -Source, -Target)
 %
 %	Source and Target are the recursive source and target
 %	vocabularies of Mapping.
 
-mapping_sources(Manual, Strategy, SV, TV) :-
+mapping_vocab_sources(Manual, Strategy, SV, TV) :-
 	rdf_has(Manual, amalgame:evaluationOf, Strategy),
 	!,
 	has_correspondence_chk(align(SC,TC,_), Manual),
@@ -103,7 +103,7 @@ mapping_sources(Manual, Strategy, SV, TV) :-
 	rdf_has(Strategy, amalgame:includes, TV),
 	vocab_member(TC, scheme(TV)).
 
-mapping_sources(URL, Strategy, S, T) :-
+mapping_vocab_sources(URL, Strategy, S, T) :-
 	rdf_has(URL, amalgame:wasGeneratedBy, Process, RealProp),
 	rdf(URL, RealProp, Process, Strategy),
 	!,
@@ -112,7 +112,7 @@ mapping_sources(URL, Strategy, S, T) :-
 	->  vocab_source(S0, Strategy, S),
 	    vocab_source(T0, Strategy, T)
 	;   rdf(Process, amalgame:input, Input, Strategy)
-	->  mapping_sources(Input, Strategy, S, T)
+	->  mapping_vocab_sources(Input, Strategy, S, T)
 	).
 
 

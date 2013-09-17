@@ -312,7 +312,7 @@ assert_count(MapUri, MapList, ProvGraph) :-
 	length(Ss, SN),
 	length(Ts, TN),
 	length(MapList, Count),
-	rdf_assert(MapUri, amalgame:count,
+	rdf_assert(MapUri, amalgame:totalCount,
 		   literal(type('http://www.w3.org/2001/XMLSchema#int', Count)), ProvGraph),
 	rdf_assert(MapUri, amalgame:mappedSourceConcepts,
 		   literal(type('http://www.w3.org/2001/XMLSchema#int', SN)), ProvGraph),

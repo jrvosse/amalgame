@@ -183,9 +183,9 @@ find_hint(Strategy, Context, Hint) :-
 	ground(Focus),
 	\+ rdf(Focus, amalgame:evaluationOf, _, Strategy),
 	hints_mapping_counts(Focus, Strategy, Stats),
-	option(total_count(N), Stats),
-	option(source_count(N), Stats),
-	option(target_count(N), Stats),
+	option(totalCount(N), Stats),
+	option(mappedSourceConcepts(N), Stats),
+	option(mappedTargetConcepts(N), Stats),
 	N > 0, N < 51,
 	!,
 	format(atom(Text), 'Evaluate: this dataset only contains ~w non-ambigious mappings, that is good!  It has not yet been evaluated, however.  Manual inspection could help you decide if the quality is sufficient.', [N]),
@@ -206,9 +206,9 @@ find_hint(Strategy, Context, Hint) :-
 	ground(Focus),
 	is_endpoint(Strategy, Focus),
 	hints_mapping_counts(Focus, Strategy, Stats),
-	option(total_count(N), Stats),
-	option(source_count(N), Stats),
-	option(target_count(N), Stats),
+	option(totalCount(N), Stats),
+	option(mappedSourceConcepts(N), Stats),
+	option(mappedTargetConcepts(N), Stats),
 	N > 50,
 	!,
 	rdf_equal(Process, amalgame:'Sampler'),
@@ -261,9 +261,9 @@ needs_disambiguation(Strategy, Focus, Mapping) :-
 	),
 	member(Mapping, Endpoints),
 	hints_mapping_counts(Mapping, Strategy, Stats),
-	option(total_count(N), Stats),
-	option(source_count(SC), Stats),
-	option(target_count(TC), Stats),
+	option(totalCount(N), Stats),
+	option(mappedSourceConcepts(SC), Stats),
+	option(mappedTargetConcepts(TC), Stats),
 	N \= SC,
 	N \= TC.
 
@@ -304,7 +304,7 @@ is_result_of_process_type(Mapping, Type) :-
 % never expand/compute something.
 
 hints_mapping_counts(Id, Strategy, Stats) :-
-	stats_cache(Id-Strategy, Stats).
+	stats_cache(Id-Strategy, mstats(Stats)).
 
 hints_concept_count(Id, Strategy, Stats) :-
-	stats_cache(Id-Strategy, Stats).
+	stats_cache(Id-Strategy, vstats(Stats)).

@@ -134,7 +134,8 @@ is_amalgame_property(P) :-
 
 empty_result(Strategy, M) :-
 	rdfs_individual_of(M, amalgame:'Mapping'),
-	stats_cache(M-Strategy, stats(0,0,0,_,_)),!.
+	stats_cache(M-Strategy, mstats(Stats)),
+	option(totalCount(0), Stats),!.
 
 empty_result(_Strategy,M) :-
 	is_empty_eval_graph(M).
@@ -213,10 +214,12 @@ amalgame_label(Alignment, Resource, Lang, MaxLen, Label) :-
 	).
 
 stats_label_list(Alignment, Resource, [Count]) :-
-	stats_cache(Resource-Alignment, stats(Count)),
+	stats_cache(Resource-Alignment, vstats(Count)),
 	!.
 stats_label_list(Alignment, Resource, [SPerc, '% - ', TPerc, '%']) :-
-	stats_cache(Resource-Alignment, stats(_,_,_, SPerc, TPerc)),
+	stats_cache(Resource-Alignment, mstats(Stats)),
+	option(sourcePercentage(SPerc), Stats),
+	option(targetPercentage(TPerc), Stats),
 	!.
 stats_label_list(_, _, []).
 
