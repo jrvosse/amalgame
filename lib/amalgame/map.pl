@@ -173,7 +173,8 @@ has_map([E1, E2], edoal, Properties, Graph) :-
 		),
 		Properties).
 
-has_map([E1, E2], Format, [relation(RealProp)], Graph) :-
+has_map([E1, E2], Format, [[method(preloaded),
+			    relation(RealProp)]], Graph) :-
 	mapping_relation(Format,MappingProp),
 	(   ground(E1), ground(E2)
 	->  rdf_has(E1, MappingProp, E2, RealProp),
@@ -388,7 +389,9 @@ augment_relation(Mappings, Reference, NewResults, Options) :-
 	compare(Comp, align(S,T), align(SR,TR)),
 	(   Comp == =
 	->  member(Manual, RProv),
-	    member(method(manual_evaluation), Manual),
+	    (	member(method(manual_evaluation), Manual)
+	    ;	member(method(preloaded), Manual)
+	    ),
 	    option(relation(_Rel), Manual),
 	    NProv = [Manual|Prov],
 	    NewResults =  [align(S,T,NProv)|Results],
