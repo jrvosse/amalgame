@@ -102,7 +102,7 @@ html_form(Params, URI) -->
 amalgame_info(URL, Strategy, Stats) :-
 	rdfs_individual_of(URL, amalgame:'Mapping'),
 	!,
-	BasicStats = ['total matches'-MN,
+	BasicStats = [
 		 'matched source concepts'-SN,
 		 'matched target concepts'-TN
 		],
@@ -121,7 +121,11 @@ amalgame_info(URL, Strategy, Stats) :-
 	->  true
 	;   ReferenceStats = []
 	),
-	append(BasicStats, ReferenceStats, Stats).
+	(   option(inputPercentage(IP), MStats)
+	->  IpStats = [ 'total matches'-span([MN, ' (', IP, '%)'])]
+	;   IpStats = [ 'total matches'-MN ]
+	),
+	append([IpStats, BasicStats, ReferenceStats], Stats).
 
 amalgame_info(Scheme, Strategy,
 	    ['Total concepts'-Total,
