@@ -32,6 +32,8 @@ Currently supported statistical properties include:
 	voc_stats_cache/2.
 
 :- rdf_meta
+	children(r,r,t,t),
+	has_child(r,r,-),
 	voc_property(r, -),
 	voc_languages(r,-),
 	voc_languages(r,r,-),
@@ -51,6 +53,7 @@ assert_voc_prop(Voc, M) :-
 
 voc_clear_stats(all) :-
 	retractall(voc_stats_cache(_,_)),
+	rdf_unload_graph(vocstats),
 	print_message(informational, map(cleared, 'vocabulary statistics', all_vocs, all)).
 
 voc_clear_stats(Voc) :-
@@ -115,6 +118,10 @@ voc_ensure_stats(Voc, languages(P,L)) :-
 voc_ensure_stats(Voc, numberOfHomonyms(P, Count)) :-
 	(   count_homonyms(Voc, P, Count) -> true ; Count = 0),
 	assert_voc_prop(Voc, numberOfHomonyms(P, Count)).
+
+voc_ensure_stats(Voc, depth(Stats)) :-
+	(  compute_depth_stats(Voc, depth(Stats)) -> true ; Stats = []),
+	assert_voc_prop(Voc, depth(Stats)).
 
 %%	assert_voc_version(+Voc, +TargetGraph) is det.
 %
@@ -235,4 +242,75 @@ voc_find_format(Voc, Format) :-
 	    )
 	;   Format = null		% no concepts in the scheme
 	).
+
+compute_depth_stats(Voc, Stats) :-
+	with_mutex(Voc,
+		   (   compute_depth(Voc),
+		       findall(D,
+			       (   vocab_member(C, Voc),
+				   rdf(C, amalgame:depth,
+				       literal(type(xsd:int, D)))
+			       ), Ds),
+		       mean_std(Ds, Mean, Std, _),
+		       Stats = depth([mean(Mean),
+				standard_deviation(Std)])
+		   )).
+
+compute_depth(Voc) :-
+	findall(TopConcept,
+		(   vocab_member(TopConcept, Voc),
+		    \+ parent_child(_, TopConcept, Voc)
+		),
+		TopConcepts),
+	forall(member(C, TopConcepts),
+	       compute_depth(C, Voc, 1)
+	      ).
+
+compute_depth(Concept, _Voc, _Depth) :-
+	rdf(Concept, amalgame:depth, _),
+	!. % done already, dual parent & loop detection
+
+compute_depth(Concept, Voc, Depth) :-
+	rdf_assert(Concept, amalgame:depth, literal(type(xsd:int, Depth)), vocstats),
+	findall(Child,
+		(   parent_child(Concept, Child, Voc),
+		    vocab_member(Child, Voc)
+		),
+		Children),
+	NewDepth is Depth + 1,
+	forall(member(C, Children),
+	       compute_depth(C, Voc, NewDepth)
+	      ).
+
+parent_child(Parent, Child, Voc) :-
+	(   rdf_has(Child, skos:broader, Parent)
+	;   rdf_has(Parent, skos:narrower, Child)
+	;   fail),
+	vocab_member(Child, Voc),
+	vocab_member(Parent, Voc).
+
+%%	mean_std(List, Mean, StandardDeviation, Length) is det.
+%
+%	This recursive version is adapted from the incremental version
+%	at:
+%	http://stackoverflow.com/questions/895929/how-do-i-determine-the-standard-deviation-stddev-of-a-set-of-values
+%
+%
+
+mean_std(List, Mean, Std, K) :-
+	mean_std_(List, Mean, S, K),
+	Std is sqrt(S/K).
+
+mean_std_([Value], Value, 0, 1) :- !.
+mean_std_([Value|Tail], Mean, S, K) :-
+	!,
+	mean_std_(Tail, Tmean, Tstd, Tk),
+	K is Tk + 1,
+	Mean is Tmean + (Value - Tmean) / K,
+	S is Tstd  + (Value - Tmean) * (Value - Mean).
+
+
+
+
+
 

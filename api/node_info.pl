@@ -134,7 +134,8 @@ amalgame_info(Scheme, Strategy,
 	     '# altLabels'- span([AltCount,' (',
 				  \(ag_util_components):html_showlist(AltLangs),  ')']),
 	     '# ambiguous prefs:'-span([PrefHoms, ' (', PrefHomsP, '%)']),
-	     '# ambiguous alts:' -span([AltHoms,  ' (', AltHomsP,  '%)'])
+	     '# ambiguous alts:' -span([AltHoms,  ' (', AltHomsP,  '%)']),
+	     'average depth:' - span([Depth])
 	    ]) :-
 	rdfs_individual_of(Scheme, skos:'ConceptScheme'),
 	!,
@@ -145,6 +146,10 @@ amalgame_info(Scheme, Strategy,
 	voc_property(Scheme, languages(skos:altLabel, AltLangs)),
 	voc_property(Scheme, numberOfHomonyms(skos:prefLabel, PrefHoms)),
 	voc_property(Scheme, numberOfHomonyms(skos:altLabel, AltHoms)),
+	voc_property(Scheme, depth(DepthStats)),
+	option(mean(DepthM), DepthStats, '-'),
+	option(standard_deviation(DepthStd), DepthStats, '-'),
+	format(atom(Depth), '~2f (\u03C3 = ~2f)', [DepthM, DepthStd]),
 	rounded_perc(PrefCount, PrefHoms, PrefHomsP),
 	rounded_perc(AltCount, AltHoms, AltHomsP).
 
