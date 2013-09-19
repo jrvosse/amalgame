@@ -16,7 +16,7 @@
 	      xsd_timestamp/2,
 	      has_write_permission/0,
 
-	      rounded_perc/3,
+	      save_perc/3,
 	      list_offset/3,
 	      list_limit/4,
 	      sort_by_arg/3,
@@ -352,6 +352,11 @@ html_showlist([]) --> !.
 html_showlist([H]) -->  html(H),!.
 html_showlist([H1,H2|Tail]) -->  html([H1,', ']), html_showlist([H2|Tail]).
 
+save_perc(0, _, 0) :- !. 
+save_perc(Value, Total, Percentage) :-
+	Percentage is (100 * Value) / Total.
+
+% no longer used
 rounded_perc(0, _, 0.0) :- !.
 rounded_perc(_, 0, 0.0) :- !.
 rounded_perc(Total, V, Perc) :-

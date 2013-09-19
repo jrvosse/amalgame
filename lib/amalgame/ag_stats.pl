@@ -14,6 +14,7 @@
 :- use_module(library(amalgame/voc_stats)).
 :- use_module(library(amalgame/ag_evaluation)).
 :- use_module(library(amalgame/map)).
+:- use_module(library(amalgame/util)).
 
 node_stats(Strategy, Node, Stats) :-
 	(   rdfs_individual_of(Node, amalgame:'Mapping')
@@ -88,8 +89,8 @@ mapping_stats(URL, Mapping, Strategy, Stats) :-
 	(   mapping_vocab_sources(URL, Strategy, InputS, InputT)
 	->  concept_count(InputS, Strategy, SourceN),
 	    concept_count(InputT, Strategy, TargetN),
-	    SPerc is (100 * SN) / SourceN,
-	    TPerc is (100 * TN) / TargetN,
+	    save_perc(SN, SourceN, SPerc),
+	    save_perc(TN, TargetN, TPerc),
 	    concept_list_depth_stats(Ss, InputS, depth(DSstats)),
 	    concept_list_depth_stats(Ts, InputT, depth(DTstats))
 	;   SPerc = 100, TPerc = 100, SourceN = 0, TargetN = 0
@@ -106,11 +107,11 @@ mapping_stats(URL, Mapping, Strategy, Stats) :-
 	    length(Unique, IML),
 	    length(Si, SiN),
 	    length(Ti, TiN),
-	    IP	   is (100 * MN) / IML,
-	    SiPerc is (100 * SN) / SiN,
-	    TiPerc is (100 * TN) / TiN
+	    save_perc(MN, IML, IP),
+	    save_perc(SN, SiN, SiPerc),
+	    save_perc(TN, TiN, tiPerc)
 	;   CarthesianProductSize is SourceN * TargetN,
-	    IP is (100 * MN) / CarthesianProductSize,
+	    save_perc(MN,CarthesianProductSize, IP),
 	    SiPerc = SPerc,
 	    TiPerc = TPerc
 	).
@@ -187,10 +188,10 @@ part_ref_stats(partition(Matches,Conflicts,Unknown, Missing), Stats) :-
 	length(Missing, MisLength),
 	TotalFound is MLength + CLength + ULength,
 	TotalEval is MLength + CLength + MisLength,
-	MLengthPerc is (100 * MLength) / TotalFound,
-	CLengthPerc is (100 * CLength) / TotalFound,
-	ULengthPerc is (100 * ULength) / TotalFound,
-	MisLengthPerc is (100 * MisLength) / TotalEval,
+	save_perc(MLength, TotalFound, MLengthPerc),
+	save_perc(CLength, TotalFound, CLengthPerc),
+	save_perc(ULength, TotalFound, ULengthPerc),
+	save_perc(MisLength, TotalEval, MisLengthPerc),
 	format(atom(MLengthS),	 '~d (~2f%)', [MLength, MLengthPerc]),
 	format(atom(CLengthS),   '~d (~2f%)', [CLength, CLengthPerc]),
 	format(atom(ULengthS),   '~d (~2f%)', [ULength, ULengthPerc]),

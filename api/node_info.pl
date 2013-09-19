@@ -10,6 +10,7 @@
 :- use_module(library(amalgame/amalgame_modules)).
 :- use_module(library(amalgame/ag_stats)).
 :- use_module(library(amalgame/voc_stats)).
+:- use_module(library(amalgame/util)).
 :- use_module(components(label)). % we need rdf_link//1 from this module
 
 :- use_module(library(amalgame/ag_controls)).
@@ -163,10 +164,10 @@ amalgame_info(Scheme, Strategy,
 	voc_property(Scheme, depth(DepthStats)),
 	option(mean(DepthM), DepthStats, 0),
 	option(standard_deviation(DepthStd), DepthStats, 0),
-	PrefHomsLP is (100 * PrefHomsL) / PrefCount,
-	AltHomsLP  is (100 * AltHomsL)  / AltCount,
-	PrefHomsCP is (100 * PrefHomsC) / Total,
-	AltHomsCP  is (100 * AltHomsC) / Total,
+	save_perc(PrefHomsL, PrefCount, PrefHomsLP),
+	save_perc(AltHomsL,  AltCount,  AltHomsLP),
+	save_perc(PrefHomsC, Total, PrefHomsCP),
+	save_perc(AltHomsL, Total, AltHomsCP),
 	format(atom(Depth), '~2f (\u03C3 = ~2f)', [DepthM, DepthStd]),
 	format(atom(PrefHomsLA), '~d (~2f%)', [PrefHomsL, PrefHomsLP]),
 	format(atom(AltHomsLA),  '~d (~2f%)', [AltHomsL, AltHomsLP]),
