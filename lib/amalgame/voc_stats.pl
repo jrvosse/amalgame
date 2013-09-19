@@ -116,9 +116,9 @@ voc_ensure_stats(Voc, languages(L)) :-
 voc_ensure_stats(Voc, languages(P,L)) :-
 	(   voc_languages_used(Voc, P, L) -> true ; L = []),
 	assert(voc_stats_cache(Voc, languages(P,L))).
-voc_ensure_stats(Voc, numberOfHomonyms(P, Count)) :-
-	(   count_homonyms(Voc, P, Count) -> true ; Count = 0),
-	assert_voc_prop(Voc, numberOfHomonyms(P, Count)).
+voc_ensure_stats(Voc, numberOfHomonyms(P, Lcount, Ccount)) :-
+	(   count_homonyms(Voc, P, Lcount, Ccount) -> true ; Lcount = 0, Ccount=0),
+	assert_voc_prop(Voc, numberOfHomonyms(P, Lcount, Ccount)).
 
 voc_ensure_stats(Voc, depth(Stats)) :-
 	(  compute_depth_stats(Voc, depth(Stats)) -> true ; Stats = []),
@@ -173,7 +173,7 @@ count_altLabels(Voc, Count) :-
 	length(Labels, Count),
 	print_message(informational, map(found, 'SKOS alternative labels', Voc, Count)).
 
-count_homonyms(Voc, Prop, Count) :-
+count_homonyms(Voc, Prop, LabelCount, ConceptCount) :-
 	findall(Label-Concept,
 		(   vocab_member(Concept, Voc),
 		    rdf_has(Concept, Prop, literal(Label))
@@ -182,7 +182,13 @@ count_homonyms(Voc, Prop, Count) :-
 	keysort(Labels, Sorted),
 	group_pairs_by_key(Sorted, Grouped),
 	include(is_homonym, Grouped, Homonyms),
-	length(Homonyms, Count).
+	pairs_values(Homonyms, AmbConceptsL),
+	append(AmbConceptsL, AmbConcepts),
+	sort(AmbConcepts, AmbConceptsUnique),
+	length(Homonyms, LabelCount),
+	length(AmbConceptsUnique, ConceptCount),
+	print_message(informational, map(found, 'ambiguous labels', Voc, LabelCount)),
+	print_message(informational, map(found, 'ambiguous concepts', Voc, ConceptCount)).
 
 is_homonym(_Label-Concepts) :-
 	length(Concepts, N), N > 1.

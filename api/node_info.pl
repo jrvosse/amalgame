@@ -10,7 +10,6 @@
 :- use_module(library(amalgame/amalgame_modules)).
 :- use_module(library(amalgame/ag_stats)).
 :- use_module(library(amalgame/voc_stats)).
-:- use_module(library(amalgame/util)).
 :- use_module(components(label)). % we need rdf_link//1 from this module
 
 :- use_module(library(amalgame/ag_controls)).
@@ -146,8 +145,10 @@ amalgame_info(Scheme, Strategy,
 					\(ag_util_components):html_showlist(PrefLangs), ')']),
 	     '# altLabels'       - span([AltCount,' (',
 					 \(ag_util_components):html_showlist(AltLangs), ')']),
-	     '# ambiguous prefs:'-span([PrefHomsA]),
-	     '# ambiguous alts:' -span([AltHomsA]),
+	     '# ambiguous concepts (pref):'-span([PrefHomsCA]),
+	     '# ambiguous pref labels:'-span([PrefHomsLA]),
+	     '# ambiguous concepts (alt):'-span([AltHomsCA]),
+	     '# ambiguous alt  labels:'-span([AltHomsLA]),
 	     'average depth:'   - span([Depth])
 	    ]) :-
 	rdfs_individual_of(Scheme, skos:'ConceptScheme'),
@@ -157,16 +158,20 @@ amalgame_info(Scheme, Strategy,
 	voc_property(Scheme, numberOfAltLabels(AltCount)),
 	voc_property(Scheme, languages(skos:prefLabel, PrefLangs)),
 	voc_property(Scheme, languages(skos:altLabel, AltLangs)),
-	voc_property(Scheme, numberOfHomonyms(skos:prefLabel, PrefHoms)),
-	voc_property(Scheme, numberOfHomonyms(skos:altLabel, AltHoms)),
+	voc_property(Scheme, numberOfHomonyms(skos:prefLabel, PrefHomsL, PrefHomsC)),
+	voc_property(Scheme, numberOfHomonyms(skos:altLabel,  AltHomsL,	 AltHomsC )),
 	voc_property(Scheme, depth(DepthStats)),
 	option(mean(DepthM), DepthStats, 0),
 	option(standard_deviation(DepthStd), DepthStats, 0),
-	PrefHomsP is (100 * PrefHoms) / PrefCount,
-	AltHomsP  is (100 * AltHoms)  / AltCount,
+	PrefHomsLP is (100 * PrefHomsL) / PrefCount,
+	AltHomsLP  is (100 * AltHomsL)  / AltCount,
+	PrefHomsCP is (100 * PrefHomsC) / Total,
+	AltHomsCP  is (100 * AltHomsC) / Total,
 	format(atom(Depth), '~2f (\u03C3 = ~2f)', [DepthM, DepthStd]),
-	format(atom(PrefHomsA), '~d (~2f%)', [PrefHoms, PrefHomsP]),
-	format(atom(AltHomsA),  '~d (~2f%)', [AltHoms, AltHomsP]).
+	format(atom(PrefHomsLA), '~d (~2f%)', [PrefHomsL, PrefHomsLP]),
+	format(atom(AltHomsLA),  '~d (~2f%)', [AltHomsL, AltHomsLP]),
+	format(atom(PrefHomsCA), '~d (~2f%)', [PrefHomsC, PrefHomsCP]),
+	format(atom(AltHomsCA),  '~d (~2f%)', [AltHomsC, AltHomsCP]).
 
 
 
