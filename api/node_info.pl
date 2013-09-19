@@ -146,8 +146,8 @@ amalgame_info(Scheme, Strategy,
 					\(ag_util_components):html_showlist(PrefLangs), ')']),
 	     '# altLabels'       - span([AltCount,' (',
 					 \(ag_util_components):html_showlist(AltLangs), ')']),
-	     '# ambiguous prefs:'-span([PrefHoms, ' (', PrefHomsP, '%)']),
-	     '# ambiguous alts:' -span([AltHoms,  ' (', AltHomsP,  '%)']),
+	     '# ambiguous prefs:'-span([PrefHomsA]),
+	     '# ambiguous alts:' -span([AltHomsA]),
 	     'average depth:'   - span([Depth])
 	    ]) :-
 	rdfs_individual_of(Scheme, skos:'ConceptScheme'),
@@ -162,9 +162,12 @@ amalgame_info(Scheme, Strategy,
 	voc_property(Scheme, depth(DepthStats)),
 	option(mean(DepthM), DepthStats, 0),
 	option(standard_deviation(DepthStd), DepthStats, 0),
+	PrefHomsP is (100 * PrefHoms) / PrefCount,
+	AltHomsP  is (100 * AltHoms)  / AltCount,
 	format(atom(Depth), '~2f (\u03C3 = ~2f)', [DepthM, DepthStd]),
-	rounded_perc(PrefCount, PrefHoms, PrefHomsP),
-	rounded_perc(AltCount, AltHoms, AltHomsP).
+	format(atom(PrefHomsA), '~d (~2f%)', [PrefHoms, PrefHomsP]),
+	format(atom(AltHomsA),  '~d (~2f%)', [AltHoms, AltHomsP]).
+
 
 
 amalgame_info(URL, Strategy,
