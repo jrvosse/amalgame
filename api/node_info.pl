@@ -114,6 +114,8 @@ amalgame_info(URL, Strategy, Stats) :-
 	option(mappedTargetConcepts(TN0), MStats),
 	option(sourcePercentage(SPerc), MStats),
 	option(targetPercentage(TPerc), MStats),
+	option(sourcePercentageInput(SiPerc), MStats, 0),
+	option(targetPercentageInput(TiPerc), MStats, 0),
 	option(source_depth(DepthS), MStats),
 	option(target_depth(DepthT), MStats),
 	option(mean(MeanDepthS), DepthS, 0),
@@ -121,8 +123,8 @@ amalgame_info(URL, Strategy, Stats) :-
 	option(standard_deviation(DepthStdS), DepthS, 0),
 	option(standard_deviation(DepthStdT), DepthT, 0),
 
-	atomic_list_concat([SN0, ' (',SPerc,'% of total)'], SN),
-	atomic_list_concat([TN0, ' (',TPerc,'% of total)'], TN),
+	atomic_list_concat([SN0, ' (',SiPerc, ' ', SPerc,'%)'], SN),
+	atomic_list_concat([TN0, ' (',TiPerc, ' ', TPerc,'%)'], TN),
 
 	format(atom(DepthSatom), '~2f (\u03C3 = ~2f)', [MeanDepthS, DepthStdS]),
 	format(atom(DepthTatom), '~2f (\u03C3 = ~2f)', [MeanDepthT, DepthStdT]),

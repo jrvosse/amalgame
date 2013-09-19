@@ -98,9 +98,21 @@ mapping_stats(URL, Mapping, Strategy, Stats) :-
 	->  maplist(expand_node(Strategy), Inputs, InputMappings),
 	    append(InputMappings, Merged),
 	    sort(Merged, Unique),
+	    maplist(align_source, Unique, Si0),
+	    maplist(align_target, Unique, Ti0),
+	    sort(Si0, Si),
+	    sort(Ti0, Ti),
 	    length(Unique, IML),
+	    length(Si, SiN),
+	    length(Ti, TiN),
 	    rounded_perc(IML,MN,IP),
-	    Extra = [ inputPercentage(IP)]
+	    rounded_perc(SiN, SN, SiPerc),
+	    rounded_perc(TiN, TN, TiPerc),
+	    Extra = [
+		sourcePercentageInput(SiPerc),
+		targetPercentageInput(TiPerc),
+		inputPercentage(IP)
+	    ]
 	;   Extra = []
 	).
 
