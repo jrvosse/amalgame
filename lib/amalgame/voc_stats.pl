@@ -303,7 +303,8 @@ compute_depth(Concept, Voc, Depth) :-
 parent_child(Parent, Child, Voc) :-
 	(   rdf_has(Child, skos:broader, Parent)
 	;   rdf_has(Parent, skos:narrower, Child)
-	;   fail),
+	),
+	Parent \= Child,
 	vocab_member(Child, Voc),
 	vocab_member(Parent, Voc).
 
