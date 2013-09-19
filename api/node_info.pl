@@ -121,11 +121,11 @@ amalgame_info(URL, Strategy, Stats) :-
 	option(standard_deviation(DepthStdS), DepthS, 0),
 	option(standard_deviation(DepthStdT), DepthT, 0),
 
-	atomic_list_concat([SN0, ' (',SPerc,'%)'], SN),
-	atomic_list_concat([TN0, ' (',TPerc,'%)'], TN),
+	atomic_list_concat([SN0, ' (',SPerc,'% of total)'], SN),
+	atomic_list_concat([TN0, ' (',TPerc,'% of total)'], TN),
 
-	format(atom(DepthSatom), '~2f (~2f)', [MeanDepthS, DepthStdS]),
-	format(atom(DepthTatom), '~2f (~2f)', [MeanDepthT, DepthStdT]),
+	format(atom(DepthSatom), '~2f (\u03C3 = ~2f)', [MeanDepthS, DepthStdS]),
+	format(atom(DepthTatom), '~2f (\u03C3 = ~2f)', [MeanDepthT, DepthStdT]),
 
 	(   rdf(URL, amalgame:default_relation, _R),
 	    reference_counts(URL, Strategy, ReferenceStats)
@@ -140,13 +140,13 @@ amalgame_info(URL, Strategy, Stats) :-
 
 amalgame_info(Scheme, Strategy,
 	    ['Total concepts'-Total,
-	     '# prefLabels'-span([PrefCount, ' (',
-				  \(ag_util_components):html_showlist(PrefLangs), ')']),
-	     '# altLabels'- span([AltCount,' (',
-				  \(ag_util_components):html_showlist(AltLangs),  ')']),
+	     '# prefLabels'	 -span([PrefCount, ' (',
+					\(ag_util_components):html_showlist(PrefLangs), ')']),
+	     '# altLabels'       - span([AltCount,' (',
+					 \(ag_util_components):html_showlist(AltLangs), ')']),
 	     '# ambiguous prefs:'-span([PrefHoms, ' (', PrefHomsP, '%)']),
 	     '# ambiguous alts:' -span([AltHoms,  ' (', AltHomsP,  '%)']),
-	     'average depth:' - span([Depth])
+	     'average depth:'   - span([Depth])
 	    ]) :-
 	rdfs_individual_of(Scheme, skos:'ConceptScheme'),
 	!,
