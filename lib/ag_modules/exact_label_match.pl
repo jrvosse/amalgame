@@ -36,10 +36,8 @@ parameter(case_sensitive, boolean, false,
 
 filter([], [], _).
 filter([align(S,T,P)|Cs], [C|Mappings], Options) :-
-	(   T = scheme(_)
-	->  match(align(S,_,P), C, Options),
-	    C=align(_,T2,_),
-	    vocab_member(T2, T)
+	(   T = scheme(TargetScheme)
+	->  match(align(S,_,P), C, [target_scheme(TargetScheme)|Options])
 	;   match(align(S,T,P), C, Options)
 	),
 	!,
@@ -59,8 +57,7 @@ matcher(Source, Target, Mappings, Options) :-
 
 align(Source, Target, Match, Options) :-
 	vocab_member(S, Source),
-	match(align(S,T,[]), Match, Options),
-	vocab_member(T, Target).
+	match(align(S,_,[]), Match, [target_scheme(Target)|Options]).
 
 match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options) :-
 	rdf_equal(rdfs:label, RdfsLabel),
@@ -90,7 +87,11 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 
 	rdf_has(Source, MatchProp1, literal(lang(SourceLang, SourceLabel)), SourceProp),
 	rdf_has(Target, MatchProp2, SearchTarget, TargetProp),
-	Source \== Target,
+
+	(   option(target_scheme(TargetScheme), Options)
+	->  vocab_member(Target, TargetScheme)
+	;   true
+	),
 
 	(   IgnoreType
 	->  true

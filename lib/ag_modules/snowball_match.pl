@@ -59,8 +59,7 @@ matcher(Source, Target, Mappings, Options) :-
 
 align(Source, Target, Match, Options) :-
 	vocab_member(S, Source),
-	match(align(S,T,[]), Match, Options),
-	vocab_member(T, Target).
+	match(align(S,_,[]), Match, [target_scheme(Target)|Options]).
 
 match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options) :-
 	rdf_equal(rdfs:label,DefaultP),
@@ -92,7 +91,10 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 	snowball(Snowball_Language, SourceLabel0, SourceStem),
 
 	rdf_has(Target, MatchProp2, literal(prefix(Prefix), lang(TargetLang, TargetLabel)), TargetProp),
-	\+ Source == Target,
+	(   option(target_scheme(TargetScheme), Options)
+	->  vocab_member(Target, TargetScheme)
+	;   true
+	),
 
 	downcase_atom(TargetLabel, TargetLabel0),
 	snowball(Snowball_Language, TargetLabel0, TargetStem),

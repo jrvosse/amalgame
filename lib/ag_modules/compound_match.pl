@@ -134,7 +134,7 @@ match_label(Source, Label, Targets, Options) :-
 
 	findall(Target-ProvGraph,
 		(   rdf_has(Target, MatchProp, SearchTarget, TargetProp),
-		    Source \== Target,
+		    Source \== Target,  % fix me, replace by target vocab check as in exact_label example
 		    vocab_member(Target, TargetScheme),
 		    (   IgnoreType
 		    ->  true

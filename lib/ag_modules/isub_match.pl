@@ -41,9 +41,8 @@ parameter(normalize,
 filter([], [], _).
 filter([align(S,T,P)|Cs], [C|Mappings], Options) :-
         (   T = scheme(_)
-        ->  match(align(S,_,P), C, Options),
-            C=align(_,T2,_),
-            vocab_member(T2, T)
+	->  vocab_member(T2, T),
+	    match(align(S,T2,P), C, Options)
         ;   match(align(S,T,P), C, Options)
         ),
         !,
