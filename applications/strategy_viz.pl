@@ -216,17 +216,11 @@ amalgame_label(Alignment, Resource, Lang, MaxLen, Label) :-
 stats_label_list(Alignment, Resource, [Count]) :-
 	stats_cache(Resource-Alignment, vstats(Count)),
 	!.
-stats_label_list(Alignment, Resource, [IPerc, '% (', SPerc, '% ', TPerc, '%)']) :-
+stats_label_list(Alignment, Resource, [IPercA]) :-
 	stats_cache(Resource-Alignment, mstats(Stats)),
-	option(sourcePercentage(SPerc), Stats),
-	option(targetPercentage(TPerc), Stats),
-	option(inputPercentage(IPerc), Stats),
+	option(inputPercentage(IPerc), Stats, 0),
+	format(atom(IPercA), '~0f%', [IPerc]),
 	!.
 
-stats_label_list(Alignment, Resource, [SPerc, '% - ', TPerc, '%']) :-
-	stats_cache(Resource-Alignment, mstats(Stats)),
-	option(sourcePercentage(SPerc), Stats),
-	option(targetPercentage(TPerc), Stats),
-	!.
 stats_label_list(_, _, []).
 

@@ -13,7 +13,6 @@
 :- use_module(library(amalgame/vocabulary)).
 :- use_module(library(amalgame/voc_stats)).
 :- use_module(library(amalgame/ag_evaluation)).
-:- use_module(library(amalgame/util)).
 :- use_module(library(amalgame/map)).
 
 node_stats(Strategy, Node, Stats) :-
@@ -87,8 +86,8 @@ mapping_stats(URL, Mapping, Strategy, Stats) :-
 	(   mapping_vocab_sources(URL, Strategy, InputS, InputT)
 	->  concept_count(InputS, Strategy, SourceN),
 	    concept_count(InputT, Strategy, TargetN),
-	    rounded_perc(SourceN, SN, SPerc),
-	    rounded_perc(TargetN, TN, TPerc),
+	    SPerc is (100 * SN) / SourceN,
+	    TPerc is (100 * TN) / TargetN,
 	    concept_list_depth_stats(Ss, InputS, depth(DSstats)),
 	    concept_list_depth_stats(Ts, InputT, depth(DTstats))
 	;   SPerc = 100, TPerc = 100
@@ -105,9 +104,9 @@ mapping_stats(URL, Mapping, Strategy, Stats) :-
 	    length(Unique, IML),
 	    length(Si, SiN),
 	    length(Ti, TiN),
-	    rounded_perc(IML,MN,IP),
-	    rounded_perc(SiN, SN, SiPerc),
-	    rounded_perc(TiN, TN, TiPerc),
+	    IP	   is (100 * MN) / IML,
+	    SiPerc is (100 * SN) / SiN,
+	    TiPerc is (100 * TN) / TiN,
 	    Extra = [
 		sourcePercentageInput(SiPerc),
 		targetPercentageInput(TiPerc),
@@ -188,14 +187,14 @@ part_ref_stats(partition(Matches,Conflicts,Unknown, Missing), Stats) :-
 	length(Missing, MisLength),
 	TotalFound is MLength + CLength + ULength,
 	TotalEval is MLength + CLength + MisLength,
-	rounded_perc(TotalFound, MLength, MLengthPerc),
-	rounded_perc(TotalFound, CLength, CLengthPerc),
-	rounded_perc(TotalFound, ULength, ULengthPerc),
-	rounded_perc(TotalEval,  MisLength, MisLengthPerc),
-	format(atom(MLengthS), '~d (~w%)', [MLength, MLengthPerc]),
-	format(atom(CLengthS), '~d (~w%)', [CLength, CLengthPerc]),
-	format(atom(ULengthS), '~d (~w%)', [ULength, ULengthPerc]),
-	format(atom(MisLengthS), '~d (~w%)', [MisLength, MisLengthPerc]).
+	MLengthPerc is (100 * MLength) / TotalFound,
+	CLengthPerc is (100 * CLength) / TotalFound,
+	ULengthPerc is (100 * ULength) / TotalFound,
+	MisLengthPerc is (100 * MisLength) / TotalEval,
+	format(atom(MLengthS),	 '~d (~2f%)', [MLength, MLengthPerc]),
+	format(atom(CLengthS),   '~d (~2f%)', [CLength, CLengthPerc]),
+	format(atom(ULengthS),   '~d (~2f%)', [ULength, ULengthPerc]),
+	format(atom(MisLengthS), '~d (~2f%)', [MisLength, MisLengthPerc]).
 
 compare_against_ref([], Missing,  _, partition(Ma, Co, Un, Mi), Stats) :-
 	append(Mi, Missing, Mi2),
