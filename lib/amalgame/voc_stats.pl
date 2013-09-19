@@ -251,11 +251,16 @@ compute_depth_stats(Voc, Stats) :-
 			       (   vocab_member(C, Voc),
 				   concept_depth(C, D)
 			       ), Ds),
-		       mean_std(Ds, Mean, Std, _),
-		       Stats = depth([mean(Mean),
-				standard_deviation(Std)])
-		   )).
+		       (   Ds == []
+		       ->  Stats = depth([])
+		       ;   mean_std(Ds, Mean, Std, _),
+			   Stats = depth([mean(Mean),
+					  standard_deviation(Std)])
+		       )
+		   )
+		  ).
 
+concept_list_depth_stats([], _Voc, depth([])) :-!.
 concept_list_depth_stats(CList, Voc, Stats) :-
 	voc_property(Voc, depth(_)), % ensure basic depth stats for voc have been computed
 	findall(D,
