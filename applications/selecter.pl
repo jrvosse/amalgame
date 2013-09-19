@@ -192,39 +192,25 @@ html_vocab_table(Vs) -->
 html_vocab_head -->
 	html([th([]),
 	      th(name),
-	      th('# concepts'),
-	      th('# prefLabels'),
-	      th('# altLabels'),
-	      th('# mapped'),
-	      th('(%)')
+	      th('estimated # concepts'),
+	      th('prefLabels'),
+	      th('altLabels')
 	     ]).
 
 html_vocab_rows([]) --> !.
 html_vocab_rows([Scheme|Vs]) -->
-% rdf_estimate_complexity(_, skos:inScheme, Scheme, Count)
 	{
-	 voc_property(Scheme, numberOfConcepts(ConceptCount)),
-	 voc_property(Scheme, numberOfPrefLabels(PrefCount)),
-	 voc_property(Scheme, numberOfAltLabels(AltCount)),
-	 voc_property(Scheme, numberOfMappedConcepts(MappedCount)),
+	 rdf_estimate_complexity(_, skos:inScheme, Scheme, ConceptCount),
          voc_property(Scheme, languages(skos:prefLabel, PrefLangs)),
-	 voc_property(Scheme, languages(skos:altLabel, AltLangs)),
-	 (   ConceptCount > 0
-	 ->  Perc is (100*MappedCount)/ConceptCount,
-	     format(atom(MPercent), '(~2f%)', [Perc])
-	 ;   MPercent = -
-	 )
+	 voc_property(Scheme, languages(skos:altLabel, AltLangs))
 	},
 	html(tr([td(input([type(checkbox), autocomplete(off), class(option),
 			   name(scheme), value(Scheme)])),
 		 td(\html_scheme_name(Scheme)),
 		 td(class(count), ConceptCount),
-		 td([span(class(prefLabel), PrefCount),
-		     span(class(preflangs), [' (', \html_showlist(PrefLangs), ')'])]),
-		 td([span(class(altLabel), AltCount),
-		      span(class(altlangs), [' (', \html_showlist(AltLangs),  ')'])]),
-		 td(class(mapped), MappedCount),
-		 td(class(pmapped), MPercent)
+		 td([span(class(preflangs), \html_showlist(PrefLangs))]),
+		 td([span(class(altlangs),  \html_showlist(AltLangs) )])
+
 		])),
 	html_vocab_rows(Vs).
 
