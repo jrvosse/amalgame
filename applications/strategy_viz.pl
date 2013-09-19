@@ -26,7 +26,7 @@ strategy_viz_options(Alignment,
 	       [edge_links(false),
 		shape_hook(amalgame_shape),
 		label_hook(amalgame_label(Alignment)),
-		graph_attributes([])
+		graph_attributes([rankdir('BT')])
 	       ]).
 
 is_meta(shape_hook).
@@ -104,10 +104,10 @@ amalgame_triples(Graph, Triples) :-
 	findall(rdf(S,P,O), amalgame_graph_triple(Graph,S,P,O), Triples).
 
 % hack, to get a better layout we reverse the arrow :(
-amalgame_graph_triple(Graph,Scheme,P,Graph) :-
+amalgame_graph_triple(Graph,Graph,P,Scheme) :-
 	rdf_equal(amalgame:includedIn, P),
 	rdf(Graph,amalgame:includes,Scheme,Graph).
-amalgame_graph_triple(Graph,S,P,O) :-
+amalgame_graph_triple(Graph,O,P,S) :-
 	rdf(S,P,O,Graph),
 	is_amalgame_property(P),
 	\+ empty_result(Graph, S).
