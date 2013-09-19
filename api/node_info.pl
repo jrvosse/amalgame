@@ -123,8 +123,8 @@ amalgame_info(URL, Strategy, Stats) :-
 	option(standard_deviation(DepthStdS), DepthS, 0),
 	option(standard_deviation(DepthStdT), DepthT, 0),
 
-	format(atom(SN), '~d (~2f%, ~2f%)', [SN0, SiPerc, SPerc]),
-	format(atom(TN), '~d (~2f%, ~2f%)', [TN0, TiPerc, TPerc]),
+	format(atom(SN), '~d (i ~2f%, v ~2f%)', [SN0, SiPerc, SPerc]),
+	format(atom(TN), '~d (i ~2f%, v ~2f%)', [TN0, TiPerc, TPerc]),
 	format(atom(DepthSatom), '~2f (\u03C3 = ~2f)', [MeanDepthS, DepthStdS]),
 	format(atom(DepthTatom), '~2f (\u03C3 = ~2f)', [MeanDepthT, DepthStdT]),
 
@@ -134,7 +134,7 @@ amalgame_info(URL, Strategy, Stats) :-
 	;   ReferenceStats = []
 	),
 	(   option(inputPercentage(IP), MStats)
-	->  format(atom(TmA), '~d (~2f%)', [MN, IP]),
+	->  format(atom(TmA), '~d (~5f%)', [MN, IP]),
 	    IpStats = [ 'total matches'-span([TmA])]
 	;   IpStats = [ 'total matches'-MN ]
 	),

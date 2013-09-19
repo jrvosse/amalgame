@@ -219,8 +219,17 @@ stats_label_list(Alignment, Resource, [Count]) :-
 stats_label_list(Alignment, Resource, [IPercA]) :-
 	stats_cache(Resource-Alignment, mstats(Stats)),
 	option(inputPercentage(IPerc), Stats, 0),
+	IPerc > 1,
 	format(atom(IPercA), '~0f%', [IPerc]),
 	!.
+
+stats_label_list(Alignment, Resource, [ConceptStats]) :-
+	stats_cache(Resource-Alignment, mstats(Stats)),
+	option(sourcePercentageInput(SPerc), Stats, 0),
+	option(targetPercentageInput(TPerc), Stats, 0),
+	format(atom(ConceptStats), '~0f% ~0f%', [SPerc, TPerc]),
+	!.
+
 
 stats_label_list(_, _, []).
 

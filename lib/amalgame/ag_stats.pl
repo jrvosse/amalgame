@@ -80,8 +80,10 @@ mapping_stats(URL, Mapping, Strategy, Stats) :-
 		    sourcePercentage(SPerc),
 		    targetPercentage(TPerc),
 		    source_depth(DSstats),
-		    target_depth(DTstats)
-		    | Extra
+		    target_depth(DTstats),
+		    sourcePercentageInput(SiPerc),
+		    targetPercentageInput(TiPerc),
+		    inputPercentage(IP)
 		]),
 	(   mapping_vocab_sources(URL, Strategy, InputS, InputT)
 	->  concept_count(InputS, Strategy, SourceN),
@@ -90,7 +92,7 @@ mapping_stats(URL, Mapping, Strategy, Stats) :-
 	    TPerc is (100 * TN) / TargetN,
 	    concept_list_depth_stats(Ss, InputS, depth(DSstats)),
 	    concept_list_depth_stats(Ts, InputT, depth(DTstats))
-	;   SPerc = 100, TPerc = 100
+	;   SPerc = 100, TPerc = 100, SourceN = 0, TargetN = 0
 	),
 	findall(Input, has_mapping_input(URL, Strategy, Input), Inputs),
 	(   Inputs \= []
@@ -106,13 +108,11 @@ mapping_stats(URL, Mapping, Strategy, Stats) :-
 	    length(Ti, TiN),
 	    IP	   is (100 * MN) / IML,
 	    SiPerc is (100 * SN) / SiN,
-	    TiPerc is (100 * TN) / TiN,
-	    Extra = [
-		sourcePercentageInput(SiPerc),
-		targetPercentageInput(TiPerc),
-		inputPercentage(IP)
-	    ]
-	;   Extra = []
+	    TiPerc is (100 * TN) / TiN
+	;   CarthesianProductSize is SourceN * TargetN,
+	    IP is (100 * MN) / CarthesianProductSize,
+	    SiPerc = SPerc,
+	    TiPerc = TPerc
 	).
 
 has_mapping_input(URL, Strategy, Input) :-
