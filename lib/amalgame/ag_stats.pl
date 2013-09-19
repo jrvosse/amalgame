@@ -109,7 +109,7 @@ mapping_stats(URL, Mapping, Strategy, Stats) :-
 	    length(Ti, TiN),
 	    save_perc(MN, IML, IP),
 	    save_perc(SN, SiN, SiPerc),
-	    save_perc(TN, TiN, tiPerc)
+	    save_perc(TN, TiN, TiPerc)
 	;   CarthesianProductSize is SourceN * TargetN,
 	    save_perc(MN,CarthesianProductSize, IP),
 	    SiPerc = SPerc,
