@@ -2,7 +2,8 @@
           [
 	   is_vocabulary/2,
 	   voc_property/2,
-	   voc_clear_stats/1
+	   voc_clear_stats/1,
+	   concept_list_depth_stats/3
           ]).
 
 :- use_module(library(semweb/rdfs)).
@@ -248,13 +249,25 @@ compute_depth_stats(Voc, Stats) :-
 		   (   compute_depth(Voc),
 		       findall(D,
 			       (   vocab_member(C, Voc),
-				   rdf(C, amalgame:depth,
-				       literal(type(xsd:int, D)))
+				   concept_depth(C, D)
 			       ), Ds),
 		       mean_std(Ds, Mean, Std, _),
 		       Stats = depth([mean(Mean),
 				standard_deviation(Std)])
 		   )).
+
+concept_list_depth_stats(CList, Voc, Stats) :-
+	voc_property(Voc, depth(_)), % ensure basic depth stats for voc have been computed
+	findall(D,
+		(   member(C, CList),
+		    concept_depth(C, D)
+		), Ds),
+	mean_std(Ds, Mean, Std, _),
+	Stats = depth([mean(Mean),
+		       standard_deviation(Std)]).
+
+concept_depth(C, D) :-
+	 rdf(C, amalgame:depth, literal(type(xsd:int, D))),!.
 
 compute_depth(Voc) :-
 	findall(TopConcept,

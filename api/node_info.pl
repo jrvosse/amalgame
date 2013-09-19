@@ -103,18 +103,29 @@ amalgame_info(URL, Strategy, Stats) :-
 	rdfs_individual_of(URL, amalgame:'Mapping'),
 	!,
 	BasicStats = [
-		 'matched source concepts'-SN,
-		 'matched target concepts'-TN
-		],
+	    'matched source concepts'-SN,
+	    'matched target concepts'-TN,
+	    'avg. source depth' - DepthSatom,
+	    'avg. target depth' - DepthTatom
+	],
 	node_stats(Strategy, URL, MStats),
 	option(totalCount(MN), MStats),
 	option(mappedSourceConcepts(SN0), MStats),
 	option(mappedTargetConcepts(TN0), MStats),
 	option(sourcePercentage(SPerc), MStats),
 	option(targetPercentage(TPerc), MStats),
+	option(source_depth(DepthS), MStats),
+	option(target_depth(DepthT), MStats),
+	option(mean(MeanDepthS), DepthS, 0),
+	option(mean(MeanDepthT), DepthT, 0),
+	option(standard_deviation(DepthStdS), DepthS, 0),
+	option(standard_deviation(DepthStdT), DepthT, 0),
 
 	atomic_list_concat([SN0, ' (',SPerc,'%)'], SN),
 	atomic_list_concat([TN0, ' (',TPerc,'%)'], TN),
+
+	format(atom(DepthSatom), '~2f (~2f)', [MeanDepthS, DepthStdS]),
+	format(atom(DepthTatom), '~2f (~2f)', [MeanDepthT, DepthStdT]),
 
 	(   rdf(URL, amalgame:default_relation, _R),
 	    reference_counts(URL, Strategy, ReferenceStats)

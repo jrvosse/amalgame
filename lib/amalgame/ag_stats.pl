@@ -11,6 +11,7 @@
 :- use_module(library(amalgame/expand_graph)).
 :- use_module(library(amalgame/caching)).
 :- use_module(library(amalgame/vocabulary)).
+:- use_module(library(amalgame/voc_stats)).
 :- use_module(library(amalgame/ag_evaluation)).
 :- use_module(library(amalgame/util)).
 :- use_module(library(amalgame/map)).
@@ -78,14 +79,18 @@ mapping_stats(URL, Mapping, Strategy, Stats) :-
 		    mappedSourceConcepts(SN),
 		    mappedTargetConcepts(TN),
 		    sourcePercentage(SPerc),
-		    targetPercentage(TPerc)
+		    targetPercentage(TPerc),
+		    source_depth(DSstats),
+		    target_depth(DTstats)
 		    | Extra
 		]),
 	(   mapping_vocab_sources(URL, Strategy, InputS, InputT)
 	->  concept_count(InputS, Strategy, SourceN),
 	    concept_count(InputT, Strategy, TargetN),
 	    rounded_perc(SourceN, SN, SPerc),
-	    rounded_perc(TargetN, TN, TPerc)
+	    rounded_perc(TargetN, TN, TPerc),
+	    concept_list_depth_stats(Ss, InputS, depth(DSstats)),
+	    concept_list_depth_stats(Ts, InputT, depth(DTstats))
 	;   SPerc = 100, TPerc = 100
 	),
 	findall(Input, has_mapping_input(URL, Strategy, Input), Inputs),
