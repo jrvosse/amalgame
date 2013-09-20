@@ -1,9 +1,7 @@
 :- module(ag_stats,[
 	      node_stats/3,
-	      concept_count/3,
 	      reference_counts/3,
-	      mapping_stats/4,
-	      vocab_stats/2
+	      mapping_stats/4
 	  ]).
 
 :- use_module(library(semweb/rdf_db)).
@@ -20,7 +18,7 @@ node_stats(Strategy, Node, Stats) :-
 	(   rdfs_individual_of(Node, amalgame:'Mapping')
 	->  mapping_counts(Node, Strategy, Stats)
 	;   rdfs_individual_of(Node, skos:'ConceptScheme')
-	->  concept_count(Node, Strategy, Stats)
+	->  voc_property(Node, numberOfConcepts(Stats))
 	;   Stats = []
 	).
 
@@ -39,19 +37,6 @@ mapping_counts_(URL, Strategy, Stats) :-
 	),
 	stats_cache(URL-Strategy, mstats(Stats)).
 
-%%	concept_count(+Vocab, +Strategy, -Count)
-%
-%	Count is the number of concepts in Vocab when expanded in Strategy
-
-concept_count(Vocab, Strategy, Count) :-
-	with_mutex(Vocab, concept_count_(Vocab, Strategy, Count)).
-
-concept_count_(Vocab, Strategy, Count) :-
-	(   stats_cache(Vocab-Strategy, _)
-	->  true
-	;   expand_node(Strategy, Vocab, _Scheme)
-	),
-	stats_cache(Vocab-Strategy, vstats(Count)).
 
 reference_counts(Id, Strategy, Stats) :-
 	with_mutex(Id, reference_counts_(Id, Strategy, Stats)).
@@ -87,8 +72,8 @@ mapping_stats(URL, Mapping, Strategy, Stats) :-
 		    inputPercentage(IP)
 		]),
 	(   mapping_vocab_sources(URL, Strategy, InputS, InputT)
-	->  concept_count(InputS, Strategy, SourceN),
-	    concept_count(InputT, Strategy, TargetN),
+	->  voc_property(InputS, numberOfConcepts(SourceN)),
+	    voc_property(InputT, numberOfConcepts(TargetN)),
 	    save_perc(SN, SourceN, SPerc),
 	    save_perc(TN, TargetN, TPerc),
 	    concept_list_depth_stats(Ss, InputS, depth(DSstats)),
@@ -121,12 +106,6 @@ has_mapping_input(URL, Strategy, Input) :-
 	rdf(URL, RP, Process, Strategy),
 	rdf_has(Process, amalgame:input, Input),
 	rdfs_individual_of(Input, amalgame:'Mapping').
-
-
-vocab_stats(Scheme, Count):-
-	findall(C, vocab_member(C, Scheme), Cs),
-	length(Cs, Count).
-
 
 
 %%	mapping_vocab_sources(+MappingURI, Strategy, -Source, -Target)
