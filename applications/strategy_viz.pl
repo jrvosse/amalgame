@@ -13,6 +13,7 @@
 :- use_module(components(label)).
 :- use_module(components(graphviz)).
 :- use_module(library(amalgame/caching)).
+:- use_module(library(amalgame/voc_stats)).
 :- use_module(library(amalgame/ag_stats)).
 :- use_module(library(amalgame/ag_evaluation)).
 :- use_module(library(amalgame/map)).
@@ -213,8 +214,9 @@ amalgame_label(Alignment, Resource, Lang, MaxLen, Label) :-
 	;   atomic_list_concat([Label0, '\n'|Stats], Label)
 	).
 
-stats_label_list(Alignment, Resource, [Count]) :-
-	stats_cache(Resource-Alignment, vstats(Count)),
+stats_label_list(_Alignment, Resource, [Count]) :-
+	is_vocabulary(Resource, _),
+	voc_property(Resource, numberOfConcepts(Count)),
 	!.
 stats_label_list(Alignment, Resource, [IPercA]) :-
 	stats_cache(Resource-Alignment, mstats(Stats)),
