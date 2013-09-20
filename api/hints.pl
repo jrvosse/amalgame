@@ -7,6 +7,7 @@
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(amalgame/caching)).
+:- use_module(library(amalgame/voc_stats)).
 
 :- http_handler(amalgame(data/hint), http_json_hint, []).
 
@@ -45,8 +46,8 @@ find_hint(Strategy, Context, Hint) :-
 	rdf(Strategy, amalgame:includes, Voc1, Strategy),
 	rdf(Strategy, amalgame:includes, Voc2, Strategy),
 	Voc1 \== Voc2,
-	hints_concept_count(Voc1, Strategy, Count1),
-	hints_concept_count(Voc2, Strategy, Count2),
+	voc_property(Voc1, numberOfConcepts(Count1)),
+	voc_property(Voc2, numberOfConcepts(Count2)),
 	(   Count1 < Count2
 	->  Source = Voc1, Target = Voc2
 	;   Source = Voc2, Target = Voc1
@@ -305,6 +306,3 @@ is_result_of_process_type(Mapping, Type) :-
 
 hints_mapping_counts(Id, Strategy, Stats) :-
 	stats_cache(Id-Strategy, mstats(Stats)).
-
-hints_concept_count(Id, Strategy, Stats) :-
-	stats_cache(Id-Strategy, vstats(Stats)).
