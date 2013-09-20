@@ -252,7 +252,7 @@ voc_find_format(Voc, Format) :-
 
 compute_depth_stats(Voc, Stats) :-
 	with_mutex(Voc,
-		   (   compute_depth(Voc),
+		   (   assert_depth(Voc),
 		       findall(D,
 			       (   vocab_member(C, Voc),
 				   concept_depth(C, D)
@@ -280,39 +280,39 @@ concept_list_depth_stats(CList, Voc, Stats) :-
 concept_depth(C, D) :-
 	 rdf(C, amalgame:depth, literal(type(xsd:int, D))),!.
 
-compute_depth(Voc) :-
+assert_depth(Voc) :-
 	findall(TopConcept,
 		(   vocab_member(TopConcept, Voc),
-		    \+ parent_child(_, TopConcept, Voc)
+		    \+ (parent_child(Child, TopConcept),
+			vocab_member(Child, Voc)
+		       )
 		),
 		TopConcepts),
 	forall(member(C, TopConcepts),
-	       compute_depth(C, Voc, 1)
+	       assert_depth(C, Voc, 1)
 	      ).
 
-compute_depth(Concept, _Voc, _Depth) :-
+assert_depth(Concept, _Voc, _Depth) :-
 	rdf(Concept, amalgame:depth, _),
-	!. % done already, dual parent & loop detection
+	!. % done already, dual hierarchy & loop detection
 
-compute_depth(Concept, Voc, Depth) :-
+assert_depth(Concept, Voc, Depth) :-
 	rdf_assert(Concept, amalgame:depth, literal(type(xsd:int, Depth)), vocstats),
 	findall(Child,
-		(   parent_child(Concept, Child, Voc),
+		(   parent_child(Concept, Child),
 		    vocab_member(Child, Voc)
 		),
 		Children),
 	NewDepth is Depth + 1,
 	forall(member(C, Children),
-	       compute_depth(C, Voc, NewDepth)
+	       assert_depth(C, Voc, NewDepth)
 	      ).
 
-parent_child(Parent, Child, Voc) :-
+parent_child(Parent, Child) :-
 	(   rdf_has(Child, skos:broader, Parent)
 	;   rdf_has(Parent, skos:narrower, Child)
 	),
-	Parent \= Child,
-	vocab_member(Child, Voc),
-	vocab_member(Parent, Voc).
+	Parent \= Child.
 
 %%	mean_std(List, Mean, StandardDeviation, Length) is det.
 %
