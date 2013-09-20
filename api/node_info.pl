@@ -140,21 +140,22 @@ amalgame_info(URL, Strategy, Stats) :-
 	),
 	append([IpStats, BasicStats, ReferenceStats], Stats).
 
-amalgame_info(Scheme, Strategy,
-	    ['Total concepts'-Total,
-	     '# prefLabels'	 -span([PrefCount, ' (',
-					\(ag_util_components):html_showlist(PrefLangs), ')']),
-	     '# altLabels'       - span([AltCount,' (',
-					 \(ag_util_components):html_showlist(AltLangs), ')']),
-	     '# ambiguous concepts (pref):'-span([PrefHomsCA]),
-	     '# ambiguous pref labels:'-span([PrefHomsLA]),
-	     '# ambiguous concepts (alt):'-span([AltHomsCA]),
-	     '# ambiguous alt  labels:'-span([AltHomsLA]),
-	     'average depth:'   - span([Depth])
-	    ]) :-
+amalgame_info(Scheme, _Strategy, Stats) :-
 	rdfs_individual_of(Scheme, skos:'ConceptScheme'),
 	!,
-	concept_count(Scheme, Strategy, Total),
+	Stats =
+	['Total concepts'-Total,
+	 '# prefLabels'	 -span([PrefCount, ' (',
+				\(ag_util_components):html_showlist(PrefLangs), ')']),
+	 '# altLabels'       - span([AltCount,' (',
+				     \(ag_util_components):html_showlist(AltLangs), ')']),
+	 '# ambiguous concepts (pref):'-span([PrefHomsCA]),
+	 '# ambiguous pref labels:'-span([PrefHomsLA]),
+	 '# ambiguous concepts (alt):'-span([AltHomsCA]),
+	 '# ambiguous alt  labels:'-span([AltHomsLA]),
+	 'average depth:'   - span([Depth])
+	],
+	voc_property(Scheme, numberOfConcepts(Total)),
 	voc_property(Scheme, numberOfPrefLabels(PrefCount)),
 	voc_property(Scheme, numberOfAltLabels(AltCount)),
 	voc_property(Scheme, languages(skos:prefLabel, PrefLangs)),

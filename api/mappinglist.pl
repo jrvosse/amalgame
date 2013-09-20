@@ -12,7 +12,7 @@
 
 :- use_module(library(amalgame/util)).
 :- use_module(library(amalgame/vocabulary)).
-:- use_module(library(amalgame/ag_stats)).
+:- use_module(library(amalgame/voc_stats)).
 :- use_module(library(amalgame/expand_graph)).
 
 :- http_handler(amalgame(data/voc), http_data_voc, []).
@@ -59,7 +59,7 @@ http_data_voc(Request) :-
 				  description('first result that is returned')])
 		       ]),
 	expand_node(Strategy, URL, Scheme),
-	concept_count(URL, Strategy, Count),
+	voc_property(URL, numberOfConcepts(Count)),
 	Max is Limit + Offset,
 	answer_set(C, vocab_member(C, Scheme), Max, Concepts),
 

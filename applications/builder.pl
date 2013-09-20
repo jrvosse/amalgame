@@ -9,7 +9,7 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(yui3_beta)).
 
-:- use_module(library(amalgame/ag_stats)).
+:- use_module(library(amalgame/voc_stats)).
 :- use_module(library(amalgame/ag_controls)).
 :- use_module(library(amalgame/util)).
 :- use_module(library(amalgame/map)).
@@ -40,7 +40,7 @@ precalc_voc_stats(Strategy) :-
 	% handy to know how many concepts etc are in each vocab,
 	% both for the user as for the hints system etc.
 	forall(rdf(Strategy, amalgame:includes, Vocab),
-	       (   concept_count(Vocab, Strategy, _)
+	       (   voc_property(Vocab, numberOfConcepts(_))
 	       ->  true
 	       ;   print_message(informational,
 			     map(found, 'No SKOS Concepts for ', Vocab, 0))
