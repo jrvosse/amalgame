@@ -4,11 +4,9 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_json)).
-:- use_module(library(semweb/rdf_db)).
-:- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_label)).
 
-:- use_module(library(amalgame/expand_graph)).
+:- use_module(library(amalgame/voc_stats)).
 :- use_module(library(amalgame/vocabulary)).
 :- use_module(library(amalgame/util)).
 :- use_module(api(skos_concepts)).
@@ -38,7 +36,7 @@ http_virtual_concepts(Request) :-
 				 description('Named graph to restrict the concepts by')
 				])
 			]),
-	(   ( is_virtual_scheme(Parent), var(Query), Type == inscheme)
+	(   ( voc_property(Parent, virtual(true)), var(Query), Type == inscheme)
 	->  findall(Label-C, (
 		    vocab_member(C, Parent),
 		    rdf_display_label(C, Label)

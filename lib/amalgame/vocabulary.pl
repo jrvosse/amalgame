@@ -1,11 +1,10 @@
 :- module(vocab,
-	  [ vocab_member/2,
-	    is_virtual_scheme/1
+	  [ vocab_member/2
 	  ]).
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
-
+:- use_module(voc_stats).
 :- use_module(expand_graph). % for virtual vocab schemes
 
 %%	vocab_member(?C, +VocabDef)
@@ -27,11 +26,11 @@ vocab_member(E, and(G1,G2)) :-
 	vocab_member(E,G1),
 	vocab_member(E,G2).
 vocab_member(E, scheme(Scheme)) :-
-	\+ is_virtual_scheme(Scheme),
+	voc_property(Scheme, virtual(false)),
 	!,
 	rdf_has(E, skos:inScheme, Scheme).
 vocab_member(E, scheme(Scheme)) :-
-	is_virtual_scheme(Scheme),
+	voc_property(Scheme, virtual(true)),
 	!,
 	rdf(Scheme, amalgame:wasGeneratedBy, _, Strategy),
 	rdfs_individual_of(Strategy, amalgame:'AlignmentStrategy'),
@@ -83,15 +82,5 @@ vocab_member(E, Class) :-
 	!,
 	rdfs_individual_of(E, Class).
 
-
-
-%%	is_virtual_scheme(+URL) is semidet.
-%
-%	True if URL is a virtual Concept Scheme,
-%	e.g. it	 has no materialized skos:inScheme triples
-
-is_virtual_scheme(NodeId) :-
-	ground(NodeId),
-	\+ rdf_has(_, skos:inScheme, NodeId).
 
 

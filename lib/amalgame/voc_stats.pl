@@ -61,6 +61,11 @@ voc_clear_stats(Voc) :-
 	retractall(voc_stats_cache(Voc, _)),
 	print_message(informational, map(cleared, 'vocabulary statistics', Voc, all)).
 
+%%	is_virtual_scheme(+URL) is semidet.
+%
+%	True if URL is a virtual Concept Scheme,
+%	e.g. it	 has no materialized skos:inScheme triples
+
 
 is_vocabulary(Voc, Format):-
 	ground(Voc),!,
@@ -75,9 +80,17 @@ is_vocabulary(Voc, Format):-
 	!,
 	voc_stats_cache(Voc, format(Format)).
 
+voc_ensure_stats(Voc, virtual(Result)) :-
+	rdfs_individual_of(Voc, skos:'ConceptScheme'),
+	(   rdf_has(_, skos:inScheme, Voc)
+	->  Virtual = false
+	;   Virtual = true
+	),
+	assert(voc_stats_cache(Voc, virtual(Virtual))),
+	Result = Virtual.
+
 voc_ensure_stats(Voc, format(Format)) :-
 	rdfs_individual_of(Voc, skos:'ConceptScheme'),
-	\+ rdf(Voc, amalgame:wasGeneratedBy, _),
 	(   voc_stats_cache(Voc, format(Format))
 	->  true
 	;   voc_find_format(Voc, Format),
