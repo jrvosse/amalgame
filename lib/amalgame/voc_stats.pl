@@ -13,6 +13,7 @@
 :- use_module(library(amalgame/map)).
 :- use_module(library(amalgame/ag_provenance)).
 :- use_module(library(amalgame/vocabulary)).
+:- use_module(library(amalgame/expand_graph)).
 
 /** <module> Compute and cache vocabulary-oriented properties and statistics.
 
@@ -286,12 +287,21 @@ concept_depth(C, D) :-
 	 rdf(C, amalgame:depth, literal(type(xsd:int, D))),!.
 
 assert_depth(Voc) :-
-	findall(Concept, vocab_member(Concept, Voc), AllConcepts),
+	(   voc_property(Voc, virtual(false))
+	->  VocSpec = rscheme(Voc)
+	;   rdf(Scheme, amalgame:wasGeneratedBy, _, Strategy),
+	    rdfs_individual_of(Strategy, amalgame:'AlignmentStrategy'),
+	    expand_node(Strategy, Scheme, VocSpec)
+	),
+	findall(Concept, vocab_member(Concept, VocSpec), AllConcepts),
+
 	findall(TopConcept,
 		(   member(TopConcept, AllConcepts),
 		    \+ (parent_child_chk(Child, TopConcept),
-			member(Child, AllConcepts)
-		       )
+			vocab_member(Child, VocSpec)
+		       ),
+		    debug(depth, 'Found top concept ~p', [TopConcept])
+
 		),
 		TopConcepts),
 	forall(member(C, TopConcepts),

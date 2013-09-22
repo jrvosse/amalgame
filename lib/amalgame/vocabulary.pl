@@ -26,17 +26,22 @@ vocab_member(E, and(G1,G2)) :-
 	vocab_member(E,G1),
 	vocab_member(E,G2).
 vocab_member(E, scheme(Scheme)) :-
-	voc_property(Scheme, virtual(false)),
-	!,
-	rdf_has(E, skos:inScheme, Scheme).
-vocab_member(E, scheme(Scheme)) :-
-	voc_property(Scheme, virtual(true)),
-	!,
+	(   voc_property(Scheme, virtual(false))
+	->  vocab_member(E, rscheme(Scheme))
+	;   vocab_member(E, vscheme(Scheme))
+	).
+
+
+vocab_member(E, vscheme(Scheme)) :-
 	rdf(Scheme, amalgame:wasGeneratedBy, _, Strategy),
 	rdfs_individual_of(Strategy, amalgame:'AlignmentStrategy'),
 	expand_node(Strategy, Scheme, VocSpec),
 	!,
 	vocab_member(E, VocSpec).
+
+vocab_member(E, rscheme(Scheme)) :-
+	rdf_has(E, skos:inScheme, Scheme).
+
 vocab_member(E, type(Class)) :-
 	!,
 	rdfs_individual_of(E, Class).
