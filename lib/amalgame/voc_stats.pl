@@ -1,9 +1,10 @@
 :- module(am_vocstats,
-          [
-	   is_vocabulary/2,
-	   voc_property/2,
-	   voc_clear_stats/1,
-	   concept_list_depth_stats/3
+	  [
+	      is_vocabulary/1,
+	      voc_property/2,
+	      voc_property/3,
+	      voc_clear_stats/1,
+	      concept_list_depth_stats/3
           ]).
 
 :- use_module(library(semweb/rdfs)).
@@ -42,10 +43,16 @@ Currently supported statistical properties include:
 	count_homonyms(r,r,-).
 
 voc_property(Voc, P) :-
+	voc_property(Voc, P, []).
+
+voc_property(Voc, P, Options) :-
 	rdf_global_term(P, PG),
 	(   voc_stats_cache(Voc, PG)
 	->  true
-	;   voc_ensure_stats(Voc, PG)
+	;   (   option(compute(no), Options)
+	    ->  fail
+	    ;   voc_ensure_stats(Voc, PG)
+	    )
 	).
 
 assert_voc_prop(Voc, M) :-
@@ -61,27 +68,12 @@ voc_clear_stats(Voc) :-
 	retractall(voc_stats_cache(Voc, _)),
 	print_message(informational, map(cleared, 'vocabulary statistics', Voc, all)).
 
-%%	is_virtual_scheme(+URL) is semidet.
-%
-%	True if URL is a virtual Concept Scheme,
-%	e.g. it	 has no materialized skos:inScheme triples
 
-
-is_vocabulary(Voc, Format):-
-	ground(Voc),!,
-	(   voc_stats_cache(Voc, format(Format))
-	->  true
-	;   voc_ensure_stats(Voc, format(Format))
-	).
-
-is_vocabulary(Voc, Format):-
-	var(Voc),
-	findall(V-F, voc_ensure_stats(V,format(F)), _),
-	!,
-	voc_stats_cache(Voc, format(Format)).
+is_vocabulary(Voc) :-
+	rdfs_individual_of(Voc, skos:'ConceptScheme').
 
 voc_ensure_stats(Voc, virtual(Result)) :-
-	rdfs_individual_of(Voc, skos:'ConceptScheme'),
+	is_vocabulary(Voc),
 	(   rdf_has(_, skos:inScheme, Voc)
 	->  Virtual = false
 	;   Virtual = true
@@ -294,10 +286,11 @@ concept_depth(C, D) :-
 	 rdf(C, amalgame:depth, literal(type(xsd:int, D))),!.
 
 assert_depth(Voc) :-
+	findall(Concept, vocab_member(Concept, Voc), AllConcepts),
 	findall(TopConcept,
-		(   vocab_member(TopConcept, Voc),
-		    \+ (parent_child(Child, TopConcept),
-			vocab_member(Child, Voc)
+		(   member(TopConcept, AllConcepts),
+		    \+ (parent_child_chk(Child, TopConcept),
+			member(Child, AllConcepts)
 		       )
 		),
 		TopConcepts),
@@ -320,6 +313,9 @@ assert_depth(Concept, Voc, Depth) :-
 	forall(member(C, Children),
 	       assert_depth(C, Voc, NewDepth)
 	      ).
+
+parent_child_chk(P,C) :-
+	parent_child(P,C),!.
 
 parent_child(Parent, Child) :-
 	(   rdf_has(Child, skos:broader, Parent)

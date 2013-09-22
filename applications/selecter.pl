@@ -110,8 +110,7 @@ http_eq_upload_url(Request) :-
 
 
 find_schemes(Schemes) :-
-	findall(C, is_vocabulary(C,_Format), All),
-	% findall(G, is_edm_collection(G), Gs), fixme into a hookable pred
+	findall(C, is_vocabulary(C), All),
 	maplist(scheme_label, All, Labeled),
 	keysort(Labeled, Sorted),
 	pairs_values(Sorted, Schemes).

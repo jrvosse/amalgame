@@ -215,8 +215,8 @@ amalgame_label(Alignment, Resource, Lang, MaxLen, Label) :-
 	).
 
 stats_label_list(_Alignment, Resource, [Count]) :-
-	is_vocabulary(Resource, _),
-	voc_property(Resource, numberOfConcepts(Count)),
+	is_vocabulary(Resource),
+	voc_property(Resource, numberOfConcepts(Count), [compute(no)]),
 	!.
 stats_label_list(Alignment, Resource, [IPercA]) :-
 	stats_cache(Resource-Alignment, mstats(Stats)),
