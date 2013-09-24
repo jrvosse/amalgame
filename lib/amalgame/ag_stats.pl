@@ -67,6 +67,8 @@ mapping_stats(URL, Mapping, Strategy, Stats) :-
 		    targetPercentage(TPerc),
 		    source_depth(DSstats),
 		    target_depth(DTstats),
+		    source_child_stats(BSstats),
+		    target_child_stats(BTstats),
 		    sourcePercentageInput(SiPerc),
 		    targetPercentageInput(TiPerc),
 		    inputPercentage(IP)
@@ -77,8 +79,10 @@ mapping_stats(URL, Mapping, Strategy, Stats) :-
 	    save_perc(SN, SourceN, SPerc),
 	    save_perc(TN, TargetN, TPerc),
 	    concept_list_depth_stats(Ss, InputS, depth(DSstats)),
-	    concept_list_depth_stats(Ts, InputT, depth(DTstats))
-	;   SPerc = 100, TPerc = 100, SourceN = 0, TargetN = 0
+	    concept_list_depth_stats(Ts, InputT, depth(DTstats)),
+	    concept_list_branch_stats(Ss, InputS, branch(BSstats)),
+	    concept_list_branch_stats(Ts, InputT, branch(BTstats))
+	;   true
 	),
 	findall(Input, has_mapping_input(URL, Strategy, Input), Inputs),
 	(   Inputs \= []

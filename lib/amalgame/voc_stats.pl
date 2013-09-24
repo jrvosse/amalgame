@@ -4,7 +4,8 @@
 	      voc_property/2,
 	      voc_property/3,
 	      voc_clear_stats/1,
-	      concept_list_depth_stats/3
+	      concept_list_depth_stats/3,
+	      concept_list_branch_stats/3
           ]).
 
 :- use_module(library(semweb/rdfs)).
@@ -125,10 +126,12 @@ voc_ensure_stats(Voc, languages(P,L)) :-
 voc_ensure_stats(Voc, numberOfHomonyms(P, Lcount, Ccount)) :-
 	(   count_homonyms(Voc, P, Lcount, Ccount) -> true ; Lcount = 0, Ccount=0),
 	assert_voc_prop(Voc, numberOfHomonyms(P, Lcount, Ccount)).
-
 voc_ensure_stats(Voc, depth(Stats)) :-
 	(  compute_depth_stats(Voc, depth(Stats)) -> true ; Stats = []),
 	assert_voc_prop(Voc, depth(Stats)).
+voc_ensure_stats(Voc, branch(Stats)) :-
+	(  compute_branch_stats(Voc, branch(Stats)) -> true ; Stats = []),
+	assert_voc_prop(Voc, branch(Stats)).
 
 %%	assert_voc_version(+Voc, +TargetGraph) is det.
 %
@@ -256,35 +259,48 @@ voc_find_format(Voc, Format) :-
 	;   Format = null		% no concepts in the scheme
 	).
 
-compute_depth_stats(Voc, Stats) :-
+compute_depth_stats(Voc, depth(Stats)) :-
 	with_mutex(Voc,
 		   (   assert_depth(Voc),
-		       findall(D,
-			       (   vocab_member(C, Voc),
-				   concept_depth(C, D)
-			       ), Ds),
-		       (   Ds == []
-		       ->  Stats = depth([])
-		       ;   mean_std(Ds, Mean, Std, _),
-			   Stats = depth([mean(Mean),
-					  standard_deviation(Std)])
-		       )
+		       findall(Concept, vocab_member(Concept, Voc), Concepts),
+		       maplist(concept_depth, Concepts, Depths),
+		       mean_std(Depths, Stats)
+		   )
+		  ).
+
+compute_branch_stats(Voc, branch([Tops|Stats])) :-
+	voc_property(Voc, depth(_)), % ensure basic depth stats for voc have been computed
+	rdf(Voc, amalgame:nrOfTopConcepts, literal(type(xsd:int, NrTops)), vocstats),
+	Tops = nrOfTopConcepts(NrTops),
+	with_mutex(Voc,
+		   (
+		       findall(Concept, vocab_member(Concept, Voc), Concepts),
+		       maplist(concept_children_count, Concepts, Children),
+		       mean_std(Children, Stats)
 		   )
 		  ).
 
 concept_list_depth_stats([], _Voc, depth([])) :-!.
-concept_list_depth_stats(CList, Voc, Stats) :-
+concept_list_depth_stats(CList, Voc, depth(Stats)) :-
 	voc_property(Voc, depth(_)), % ensure basic depth stats for voc have been computed
-	findall(D,
-		(   member(C, CList),
-		    concept_depth(C, D)
-		), Ds),
-	mean_std(Ds, Mean, Std, _),
-	Stats = depth([mean(Mean),
-		       standard_deviation(Std)]).
+	maplist(concept_depth, CList, Depths),
+	mean_std(Depths, Stats).
+
+concept_list_branch_stats([], _Voc, branch([])) :-!.
+concept_list_branch_stats(CList, Voc, branch(Stats)) :-
+	voc_property(Voc, depth(_)), % ensure basic depth stats for voc have been computed
+	maplist(concept_children_count, CList, Children),
+	mean_std(Children, Stats).
 
 concept_depth(C, D) :-
 	 rdf(C, amalgame:depth, literal(type(xsd:int, D))),!.
+concept_depth(C, 0) :-
+	debug(depth, 'Warning: no depth assigned to ~p', [C]). % probably another cycle error
+
+concept_children_count(C,S) :-
+	rdf(C, amalgame:nrOfChildren, literal(type(xsd:int, S))),!.
+concept_children_count(C,0) :-
+	debug(depth, 'Warning: no children count assigned to ~p', [C]). % probably another cycle error
 
 assert_depth(Voc) :-
 	(   voc_property(Voc, virtual(false))
@@ -299,11 +315,11 @@ assert_depth(Voc) :-
 		(   member(TopConcept, AllConcepts),
 		    \+ (parent_child_chk(Child, TopConcept),
 			vocab_member(Child, VocSpec)
-		       ),
-		    debug(depth, 'Found top concept ~p', [TopConcept])
-
+		       )
 		),
 		TopConcepts),
+	length(TopConcepts, TopConceptsCount),
+	rdf_assert(Voc, amalgame:nrOfTopConcepts, literal(type(xsd:int, TopConceptsCount)), vocstats),
 	forall(member(C, TopConcepts),
 	       assert_depth(C, Voc, 1)
 	      ).
@@ -313,13 +329,16 @@ assert_depth(Concept, _Voc, _Depth) :-
 	!. % done already, dual hierarchy & loop detection
 
 assert_depth(Concept, Voc, Depth) :-
-	rdf_assert(Concept, amalgame:depth, literal(type(xsd:int, Depth)), vocstats),
 	findall(Child,
 		(   parent_child(Concept, Child),
 		    vocab_member(Child, Voc)
 		),
 		Children),
+	length(Children, ChildrenCount),
+	rdf_assert(Concept, amalgame:depth,        literal(type(xsd:int, Depth)), vocstats),
+	rdf_assert(Concept, amalgame:nrOfChildren, literal(type(xsd:int, ChildrenCount)), vocstats),
 	NewDepth is Depth + 1,
+
 	forall(member(C, Children),
 	       assert_depth(C, Voc, NewDepth)
 	      ).
@@ -333,7 +352,7 @@ parent_child(Parent, Child) :-
 	),
 	Parent \= Child.
 
-%%	mean_std(List, Mean, StandardDeviation, Length) is det.
+%%	mean_std(List, Mean, StandardDeviation, Max, Length) is det.
 %
 %	This recursive version is adapted from the incremental version
 %	at:
@@ -341,15 +360,22 @@ parent_child(Parent, Child) :-
 %
 %
 
-mean_std(List, Mean, Std, K) :-
-	mean_std_(List, Mean, S, K),
+mean_std([], [length(0)]) :- !.
+mean_std(List, Stats) :-
+	Stats = [mean(Mean),
+		 standard_deviation(Std),
+		 max(Max),
+		 length(K)
+		],
+	mean_std_(List, Mean, S, Max, K),
 	Std is sqrt(S/K).
 
-mean_std_([Value], Value, 0, 1) :- !.
-mean_std_([Value|Tail], Mean, S, K) :-
+mean_std_([Value], Value, 0, 0, 1) :- !.
+mean_std_([Value|Tail], Mean, S, Max, K) :-
 	!,
-	mean_std_(Tail, Tmean, Tstd, Tk),
+	mean_std_(Tail, Tmean, Tstd, Tmax, Tk),
 	K is Tk + 1,
+	Max is max(Tmax, Value),
 	Mean is Tmean + (Value - Tmean) / K,
 	S is Tstd  + (Value - Tmean) * (Value - Mean).
 

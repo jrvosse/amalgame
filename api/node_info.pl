@@ -104,9 +104,15 @@ amalgame_info(URL, Strategy, Stats) :-
 	!,
 	BasicStats = [
 	    'matched source concepts'-SN,
-	    'matched target concepts'-TN,
 	    'avg. source depth' - DepthSatom,
-	    'avg. target depth' - DepthTatom
+	    'max. source depth' - MaxDepthS,
+	    'avg. # children source' - ChildSatom,
+	    'avg. # children target' - ChildTatom,
+	    'matched target concepts'-TN,
+	    'avg. target depth' - DepthTatom,
+	    'max. target depth' - MaxDepthT,
+	    'max. # children source' - MaxChildS,
+	    'max. # children target' - MaxChildT
 	],
 	node_stats(Strategy, URL, MStats),
 	option(totalCount(MN), MStats),
@@ -116,17 +122,31 @@ amalgame_info(URL, Strategy, Stats) :-
 	option(targetPercentage(TPerc), MStats),
 	option(sourcePercentageInput(SiPerc), MStats, 0),
 	option(targetPercentageInput(TiPerc), MStats, 0),
+
 	option(source_depth(DepthS), MStats),
 	option(target_depth(DepthT), MStats),
 	option(mean(MeanDepthS), DepthS, 0),
 	option(mean(MeanDepthT), DepthT, 0),
+	option(max(MaxDepthS), DepthS, 0),
+	option(max(MaxDepthT), DepthT, 0),
 	option(standard_deviation(DepthStdS), DepthS, 0),
 	option(standard_deviation(DepthStdT), DepthT, 0),
+
+	option(source_child_stats(ChildS), MStats),
+	option(target_child_stats(ChildT), MStats),
+	option(mean(MeanChildS), ChildS, 0),
+	option(mean(MeanChildT), ChildT, 0),
+	option(max(MaxChildS), ChildS, 0),
+	option(max(MaxChildT), ChildT, 0),
+	option(standard_deviation(ChildStdS), ChildS, 0),
+	option(standard_deviation(ChildStdT), ChildT, 0),
 
 	format(atom(SN), '~d (i ~2f%, v ~2f%)', [SN0, SiPerc, SPerc]),
 	format(atom(TN), '~d (i ~2f%, v ~2f%)', [TN0, TiPerc, TPerc]),
 	format(atom(DepthSatom), '~2f (\u03C3 = ~2f)', [MeanDepthS, DepthStdS]),
 	format(atom(DepthTatom), '~2f (\u03C3 = ~2f)', [MeanDepthT, DepthStdT]),
+	format(atom(ChildSatom), '~2f (\u03C3 = ~2f)', [MeanChildS, ChildStdS]),
+	format(atom(ChildTatom), '~2f (\u03C3 = ~2f)', [MeanChildT, ChildStdT]),
 
 	(   rdf(URL, amalgame:default_relation, _R),
 	    reference_counts(URL, Strategy, ReferenceStats)
@@ -145,6 +165,11 @@ amalgame_info(Scheme, _Strategy, Stats) :-
 	!,
 	Stats =
 	['Total concepts'-Total,
+	 '# top concepts:'  - span([TopConA]),
+	 'average depth:'   - span([Depth]),
+	 'maximum depth:'   - span([DepthMax]),
+	 'average # children:'   - span([Branch]),
+	 'maximum # children:'   - span([BranchMax]),
 	 '# prefLabels'	 -span([PrefCount, ' (',
 				\(ag_util_components):html_showlist(PrefLangs), ')']),
 	 '# altLabels'       - span([AltCount,' (',
@@ -152,8 +177,7 @@ amalgame_info(Scheme, _Strategy, Stats) :-
 	 '# ambiguous concepts (pref):'-span([PrefHomsCA]),
 	 '# ambiguous pref labels:'-span([PrefHomsLA]),
 	 '# ambiguous concepts (alt):'-span([AltHomsCA]),
-	 '# ambiguous alt  labels:'-span([AltHomsLA]),
-	 'average depth:'   - span([Depth])
+	 '# ambiguous alt  labels:'-span([AltHomsLA])
 	],
 	voc_property(Scheme, numberOfConcepts(Total)),
 	voc_property(Scheme, numberOfPrefLabels(PrefCount)),
@@ -162,18 +186,31 @@ amalgame_info(Scheme, _Strategy, Stats) :-
 	voc_property(Scheme, languages(skos:altLabel, AltLangs)),
 	voc_property(Scheme, numberOfHomonyms(skos:prefLabel, PrefHomsL, PrefHomsC)),
 	voc_property(Scheme, numberOfHomonyms(skos:altLabel,  AltHomsL,	 AltHomsC )),
+
 	voc_property(Scheme, depth(DepthStats)),
 	option(mean(DepthM), DepthStats, 0),
 	option(standard_deviation(DepthStd), DepthStats, 0),
+	option(max(DepthMax), DepthStats, 0),
+
+	voc_property(Scheme, branch(BranchStats)),
+	option(mean(BranchM), BranchStats, 0),
+	option(standard_deviation(BranchStd), BranchStats, 0),
+	option(max(BranchMax), BranchStats, 0),
+	option(nrOfTopConcepts(TopConcepts), BranchStats, 0),
+
 	save_perc(PrefHomsL, PrefCount, PrefHomsLP),
 	save_perc(AltHomsL,  AltCount,  AltHomsLP),
 	save_perc(PrefHomsC, Total, PrefHomsCP),
 	save_perc(AltHomsL, Total, AltHomsCP),
+	save_perc(TopConcepts, Total, TopConceptsP),
+
 	format(atom(Depth), '~2f (\u03C3 = ~2f)', [DepthM, DepthStd]),
+	format(atom(Branch), '~2f (\u03C3 = ~2f)', [BranchM, BranchStd]),
 	format(atom(PrefHomsLA), '~d (~2f%)', [PrefHomsL, PrefHomsLP]),
 	format(atom(AltHomsLA),  '~d (~2f%)', [AltHomsL, AltHomsLP]),
 	format(atom(PrefHomsCA), '~d (~2f%)', [PrefHomsC, PrefHomsCP]),
-	format(atom(AltHomsCA),  '~d (~2f%)', [AltHomsC, AltHomsCP]).
+	format(atom(AltHomsCA),  '~d (~2f%)', [AltHomsC, AltHomsCP]),
+	format(atom(TopConA),    '~d (~2f%)', [TopConcepts, TopConceptsP]).
 
 
 
