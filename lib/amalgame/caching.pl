@@ -38,7 +38,7 @@ user:message_hook(make(done(_)), _, _) :-
 	flush_expand_cache(_),
 	fail.
 user:message_hook(make(done(_)), _, _) :-
-	debug(ag_expand, 'Flushing prov program version cache after running make/0', []),
+	debug(ag_expand, 'Flushing prov cache after running make/0', []),
 	flush_prov_cache,
 	fail.
 user:message_hook(make(done(_)), _, _) :-
