@@ -29,7 +29,8 @@
 	current_prov_uri/2.
 
 flush_prov_cache :-
-	retractall(current_prov_uri(_,_)).
+	retractall(current_prov_uri(_,_)),
+	forall(provenance_graph(_,G), rdf_unload_graph(G)).
 
 
 %%	provenance_graph(+Strategy, ?Graph) is det.
