@@ -137,6 +137,11 @@ voc_ensure_stats(Voc, depth(Stats)) :-
 voc_ensure_stats(Voc, branch(Stats)) :-
 	(  compute_branch_stats(Voc, branch(Stats)) -> true ; Stats = []),
 	assert_voc_prop(Voc, branch(Stats)).
+voc_ensure_stats(Voc, nrOfTopConcepts(Count)) :-
+	voc_property(Voc, depth(_)), % ensure nrOfTopConcepts has been computed
+	(   rdf(Voc, amalgame:nrOfTopConcepts, literal(type(xsd:int, Count))) -> true ; Count = 0 ),
+	assert_voc_prop(Voc, nrOfTopConcepts(Count)).
+
 
 %%	assert_voc_version(+Voc, +TargetGraph) is det.
 %
@@ -292,7 +297,16 @@ concept_list_depth_stats(CList, Voc, depth(Stats)) :-
 	mean_std(Depths, Stats).
 
 concept_list_branch_stats([], _Voc, branch([])) :-!.
-concept_list_branch_stats(CList, Voc, branch(Stats)) :-
+concept_list_branch_stats(CList, Voc, branch([Tops|Stats])) :-
+	Tops = nrOfTopConcepts(TopConceptsCount),
+	findall(TopConcept,
+		(   member(TopConcept, CList),
+		    \+ (parent_child_chk(Child, TopConcept),
+			vocab_member(Child, Voc)
+		       )
+		),
+		TopConcepts),
+	length(TopConcepts, TopConceptsCount),
 	voc_property(Voc, depth(_)), % ensure basic depth stats for voc have been computed
 	maplist(concept_children_count, CList, Children),
 	mean_std(Children, Stats).

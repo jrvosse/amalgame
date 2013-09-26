@@ -104,17 +104,23 @@ amalgame_info(URL, Strategy, Stats) :-
 	!,
 	BasicStats = [
 	    'matched source concepts'-SN,
+	    'matched source top concepts'-TopSatom,
 	    'avg. source depth' - DepthSatom,
 	    'max. source depth' - MaxDepthS,
 	    'avg. # children source' - ChildSatom,
 	    'avg. # children target' - ChildTatom,
 	    'matched target concepts'-TN,
+	    'matched target top concepts'-TopTatom,
 	    'avg. target depth' - DepthTatom,
 	    'max. target depth' - MaxDepthT,
 	    'max. # children source' - MaxChildS,
 	    'max. # children target' - MaxChildT
 	],
 	node_stats(Strategy, URL, MStats),
+	% option(sourceVoc(VocS), MStats),
+	% option(targetVoc(VocT), MStats),
+	% voc_property(VocS, nrOfTopConcepts(TotalTopsS)),
+	% voc_property(VocT, nrOfTopConcepts(TotalTopsT)),
 	option(totalCount(MN), MStats),
 	option(mappedSourceConcepts(SN0), MStats),
 	option(mappedTargetConcepts(TN0), MStats),
@@ -134,6 +140,8 @@ amalgame_info(URL, Strategy, Stats) :-
 
 	option(source_child_stats(ChildS), MStats),
 	option(target_child_stats(ChildT), MStats),
+	option(nrOfTopConcepts(STop), ChildS, 0),
+	option(nrOfTopConcepts(TTop), ChildT, 0),
 	option(mean(MeanChildS), ChildS, 0),
 	option(mean(MeanChildT), ChildT, 0),
 	option(max(MaxChildS), ChildS, 0),
@@ -141,12 +149,18 @@ amalgame_info(URL, Strategy, Stats) :-
 	option(standard_deviation(ChildStdS), ChildS, 0),
 	option(standard_deviation(ChildStdT), ChildT, 0),
 
+	save_perc(STop, SN0, STopP),
+	save_perc(TTop, TN0, TTopP),
+
 	format(atom(SN), '~d (i ~2f%, v ~2f%)', [SN0, SiPerc, SPerc]),
 	format(atom(TN), '~d (i ~2f%, v ~2f%)', [TN0, TiPerc, TPerc]),
+	format(atom(TopSatom), '~d (~2f%)', [STop, STopP]),
+	format(atom(TopTatom), '~d (~2f%)', [TTop, TTopP]),
 	format(atom(DepthSatom), '~2f (\u03C3 = ~2f)', [MeanDepthS, DepthStdS]),
 	format(atom(DepthTatom), '~2f (\u03C3 = ~2f)', [MeanDepthT, DepthStdT]),
 	format(atom(ChildSatom), '~2f (\u03C3 = ~2f)', [MeanChildS, ChildStdS]),
 	format(atom(ChildTatom), '~2f (\u03C3 = ~2f)', [MeanChildT, ChildStdT]),
+
 
 	(   rdf(URL, amalgame:default_relation, _R),
 	    reference_counts(URL, Strategy, ReferenceStats)

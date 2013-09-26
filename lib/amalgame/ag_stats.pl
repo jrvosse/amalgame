@@ -61,6 +61,8 @@ mapping_stats(URL, Mapping, Strategy, Stats) :-
 	length(Ts, TN),
 	Stats = mstats([
 		    totalCount(MN),
+		    sourceVoc(InputS),
+		    targetVoc(InputT),
 		    mappedSourceConcepts(SN),
 		    mappedTargetConcepts(TN),
 		    sourcePercentage(SPerc),
