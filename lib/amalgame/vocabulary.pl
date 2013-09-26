@@ -25,6 +25,14 @@ vocab_member(E, and(G1,G2)) :-
 	!,
 	vocab_member(E,G1),
 	vocab_member(E,G2).
+
+vocab_member(E, alignable(Alignable)) :-
+	rdf(Alignable, amalgame:class, Class),
+	rdf(Alignable, amalgame:graph, Graph),
+	!,
+	vocab_member(E, graph(Graph)),
+	vocab_member(E, type(Class)).
+
 vocab_member(E, scheme(Scheme)) :-
 	(   voc_property(Scheme, virtual(false))
 	->  vocab_member(E, rscheme(Scheme))
@@ -66,14 +74,12 @@ vocab_member(E, Scheme) :-
 	!,
 	vocab_member(E, scheme(Scheme)).
 
-vocab_member(E, Alignable) :-
-	atom(Alignable),
-	rdfs_individual_of(Alignable, amalgame:'Alignable'),
-	rdf(Alignable, amalgame:class, Class),
-	rdf(Alignable, amalgame:graph, Graph),
+vocab_member(E, Scheme) :-
+	atom(Scheme),
+	rdfs_individual_of(Scheme, amalgame:'Alignable'),
 	!,
-	vocab_member(E, graph(Graph)),
-	vocab_member(E, type(Class)).
+	vocab_member(E, alignable(Scheme)).
+
 /*
 vocab_member(I, EDMGraph) :-
 	atom(EDMGraph),

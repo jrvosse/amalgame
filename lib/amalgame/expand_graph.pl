@@ -7,6 +7,7 @@
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(amalgame/caching)).
 :- use_module(library(amalgame/map)).
+:- use_module(library(amalgame/voc_stats)).
 :- use_module(library(amalgame/ag_provenance)).
 :- use_module(library(amalgame/amalgame_modules)).
 
@@ -39,7 +40,7 @@ expand_node_(Strategy, Id, Result) :-
 
 	(   rdfs_individual_of(Id, amalgame:'Mapping')
 	->  select_result_mapping(Id, ProcessResult, OutputType, Result)
-	;   rdfs_individual_of(Id, skos:'ConceptScheme')
+	;   is_vocabulary(Id)
 	->  Result = ProcessResult
 	;   Result = error(Id)
 	).
@@ -49,7 +50,7 @@ expand_node_(Strategy, Id, Result) :-
 	% Cache miss, we need to do the work ...
 	(   rdfs_individual_of(Id, amalgame:'Mapping')
 	->  expand_mapping(Strategy, Id, Result)
-	;   rdfs_individual_of(Id, skos:'ConceptScheme')
+	;   is_vocabulary(Id)
 	->  expand_vocab(Strategy, Id, Result)
 	;   Result=error(Id)
 	).
@@ -103,6 +104,12 @@ expand_vocab(Strategy, Id, Vocab) :-
 	!,
 	with_mutex(Process,
 		   expand_process(Strategy, Process, Vocab)).
+
+expand_vocab(Strategy, Vocab, vocspec(alignable(Vocab))) :-
+	rdfs_individual_of(Vocab, amalgame:'Alignable'),
+	!,
+	rdf_equal(amalgame:preloaded, Preloaded),
+	cache_result(0, Preloaded, Strategy, vocspec(alignable(Vocab))).
 
 expand_vocab(Strategy, Vocab, vocspec(scheme(Vocab))) :-
 	rdf_equal(amalgame:preloaded, Preloaded),

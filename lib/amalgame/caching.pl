@@ -170,6 +170,8 @@ cache_result_stats(Process, Strategy, vocspec(VocSpec)) :-
 	->  true
 	;   VocSpec = and(_,_)
 	->  rdf(Id, amalgame:wasGeneratedBy, Process, Strategy)
+	;   VocSpec = alignable(Id)
+	->  true
 	;   fail
 	),
 	!,

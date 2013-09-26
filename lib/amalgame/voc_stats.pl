@@ -74,9 +74,14 @@ voc_clear_stats(Voc) :-
 is_vocabulary(Voc) :-
 	rdfs_individual_of(Voc, skos:'ConceptScheme').
 
+is_vocabulary(Voc) :-
+	rdfs_individual_of(Voc, amalgame:'Alignable').
+
 voc_ensure_stats(Voc, virtual(Result)) :-
 	is_vocabulary(Voc),
 	(   rdf_has(_, skos:inScheme, Voc)
+	->  Virtual = false
+	;   rdfs_individual_of(Voc, amalgame:'Alignable')
 	->  Virtual = false
 	;   Virtual = true
 	),
@@ -303,18 +308,12 @@ concept_children_count(C,0) :-
 	debug(depth, 'Warning: no children count assigned to ~p', [C]). % probably another cycle error
 
 assert_depth(Voc) :-
-	(   voc_property(Voc, virtual(false))
-	->  VocSpec = rscheme(Voc)
-	;   rdf(Scheme, amalgame:wasGeneratedBy, _, Strategy),
-	    rdfs_individual_of(Strategy, amalgame:'AlignmentStrategy'),
-	    expand_node(Strategy, Scheme, VocSpec)
-	),
-	findall(Concept, vocab_member(Concept, VocSpec), AllConcepts),
+	findall(Concept, vocab_member(Concept, Voc), AllConcepts),
 
 	findall(TopConcept,
 		(   member(TopConcept, AllConcepts),
 		    \+ (parent_child_chk(Child, TopConcept),
-			vocab_member(Child, VocSpec)
+			vocab_member(Child, Voc)
 		       )
 		),
 		TopConcepts),
