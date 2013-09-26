@@ -161,7 +161,7 @@ amalgame_info(URL, Strategy, Stats) :-
 	append([IpStats, BasicStats, ReferenceStats], Stats).
 
 amalgame_info(Scheme, _Strategy, Stats) :-
-	rdfs_individual_of(Scheme, skos:'ConceptScheme'),
+	is_vocabulary(Scheme),
 	!,
 	Stats =
 	['Total concepts'-Total,

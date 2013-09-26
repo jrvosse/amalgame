@@ -165,7 +165,7 @@ amalgame_shape(R, [shape(ellipse),
 	      fillcolor('#EEEEEE'),
 	      fontsize(10)]) :-
 	atom(R),
-	rdfs_individual_of(R, skos:'ConceptScheme').
+	is_vocabulary(R).
 amalgame_shape(R, [shape(ellipse),
 	      fillcolor(Color),
 	      style(filled),
