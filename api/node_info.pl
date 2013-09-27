@@ -227,7 +227,11 @@ amalgame_info(_URL, _Strategy, []).
 
 label_stats(Scheme, Property, Stats) :-
 	voc_property(Scheme, numberOfConcepts(Total)),
-	voc_property(Scheme, languages(Property, PrefLangs)),
+	voc_property(Scheme, languages(Property, PrefLangs0)),
+	(   PrefLangs0 == []
+	->  PrefLangs = [_UnknownLang]
+	;   PrefLangs = PrefLangs0
+	),
 	findall([CountL-span([PrefA]),
 		 '... # ambiguous labels:'-span([PrefHomsLA]),
 		 '... # ambiguous concepts:'-span([PrefHomsCA])
