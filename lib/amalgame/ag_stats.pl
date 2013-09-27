@@ -80,10 +80,16 @@ mapping_stats(URL, Mapping, Strategy, Stats) :-
 	    voc_property(InputT, numberOfConcepts(TargetN)),
 	    save_perc(SN, SourceN, SPerc),
 	    save_perc(TN, TargetN, TPerc),
-	    concept_list_depth_stats(Ss, InputS, depth(DSstats)),
-	    concept_list_depth_stats(Ts, InputT, depth(DTstats)),
-	    concept_list_branch_stats(Ss, InputS, branch(BSstats)),
-	    concept_list_branch_stats(Ts, InputT, branch(BTstats))
+	    (	concept_list_depth_stats(Ss, InputS, depth(DSstats)),
+		concept_list_branch_stats(Ss, InputS, branch(BSstats))
+	    ->	true
+	    ;   DSstats = [], BSstats = []
+	    ),
+	    (	concept_list_depth_stats(Ts, InputT, depth(DTstats)),
+		concept_list_branch_stats(Ts, InputT, branch(BTstats))
+	    ->	true
+	    ;	DTstats = [], BTstats = []
+	    )
 	;   true
 	),
 	findall(Input, has_mapping_input(URL, Strategy, Input), Inputs),
