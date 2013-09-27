@@ -21,7 +21,8 @@ parameter(targetlabel, oneof(LabelProps), Default,
 	  '(Super)Property to get the label of the target by') :-
 	rdf_equal(Default, rdfs:label),
 	label_list(LabelProps).
-parameter(language, oneof(['any'|L]), 'any', 'Language of source label') :-
+parameter(source_language, oneof(['any'|L]), 'any',
+	  'Language of source label') :-
 	strategy_languages(_S,L).
 parameter(matchacross_lang, boolean, true,
 	  'Allow labels from different language to be matched').
@@ -66,7 +67,7 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 	option(matchacross_lang(MatchAcross), Options, true),
 	option(matchacross_type(IgnoreType),  Options, true),
 	option(case_sensitive(CaseSensitive), Options, false),
-	option(language(Lang), Options, 'any'),
+	option(source_language(Lang), Options, 'any'),
 
 	(   Lang == 'any'
 	->  SourceLang = _
