@@ -14,7 +14,6 @@
 :- use_module(library(amalgame/map)).
 :- use_module(library(amalgame/ag_provenance)).
 :- use_module(library(amalgame/vocabulary)).
-:- use_module(library(amalgame/expand_graph)).
 
 /** <module> Compute and cache vocabulary-oriented properties and statistics.
 
@@ -110,15 +109,9 @@ voc_ensure_stats(Voc, version(Version)) :-
 voc_ensure_stats(Voc, numberOfConcepts(Count)) :-
 	(   count_concepts(Voc, Count) -> true ; Count = 0),
 	assert_voc_prop(Voc, numberOfConcepts(Count)).
-
-voc_ensure_stats(Voc, numberOfPrefLabels(Count)) :-
-	(   count_prefLabels(Voc, Count) -> true ; Count = 0),
-	assert_voc_prop(Voc, numberOfPrefLabels(Count)).
-
-voc_ensure_stats(Voc, numberOfAltLabels(Count)) :-
-	(   count_altLabels(Voc, Count) -> true ; Count = 0),
-	assert_voc_prop(Voc,numberOfAltLabels(Count)).
-
+voc_ensure_stats(Voc, numberOfLabels(Prop, Lang, Count)) :-
+	(   count_labels(Voc, Prop, Lang, Count) -> true ; Count = 0),
+	assert_voc_prop(Voc, numberOfPrefLabels(Prop, Lang, Count)).
 voc_ensure_stats(Voc, numberOfMappedConcepts(Count)) :-
 	(   count_mapped_concepts(Voc, Count) -> true ; Count = 0),
 	assert_voc_prop(Voc, numberOfMappedConcepts(Count)).
@@ -128,9 +121,9 @@ voc_ensure_stats(Voc, languages(L)) :-
 voc_ensure_stats(Voc, languages(P,L)) :-
 	(   voc_languages_used(Voc, P, L) -> true ; L = []),
 	assert(voc_stats_cache(Voc, languages(P,L))).
-voc_ensure_stats(Voc, numberOfHomonyms(P, Lcount, Ccount)) :-
-	(   count_homonyms(Voc, P, Lcount, Ccount) -> true ; Lcount = 0, Ccount=0),
-	assert_voc_prop(Voc, numberOfHomonyms(P, Lcount, Ccount)).
+voc_ensure_stats(Voc, numberOfHomonyms(P, Lang, Lcount, Ccount)) :-
+	(   count_homonyms(Voc, P, Lang, Lcount, Ccount) -> true ; Lcount = 0, Ccount=0),
+	assert_voc_prop(Voc, numberOfHomonyms(P, Lang, Lcount, Ccount)).
 voc_ensure_stats(Voc, depth(Stats)) :-
 	(  compute_depth_stats(Voc, depth(Stats)) -> true ; Stats = []),
 	assert_voc_prop(Voc, depth(Stats)).
@@ -170,32 +163,22 @@ count_concepts(Voc, Count) :-
 	length(Concepts, Count),
 	print_message(informational, map(found, 'Concepts', Voc, Count)).
 
-count_prefLabels(Voc, Count) :-
+count_labels(Voc, Property, Lang, Count) :-
 	findall(Label,
 		(   vocab_member(Concept, Voc),
-		    (	rdf_has(Concept, skos:prefLabel, literal(Label))
-		    ;	rdf_has(Concept, skosxl:prefLabel, Label)
+		    (	rdf_has(Concept, Property, literal(lang(Lang,Label)))
+		    ;	rdf_has(Concept, Property, LabelObject),
+			rdf_has(LabelObject,   skosxl:literalForm, literal(lang(Lang,Label)))
 		    )
 		),
 		Labels),
 	length(Labels, Count),
-	print_message(informational, map(found, 'SKOS preferred labels', Voc, Count)).
+	print_message(informational, map(found, 'labels', Voc, Count)).
 
-count_altLabels(Voc, Count) :-
-	findall(Label,
-		(   vocab_member(Concept, Voc),
-		    (	rdf_has(Concept, skos:altLabel, literal(Label))
-		    ;	rdf_has(Concept, skosxl:altLabel, Label)
-		    )
-		),
-		Labels),
-	length(Labels, Count),
-	print_message(informational, map(found, 'SKOS alternative labels', Voc, Count)).
-
-count_homonyms(Voc, Prop, LabelCount, ConceptCount) :-
+count_homonyms(Voc, Prop, Lang, LabelCount, ConceptCount) :-
 	findall(Label-Concept,
 		(   vocab_member(Concept, Voc),
-		    rdf_has(Concept, Prop, literal(Label))
+		    rdf_has(Concept, Prop, literal(lang(Lang, Label)))
 		),
 		Labels),
 	keysort(Labels, Sorted),
@@ -292,7 +275,7 @@ compute_branch_stats(Voc, branch([Tops|Stats])) :-
 
 concept_list_depth_stats([], _Voc, depth([])) :-!.
 concept_list_depth_stats(CList, Voc, depth(Stats)) :-
-	voc_property(Voc, depth(_)), % ensure basic depth stats for voc have been computed
+	voc_property(Voc, depth(_), [compute(no)]), % only if basic depth stats for voc already computed
 	maplist(concept_depth, CList, Depths),
 	mean_std(Depths, Stats).
 

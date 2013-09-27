@@ -177,30 +177,19 @@ amalgame_info(URL, Strategy, Stats) :-
 amalgame_info(Scheme, _Strategy, Stats) :-
 	is_vocabulary(Scheme),
 	!,
-	Stats =
+	BasicStats =
 	['Total concepts'-Total,
 	 '# top concepts:'  - span([TopConA]),
 	 'average depth:'   - span([Depth]),
 	 'maximum depth:'   - span([DepthMax]),
 	 'average # children:'   - span([Branch]),
-	 'maximum # children:'   - span([BranchMax]),
-	 '# prefLabels' -span([PrefCount, ' (',
-			       \(ag_util_components:html_showlist(PrefLangs)), ')']),
-	 '# altLabels' - span([AltCount,' (',
-			       \(ag_util_components:html_showlist(AltLangs)), ')']),
-	 '# ambiguous concepts (pref):'-span([PrefHomsCA]),
-	 '# ambiguous pref labels:'-span([PrefHomsLA]),
-	 '# ambiguous concepts (alt):'-span([AltHomsCA]),
-	 '# ambiguous alt  labels:'-span([AltHomsLA])
+	 'maximum # children:'   - span([BranchMax])
 	],
-	voc_property(Scheme, numberOfConcepts(Total)),
-	voc_property(Scheme, numberOfPrefLabels(PrefCount)),
-	voc_property(Scheme, numberOfAltLabels(AltCount)),
-	voc_property(Scheme, languages(skos:prefLabel, PrefLangs)),
-	voc_property(Scheme, languages(skos:altLabel, AltLangs)),
-	voc_property(Scheme, numberOfHomonyms(skos:prefLabel, PrefHomsL, PrefHomsC)),
-	voc_property(Scheme, numberOfHomonyms(skos:altLabel,  AltHomsL,	 AltHomsC )),
+	label_stats(Scheme, skos:prefLabel, PrefLabelStats),
+	label_stats(Scheme, skos:altLabel,  AltLabelStats),
+	append([BasicStats, PrefLabelStats, AltLabelStats], Stats),
 
+	voc_property(Scheme, numberOfConcepts(Total)),
 	voc_property(Scheme, depth(DepthStats)),
 	option(mean(DepthM), DepthStats, 0),
 	option(standard_deviation(DepthStd), DepthStats, 0),
@@ -212,20 +201,11 @@ amalgame_info(Scheme, _Strategy, Stats) :-
 	option(max(BranchMax), BranchStats, 0),
 	option(nrOfTopConcepts(TopConcepts), BranchStats, 0),
 
-	save_perc(PrefHomsL, PrefCount, PrefHomsLP),
-	save_perc(AltHomsL,  AltCount,  AltHomsLP),
-	save_perc(PrefHomsC, Total, PrefHomsCP),
-	save_perc(AltHomsL, Total, AltHomsCP),
 	save_perc(TopConcepts, Total, TopConceptsP),
 
 	format(atom(Depth), '~2f (\u03C3 = ~2f)', [DepthM, DepthStd]),
 	format(atom(Branch), '~2f (\u03C3 = ~2f)', [BranchM, BranchStd]),
-	format(atom(PrefHomsLA), '~d (~2f%)', [PrefHomsL, PrefHomsLP]),
-	format(atom(AltHomsLA),  '~d (~2f%)', [AltHomsL, AltHomsLP]),
-	format(atom(PrefHomsCA), '~d (~2f%)', [PrefHomsC, PrefHomsCP]),
-	format(atom(AltHomsCA),  '~d (~2f%)', [AltHomsC, AltHomsCP]),
 	format(atom(TopConA),    '~d (~2f%)', [TopConcepts, TopConceptsP]).
-
 
 
 amalgame_info(URL, Strategy,
@@ -245,10 +225,31 @@ amalgame_info(URL, Strategy,
 amalgame_info(_URL, _Strategy, []).
 
 
+label_stats(Scheme, Property, Stats) :-
+	voc_property(Scheme, numberOfConcepts(Total)),
+	voc_property(Scheme, languages(Property, PrefLangs)),
+	findall([CountL-span([PrefA]),
+		 '... # ambiguous labels:'-span([PrefHomsLA]),
+		 '... # ambiguous concepts:'-span([PrefHomsCA])
+		],
+		(   member(Lang, PrefLangs),
+		    voc_property(Scheme, numberOfLabels(Property, Lang, Count)), Count > 0,
+		    voc_property(Scheme, numberOfHomonyms(Property, Lang, PrefHomsL, PrefHomsC)),
+		    save_perc(PrefHomsL, Count, PrefHomsLP),
+		    save_perc(PrefHomsC, Total, PrefHomsCP),
+		    format(atom(CountL), '# ~p @~w', [Property, Lang]),
+		    format(atom(PrefA), '~d', [Count]),
+		    format(atom(PrefHomsLA), '~d (~2f%)', [PrefHomsL, PrefHomsLP]),
+		    format(atom(PrefHomsCA), '~d (~2f%)', [PrefHomsC, PrefHomsCP])
+		), PrefLabelStatsLoL),
+	append(PrefLabelStatsLoL, Stats).
+
+
 %%	amalgame_provenance(+R, +Alignment, -Provenance:[key-value])
 %
 %	Provenance is a list of key-value pairs with provenance about
 %	node R as defined by strategy Alignment
+
 
 amalgame_provenance(R, Alignment, Provenance) :-
 	findall(Key-Value, ag_prov(R, Alignment, Key, Value), Provenance0),
