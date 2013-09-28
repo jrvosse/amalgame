@@ -164,6 +164,22 @@ count_concepts(Voc, Count) :-
 	print_message(informational, map(found, 'Concepts', Voc, Count)).
 
 count_labels(Voc, Property, Lang, Count) :-
+	var(Lang),
+	findall(Label,
+		(   vocab_member(Concept, Voc),
+		    (	rdf_has(Concept, Property, literal(lang(Lang,Label))),
+			var(Lang)
+		    ;	rdf_has(Concept, Property, LabelObject),
+			rdf_has(LabelObject,   skosxl:literalForm, literal(Label)),
+			\+ rdf_has(LabelObject,   skosxl:literalForm, literal(lang(_,Label)))
+		    )
+		),
+		Labels),
+	length(Labels, Count),
+	Lang='?',
+	print_message(informational, map(found, 'labels with unknown language', Voc, Count)).
+
+count_labels(Voc, Property, Lang, Count) :-
 	findall(Label,
 		(   vocab_member(Concept, Voc),
 		    (	rdf_has(Concept, Property, literal(lang(Lang,Label)))
