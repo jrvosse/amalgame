@@ -111,7 +111,7 @@ voc_ensure_stats(Voc, numberOfConcepts(Count)) :-
 	assert_voc_prop(Voc, numberOfConcepts(Count)).
 voc_ensure_stats(Voc, numberOfLabels(Prop, Lang, Count)) :-
 	(   count_labels(Voc, Prop, Lang, Count) -> true ; Count = 0),
-	assert_voc_prop(Voc, numberOfPrefLabels(Prop, Lang, Count)).
+	assert_voc_prop(Voc, numberOfLabels(Prop, Lang, Count)).
 voc_ensure_stats(Voc, numberOfMappedConcepts(Count)) :-
 	(   count_mapped_concepts(Voc, Count) -> true ; Count = 0),
 	assert_voc_prop(Voc, numberOfMappedConcepts(Count)).
