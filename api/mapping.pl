@@ -26,7 +26,7 @@
 
 :- http_handler(amalgame(data/mapping), http_data_mapping, []).
 :- http_handler(amalgame(data/evaluate), http_data_evaluate, []).
-:- http_handler(amalgame(private/correspondence), http_correspondence, []).
+:- http_handler(amalgame(api/correspondence), http_correspondence, []).
 
 %%	http_data_mapping(+Request)
 %
