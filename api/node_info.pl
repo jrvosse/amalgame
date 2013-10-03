@@ -4,6 +4,7 @@
 
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
+:- use_module(library(http/http_json)).
 :- use_module(library(http/html_write)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
@@ -17,7 +18,11 @@
 
 % http handlers for this applications
 
-:- http_handler(amalgame(private/info), http_node_info, []).
+:- http_handler(amalgame(api/node_info), http_node_info, []).
+:- http_handler(amalgame(analyse/deep_voc_stats), http_deep_voc_stats, []).
+
+:- setting(amalgame:vocabulary_statistics, oneof([all,fast]), fast,
+	   'Compute all (takes long) or only the cheap (fast) vocabulary statistics').
 
 %%	http_eq_info(+Request)
 %
@@ -41,6 +46,15 @@ http_node_info(Request) :-
 	html_current_option(content_type(Type)),
 	format('Content-type: ~w~n~n', [Type]),
 	print_html(HTML).
+
+http_deep_voc_stats(Request) :-
+	http_parameters(Request,
+			[ url(Voc,
+			      [description('URL of a vocab')])
+		       ]),
+	voc_property(Voc, depth(D), [compute(yes)]),
+	voc_property(Voc, branch(B), [compute(yes)]),
+	reply_json(json([url=Voc, depth=json(D), branch=json(B)])).
 
 %%	html_prop_table(+Pairs)
 %
@@ -190,23 +204,27 @@ amalgame_info(Scheme, _Strategy, Stats) :-
 	append([BasicStats, PrefLabelStats, AltLabelStats], Stats),
 
 	voc_property(Scheme, numberOfConcepts(Total)),
-	(   voc_property(Scheme, depth(DepthStats), [compute(no)]) -> true; DepthStats = []),
-	option(mean(DepthM), DepthStats, 0),
-	option(standard_deviation(DepthStd), DepthStats, 0),
-	option(max(DepthMax), DepthStats, 0),
-
-	(   voc_property(Scheme, branch(BranchStats), [compute(no)]) -> true; BranchStats = []),
-	option(mean(BranchM), BranchStats, 0),
-	option(standard_deviation(BranchStd), BranchStats, 0),
-	option(max(BranchMax), BranchStats, 0),
-	option(nrOfTopConcepts(TopConcepts), BranchStats, 0),
-
 	save_perc(TopConcepts, Total, TopConceptsP),
 
-	format(atom(Depth), '~2f (\u03C3 = ~2f)', [DepthM, DepthStd]),
-	format(atom(Branch), '~2f (\u03C3 = ~2f)', [BranchM, BranchStd]),
-	format(atom(TopConA),    '~d (~2f%)', [TopConcepts, TopConceptsP]).
+	format(atom(TopConA),    '~d (~2f%)', [TopConcepts, TopConceptsP]),
 
+	(   setting(amalgame:vocabulary_statistics, fast) ->  C = no; C = yes),
+	(   voc_property(Scheme, depth(DepthStats), [compute(C)])
+	->  option(mean(DepthM), DepthStats, 0),
+	    option(standard_deviation(DepthStd), DepthStats, 0),
+	    option(max(DepthMax), DepthStats, 0),
+	    format(atom(Depth), '~2f (\u03C3 = ~2f)', [DepthM, DepthStd])
+	;   Depth = '-', DepthMax = '-'
+	),
+
+	(   voc_property(Scheme, branch(BranchStats), [compute(C)])
+	->  option(mean(BranchM), BranchStats, 0),
+	    option(standard_deviation(BranchStd), BranchStats, 0),
+	    option(max(BranchMax), BranchStats, 0),
+	    option(nrOfTopConcepts(TopConcepts), BranchStats, 0),
+	    format(atom(Branch), '~2f (\u03C3 = ~2f)', [BranchM, BranchStd])
+	;   Branch = '-', BranchMax = '-'
+	).
 
 amalgame_info(URL, Strategy,
 	       ['type'   - \(cp_label:rdf_link(Type)) | Optional ]) :-
