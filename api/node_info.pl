@@ -190,12 +190,12 @@ amalgame_info(Scheme, _Strategy, Stats) :-
 	append([BasicStats, PrefLabelStats, AltLabelStats], Stats),
 
 	voc_property(Scheme, numberOfConcepts(Total)),
-	voc_property(Scheme, depth(DepthStats)),
+	(   voc_property(Scheme, depth(DepthStats), [compute(no)]) -> true; DepthStats = []),
 	option(mean(DepthM), DepthStats, 0),
 	option(standard_deviation(DepthStd), DepthStats, 0),
 	option(max(DepthMax), DepthStats, 0),
 
-	voc_property(Scheme, branch(BranchStats)),
+	(   voc_property(Scheme, branch(BranchStats), [compute(no)]) -> true; BranchStats = []),
 	option(mean(BranchM), BranchStats, 0),
 	option(standard_deviation(BranchStd), BranchStats, 0),
 	option(max(BranchMax), BranchStats, 0),
@@ -226,25 +226,27 @@ amalgame_info(_URL, _Strategy, []).
 
 
 label_stats(Scheme, Property, Stats) :-
-	voc_property(Scheme, numberOfConcepts(Total)),
-	voc_property(Scheme, languages(Property, PrefLangs0)),
-	(   PrefLangs0 == []
-	->  PrefLangs = [_UnknownLang]
-	;   PrefLangs = PrefLangs0
+	voc_property(Scheme, languages(Property, Langs0)),
+	(   Langs0 == []
+	->  Langs = [_UnknownLang]
+	;   Langs = Langs0
 	),
-	findall([CountL-span([PrefA]),
-		 '... # ambiguous labels:'-span([PrefHomsLA]),
-		 '... # ambiguous concepts:'-span([PrefHomsCA])
+	findall([CountL-span([A]),
+		 '... # ambiguous labels:'-span([HomsLA]),
+		 '... # ambiguous concepts:'-span([HomsCA])
 		],
-		(   member(Lang, PrefLangs),
-		    voc_property(Scheme, numberOfLabels(Property, Lang, Count)), Count > 0,
-		    voc_property(Scheme, numberOfHomonyms(Property, Lang, PrefHomsL, PrefHomsC)),
-		    save_perc(PrefHomsL, Count, PrefHomsLP),
-		    save_perc(PrefHomsC, Total, PrefHomsCP),
+		(   member(Lang, Langs),
+		    voc_property(Scheme, numberOfLabels(Property, Lang, LCount, CCount)),
+		    CCount > 0,
+		    % voc_property(Scheme, numberOfUniqueLabels(Property, Lang, UniqL, UniqC)),
+		    voc_property(Scheme, numberOfHomonyms(Property, Lang, HomsL, HomsC)),
+		    save_perc(HomsL, LCount, HomsLP),
+		    save_perc(HomsC, CCount, HomsCP),
+
 		    format(atom(CountL), '# ~p @~w', [Property, Lang]),
-		    format(atom(PrefA), '~d', [Count]),
-		    format(atom(PrefHomsLA), '~d (~2f%)', [PrefHomsL, PrefHomsLP]),
-		    format(atom(PrefHomsCA), '~d (~2f%)', [PrefHomsC, PrefHomsCP])
+		    format(atom(A), '~d', [LCount]),
+		    format(atom(HomsLA), '~d (~2f%)', [HomsL, HomsLP]),
+		    format(atom(HomsCA), '~d (~2f%)', [HomsC, HomsCP])
 		), PrefLabelStatsLoL),
 	append(PrefLabelStatsLoL, Stats).
 

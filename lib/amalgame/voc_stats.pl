@@ -109,9 +109,16 @@ voc_ensure_stats(Voc, version(Version)) :-
 voc_ensure_stats(Voc, numberOfConcepts(Count)) :-
 	(   count_concepts(Voc, Count) -> true ; Count = 0),
 	assert_voc_prop(Voc, numberOfConcepts(Count)).
-voc_ensure_stats(Voc, numberOfLabels(Prop, Lang, Count)) :-
-	(   count_labels(Voc, Prop, Lang, Count) -> true ; Count = 0),
-	assert_voc_prop(Voc, numberOfLabels(Prop, Lang, Count)).
+voc_ensure_stats(Voc, numberOfLabels(Prop, Lang, LCount, CCount)) :-
+	(   count_labels(Voc, Prop, Lang, LCount, CCount)
+	->  format(atom(ILabel), '~p ~p ~w', [Voc, Prop, Lang]),
+	    print_message(informational, map(found, 'labels', ILabel, LCount)),
+	    print_message(informational, map(found, 'concepts with labels', ILabel, CCount))
+	;   LCount = 0, CCount = 0),
+	assert_voc_prop(Voc, numberOfLabels(Prop, Lang, LCount, CCount)).
+voc_ensure_stats(Voc, numberOfUniqueLabels(P, Lang, Lcount, Ccount)) :-
+	(   count_unique_labels(Voc, P, Lang, Lcount, Ccount) -> true ; Lcount = 0, Ccount=0),
+	assert_voc_prop(Voc, numberOfUniqueLabels(P, Lang, Lcount, Ccount)).
 voc_ensure_stats(Voc, numberOfMappedConcepts(Count)) :-
 	(   count_mapped_concepts(Voc, Count) -> true ; Count = 0),
 	assert_voc_prop(Voc, numberOfMappedConcepts(Count)).
@@ -163,7 +170,7 @@ count_concepts(Voc, Count) :-
 	length(Concepts, Count),
 	print_message(informational, map(found, 'Concepts', Voc, Count)).
 
-count_labels(Voc, Property, Lang, Count) :-
+count_labels(Voc, Property, Lang, CCount, LCount) :-
 	var(Lang),
 	findall(Label,
 		(   vocab_member(Concept, Voc),
@@ -174,30 +181,49 @@ count_labels(Voc, Property, Lang, Count) :-
 			\+ rdf_has(LabelObject,   skosxl:literalForm, literal(lang(_,Label)))
 		    )
 		),
-		Labels),
-	length(Labels, Count),
+		Pairs),
+	keysort(Pairs, Sorted),
 	Lang='?',
-	print_message(informational, map(found, 'labels with unknown language', Voc, Count)).
+	assert_voc_prop(Voc, cp_pairs(Property, Lang, Sorted)),
+	pairs_values(Sorted, Concepts),
+	sort(Concepts, ConceptsUnique),
+	length(Sorted, LCount),
+	length(ConceptsUnique, CCount).
 
-count_labels(Voc, Property, Lang, Count) :-
-	findall(Label,
+count_labels(Voc, Property, Lang, LCount, CCount) :-
+	findall(Label-Concept,
 		(   vocab_member(Concept, Voc),
 		    (	rdf_has(Concept, Property, literal(lang(Lang,Label)))
 		    ;	rdf_has(Concept, Property, LabelObject),
 			rdf_has(LabelObject,   skosxl:literalForm, literal(lang(Lang,Label)))
 		    )
 		),
-		Labels),
-	length(Labels, Count),
-	print_message(informational, map(found, 'labels', Voc, Count)).
+		Pairs),
+	keysort(Pairs, Sorted),
+	assert_voc_prop(Voc, cp_pairs(Property, Lang, Sorted)),
+	pairs_values(Sorted, Concepts),
+	sort(Concepts, ConceptsUnique),
+	length(Sorted, LCount),
+	length(ConceptsUnique, CCount).
+
+count_unique_labels(Voc, Prop, Lang, LabelCount, ConceptCount) :-
+	voc_property(Voc, numberOfLabels(Prop, Lang, _, _)), % fill cache if needed
+	voc_stats_cache(Voc, cp_pairs(Prop, Lang, Sorted)),
+	group_pairs_by_key(Sorted, Grouped),
+	include(is_unique_label, Grouped, Uniques),
+	pairs_values(Uniques, ConceptsL),
+	pairs_keys(Uniques, Labels),
+	append(ConceptsL, Concepts),
+	sort(Concepts, ConceptsUnique),
+	sort(Labels, LabelsUnique),
+	length(LabelsUnique, LabelCount),
+	length(ConceptsUnique, ConceptCount),
+	print_message(informational, map(found, 'unique labels', Voc, LabelCount)),
+	print_message(informational, map(found, 'unique concepts', Voc, ConceptCount)).
 
 count_homonyms(Voc, Prop, Lang, LabelCount, ConceptCount) :-
-	findall(Label-Concept,
-		(   vocab_member(Concept, Voc),
-		    rdf_has(Concept, Prop, literal(lang(Lang, Label)))
-		),
-		Labels),
-	keysort(Labels, Sorted),
+	voc_property(Voc, numberOfLabels(Prop, Lang, _, _)), % fill cache if needed
+	voc_stats_cache(Voc, cp_pairs(Prop, Lang, Sorted)),
 	group_pairs_by_key(Sorted, Grouped),
 	include(is_homonym, Grouped, Homonyms),
 	pairs_values(Homonyms, AmbConceptsL),
@@ -207,6 +233,8 @@ count_homonyms(Voc, Prop, Lang, LabelCount, ConceptCount) :-
 	length(AmbConceptsUnique, ConceptCount),
 	print_message(informational, map(found, 'ambiguous labels', Voc, LabelCount)),
 	print_message(informational, map(found, 'ambiguous concepts', Voc, ConceptCount)).
+
+is_unique_label(_Label-[_Concept]).
 
 is_homonym(_Label-Concepts) :-
 	length(Concepts, N), N > 1.
