@@ -172,7 +172,7 @@ count_concepts(Voc, Count) :-
 
 count_labels(Voc, Property, Lang, CCount, LCount) :-
 	var(Lang),
-	findall(Label,
+	findall(Label-Concept,
 		(   vocab_member(Concept, Voc),
 		    (	rdf_has(Concept, Property, literal(lang(Lang,Label))),
 			var(Lang)
