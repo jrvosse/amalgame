@@ -50,7 +50,7 @@ http_node_info(Request) :-
 http_deep_voc_stats(Request) :-
 	http_parameters(Request,
 			[ url(Voc,
-			      [description('URL of a vocab')])
+			      [description('URL of a vocabulary or concept scheme')])
 		       ]),
 	voc_property(Voc, depth(D), [compute(yes)]),
 	voc_property(Voc, branch(B), [compute(yes)]),
@@ -191,40 +191,49 @@ amalgame_info(URL, Strategy, Stats) :-
 amalgame_info(Scheme, _Strategy, Stats) :-
 	is_vocabulary(Scheme),
 	!,
-	BasicStats =
-	['Total concepts'-Total,
-	 '# top concepts:'  - span([TopConA]),
-	 'average depth:'   - span([Depth]),
-	 'maximum depth:'   - span([DepthMax]),
-	 'average # children:'   - span([Branch]),
-	 'maximum # children:'   - span([BranchMax])
-	],
+	BasicStats = ['Total concepts'-Total ],
+	voc_property(Scheme, numberOfConcepts(Total)),
+
 	label_stats(Scheme, skos:prefLabel, PrefLabelStats),
 	label_stats(Scheme, skos:altLabel,  AltLabelStats),
-	append([BasicStats, PrefLabelStats, AltLabelStats], Stats),
 
-	voc_property(Scheme, numberOfConcepts(Total)),
-	save_perc(TopConcepts, Total, TopConceptsP),
 
-	format(atom(TopConA),    '~d (~2f%)', [TopConcepts, TopConceptsP]),
 
 	(   setting(amalgame:vocabulary_statistics, fast) ->  C = no; C = yes),
-	(   voc_property(Scheme, depth(DepthStats), [compute(C)])
-	->  option(mean(DepthM), DepthStats, 0),
-	    option(standard_deviation(DepthStd), DepthStats, 0),
-	    option(max(DepthMax), DepthStats, 0),
-	    format(atom(Depth), '~2f (\u03C3 = ~2f)', [DepthM, DepthStd])
-	;   Depth = '-', DepthMax = '-'
+	(   voc_property(Scheme, depth(DepthStats0), [compute(C)])
+	->  option(mean(DepthM), DepthStats0, 0),
+	    option(standard_deviation(DepthStd), DepthStats0, 0),
+	    option(max(DepthMax), DepthStats0, 0),
+	    format(atom(Depth), '~2f (\u03C3 = ~2f)', [DepthM, DepthStd]),
+	    DepthStats = [ 'average depth:'	- span([Depth]),
+			   'maximum depth:'	- span([DepthMax])
+			 ]
+	;   DepthStats = [ a([href('#'), class(compute_deep_stats)],
+			      ['compute additional statistics'])
+			   -
+			   a([href('#'), class(compute_deep_stats)], ['?'])
+			     ]
 	),
 
-	(   voc_property(Scheme, branch(BranchStats), [compute(C)])
-	->  option(mean(BranchM), BranchStats, 0),
-	    option(standard_deviation(BranchStd), BranchStats, 0),
-	    option(max(BranchMax), BranchStats, 0),
-	    option(nrOfTopConcepts(TopConcepts), BranchStats, 0),
-	    format(atom(Branch), '~2f (\u03C3 = ~2f)', [BranchM, BranchStd])
-	;   Branch = '-', BranchMax = '-'
-	).
+	(   voc_property(Scheme, branch(BranchStats0), [compute(C)])
+	->  option(mean(BranchM), BranchStats0, 0),
+	    option(standard_deviation(BranchStd), BranchStats0, 0),
+	    option(max(BranchMax), BranchStats0, 0),
+	    option(nrOfTopConcepts(TopConcepts), BranchStats0, 0),
+	    save_perc(TopConcepts, Total, TopConceptsP),
+	    format(atom(TopConA),    '~d (~2f%)', [TopConcepts, TopConceptsP]),
+	    format(atom(Branch), '~2f (\u03C3 = ~2f)', [BranchM, BranchStd]),
+	    BranchStats = [
+		'# top concepts:'  - span([TopConA]),
+		'average # children:'   - span([Branch]),
+		'maximum # children:'   - span([BranchMax])
+	    ]
+	;   BranchStats = []
+	),
+	append([DepthStats, BranchStats],       StructureStats),
+	append([PrefLabelStats, AltLabelStats], LabelStats),
+	append([BasicStats, StructureStats, LabelStats], Stats).
+
 
 amalgame_info(URL, Strategy,
 	       ['type'   - \(cp_label:rdf_link(Type)) | Optional ]) :-
@@ -245,13 +254,16 @@ amalgame_info(_URL, _Strategy, []).
 
 label_stats(Scheme, Property, Stats) :-
 	voc_property(Scheme, languages(Property, Langs0)),
+	voc_property(Scheme, numberOfConcepts(Total)),
 	(   Langs0 == []
 	->  Langs = [_UnknownLang]
 	;   Langs = Langs0
 	),
 	findall([CountL-span([A]),
-		 '... # ambiguous labels:'-span([HomsLA]),
-		 '... # ambiguous concepts:'-span([HomsCA])
+		 '... # labeled concepts'    - span([CCountA]),
+		 '... # labels/labeled concept' - span([LPA]),
+		 '... # ambiguous labels:'   - span([HomsLA]),
+		 '... # ambiguously labeled concepts:' - span([HomsCA])
 		],
 		(   member(Lang, Langs),
 		    voc_property(Scheme, numberOfLabels(Property, Lang, LCount, CCount)),
@@ -260,9 +272,16 @@ label_stats(Scheme, Property, Stats) :-
 		    voc_property(Scheme, numberOfHomonyms(Property, Lang, HomsL, HomsC)),
 		    save_perc(HomsL, LCount, HomsLP),
 		    save_perc(HomsC, CCount, HomsCP),
+		    save_perc(CCount, Total, CCountP),
+		    LP is LCount/CCount,
 
+		    (	CCount == Total
+		    ->  format(atom(CCountA), '100%', [])
+		    ;	format(atom(CCountA), '~d (~2f%)', [CCount, CCountP])
+		    ),
 		    format(atom(CountL), '# ~p @~w', [Property, Lang]),
 		    format(atom(A), '~d', [LCount]),
+		    format(atom(LPA), '~2f', [LP]),
 		    format(atom(HomsLA), '~d (~2f%)', [HomsL, HomsLP]),
 		    format(atom(HomsCA), '~d (~2f%)', [HomsC, HomsCP])
 		), PrefLabelStatsLoL),
