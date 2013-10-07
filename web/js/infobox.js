@@ -21,7 +21,6 @@ YUI.add('infobox', function(Y) {
 		NODE_REL = Y.one("#default_relation"),
 		NODE_REL_ROW = Y.one("#relationrow");
 
-
 	function InfoBox(config) {
 		InfoBox.superclass.constructor.apply(this, arguments);
 	}
@@ -99,6 +98,7 @@ YUI.add('infobox', function(Y) {
 						NODE_PROPS.setContent(r.responseText);
 						oSelf._updateParameters();
 						oSelf.set("loading", false);
+						Y.all('.compute_deep_stats').on('click', oSelf._onDeepStats, oSelf);
 					}
 				}
 			});
@@ -167,6 +167,24 @@ YUI.add('infobox', function(Y) {
 			Y.log(data);
 			this.fire(event, {data: data});
 		},
+
+		_onDeepStats : function(e) {
+				 e.currentTarget.set('innerHTML', 'computing statistics ...');
+				 var voc = this.get("selected").uri;
+				 var paths = this.get("paths");
+				 var alignment = this.get("alignment");
+				 var oSelf = this;
+				 Y.io(paths.deep_voc_stats, {
+							  data: { url:voc, alignment:alignment},
+							  on: {
+							      success:function(e,r) {
+								// should cleanup deep stats handler here ...
+								  oSelf.syncUI();
+							      }
+							      }
+							  });
+
+		 },
 
 		_setProperties : function(selected) {
 			var alignment = this.get("alignment"),
