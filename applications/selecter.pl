@@ -164,12 +164,15 @@ html_new(Schemes) -->
 	{
 	 has_write_permission, !
 	},
-	html_acc_item(new, 'new alignment strategy',
+	html_acc_item(new,
+		      'new alignment strategy',
 		      [ form(action(location_by_id(http_eq_new)),
 			     [ \html_vocab_table(Schemes),
 			       \html_submit('Start')
 			     ])
-		      ]).
+		      ],
+		      [active]
+		     ).
 
 html_new(_) -->
 	{
@@ -180,8 +183,10 @@ html_new(_) -->
 	html_acc_item(new,
 		      'please login to access other functions',
 		      [
-		       div(a([class(login), href(Login)], ['login']))
-		      ]).
+			  div(a([class(login), href(Login)], ['login']))
+		      ],
+		      [inactive]
+		     ).
 
 html_vocab_table(Vs) -->
 	html(table([thead(tr(\html_vocab_head)),
@@ -221,10 +226,12 @@ html_open([]) -->
 	html_acc_item(open,
 		      div([style('font-style: italic; color: gray')],
 			  'no strategies have been created yet'),
-		      []),
+		      [],
+		      [inactive]),
 	!.
 html_open(Alignments) -->
-	html_acc_item(open, 'edit/delete pre-loaded alignment strategy',
+	html_acc_item(open,
+		      'edit/delete pre-loaded alignment strategy',
 		      [ form(action(location_by_id(http_eq_select)),
 			     [
 			      \html_alignment_table(Alignments,
@@ -233,12 +240,15 @@ html_open(Alignments) -->
 			      \html_submit('Merge selected'),
 			      \html_submit('Delete selected')
 			     ])
-		      ]).
+		      ],
+		      [active]
+		     ).
 html_publish([]) -->
 	html_acc_item(open,
 		      div([style('font-style: italic; color: gray')],
 			  'no mappings have been created yet'),
-		      []),
+		      [],
+		      [inactive]),
 	!.
 html_publish(Alignments) -->
 	{
@@ -246,12 +256,14 @@ html_publish(Alignments) -->
 	 L=http_eq_publish_form,
 	 !
 	},
-	html_acc_item(publish, 'publish	alignment results',
+	html_acc_item(publish,
+		      'publish	alignment results',
 		      [ form(action(location_by_id(L)),
 			     [ \html_alignment_table(Alignments, [linkto(L)]),
 			       \html_submit('Publish')
 			     ])
-		      ]).
+		      ],
+		      [inactive]).
 html_publish(_) -->  !.
 
 
@@ -321,7 +333,8 @@ html_import -->
 	 has_write_permission,
 	 !
 	},
-	html_acc_item(import, 'upload strategy or clone execution trace',
+	html_acc_item(import,
+		      'upload strategy or clone execution trace',
 		      [ form(action(location_by_id(http_eq_upload_url)),
 			     [ 'URL: ',
 			       input([type(text), name(url), value('http://'),
@@ -339,7 +352,8 @@ html_import -->
 				     ]),
 			       input([type(submit), value('Upload')])
 			     ])
-		      ]).
+		      ],
+		      [inactive]).
 
 html_import --> !.
 
@@ -354,12 +368,20 @@ html_submit(Label) -->
 		 ])).
 
 
-%%	html_acc_item(+Id, +Label, +HTMLBody)
+%%	html_acc_item(+Id, +Label, +HTMLBody, +Options)
 %
 %	Emit html markup for a YUI3 accordion item.
+%	Options:
+%
+%	* active/inactive
 
-html_acc_item(Id, Label, Body) -->
-	html(div([class('yui3-accordion-item'), id(Id)],
+html_acc_item(Id, Label, Body, Options) -->
+	{ (   option(active, Options)
+	  ->  Class = 'yui3-accordion-item yui3-accordion-item-active'
+	  ;   Class = 'yui3-accordion-item'
+	  )
+	},
+	html(div([class(Class), id(Id)],
 		 [ div(class('yui3-accordion-item-hd'),
 		       a([href('javascript:{}'), class('yui3-accordion-item-trigger')],
 			   Label)),
