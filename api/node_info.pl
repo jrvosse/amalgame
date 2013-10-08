@@ -120,77 +120,90 @@ html_form(Params, URI) -->
 amalgame_info(URL, Strategy, Stats) :-
 	rdfs_individual_of(URL, amalgame:'Mapping'),
 	!,
-	BasicStats = [
-	    'matched source concepts'-SN,
-	    'matched source top concepts'-TopSatom,
-	    'avg. source depth' - DepthSatom,
-	    'max. source depth' - MaxDepthS,
-	    'avg. # children source' - ChildSatom,
-	    'avg. # children target' - ChildTatom,
-	    'matched target concepts'-TN,
-	    'matched target top concepts'-TopTatom,
-	    'avg. target depth' - DepthTatom,
-	    'max. target depth' - MaxDepthT,
-	    'max. # children source' - MaxChildS,
-	    'max. # children target' - MaxChildT
-	],
 	node_stats(Strategy, URL, MStats),
-	% option(sourceVoc(VocS), MStats),
-	% option(targetVoc(VocT), MStats),
-	% voc_property(VocS, nrOfTopConcepts(TotalTopsS)),
-	% voc_property(VocT, nrOfTopConcepts(TotalTopsT)),
 	option(totalCount(MN), MStats),
+	(   option(inputPercentage(IP), MStats)
+	->  format(atom(TmA), '~d (~5f%)', [MN, IP]),
+	    IpStats = [ 'total matches'-span([TmA])]
+	;   IpStats = [ 'total matches'-MN ]
+	),
+
 	option(mappedSourceConcepts(SN0), MStats),
 	option(mappedTargetConcepts(TN0), MStats),
 	option(sourcePercentage(SPerc), MStats),
 	option(targetPercentage(TPerc), MStats),
 	option(sourcePercentageInput(SiPerc), MStats, 0),
 	option(targetPercentageInput(TiPerc), MStats, 0),
-
-	option(source_depth(DepthS), MStats),
-	option(target_depth(DepthT), MStats),
-	option(mean(MeanDepthS), DepthS, 0),
-	option(mean(MeanDepthT), DepthT, 0),
-	option(max(MaxDepthS), DepthS, 0),
-	option(max(MaxDepthT), DepthT, 0),
-	option(standard_deviation(DepthStdS), DepthS, 0),
-	option(standard_deviation(DepthStdT), DepthT, 0),
-
-	option(source_child_stats(ChildS), MStats),
-	option(target_child_stats(ChildT), MStats),
-	option(nrOfTopConcepts(STop), ChildS, 0),
-	option(nrOfTopConcepts(TTop), ChildT, 0),
-	option(mean(MeanChildS), ChildS, 0),
-	option(mean(MeanChildT), ChildT, 0),
-	option(max(MaxChildS), ChildS, 0),
-	option(max(MaxChildT), ChildT, 0),
-	option(standard_deviation(ChildStdS), ChildS, 0),
-	option(standard_deviation(ChildStdT), ChildT, 0),
-
-	save_perc(STop, SN0, STopP),
-	save_perc(TTop, TN0, TTopP),
-
 	format(atom(SN), '~d (i ~2f%, v ~2f%)', [SN0, SiPerc, SPerc]),
 	format(atom(TN), '~d (i ~2f%, v ~2f%)', [TN0, TiPerc, TPerc]),
-	format(atom(TopSatom), '~d (~2f%)', [STop, STopP]),
-	format(atom(TopTatom), '~d (~2f%)', [TTop, TTopP]),
-	format(atom(DepthSatom), '~2f (\u03C3 = ~2f)', [MeanDepthS, DepthStdS]),
-	format(atom(DepthTatom), '~2f (\u03C3 = ~2f)', [MeanDepthT, DepthStdT]),
-	format(atom(ChildSatom), '~2f (\u03C3 = ~2f)', [MeanChildS, ChildStdS]),
-	format(atom(ChildTatom), '~2f (\u03C3 = ~2f)', [MeanChildT, ChildStdT]),
+	BasicStats = [
+	    'matched source concepts'-SN,
+	    'matched target concepts'-TN
+	],
 
+	option(source_depth(DepthS), MStats),
+	(   DepthS \= []
+	->  option(mean(MeanDepthS), DepthS, 0),
+	    option(max(MaxDepthS), DepthS, 0),
+	    option(standard_deviation(DepthStdS), DepthS, 0),
+	    format(atom(DepthSatom), '~2f (\u03C3 = ~2f)', [MeanDepthS, DepthStdS]),
+	    DepthSStats = ['avg. source depth' - DepthSatom,
+			   'max. source depth' - MaxDepthS]
+	;   DepthSStats = []
+	),
+
+	option(target_depth(DepthT), MStats),
+	(   DepthT \= []
+	->  option(mean(MeanDepthT), DepthT, 0),
+	    option(max(MaxDepthT), DepthT, 0),
+	    option(standard_deviation(DepthStdT), DepthT, 0),
+	    format(atom(DepthTatom), '~2f (\u03C3 = ~2f)', [MeanDepthT, DepthStdT]),
+	    DepthTStats = [ 'avg. target depth' - DepthTatom,
+			    'max. target depth' - MaxDepthT]
+	;   DepthTStats = []
+
+	),
+
+	option(source_child_stats(ChildS), MStats),
+	(   ChildS \= []
+	->  option(nrOfTopConcepts(STop), ChildS, 0),
+	    option(mean(MeanChildS), ChildS, 0),
+	    option(max(MaxChildS), ChildS, 0),
+	    option(standard_deviation(ChildStdS), ChildS, 0),
+	    save_perc(STop, SN0, STopP),
+	    format(atom(TopSatom), '~d (~2f%)', [STop, STopP]),
+	    format(atom(ChildSatom), '~2f (\u03C3 = ~2f)', [MeanChildS, ChildStdS]),
+	    ChildSStats = ['avg. # children source' - ChildSatom,
+			   'max. # children source' - MaxChildS,
+			   'matched source top concepts'-TopSatom
+			  ]
+	;   ChildSStats = []
+	),
+	option(target_child_stats(ChildT), MStats),
+	(   ChildT \= []
+	->  option(nrOfTopConcepts(TTop), ChildT, 0),
+	    option(mean(MeanChildT), ChildT, 0),
+	    option(max(MaxChildT), ChildT, 0),
+	    option(standard_deviation(ChildStdT), ChildT, 0),
+	    save_perc(TTop, TN0, TTopP),
+	    format(atom(TopTatom), '~d (~2f%)', [TTop, TTopP]),
+	    format(atom(ChildTatom), '~2f (\u03C3 = ~2f)', [MeanChildT, ChildStdT]),
+	    ChildTStats = ['avg. # children target' - ChildTatom,
+			   'matched target top concepts'-TopTatom,
+			   'max. # children target' - MaxChildT
+			  ]
+	;   ChildTStats = []
+	),
 
 	(   rdf(URL, amalgame:default_relation, _R),
 	    reference_counts(URL, Strategy, ReferenceStats)
 	->  true
 	;   ReferenceStats = []
 	),
-	(   option(inputPercentage(IP), MStats)
-	->  format(atom(TmA), '~d (~5f%)', [MN, IP]),
-	    IpStats = [ 'total matches'-span([TmA])]
-	;   IpStats = [ 'total matches'-MN ]
-	),
-	append([IpStats, BasicStats, ReferenceStats], Stats).
+	append([IpStats, BasicStats, ReferenceStats,
+		DepthSStats, ChildSStats,
+		DepthTStats, ChildTStats
+	       ], Stats).
 
 amalgame_info(Scheme, _Strategy, Stats) :-
 	is_vocabulary(Scheme),
