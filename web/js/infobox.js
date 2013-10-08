@@ -175,7 +175,10 @@ YUI.add('infobox', function(Y) {
 				 var alignment = this.get("alignment");
 				 var oSelf = this;
 				 Y.io(paths.deep_voc_stats, {
-							  data: { url:voc, alignment:alignment},
+							  data: {
+								url:voc,
+								strategy:alignment
+								},
 							  on: {
 							      success:function(e,r) {
 								// should cleanup deep stats handler here ...
