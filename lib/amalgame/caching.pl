@@ -1,16 +1,16 @@
 :- module(ag_caching,
 	  [
-	   expand_cache/2,
-	   stats_cache/2,
-	   cache_result/4,
-	   clean_repository/0,
-	   flush_dependent_caches/2,
-	   flush_expand_cache/1,     % ?Strategy
-	   flush_expand_cache/2,     % +Id, +Strategy
-	   flush_refs_cache/1,       % ?Strategy
-	   flush_refs_cache/2,
-	   flush_stats_cache/1, % ?Strategy
-	   flush_stats_cache/2  % +Mapping, +Strategy
+	      expand_cache/2,
+	      stats_cache/2,
+	      cache_result/4,
+	      clean_repository/0,
+	      flush_dependent_caches/2,
+	      flush_expand_cache/1,     % ?Strategy
+	      flush_expand_cache/2,     % +Id, +Strategy
+	      flush_refs_cache/1,       % ?Strategy
+	      flush_refs_cache/2,
+	      flush_stats_cache/1, % ?Strategy
+	      flush_stats_cache/2  % +Mapping, +Strategy
 	  ]).
 
 :- use_module(library(semweb/rdf_db)).
@@ -99,15 +99,23 @@ flush_expand_cache(Id, Strategy) :-
 	).
 
 flush_dependent_caches(Id, Strategy) :-
-	(   rdf_has(Id, amalgame:wasGeneratedBy, Process, RP),
-	    rdf(Id, RP, Process, Strategy)
+	(   rdf_has(Id, amalgame:wasGeneratedBy, Process, RP0),
+	    rdf(Id, RP0, Process, Strategy)
 	->  true
-	;   Process = Id
+	;   rdf_has(Data, amalgame:wasGeneratedBy, Id, RP1),
+	    rdf(Data, RP1, Process, Strategy)
+	->  Process = Id
+	;   rdf_has(Process, prov:used, Id, RP2),
+	    rdf(Process, RP2, Id, Strategy)
 	),
+
 	flush_expand_cache(Process, Strategy),
+	provenance_graph(Strategy, ProvGraph),
+	remove_old_prov(Process, ProvGraph),
+
 	findall(Result,
-		(   rdf_has(Result, amalgame:wasGeneratedBy, Process, RP),
-		    rdf(Result, RP, Process, Strategy)
+		(   rdf_has(Result, amalgame:wasGeneratedBy, Process, RP3),
+		    rdf(Result, RP3, Process, Strategy)
 		), Results),
 	forall(member(Result, Results),
 	       (   flush_stats_cache(Result, Strategy),
@@ -117,16 +125,12 @@ flush_dependent_caches(Id, Strategy) :-
 	      ),
 	findall(DepProcess,
 		(   member(Result, Results),
-		    rdf_has(DepProcess, amalgame:input, Result, RP),
-		    rdf(DepProcess, RP, Result, Strategy)
+		    rdf_has(DepProcess, amalgame:input, Result, RP4),
+		    rdf(DepProcess, RP4, Result, Strategy)
 		),
 		Deps),
 	forall(member(Dep, Deps),
-	       flush_dependent_caches(Dep, Strategy)),
-
-	provenance_graph(Strategy, ProvGraph),
-	remove_old_prov(Process, ProvGraph).
-
+	       flush_dependent_caches(Dep, Strategy)).
 
 cache_result_stats(_Process, Strategy, mapspec(overlap(List))) :-
 	forall(member(Id-Mapping, List),
