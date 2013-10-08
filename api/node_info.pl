@@ -11,6 +11,7 @@
 :- use_module(library(amalgame/amalgame_modules)).
 :- use_module(library(amalgame/ag_stats)).
 :- use_module(library(amalgame/voc_stats)).
+:- use_module(library(amalgame/caching)).
 :- use_module(library(amalgame/util)).
 :- use_module(components(label)). % we need rdf_link//1 from this module
 
@@ -50,8 +51,11 @@ http_node_info(Request) :-
 http_deep_voc_stats(Request) :-
 	http_parameters(Request,
 			[ url(Voc,
-			      [description('URL of a vocabulary or concept scheme')])
+			      [description('URL of a vocabulary or concept scheme')]),
+			  strategy(Strategy,
+				   [description('URL of the alignment strategy')])
 		       ]),
+	flush_dependent_caches(Voc, Strategy),
 	voc_property(Voc, depth(D), [compute(yes)]),
 	voc_property(Voc, branch(B), [compute(yes)]),
 	reply_json(json([url=Voc, depth=json(D), branch=json(B)])).
