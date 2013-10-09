@@ -208,8 +208,12 @@ amalgame_info(URL, Strategy, Stats) :-
 amalgame_info(Scheme, _Strategy, Stats) :-
 	is_vocabulary(Scheme),
 	!,
-	BasicStats = ['Total concepts'-Total ],
+	BasicStats = [
+	    'Version:' - Version,
+	    'Total concepts: '-Total
+	],
 	voc_property(Scheme, numberOfConcepts(Total)),
+	voc_property(Scheme, version(Version)),
 
 	label_stats(Scheme, skos:prefLabel, PrefLabelStats),
 	label_stats(Scheme, skos:altLabel,  AltLabelStats),
