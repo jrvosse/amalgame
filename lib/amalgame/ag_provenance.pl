@@ -21,7 +21,7 @@
 :- use_module(library(version)).
 :- use_module(library(prov_schema)).
 
-:- use_module(map).
+:- use_module(ag_stats).
 :- use_module(util).
 :- use_module(voc_stats).
 
@@ -101,8 +101,8 @@ add_amalgame_prov(Strategy, Process, Results) :-
 	(   Results = vocspec(_)
 	->  rdf(Vocab, amalgame:wasGeneratedBy, Process, Strategy),
 	    Artifacts = [Vocab]
-	;   assert_counts(Results, ProvGraph),
-	    pairs_keys(Results, Artifacts)
+	;   Artifacts = Results,
+	    assert_counts(Results, Strategy, ProvGraph)
 	),
 
 	prov_was_generated_by(Process, Artifacts, ProvGraph, [strategy(Strategy)]),
@@ -315,19 +315,16 @@ prov_get_entity_version(Entity, SourceGraph, Version) :-
 	    format(atom(Version), '~w hash: ~w', [Time, Hash])
 	).
 
-assert_counts([],_).
-assert_counts([A-M|Tail], ProvGraph) :-
-	assert_count(A, M, ProvGraph),
-	assert_counts(Tail, ProvGraph).
+assert_counts([],_,_).
+assert_counts([URI|Tail], Strategy, ProvGraph) :-
+	assert_count(URI, Strategy, ProvGraph),
+	assert_counts(Tail, Strategy, ProvGraph).
 
-assert_count(MapUri, MapList, ProvGraph) :-
-	maplist(correspondence_source, MapList, Ss0),
-	maplist(correspondence_target, MapList, Ts0),
-	sort(Ss0, Ss),
-	sort(Ts0, Ts),
-	length(Ss, SN),
-	length(Ts, TN),
-	length(MapList, Count),
+assert_count(MapUri, Strategy, ProvGraph) :-
+	node_stats(Strategy, MapUri, MStats),
+	option(totalCount(Count), MStats),
+	option(mappedSourceConcepts(SN), MStats),
+	option(mappedTargetConcepts(TN), MStats),
 	rdf_assert(MapUri, amalgame:totalCount,
 		   literal(type('http://www.w3.org/2001/XMLSchema#int', Count)), ProvGraph),
 	rdf_assert(MapUri, amalgame:mappedSourceConcepts,

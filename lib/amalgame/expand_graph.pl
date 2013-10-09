@@ -143,10 +143,9 @@ expand_process(Strategy, Process, Result) :-
 	% Provenance admin:
 	(   Result = vocspec(_)   % Result is a single vocabulary
 	->  add_amalgame_prov(Strategy, Process, Result)
-	;   findall(URI-Mapping, % Result is one or more mappings
+	;   findall(URI, % Result is one or more mappings
 		    (   rdf_has(URI, amalgame:wasGeneratedBy, Process, OutputType),
-			rdf(URI, OutputType, Process, Strategy),
-			select_result_mapping(URI, Result, OutputType, Mapping)
+			rdf(URI, OutputType, Process, Strategy)
 		    ),
 		    Artifacts),
 	    add_amalgame_prov(Strategy, Process, Artifacts)
