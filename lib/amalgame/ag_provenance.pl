@@ -21,8 +21,9 @@
 :- use_module(library(version)).
 :- use_module(library(prov_schema)).
 
-:- use_module(library(amalgame/map)).
-:- use_module(library(amalgame/util)).
+:- use_module(map).
+:- use_module(util).
+:- use_module(voc_stats).
 
 
 :- dynamic
@@ -64,6 +65,19 @@ update_amalgame_prov(Strategy, Mapping) :-
 	       rdf_assert(S,P,O,ProvGraph)
 	      ).
 
+prov_ensure_entity(Entity, Graph) :-
+	rdf(Entity, _, _, Graph),!. % prov already recorded
+prov_ensure_entity(Entity, Graph) :-
+	is_vocabulary(Entity),
+	voc_property(Entity, version(Version)),
+	rdf_assert(Entity, 'http://usefulinc.com/ns/doap#revision', literal(Version), Graph),
+	findall(rdf(Entity, P, O), rdf(Entity, P, O), Triples),
+	forall(member(rdf(S,P,O), Triples), rdf_assert(S,P,O,Graph)),
+	!.
+prov_ensure_entity(Entity, Graph) :-
+	format(atom(Message), 'Cannot record provenance for ~p in named graph ~p', [Entity, Graph]),
+	throw(error(evalution_error, context(prov_ensure_entity/2, Message))).
+
 add_amalgame_prov(Strategy, Process, Results) :-
 	rdf_equal(prov:used, ProvUsed),
 	rdf_equal(prov:wasDerivedFrom, ProvWDF),
@@ -76,10 +90,11 @@ add_amalgame_prov(Strategy, Process, Results) :-
 	% Copy all triples about Process from Strategy to ProvGraph
 	findall(rdf(Process, P, O), rdf(Process,P,O,Strategy), ProcessTriples),
 
-	% Translate subProperties of ompv:used to prov:used
+	% Find inputs of Process
 	findall(rdf(Process, ProvUsed, S),
 		(   rdf_has(Process, ProvUsed, S, RealProp),
-		    rdf(Process, RealProp, S, Strategy)
+		    rdf(Process, RealProp, S, Strategy),
+		    prov_ensure_entity(S, ProvGraph)
 		),
 		InputTriples),
 
@@ -280,7 +295,7 @@ prov_association(Agent, Strategy, Graph, Association):-
 get_xml_dateTime(T, TimeStamp) :-
 	format_time(atom(TimeStamp), '%Y-%m-%dT%H-%M-%S%Oz', T).
 
-%%	prov_assert_entity_version(+Entity,+SourceGraph,+TargetGraph)
+%%	prov_get_entity_version(+Entity,+SourceGraph,+TargetGraph)
 %	is semidet.
 %
 %	Assert (git) version information about Entity into the named
