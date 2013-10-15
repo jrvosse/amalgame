@@ -71,14 +71,12 @@ voc_clear_stats(Voc) :-
 
 
 is_vocabulary(Voc) :-
-	rdfs_individual_of(Voc, skos:'ConceptScheme'),
-	once(vocab_member(_, Voc)).
+	rdfs_individual_of(Voc, skos:'ConceptScheme').
 
 is_vocabulary(Voc) :-
 	rdfs_individual_of(Voc, amalgame:'Alignable').
 
 voc_ensure_stats(Voc, virtual(Result)) :-
-	% is_vocabulary(Voc),
 	(   rdf_has(_, skos:inScheme, Voc)
 	->  Virtual = false
 	;   rdfs_individual_of(Voc, amalgame:'Alignable')
