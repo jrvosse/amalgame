@@ -71,13 +71,14 @@ voc_clear_stats(Voc) :-
 
 
 is_vocabulary(Voc) :-
-	rdfs_individual_of(Voc, skos:'ConceptScheme').
+	rdfs_individual_of(Voc, skos:'ConceptScheme'),
+	once(vocab_member(_, Voc)).
 
 is_vocabulary(Voc) :-
 	rdfs_individual_of(Voc, amalgame:'Alignable').
 
 voc_ensure_stats(Voc, virtual(Result)) :-
-	is_vocabulary(Voc),
+	% is_vocabulary(Voc),
 	(   rdf_has(_, skos:inScheme, Voc)
 	->  Virtual = false
 	;   rdfs_individual_of(Voc, amalgame:'Alignable')
@@ -96,14 +97,18 @@ voc_ensure_stats(Voc, format(Format)) :-
 	).
 
 voc_ensure_stats(Voc, version(Version)) :-
-	(   rdf_has(Voc, owl:versionInfo, literal(Version))
+	(   rdf_has(Voc, owl:versionInfo, literal(ExplicitVersion))
 	->  true
-	;   rdf(Voc, amalgame:wasGeneratedBy, _)
-	->  Version = amalgame_generated
-	;   assert_voc_version(Voc, Version)
+	;   ExplicitVersion = ''
+	),
+	(   rdf(Voc, amalgame:wasGeneratedBy, _)
+	->  ImplicitVersion = amalgame_generated
+	;   assert_voc_version(Voc, ImplicitVersion)
 	->  true
-	;   debug(info, 'Failed to ensure version stats for ~', [Voc])
-	),!.
+	;   debug(info, 'Failed to ensure implicit version stats for ~p', [Voc])
+	),
+	!,
+	format(atom(Version), '~w (~w)', [ExplicitVersion, ImplicitVersion]).
 
 
 voc_ensure_stats(Voc, numberOfConcepts(Count)) :-
@@ -161,7 +166,10 @@ assert_supervoc_version(Voc, Version) :-
 	rdf(_, skos:inScheme, Voc, SourceGraph:_),!,
 	prov_get_entity_version(Voc, SourceGraph, Version),
 	assert(voc_stats_cache(Voc, version(Version))).
-
+assert_supervoc_version(Voc, Version) :-
+	rdf(Voc, amalgame:graph, SourceGraph), !,
+	prov_get_entity_version(Voc, SourceGraph, Version),
+	assert(voc_stats_cache(Voc, version(Version))).
 
 count_concepts(Voc, Count) :-
 	findall(Concept,
