@@ -164,12 +164,10 @@ assert_subvoc_version(Voc, SuperVoc, Version) :-
 
 assert_supervoc_version(Voc, Version) :-
 	rdf(_, skos:inScheme, Voc, SourceGraph:_),!,
-	prov_get_entity_version(Voc, SourceGraph, Version),
-	assert(voc_stats_cache(Voc, version(Version))).
+	prov_get_entity_version(Voc, SourceGraph, Version).
 assert_supervoc_version(Voc, Version) :-
 	rdf(Voc, amalgame:graph, SourceGraph), !,
-	prov_get_entity_version(Voc, SourceGraph, Version),
-	assert(voc_stats_cache(Voc, version(Version))).
+	prov_get_entity_version(Voc, SourceGraph, Version).
 
 count_concepts(Voc, Count) :-
 	findall(Concept,
