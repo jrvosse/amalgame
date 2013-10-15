@@ -90,7 +90,7 @@ mapping_stats(URL, Mapping, Strategy, Stats) :-
 	    ->	true
 	    ;	DTstats = [], BTstats = []
 	    )
-	;   true
+	;   SourceN = 0, TargetN = 0
 	),
 	findall(Input, has_mapping_input(URL, Strategy, Input), Inputs),
 	(   Inputs \= []
