@@ -195,22 +195,28 @@ html_vocab_table(Vs) -->
 
 html_vocab_head -->
 	html([th([]),
-	      th(name),
-	      th('estimated # concepts'),
-	      th('prefLabels'),
-	      th('altLabels')
+	      th(class(name),       name),
+	      th(class(version),    version),
+	      th(class(count),     'estimated # concepts'),
+	      th(class(preflangs), 'prefLabels'),
+	      th(class(altlangs),  'altLabels')
 	     ]).
 
 html_vocab_rows([]) --> !.
 html_vocab_rows([Scheme|Vs]) -->
 	{
-	 rdf_estimate_complexity(_, skos:inScheme, Scheme, ConceptCount),
+	 (   voc_property(Scheme, numberOfConcepts(ConceptCount), [compute(no)])
+	 ->  true
+	 ;   rdf_estimate_complexity(_, skos:inScheme, Scheme, ConceptCount)
+	 ),
          voc_property(Scheme, languages(skos:prefLabel, PrefLangs)),
-	 voc_property(Scheme, languages(skos:altLabel, AltLangs))
+	 voc_property(Scheme, languages(skos:altLabel, AltLangs)),
+	 voc_property(Scheme, version(Version))
 	},
 	html(tr([td(input([type(checkbox), autocomplete(off), class(option),
 			   name(scheme), value(Scheme)])),
-		 td(\html_scheme_name(Scheme)),
+		 td(class(name),    \html_scheme_name(Scheme)),
+		 td(class(version), Version),
 		 td(class(count), ConceptCount),
 		 td([span(class(preflangs), \html_showlist(PrefLangs))]),
 		 td([span(class(altlangs),  \html_showlist(AltLangs) )])
