@@ -149,6 +149,8 @@
 	padding: 2px 8px;
 	vertical-align: top;
 }
+
+#main th.count, 
 #main td.count {
 	text-align: right;
 }

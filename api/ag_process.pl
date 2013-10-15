@@ -53,7 +53,7 @@ http_add_process(Request) :-
 				  description('URI of the target')]),
 			  process(Process,
 				  [uri,
-				   description('URI of the process')]),
+				   description('URI of an existing process or type of new process')]),
 			  alignment(Strategy,
 				    [uri,
 				     description('URI of the alignment graph to which the process is added')]),
@@ -66,12 +66,13 @@ http_add_process(Request) :-
 	subtract(Params0, [input=_,source=_,target=_,process=_,alignment=_,update=_,graphic=_], Params1),
 	findall(secondary_input=S,member(secondary_input=S, Params1), SecParams),
 	subtract(Params1, SecParams, Params),
+	fix_not_expanded_options(Params, ExpandedParams),
 	(   Update == true
 	->  rdf_retractall(Process, amalgame:secondary_input, _, Strategy),
-	    update_process(Process, Strategy, SecInputs, Params),
+	    update_process(Process, Strategy, SecInputs, ExpandedParams),
 	    Focus = Process
 	;   ((nonvar(Source), nonvar(Target)) ; nonvar(Input))
-	->  new_process(Process, Strategy, Source, Target, Input, SecInputs, Params, Focus)
+	->  new_process(Process, Strategy, Source, Target, Input, SecInputs, ExpandedParams, Focus)
 	;   true
 	),
 	js_focus_node(Strategy, Focus, FocusNode),
@@ -429,5 +430,13 @@ fix_o_ns(rdf(S,P,O), Old, New) :-
 	atom_concat(New,Local,NewO),
 	rdf_update(S,P,O, object(NewO)).
 
-
-
+fix_not_expanded_options([''],[]).
+fix_not_expanded_options([],[]).
+fix_not_expanded_options([Key=Value|Tail], [Key=FixedValue|Results]):-
+	(   \+ sub_atom(Value,0,_,_,'http:'),
+	    atomic_list_concat([NS,L], :, Value),
+	    rdf_global_id(NS:L,FixedValue)
+	->  true
+	;   FixedValue = Value
+	),
+	fix_not_expanded_options(Tail, Results).
