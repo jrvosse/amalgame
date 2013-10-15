@@ -392,7 +392,7 @@ parent_child(Parent, Child) :-
 	),
 	Parent \= Child.
 
-%%	mean_std(List, Mean, StandardDeviation, Max, Length) is det.
+%%	mean_std(List, Stats) is det.
 %
 %	This recursive version is adapted from the incremental version
 %	at:
@@ -405,17 +405,19 @@ mean_std(List, Stats) :-
 	Stats = [mean(Mean),
 		 standard_deviation(Std),
 		 max(Max),
+		 min(Min),
 		 length(K)
 		],
-	mean_std_(List, Mean, S, Max, K),
+	mean_std_(List, Mean, S, Min, Max, K),
 	Std is sqrt(S/K).
 
-mean_std_([Value], Value, 0, 0, 1) :- !.
-mean_std_([Value|Tail], Mean, S, Max, K) :-
+mean_std_([Value], Value, 0, Value, Value, 1) :- !.
+mean_std_([Value|Tail], Mean, S, Min, Max, K) :-
 	!,
-	mean_std_(Tail, Tmean, Tstd, Tmax, Tk),
+	mean_std_(Tail, Tmean, Tstd, Tmin, Tmax, Tk),
 	K is Tk + 1,
 	Max is max(Tmax, Value),
+	Min is min(Tmin, Value),
 	Mean is Tmean + (Value - Tmean) / K,
 	S is Tstd  + (Value - Tmean) * (Value - Mean).
 
