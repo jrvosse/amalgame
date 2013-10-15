@@ -110,7 +110,11 @@ http_eq_upload_url(Request) :-
 
 
 find_schemes(Schemes) :-
-	findall(C, voc_property(C, virtual(_), [compute(no)]), All),
+	findall(C,
+		(   is_vocabulary(C),
+		    \+ rdf(C, amalgame:wasGeneratedBy, _)
+		),
+		All),
 	maplist(scheme_label, All, Labeled),
 	keysort(Labeled, Sorted),
 	pairs_values(Sorted, Schemes).
