@@ -365,7 +365,7 @@ ag_prov(Graph, Graph, contributors, Vs) :-
 	!,
 	sort(Vs0, Vs).
 
-%%	amalgame_parameters(+URI, -Parmas)
+%%	amalgame_parameters(+URI, +Strategy, -Parmas)
 %
 %	Params is a list of parameters for URI.
 
