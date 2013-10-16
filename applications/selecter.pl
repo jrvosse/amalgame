@@ -112,7 +112,7 @@ http_eq_upload_url(Request) :-
 find_schemes(Schemes) :-
 	findall(C,
 		(   is_vocabulary(C),
-		    \+ rdf(C, amalgame:wasGeneratedBy, _)
+		    voc_property(C, virtual(false))
 		),
 		All),
 	maplist(scheme_label, All, Labeled),
