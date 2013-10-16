@@ -103,7 +103,8 @@ voc_ensure_stats(Voc, version(Version)) :-
 	->  ImplicitVersion = amalgame_generated
 	;   assert_voc_version(Voc, ImplicitVersion)
 	->  true
-	;   debug(info, 'Failed to ensure implicit version stats for ~p', [Voc])
+	;   debug(info, 'Failed to ensure implicit version stats for ~p', [Voc]),
+	    ImplicitVersion = '?'
 	),
 	!,
 	format(atom(Version), '~w (~w)', [ExplicitVersion, ImplicitVersion]).
