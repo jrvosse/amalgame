@@ -212,6 +212,15 @@ del_materialized_mappings(Strategy) :-
 	       )
 	      ).
 
+% deletes all ev graphs, for development use only:
+del_evidence_graphs :-
+	forall(
+	    (	rdf_graph(G),
+		sub_atom(G, 0,_,_, '__bnode'),        % hack
+		sub_atom(G, _,_,0, '_evidence_graph') % hack
+	    ),
+	    rdf_unload_graph(G)).
+
 del_evidence_graphs(Mapping) :-
 	forall(
 	    (
