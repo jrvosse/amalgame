@@ -395,8 +395,10 @@ assert_count(MapUri, Strategy, ProvGraph) :-
 is_amalgame_graph(G) :-
 	rdf_graph(G),
 	(   rdf(G, amalgame:hasPlan, _, _) % G is provenance graph
-	;   rdf(_, amalgame:hasPlan, _, G) % G is the void graph
+	;   rdf(S, amalgame:hasPlan, _, G), % G is the void graph
+	    S \= G
 	;   rdfs_individual_of(G, amalgame:'AlignmentStrategy')
 	;   once(rdf(G, align:map, _, G))	 % G is mapping graph
+	;   rdf(_, amalgame:evidenceGraph, G)	 % G is an evidence graph
 	).
 
