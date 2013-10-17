@@ -13,18 +13,17 @@
 	exec_amalgame_process/7,
 	select_result_mapping/4.
 
-%%	select_result_mapping(+Id, +Result, +OutputType, -Mapping)
+%%	select_result_mapping(+Id, +MapSpec, +Type, -Mapping) is det.
+%%	select_result_mapping(+Id, -MapSpec, +Type, +Mapping) is det.
 %
-%	Mapping is part of (process) Result as defined by OutputType.
+%	Mapping is part of (process) result MapSpec as defined by
+%	Type.
 %
-%	@param OutputType is an RDF property
+%	@param ype is an RDF property
 %	@error existence_error(mapping_select)
 
-select_result_mapping(_Id, mapspec(mapping(Mapping)), P, Mapping) :-
-	is_list(Mapping),
-	rdf_equal(amalgame:wasGeneratedBy, P).
-
-select_result_mapping(_Id, mapspec(select(Selected, Discarded, Undecided)), OutputType, Mapping) :-
+select_result_mapping(_Id, mapspec(select(Selected, Discarded, Undecided)),
+		      OutputType, Mapping) :-
 	!,
 	(   rdf_equal(amalgame:selectedBy, OutputType)
 	->  Mapping = Selected
@@ -33,7 +32,15 @@ select_result_mapping(_Id, mapspec(select(Selected, Discarded, Undecided)), Outp
 	;   rdf_equal(amalgame:undecidedBy, OutputType)
 	->  Mapping = Undecided
 	;   throw(error(existence_error(mapping_selector, OutputType), _))
-	).
+	),
+	(   var(Selected)  -> Selected  = [] ; true),
+	(   var(Discarded) -> Discarded = [] ; true),
+	(   var(Undecided) -> Undecided = [] ; true).
+
+select_result_mapping(_Id, mapspec(mapping(Mapping)), P, Mapping) :-
+	is_list(Mapping),
+	rdf_equal(amalgame:wasGeneratedBy, P).
+
 
 select_result_mapping(Id, mapspec(overlap(List)), P, Mapping) :-
 	!,

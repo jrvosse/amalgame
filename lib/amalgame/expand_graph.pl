@@ -70,7 +70,8 @@ expand_mapping(Strategy, Id, Mapping) :-
 
 	(   rdf_has(Id, amalgame:wasGeneratedBy, Process, OutputType),
 	    rdf(Id, OutputType, Process, Strategy)
-	->  cache_result(0.1, Process, Strategy, mapspec(mapping(Mapping)))
+	->  select_result_mapping(Id, MapSpec, OutputType, Mapping),
+	    cache_result(0.1, Process, Strategy, MapSpec)
 	;   cache_result(0.1, Id, Strategy, Mapping)
 	).
 
