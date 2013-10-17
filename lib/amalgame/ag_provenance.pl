@@ -16,6 +16,7 @@
 :- use_module(library(http/http_session)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
+:- use_module(library(semweb/rdf_library)).
 
 :- use_module(user(user_db)).
 :- use_module(library(version)).
@@ -25,6 +26,16 @@
 :- use_module(util).
 :- use_module(voc_stats).
 
+:- rdf_meta
+	provenance_graph(r,r),
+	add_amalgame_prov(r,r,+),
+	update_amalgame_prov(r,r),
+	remove_old_prov(r,r),
+	is_amalgame_graph(r),
+	prov_was_generated_by(r,t,r,+),
+	prov_clear_activity(r),
+	prov_get_entity_version(r,r,-),
+	prov_ensure_entity(r, r).
 
 :- dynamic
 	current_prov_uri/2.
@@ -70,13 +81,17 @@ prov_ensure_entity(Entity, Graph) :-
 prov_ensure_entity(Entity, Graph) :-
 	is_vocabulary(Entity),
 	voc_property(Entity, version(Version)),
-	rdf_assert(Entity, 'http://usefulinc.com/ns/doap#revision', literal(Version), Graph),
+	rdf_assert(Entity, 'http://usefulinc.com/ns/doap#revision',
+		   literal(Version), Graph),
 	findall(rdf(Entity, P, O), rdf(Entity, P, O), Triples),
 	forall(member(rdf(S,P,O), Triples), rdf_assert(S,P,O,Graph)),
 	!.
 prov_ensure_entity(Entity, Graph) :-
-	format(atom(Message), 'Cannot record provenance for ~p in named graph ~p', [Entity, Graph]),
-	throw(error(evalution_error, context(prov_ensure_entity/2, Message))).
+	format(atom(Message),
+	       'Cannot record provenance for ~p in named graph ~p',
+	       [Entity, Graph]),
+	throw(error(evalution_error,
+		    context(prov_ensure_entity/2, Message))).
 
 add_amalgame_prov(Strategy, Process, Results) :-
 	rdf_equal(prov:used, ProvUsed),
@@ -295,7 +310,7 @@ prov_association(Agent, Strategy, Graph, Association):-
 get_xml_dateTime(T, TimeStamp) :-
 	format_time(atom(TimeStamp), '%Y-%m-%dT%H-%M-%S%Oz', T).
 
-%%	prov_get_entity_version(+Entity,+SourceGraph,+TargetGraph)
+%%	prov_get_entity_version(+Entity,+SourceGraph,Version)
 %	is semidet.
 %
 %	Assert (git) version information about Entity into the named
