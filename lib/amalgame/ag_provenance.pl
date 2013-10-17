@@ -16,7 +16,6 @@
 :- use_module(library(http/http_session)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
-:- use_module(library(semweb/rdf_library)).
 
 :- use_module(user(user_db)).
 :- use_module(library(version)).
@@ -80,6 +79,8 @@ prov_ensure_entity(Entity, Graph) :-
 	rdf(Entity, _, _, Graph),!. % prov already recorded
 prov_ensure_entity(Entity, Graph) :-
 	is_vocabulary(Entity),
+	prov_named_graphs(Repo, Graph),
+	rdf_assert(Entity, prov:wasDerivedFrom, Repo, Graph),
 	voc_property(Entity, version(Version)),
 	rdf_assert(Entity, 'http://usefulinc.com/ns/doap#revision',
 		   literal(Version), Graph),
@@ -305,7 +306,47 @@ prov_association(Agent, Strategy, Graph, Association):-
 	rdf_assert(Association, prov:hadRole, Role, Graph),
 	assert(current_prov_uri(Agent, association(Association))).
 
+repo_version_id(Repo) :-
+	findall(G-Hash,
+		(   rdf_graph(G),
+		    \+ is_amalgame_graph(G),
+		    rdf_graph_property(G, hash(Hash))
+		),
+		Graphs),
+	variant_sha1(Graphs, SHA1),
+	atomic_concat('http://localhost/cliopatria/triplestore/sha1_',
+		      SHA1, Repo).
 
+prov_named_graphs(Repo, Graph) :-
+	repo_version_id(Repo),
+	current_prov_uri(Graph, repository(Repo)), !.
+
+prov_named_graphs(Repo, Graph) :-
+	repo_version_id(Repo),
+	findall(G, (rdf_graph(G), \+ is_amalgame_graph(G)), Graphs),
+	rdf_assert(Repo, rdf:type, amalgame:'TripleStore', Graph),
+	forall(member(G, Graphs),
+	       prov_named_graph(G, Repo, Graph)),
+	assert(current_prov_uri(Graph, repository(Repo))).
+
+prov_named_graph(NG, Repo, Graph) :-
+	rdf_graph_property(NG, hash(NGHash)),
+	rdf_graph_property(NG, modified(NGModified)),
+	rdf_graph_property(NG, triples(NGCount)),
+	(   rdf_graph_property(NG, source(NGsource))
+	->  true ; NGsource = created_in_store
+	),
+	(   rdf_graph_property(NG, source_last_modified(NGsource_lm))
+	->  true
+	;   NGsource_lm = NGModified
+	),
+	rdf_assert(Repo, amalgame:loaded, NG, Graph),
+	rdf_assert(NG, amalgame:hash, literal(NGHash), Graph),
+	rdf_assert(NG, amalgame:modified, literal(NGModified), Graph),
+	rdf_assert(NG, amalgame:source, literal(NGsource), Graph),
+	rdf_assert(NG, amalgame:source_last_modified,
+		   literal(NGsource_lm), Graph),
+	rdf_assert(NG, amalgame:triples, literal(NGCount), Graph).
 
 get_xml_dateTime(T, TimeStamp) :-
 	format_time(atom(TimeStamp), '%Y-%m-%dT%H-%M-%S%Oz', T).
