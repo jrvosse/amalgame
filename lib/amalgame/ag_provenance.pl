@@ -242,9 +242,14 @@ prov_program(Graph, Program)  :-
 	->  true
 	;   current_prolog_flag(version, PL_version)
 	),
-	findall(M-U-V,
+	working_directory(CWD,CWD),
+	file_name_to_url(CWD,CWDF),
+	gethostname(LocalHost),
+	findall(M-U-V-F,
 		(   git_module_property(M, home_url(U)),
-		    git_module_property(M, version(V))
+		    git_module_property(M, version(V)),
+		    git_module_property(M, directory(D)),
+		    file_name_to_url(D, F)
 		),
 		MUVs
 	       ),
@@ -255,14 +260,17 @@ prov_program(Graph, Program)  :-
 	assert(current_prov_uri(Graph, program(Program))),
 	rdf_assert(Program, rdfs:label, literal('Amalgame alignment platform'), Graph),
 	rdf_assert(Program, rdf:type,   prov:'SoftwareAgent', Graph),
-
-	forall(member(M-U-V, All),
+	rdf_assert(Program, amalgame:cwd, CWDF, Graph),
+	rdf_assert(Program, amalgame:host, literal(LocalHost), Graph),
+	forall(member(M-U-V-D, All),
 	       (   rdf_bnode(B),
 	           rdf_assert(Program, amalgame:component, B, Graph),
 		   rdf_assert(B, 'http://usefulinc.com/ns/doap#revision',
 			      literal(V), Graph),
 		   rdf_assert(B, 'http://usefulinc.com/ns/doap#name',
 			      literal(M), Graph),
+		   rdf_assert(B, rdfs:seeAlso,
+			      literal(D), Graph),
 		   rdf_assert(B, rdfs:seeAlso,
 			      literal(U), Graph)
 	       )
@@ -314,7 +322,7 @@ repo_version_id(Repo) :-
 		),
 		Graphs),
 	variant_sha1(Graphs, SHA1),
-	atomic_concat('http://localhost/cliopatria/triplestore/sha1_',
+	atomic_concat('http://localhost/ns/cliopatria/triplestore/sha1_',
 		      SHA1, Repo).
 
 prov_named_graphs(Repo, Graph) :-
@@ -330,23 +338,25 @@ prov_named_graphs(Repo, Graph) :-
 	assert(current_prov_uri(Graph, repository(Repo))).
 
 prov_named_graph(NG, Repo, Graph) :-
-	rdf_graph_property(NG, hash(NGHash)),
 	rdf_graph_property(NG, modified(NGModified)),
+	rdf_graph_property(NG, hash(NGHash)),
 	rdf_graph_property(NG, triples(NGCount)),
 	(   rdf_graph_property(NG, source(NGsource))
 	->  true ; NGsource = created_in_store
 	),
-	(   rdf_graph_property(NG, source_last_modified(NGsource_lm))
-	->  true
-	;   NGsource_lm = NGModified
+	(   rdf_graph_property(NG, source_last_modified(NGsource_lm0))
+	->  get_xml_dateTime(NGsource_lm0, NGsource_lm),
+	    rdf_assert(NG, amalgame:source_last_modified,
+		       literal(type(xsd:dateTime, NGsource_lm)), Graph)
+	;   true
 	),
 	rdf_assert(Repo, amalgame:loaded, NG, Graph),
+
 	rdf_assert(NG, amalgame:hash, literal(NGHash), Graph),
-	rdf_assert(NG, amalgame:modified, literal(NGModified), Graph),
+	rdf_assert(NG, amalgame:modified_after_loading, literal(NGModified), Graph),
 	rdf_assert(NG, amalgame:source, literal(NGsource), Graph),
-	rdf_assert(NG, amalgame:source_last_modified,
-		   literal(NGsource_lm), Graph),
-	rdf_assert(NG, amalgame:triples, literal(NGCount), Graph).
+	rdf_assert(NG, amalgame:triples, literal(NGCount), Graph),
+	rdf_assert(NG, rdfs:comment, literal(lang(en, 'Named graph loaded into the triple store while creating this alignment. This may or may not have influenced the results.')), Graph).
 
 get_xml_dateTime(T, TimeStamp) :-
 	format_time(atom(TimeStamp), '%Y-%m-%dT%H-%M-%S%Oz', T).
