@@ -10,6 +10,7 @@
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(amalgame/amalgame_modules)).
 :- use_module(library(amalgame/ag_stats)).
+:- use_module(library(amalgame/ag_provenance)).
 :- use_module(library(amalgame/voc_stats)).
 :- use_module(library(amalgame/caching)).
 :- use_module(library(amalgame/util)).
@@ -24,6 +25,9 @@
 
 :- setting(amalgame:vocabulary_statistics, oneof([all,fast]), fast,
 	   'Compute all (takes long) or only the cheap (fast) vocabulary statistics').
+
+:- rdf_meta
+	label_stats(r, r, r, -).
 
 %%	http_eq_info(+Request)
 %
@@ -120,8 +124,10 @@ html_form(Params, URI) -->
 amalgame_info(URL, Strategy, Stats) :-
 	rdfs_individual_of(URL, amalgame:'Mapping'),
 	!,
+	provenance_graph(Strategy, Prov),
 	node_stats(Strategy, URL, MStats),
 	option(totalCount(MN), MStats),
+	rdf_assert(URL, amalgame:totalCount, literal(type(xsd:int, MN)), Prov),
 	(   option(inputPercentage(IP), MStats)
 	->  format(atom(TmA), '~d (~5f%)', [MN, IP]),
 	    IpStats = [ 'total matches'-span([TmA])]
@@ -205,29 +211,43 @@ amalgame_info(URL, Strategy, Stats) :-
 		DepthTStats, ChildTStats
 	       ], Stats).
 
-amalgame_info(Scheme, _Strategy, Stats) :-
+amalgame_info(Scheme, Strategy, Stats) :-
 	is_vocabulary(Scheme),
 	!,
 	BasicStats = [
 	    'Version:' - Version,
 	    'Total concepts: '-Total
 	],
+	provenance_graph(Strategy, Prov),
+
 	voc_property(Scheme, numberOfConcepts(Total)),
 	voc_property(Scheme, version(Version)),
+	rdf_assert(Scheme, amalgame:numberOfConcepts, literal(type(xsd:int, Total)), Prov),
 
-	label_stats(Scheme, skos:prefLabel, PrefLabelStats),
-	label_stats(Scheme, skos:altLabel,  AltLabelStats),
-
-
+	label_stats(Scheme, Strategy, skos:prefLabel, PrefLabelStats),
+	label_stats(Scheme, Strategy, skos:altLabel,  AltLabelStats),
 
 	(   setting(amalgame:vocabulary_statistics, fast) ->  C = no; C = yes),
 	(   voc_property(Scheme, depth(DepthStats0), [compute(C)])
 	->  option(mean(DepthM), DepthStats0, 0),
 	    option(standard_deviation(DepthStd), DepthStats0, 0),
 	    option(max(DepthMax), DepthStats0, 0),
+	    option(min(DepthMin), DepthStats0, 0),
 	    format(atom(Depth), '~2f (\u03C3 = ~2f)', [DepthM, DepthStd]),
+	    rdf_bnode(DepthBnode),
+	    rdf_assert(DepthBnode, amalgame:mean,
+		       literal(type(xsd:float, DepthM)), Prov),
+	    rdf_assert(DepthBnode, amalgame:standard_deviation,
+		       literal(type(xsd:float, DepthStd)), Prov),
+	    rdf_assert(DepthBnode, amalgame:maximum,
+		       literal(type(xsd:int, DepthMax)), Prov),
+	    rdf_assert(DepthBnode, amalgame:minimum,
+		       literal(type(xsd:int, DepthMin)), Prov),
+
+	    rdf_assert(Scheme, amalgame:depth, DepthBnode, Prov),
 	    DepthStats = [ 'average depth:'	- span([Depth]),
-			   'maximum depth:'	- span([DepthMax])
+			   'maximum depth:'	- span([DepthMax]),
+			   'minimum depth:'	- span([DepthMin])
 			 ]
 	;   DepthStats = [ a([href('#'), class(compute_deep_stats)],
 			      ['compute additional statistics'])
@@ -273,9 +293,8 @@ amalgame_info(URL, Strategy,
 amalgame_info(_URL, _Strategy, []).
 
 
-label_stats(Scheme, Property, Stats) :-
+label_stats(Scheme, Strategy, Property, Stats) :-
 	voc_property(Scheme, languages(Property, Langs0)),
-	voc_property(Scheme, numberOfConcepts(Total)),
 	(   Langs0 == []
 	->  Langs = [_UnknownLang]
 	;   Langs = Langs0
@@ -286,27 +305,47 @@ label_stats(Scheme, Property, Stats) :-
 		 '... # ambiguous labels:'   - span([HomsLA]),
 		 '... # ambiguously labeled concepts:' - span([HomsCA])
 		],
-		(   member(Lang, Langs),
-		    voc_property(Scheme, numberOfLabels(Property, Lang, LCount, CCount)),
-		    CCount > 0,
-		    % voc_property(Scheme, numberOfUniqueLabels(Property, Lang, UniqL, UniqC)),
-		    voc_property(Scheme, numberOfHomonyms(Property, Lang, HomsL, HomsC)),
-		    save_perc(HomsL, LCount, HomsLP),
-		    save_perc(HomsC, CCount, HomsCP),
-		    save_perc(CCount, Total, CCountP),
-		    LP is LCount/CCount,
-
-		    (	CCount == Total
-		    ->  format(atom(CCountA), '100%', [])
-		    ;	format(atom(CCountA), '~d (~2f%)', [CCount, CCountP])
-		    ),
-		    format(atom(CountL), '# ~p @~w', [Property, Lang]),
-		    format(atom(A), '~d', [LCount]),
-		    format(atom(LPA), '~2f', [LP]),
-		    format(atom(HomsLA), '~d (~2f%)', [HomsL, HomsLP]),
-		    format(atom(HomsCA), '~d (~2f%)', [HomsC, HomsCP])
-		), PrefLabelStatsLoL),
+		label_lang_stat(Scheme, Strategy, Property, Langs,
+			       A, CountL, CCountA, LPA, HomsLA, HomsCA)
+		, PrefLabelStatsLoL),
 	append(PrefLabelStatsLoL, Stats).
+
+label_lang_stat(Scheme, Strategy, Property, Langs, A, CountL, CCountA, LPA, HomsLA, HomsCA) :-
+	member(Lang, Langs),
+	provenance_graph(Strategy, Prov),
+
+	voc_property(Scheme, numberOfLabels(Property, Lang, LCount, CCount)),
+	voc_property(Scheme, numberOfConcepts(Total)),
+
+	CCount > 0,
+	% voc_property(Scheme, numberOfUniqueLabels(Property, Lang, UniqL, UniqC)),
+	voc_property(Scheme, numberOfHomonyms(Property, Lang, HomsL, HomsC)),
+	save_perc(HomsL, LCount, HomsLP),
+	save_perc(HomsC, CCount, HomsCP),
+	save_perc(CCount, Total, CCountP),
+	LP is LCount/CCount,
+
+	(   CCount == Total
+	->  format(atom(CCountA), '100%', [])
+	;   format(atom(CCountA), '~d (~2f%)', [CCount, CCountP])
+	),
+	format(atom(CountL), '# ~p @~w', [Property, Lang]),
+	format(atom(A), '~d', [LCount]),
+	format(atom(LPA), '~2f', [LP]),
+	format(atom(HomsLA), '~d (~2f%)', [HomsL, HomsLP]),
+	format(atom(HomsCA), '~d (~2f%)', [HomsC, HomsCP]),
+
+	(   rdf(Scheme, amalgame:labelAmbiguity, Bnode, Prov),
+	    rdf(Bnode, amalgame:predicate, Property, Prov)
+	->  true
+	;   rdf_bnode(Bnode),
+	    rdf_assert(Scheme, amalgame:labelAmbiguity, Bnode, Prov),
+	    rdf_assert(Bnode,  amalgame:predicate, Property, Prov),
+	    rdf_assert(Bnode,  amalgame:ambiguousLabels,  literal(type(xsd:int, HomsL)), Prov),
+	    rdf_assert(Bnode,  amalgame:ambiguousConcepts, literal(type(xsd:int, HomsC)), Prov)
+	).
+
+
 
 
 %%	amalgame_provenance(+R, +Alignment, -Provenance:[key-value])
