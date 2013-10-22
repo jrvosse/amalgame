@@ -19,6 +19,7 @@
 
 Currently supported statistical properties include:
 * version(Literal)
+* revision (Literal)
 * format(oneof([skos,skosxl,null]))
 * numberOfConcepts(xsd:int)
 * numberOfPrefLabels(xsd:int)
@@ -95,20 +96,21 @@ voc_ensure_stats(Voc, format(Format)) :-
 	).
 
 voc_ensure_stats(Voc, version(Version)) :-
-	(   rdf_has(Voc, owl:versionInfo, literal(ExplicitVersion))
+	(   rdf_has(Voc, owl:versionInfo, literal(Version))
 	->  true
-	;   ExplicitVersion = ''
+	;   Version = ''
 	),
-	(   rdf(Voc, amalgame:wasGeneratedBy, _)
-	->  ImplicitVersion = amalgame_generated
-	;   assert_voc_version(Voc, ImplicitVersion)
-	->  true
-	;   debug(info, 'Failed to ensure implicit version stats for ~p', [Voc]),
-	    ImplicitVersion = '?'
-	),
-	!,
-	format(atom(Version), '~w (~w)', [ExplicitVersion, ImplicitVersion]).
+	assert(voc_stats_cache(Voc, version(Version))).
 
+voc_ensure_stats(Voc, revision(Revision)) :-
+	(   rdf(Voc, amalgame:wasGeneratedBy, _)
+	->  Revision = amalgame_generated
+	;   assert_voc_version(Voc, Revision)
+	->  true
+	;   debug(info, 'Failed to ensure revision stats for ~p', [Voc]),
+	    Revision = '?'
+	),
+	assert(voc_stats_cache(Voc, revision(Revision))).
 
 voc_ensure_stats(Voc, numberOfConcepts(Count)) :-
 	(   count_concepts(Voc, Count) -> true ; Count = 0),
