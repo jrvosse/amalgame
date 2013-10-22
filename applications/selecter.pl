@@ -207,16 +207,19 @@ html_vocab_head -->
 	     ]).
 
 html_vocab_rows([]) --> !.
-html_vocab_rows([Scheme|Vs]) -->
-	{
-	 (   voc_property(Scheme, numberOfConcepts(ConceptCount), [compute(no)])
-	 ->  true
-	 ;   rdf_estimate_complexity(_, skos:inScheme, Scheme, ConceptCount)
-	 ),
-         voc_property(Scheme, languages(skos:prefLabel, PrefLangs)),
-	 voc_property(Scheme, languages(skos:altLabel, AltLangs)),
-	 voc_property(Scheme, version(Version))
-	},
+html_vocab_rows([Scheme|Vs]) --> {
+    (   voc_property(Scheme, numberOfConcepts(ConceptCount), [compute(no)])
+    ->  true
+    ;   rdf_estimate_complexity(_, skos:inScheme, Scheme, ConceptCount)
+    ),
+    voc_property(Scheme, languages(skos:prefLabel, PrefLangs)),
+    voc_property(Scheme, languages(skos:altLabel, AltLangs)),
+    voc_property(Scheme, version(Version0)),
+    (	Version0 == ''
+    ->	voc_property(Scheme, revision(Version))
+    ;	Version = Version0
+    )
+},
 	html(tr([td(input([type(checkbox), autocomplete(off), class(option),
 			   name(scheme), value(Scheme)])),
 		 td(class(name),    \html_scheme_name(Scheme)),

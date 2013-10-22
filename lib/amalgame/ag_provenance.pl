@@ -76,14 +76,15 @@ update_amalgame_prov(Strategy, Mapping) :-
 	      ).
 
 prov_ensure_entity(Entity, Graph) :-
-	rdf(Entity, _, _, Graph),!. % prov already recorded
+	rdf(Entity, 'http://usefulinc.com/ns/doap#revision' , _, Graph),
+	!. % prov already recorded
 prov_ensure_entity(Entity, Graph) :-
 	is_vocabulary(Entity),
 	prov_named_graphs(Repo, Graph),
 	rdf_assert(Entity, prov:wasDerivedFrom, Repo, Graph),
-	voc_property(Entity, version(Version)),
+	voc_property(Entity, revision(Revision)),
 	rdf_assert(Entity, 'http://usefulinc.com/ns/doap#revision',
-		   literal(Version), Graph),
+		   literal(Revision), Graph),
 	findall(rdf(Entity, P, O), rdf(Entity, P, O), Triples),
 	forall(member(rdf(S,P,O), Triples), rdf_assert(S,P,O,Graph)),
 	!.
