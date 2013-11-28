@@ -88,6 +88,9 @@ prov_ensure_entity(Entity, Graph) :-
 	findall(rdf(Entity, P, O), rdf(Entity, P, O), Triples),
 	forall(member(rdf(S,P,O), Triples), rdf_assert(S,P,O,Graph)),
 	!.
+prov_ensure_entity(Entity, _Graph) :-
+	rdfs_individual_of(Entity, amalgame:'Mapping'), !. % do nothing, amalgame generated
+
 prov_ensure_entity(Entity, Graph) :-
 	format(atom(Message),
 	       'Cannot record provenance for ~p in named graph ~p',
