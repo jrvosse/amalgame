@@ -3,6 +3,7 @@
 	    reply_alignment_graph/2
 	  ]).
 
+:- use_module(library(option)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/html_write)).
