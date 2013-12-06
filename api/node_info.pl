@@ -69,20 +69,21 @@ http_deep_voc_stats(Request) :-
 %	Emit an HTML table with key-value pairs.
 
 html_prop_table(Pairs) -->
-	html(table(tbody(\html_rows(Pairs)))).
+	html(table(tbody(\html_rows('', Pairs)))).
 
-html_rows([]) --> !.
-html_rows([Key-Value|Ss]) -->
-	html_row(Key, Value),
-	html_rows(Ss).
+html_rows(_,[]) --> !.
+html_rows(Prefix, [Key-Value|Ss]) -->
+	html_row(Prefix, Key, Value),
+	html_rows(Prefix, Ss).
 
-html_row(Key, set(Values)) -->
-	 html(tr([th(Key),
-		  td([])
-		 ])),
-	 html_rows(Values).
-html_row(Key, Value) -->
-	 html(tr([th(Key),
+html_row(Prefix, Key, set(Values)) -->
+	{ atomic_concat('... ', Prefix, NewPrefix) },
+	html(tr([th([Prefix,Key]),
+		 td([])
+		])),
+	html_rows(NewPrefix, Values).
+html_row(Prefix, Key, Value) -->
+	 html(tr([th([Prefix, Key]),
 		  td(\html_cell(Value))
 		])).
 
@@ -146,58 +147,29 @@ amalgame_info(URL, Strategy, Stats) :-
 	    'matched source concepts'-SN,
 	    'matched target concepts'-TN
 	],
-
 	option(source_depth(DepthS), MStats),
 	(   DepthS \= []
-	->  option(mean(MeanDepthS), DepthS, 0),
-	    option(max(MaxDepthS), DepthS, 0),
-	    option(standard_deviation(DepthStdS), DepthS, 0),
-	    format(atom(DepthSatom), '~2f (\u03C3 = ~2f)', [MeanDepthS, DepthStdS]),
-	    DepthSStats = ['avg. source depth' - DepthSatom,
-			   'max. source depth' - MaxDepthS]
+	->  format_5numsum('Depth of source concepts', DepthS, DepthSStats)
 	;   DepthSStats = []
 	),
-
 	option(target_depth(DepthT), MStats),
 	(   DepthT \= []
-	->  option(mean(MeanDepthT), DepthT, 0),
-	    option(max(MaxDepthT), DepthT, 0),
-	    option(standard_deviation(DepthStdT), DepthT, 0),
-	    format(atom(DepthTatom), '~2f (\u03C3 = ~2f)', [MeanDepthT, DepthStdT]),
-	    DepthTStats = [ 'avg. target depth' - DepthTatom,
-			    'max. target depth' - MaxDepthT]
+	->  format_5numsum('Depth of target concepts', DepthT, DepthTStats)
 	;   DepthTStats = []
-
 	),
 
 	option(source_child_stats(ChildS), MStats),
 	(   ChildS \= []
-	->  option(nrOfTopConcepts(STop), ChildS, 0),
-	    option(mean(MeanChildS), ChildS, 0),
-	    option(max(MaxChildS), ChildS, 0),
-	    option(standard_deviation(ChildStdS), ChildS, 0),
-	    save_perc(STop, SN0, STopP),
-	    format(atom(TopSatom), '~d (~2f%)', [STop, STopP]),
-	    format(atom(ChildSatom), '~2f (\u03C3 = ~2f)', [MeanChildS, ChildStdS]),
-	    ChildSStats = ['avg. # children source' - ChildSatom,
-			   'max. # children source' - MaxChildS,
-			   'matched source top concepts'-TopSatom
-			  ]
+	->  format_5numsum('# of children (of source concepts)', ChildS, ChildSStats)
 	;   ChildSStats = []
 	),
 	option(target_child_stats(ChildT), MStats),
 	(   ChildT \= []
-	->  option(nrOfTopConcepts(TTop), ChildT, 0),
-	    option(mean(MeanChildT), ChildT, 0),
-	    option(max(MaxChildT), ChildT, 0),
-	    option(standard_deviation(ChildStdT), ChildT, 0),
+	->  format_5numsum('# of children (of source concepts)', ChildT, ChildTStats0),
+	    option(nrOfTopConcepts(TTop), ChildT),
 	    save_perc(TTop, TN0, TTopP),
 	    format(atom(TopTatom), '~d (~2f%)', [TTop, TTopP]),
-	    format(atom(ChildTatom), '~2f (\u03C3 = ~2f)', [MeanChildT, ChildStdT]),
-	    ChildTStats = ['avg. # children target' - ChildTatom,
-			   'matched target top concepts'-TopTatom,
-			   'max. # children target' - MaxChildT
-			  ]
+	    ChildTStats = ['# top concepts'-TopTatom | ChildTStats0 ]
 	;   ChildTStats = []
 	),
 
@@ -229,25 +201,32 @@ amalgame_info(Scheme, Strategy, Stats) :-
 
 	(   setting(amalgame:vocabulary_statistics, fast) ->  C = no; C = yes),
 	(   voc_property(Scheme, depth(DepthStats0), [compute(C)])
-	->  option(mean(DepthM), DepthStats0, 0),
-	    option(standard_deviation(DepthStd), DepthStats0, 0),
+	->  option(median(DepthM), DepthStats0, 0),
+	    option(q1(Q1), DepthStats0, 0),
+	    option(q3(Q3), DepthStats0, 0),
 	    option(max(DepthMax), DepthStats0, 0),
 	    option(min(DepthMin), DepthStats0, 0),
-	    format(atom(Depth), '~2f (\u03C3 = ~2f)', [DepthM, DepthStd]),
 	    rdf_bnode(DepthBnode),
-	    rdf_assert(DepthBnode, amalgame:mean,
+	    rdf_assert(DepthBnode, amalgame:median,
 		       literal(type(xsd:float, DepthM)), Prov),
-	    rdf_assert(DepthBnode, amalgame:standard_deviation,
-		       literal(type(xsd:float, DepthStd)), Prov),
+	    rdf_assert(DepthBnode, amalgame:first_quartile,
+		       literal(type(xsd:float, Q1)), Prov),
+	    rdf_assert(DepthBnode, amalgame:third_quartile,
+		       literal(type(xsd:float, Q3)), Prov),
 	    rdf_assert(DepthBnode, amalgame:maximum,
 		       literal(type(xsd:int, DepthMax)), Prov),
 	    rdf_assert(DepthBnode, amalgame:minimum,
 		       literal(type(xsd:int, DepthMin)), Prov),
 
 	    rdf_assert(Scheme, amalgame:depth, DepthBnode, Prov),
-	    DepthStats = [ 'average depth:'	- span([Depth]),
-			   'maximum depth:'	- span([DepthMax]),
-			   'minimum depth:'	- span([DepthMin])
+	    DepthStats = [
+		'depth' - set([
+			      'minimum:'	- span([DepthMin]),
+			      'first quartile:'       - span('~1f'-[Q1]),
+			      'median:'               - span([DepthM]),
+			      'third quartile:'       - span('~1f'-[Q3]),
+			      'maximum:'	- span([DepthMax])
+			  ])
 			 ]
 	;   DepthStats = [ a([href('#'), class(compute_deep_stats)],
 			      ['compute additional statistics'])
@@ -257,17 +236,21 @@ amalgame_info(Scheme, Strategy, Stats) :-
 	),
 
 	(   voc_property(Scheme, branch(BranchStats0), [compute(C)])
-	->  option(mean(BranchM), BranchStats0, 0),
-	    option(standard_deviation(BranchStd), BranchStats0, 0),
+	->  option(median(BranchM), BranchStats0, 0),
+	    option(q1(Q1B), BranchStats0, 0),
+	    option(q3(Q3B), BranchStats0, 0),
 	    option(max(BranchMax), BranchStats0, 0),
 	    option(nrOfTopConcepts(TopConcepts), BranchStats0, 0),
 	    save_perc(TopConcepts, Total, TopConceptsP),
 	    format(atom(TopConA),    '~d (~2f%)', [TopConcepts, TopConceptsP]),
-	    format(atom(Branch), '~2f (\u03C3 = ~2f)', [BranchM, BranchStd]),
 	    BranchStats = [
-		'# top concepts:'  - span([TopConA]),
-		'average # children:'   - span([Branch]),
-		'maximum # children:'   - span([BranchMax])
+		'# top concepts:' - span([TopConA]),
+		'# children: '	  - set([
+					'first quartile:'     - span('~1f'-[Q1B]),
+					'median:'	      - span([BranchM]),
+					'third quartile:'     - span('~1f'-[Q3B]),
+					'maximum # children:' - span([BranchMax])
+				    ])
 	    ]
 	;   BranchStats = []
 	),
@@ -299,11 +282,14 @@ label_stats(Scheme, Strategy, Property, Stats) :-
 	->  Langs = [_UnknownLang]
 	;   Langs = Langs0
 	),
-	findall([CountL-span([A]),
-		 '... # labeled concepts'    - span([CCountA]),
-		 '... # labels/labeled concept' - span([LPA]),
-		 '... # ambiguous labels:'   - span([HomsLA]),
-		 '... # ambiguously labeled concepts:' - span([HomsCA])
+	findall([CountL-
+		 set([
+		     '# labels' - span([A]),
+		     '# labeled concepts'    - span([CCountA]),
+		     '# labels/labeled concept' - span([LPA]),
+		     '# ambiguous labels:'   - span([HomsLA]),
+		     '# ambiguously labeled concepts:' - span([HomsCA])
+		 ])
 		],
 		label_lang_stat(Scheme, Strategy, Property, Langs,
 			       A, CountL, CCountA, LPA, HomsLA, HomsCA)
@@ -329,7 +315,7 @@ label_lang_stat(Scheme, Strategy, Property, Langs, A, CountL, CCountA, LPA, Homs
 	->  format(atom(CCountA), '100%', [])
 	;   format(atom(CCountA), '~d (~2f%)', [CCount, CCountP])
 	),
-	format(atom(CountL), '# ~p @~w', [Property, Lang]),
+	format(atom(CountL), '~p @~w', [Property, Lang]),
 	format(atom(A), '~d', [LCount]),
 	format(atom(LPA), '~2f', [LP]),
 	format(atom(HomsLA), '~d (~2f%)', [HomsL, HomsLP]),
@@ -425,3 +411,20 @@ override_options([H|T], Current, [V|Results]) :-
 	V=parameter(Id, Type, Value,   Desc),
 	Opt =.. [Id, Value],
 	option(Opt, Current, Default).
+
+format_5numsum(Key, Stats, Formatted) :-
+	option(median(Median), Stats, 0),
+	option(max(Max), Stats, 0),
+	option(min(Min), Stats, 0),
+	option(q1(Q1), Stats, 0),
+	option(q3(Q3), Stats, 0),
+
+	Formatted = [
+	    Key - set([
+		      'minimum:'	- span([Min]),
+		      'first quartile:'	- span('~1f'-[Q1]),
+		      'median:'		- span([Median]),
+		      'third quartile:'	- span('~1f'-[Q3]),
+		      'maximum:'	- span([Max])
+		  ])
+	].

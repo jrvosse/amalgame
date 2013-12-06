@@ -11,6 +11,7 @@
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_db)).
 
+:- use_module(library(stat_lists)).
 :- use_module(library(amalgame/map)).
 :- use_module(library(amalgame/ag_provenance)).
 :- use_module(library(amalgame/vocabulary)).
@@ -308,7 +309,8 @@ compute_depth_stats(Voc, depth(Stats)) :-
 		   (   assert_depth(Voc),
 		       findall(Concept, vocab_member(Concept, Voc), Concepts),
 		       maplist(concept_depth, Concepts, Depths),
-		       mean_std(Depths, Stats)
+		       sort(Depths, SortedDepths),
+		       list_five_number_summary(SortedDepths, Stats)
 		   )
 		  ).
 
@@ -320,7 +322,8 @@ compute_branch_stats(Voc, branch([Tops|Stats])) :-
 		   (
 		       findall(Concept, vocab_member(Concept, Voc), Concepts),
 		       maplist(concept_children_count, Concepts, Children),
-		       mean_std(Children, Stats)
+		       sort(Children, ChildrenS),
+		       list_five_number_summary(ChildrenS, Stats)
 		   )
 		  ).
 
@@ -328,7 +331,8 @@ concept_list_depth_stats([], _Voc, depth([])) :-!.
 concept_list_depth_stats(CList, Voc, depth(Stats)) :-
 	voc_property(Voc, depth(_), [compute(no)]), % only if basic depth stats for voc already computed
 	maplist(concept_depth, CList, Depths),
-	mean_std(Depths, Stats).
+	sort(Depths, DepthsSorted),
+	list_five_number_summary(DepthsSorted, Stats).
 
 concept_list_branch_stats([], _Voc, branch([])) :-!.
 concept_list_branch_stats(CList, Voc, branch([Tops|Stats])) :-
@@ -343,7 +347,8 @@ concept_list_branch_stats(CList, Voc, branch([Tops|Stats])) :-
 	length(TopConcepts, TopConceptsCount),
 	voc_property(Voc, depth(_)), % ensure basic depth stats for voc have been computed
 	maplist(concept_children_count, CList, Children),
-	mean_std(Children, Stats).
+	sort(Children, ChildrenSorted),
+	list_five_number_summary(ChildrenSorted, Stats).
 
 concept_depth(C, D) :-
 	 rdf(C, amalgame:depth, literal(type(xsd:int, D))),!.
