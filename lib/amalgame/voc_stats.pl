@@ -43,6 +43,7 @@ Currently supported statistical properties include:
 	voc_languages(r,-),
 	voc_languages(r,r,-),
 	voc_languages_used(r,r,-),
+	count_labels(r,r,-,-,-),
 	count_homonyms(r,r,-).
 
 voc_property(Voc, P) :-
@@ -186,7 +187,7 @@ count_labels(Voc, Property, Lang, CCount, LCount) :-
 			var(Lang)
 		    ;	rdf_has(Concept, Property, LabelObject),
 			rdf_has(LabelObject,   skosxl:literalForm, literal(Label)),
-			\+ rdf_has(LabelObject,   skosxl:literalForm, literal(lang(_,Label)))
+			atom(Label)
 		    )
 		),
 		Pairs),
@@ -287,7 +288,9 @@ language_used(Voc, Lang) :-
 
 language_used(Voc, Prop, Lang) :-
 	vocab_member(Concept, Voc),
-	rdf_has(Concept, Prop, literal(lang(Lang, _))),
+	(   rdf_has(Concept, Prop, literal(lang(Lang, _)))
+	;   rdf_has(Concept, Prop, LabelObject), rdf_has(LabelObject, skosxl:literalForm, literal(lang(Lang, _)))
+	),
 	ground(Lang).
 
 voc_find_format(Voc, Format) :-
