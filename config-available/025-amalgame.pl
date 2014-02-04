@@ -14,9 +14,10 @@
 :- use_module(library(http/http_dirindex)).
 :- use_module(library(http/http_server_files)).
 
-:- use_module(library(skos_schema)).
 :- use_module(library(void_schema)).
 :- use_module(library(prov_schema)).
+:- use_module(library(skos_schema)).
+:- use_module(library(skos_xl_schema)).
 
 :- multifile
 	http:location/3.		% Alias, Expansion, Options
