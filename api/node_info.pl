@@ -186,18 +186,26 @@ amalgame_info(URL, Strategy, Stats) :-
 amalgame_info(Scheme, Strategy, Stats) :-
 	is_vocabulary(Scheme),
 	!,
-	BasicStats = [
-	    'Version:' - Version,
-	    'Total concepts: '-Total
-	],
 	provenance_graph(Strategy, Prov),
 
+	BasicStats = [
+	    'Version:' - Version,
+	    'Format:' - Format,
+	    'Total concepts: '-Total
+	],
+
 	voc_property(Scheme, numberOfConcepts(Total)),
-	voc_property(Scheme, version(Version)),
 	rdf_assert(Scheme, amalgame:numberOfConcepts, literal(type(xsd:int, Total)), Prov),
 
-	label_stats(Scheme, Strategy, skos:prefLabel, PrefLabelStats),
-	label_stats(Scheme, Strategy, skos:altLabel,  AltLabelStats),
+	voc_property(Scheme, version(Version)),
+	voc_property(Scheme, format(Format)),
+
+	(   Format = skosxl
+	->  label_stats(Scheme, Strategy, skosxl:prefLabel, PrefLabelStats),
+	    label_stats(Scheme, Strategy, skosxl:altLabel,  AltLabelStats)
+	;   label_stats(Scheme, Strategy, skos:prefLabel, PrefLabelStats),
+	    label_stats(Scheme, Strategy, skos:altLabel,  AltLabelStats)
+	),
 
 	(   setting(amalgame:vocabulary_statistics, fast) ->  C = no; C = yes),
 	(   voc_property(Scheme, depth(DepthStats0), [compute(C)])
