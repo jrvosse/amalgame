@@ -290,7 +290,7 @@ label_stats(Scheme, Strategy, Property, Stats) :-
 	->  Langs = [_UnknownLang]
 	;   Langs = Langs0
 	),
-	findall([CountL-
+	findall(CCount-[CountL-
 		 set([
 		     '# labels' - span([A]),
 		     '# labeled concepts'    - span([CCountA]),
@@ -300,11 +300,14 @@ label_stats(Scheme, Strategy, Property, Stats) :-
 		 ])
 		],
 		label_lang_stat(Scheme, Strategy, Property, Langs,
-			       A, CountL, CCountA, LPA, HomsLA, HomsCA)
-		, PrefLabelStatsLoL),
-	append(PrefLabelStatsLoL, Stats).
+			       CCount, A, CountL, CCountA, LPA, HomsLA, HomsCA)
+		, PrefLabelStatsLoL0),
+	keysort(PrefLabelStatsLoL0, PrefLabelStatsLoL),
+	pairs_values(PrefLabelStatsLoL, Values),
+	reverse(Values, ValuesR),
+	append(ValuesR, Stats).
 
-label_lang_stat(Scheme, Strategy, Property, Langs, A, CountL, CCountA, LPA, HomsLA, HomsCA) :-
+label_lang_stat(Scheme, Strategy, Property, Langs, CCount, A, CountL, CCountA, LPA, HomsLA, HomsCA) :-
 	member(Lang, Langs),
 	provenance_graph(Strategy, Prov),
 
