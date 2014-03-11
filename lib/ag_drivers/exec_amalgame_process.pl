@@ -8,6 +8,7 @@
 :- use_module(library(amalgame/expand_graph)).
 :- use_module(library(amalgame/map)).
 :- use_module(library(ag_modules/map_merger)).
+:- use_module(library(amalgame/voc_stats)).
 
 :- multifile
 	exec_amalgame_process/7,
@@ -73,8 +74,13 @@ exec_amalgame_process(Type, Process, Strategy, Module, MapSpec, Time, Options) :
 	    rdf(Process, amalgame:target, TargetId, Strategy)
 	->  expand_node(Strategy, SourceId, Source),
 	    expand_node(Strategy, TargetId, Target),
+	    voc_property(SourceId, format(SourceFormat)),
+	    voc_property(TargetId, format(TargetFormat)),
 	    timed_call(Module:matcher(Source, Target, Mapping0,
-				      [snd_input(SecInput)|Options]), Time)
+				      [snd_input(SecInput),
+				       source_format(SourceFormat),
+				       target_format(TargetFormat)
+				      |Options]), Time)
 	;   rdf(Process, amalgame:input, InputId)
 	->  expand_node(Strategy, InputId, MappingIn),
 	    timed_call(Module:filter(MappingIn, Mapping0,
