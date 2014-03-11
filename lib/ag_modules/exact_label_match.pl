@@ -62,13 +62,14 @@ align(Source, Target, Match, Options) :-
 
 match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options) :-
 	rdf_equal(rdfs:label, RdfsLabel),
-	option(sourcelabel(MatchProp1), Options, RdfsLabel),
-	option(targetlabel(MatchProp2), Options, RdfsLabel),
+	option(sourcelabel(MatchPropS), Options, RdfsLabel),
+	option(targetlabel(MatchPropT), Options, RdfsLabel),
 	option(matchacross_lang(MatchAcross), Options, true),
 	option(matchacross_type(IgnoreType),  Options, true),
 	option(case_sensitive(CaseSensitive), Options, false),
 	option(source_language(Lang), Options, 'any'),
-
+	option(source_format(FormatS), Options, 'skos'),
+	option(target_format(FormatT), Options, 'skos'),
 	(   Lang == 'any'
 	->  SourceLang = _
 	;   SourceLang = Lang
@@ -86,8 +87,8 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 	;   true
 	),
 
-	rdf_has(Source, MatchProp1, literal(lang(SourceLang, SourceLabel)), SourceProp),
-	rdf_has(Target, MatchProp2, SearchTarget, TargetProp),
+	concept_literal_match(FormatS, Source, MatchPropS, literal(lang(SourceLang, SourceLabel)), SourceProp),
+	concept_literal_match(FormatT,   Target, MatchPropT, SearchTarget, TargetProp),
 
 	(   option(target_scheme(TargetScheme), Options)
 	->  vocab_member(Target, TargetScheme)
@@ -116,3 +117,8 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 	       ].
 
 
+concept_literal_match(skos, Concept, MatchProp, Literal, RealProp) :-
+	rdf_has(Concept, MatchProp, Literal, RealProp).
+concept_literal_match(skosxl, Concept, MatchProp, Literal, RealProp) :-
+	rdf_has(Concept, MatchProp, LiteralObject, RealProp),
+	rdf(LiteralObject, skosxl:literalForm, Literal).
