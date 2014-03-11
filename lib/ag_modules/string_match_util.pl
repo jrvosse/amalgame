@@ -19,7 +19,7 @@ label_list(LabelProps) :-
 		;   rdfs_subproperty_of(LP, skos:note)
 		;   rdfs_subproperty_of(LP, skos:notation)
 		;   rdfs_subproperty_of(LP, rdfs:label)
-
+		;   rdf(LP, rdfs:range, skosxl:'Label')
 		),
 		LabelProps0),
 	sort(LabelProps0, LabelProps).
