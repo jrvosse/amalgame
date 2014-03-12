@@ -17,11 +17,6 @@
 :- http_handler(amalgame(data/voc), http_data_voc, []).
 :- http_handler(amalgame(data/mappinglist), http_mapping_list, []).
 
-:- rdf_meta
-	rdf_lang(r,r,-),
-	rdf_lang(r,r,+,-).
-
-
 %%	http_mapping_list(+Request)
 %
 %	Return a JSON object with the mappings in an alignment
