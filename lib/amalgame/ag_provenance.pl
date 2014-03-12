@@ -395,6 +395,10 @@ assert_count(MapUri, Strategy, ProvGraph) :-
 	option(totalCount(Count), MStats),
 	option(mappedSourceConcepts(SN), MStats),
 	option(mappedTargetConcepts(TN), MStats),
+	rdf_retractall(MapUri, amalgame:totalCount, _, ProvGraph),
+	rdf_retractall(MapUri, amalgame:mappedSourceConcepts, _, ProvGraph),
+	rdf_retractall(MapUri, amalgame:mappedTargetConcepts, _, ProvGraph),
+
 	rdf_assert(MapUri, amalgame:totalCount,
 		   literal(type('http://www.w3.org/2001/XMLSchema#int', Count)), ProvGraph),
 	rdf_assert(MapUri, amalgame:mappedSourceConcepts,
