@@ -25,7 +25,7 @@ save_mappings(Strategy, Dir, Options) :-
 	absolute_file_name(ProvGraphB, ProvFile,  [relative_to(Dir), extensions([ttl])]),
 	absolute_file_name(void,       VoidFile,  [relative_to(Dir), extensions([ttl])]),
 
-	rdf_save_turtle(StratFile, [graph(Strategy)|Options]),
+	rdf_save_canonical_turtle(StratFile, [graph(Strategy)|Options]),
 
 	assert_master_void(Strategy, AllMappingsURI, VoidGraph),
 	select_mappings_to_be_saved(Strategy, Mappings, Options),
@@ -37,9 +37,9 @@ save_mappings(Strategy, Dir, Options) :-
 	      ),
 
 
-	rdf_save_turtle(ProvFile,  [graph(ProvGraph)|Options]),
+	rdf_save_canonical_turtle(ProvFile,  [graph(ProvGraph)|Options]),
 	(   Mappings \= []
-	->  rdf_save_turtle(VoidFile, [graph(VoidGraph)|Options])
+	->  rdf_save_canonical_turtle(VoidFile, [graph(VoidGraph)|Options])
 	;   true
 	),
 	rdf_unload_graph(VoidGraph).
@@ -161,7 +161,7 @@ save_mapping(Id, Options) :-
 	option(format(Format), Options),
 	(   (Format == edoal ; Format == both)
 	->  (   Ext = ttl
-	    ->  rdf_save_turtle(EdoalName, [graph(Id)|Options])
+	    ->  rdf_save_canonical_turtle(EdoalName, [graph(Id)|Options])
 	    ;   rdf_save_trig(EdoalName, [graphs([Id|EvidenceGraphs])|Options])
 	    )
 	;   true
@@ -178,7 +178,7 @@ save_flat_triples(Filename, Id, Options) :-
 	rdf_unload_graph(SimpleGraph),
 	assert_metadata(Id, Strategy, SimpleGraph),
 	edoal_to_triples(Id, SimpleGraph, Options),
-	rdf_save_turtle(Filename, [graph(SimpleGraph)|Options]),
+	rdf_save_canonical_turtle(Filename, [graph(SimpleGraph)|Options]),
 	rdf_unload_graph(SimpleGraph).
 
 assert_metadata(Id, Strategy, Graph) :-
