@@ -397,11 +397,11 @@ rdf_lang(Subject, Predicate, Text, Default) :-
 
 rdf_lang(Subject, Predicate, Text) :-
 	user_preference(user:lang, literal(Lang)),
-	(   rdf(Subject, Predicate, literal(lang(Lang, Text)))
+	(   rdf_has(Subject, Predicate, literal(lang(Lang, Text)))
 	->  true
-	;   rdf(Subject, Predicate, literal(lang(en, Text)))
+	;   rdf_has(Subject, Predicate, literal(lang(en, Text)))
 	->  true
-	;   rdf(Subject, Predicate, literal(lang(_, Text)))
+	;   rdf_has(Subject, Predicate, literal(lang(_, Text)))
 	),!.
 
 rdf_lang(Subject, Predicate, Text) :-
