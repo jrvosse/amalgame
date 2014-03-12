@@ -25,6 +25,7 @@
 
 select_result_mapping(_Id, mapspec(select(Selected, Discarded, Undecided)),
 		      OutputType, Mapping) :-
+	\+ rdf_equal(amalgame:wasGeneratedBy, OutputType),
 	!,
 	(   rdf_equal(amalgame:selectedBy, OutputType)
 	->  Mapping = Selected
@@ -38,9 +39,9 @@ select_result_mapping(_Id, mapspec(select(Selected, Discarded, Undecided)),
 	(   var(Discarded) -> Discarded = [] ; true),
 	(   var(Undecided) -> Undecided = [] ; true).
 
-select_result_mapping(_Id, mapspec(mapping(Mapping)), P, Mapping) :-
+select_result_mapping(_Id, mapspec(mapping(Mapping)), OutputType, Mapping) :-
 	is_list(Mapping),
-	rdf_equal(amalgame:wasGeneratedBy, P).
+	rdf_equal(amalgame:wasGeneratedBy, OutputType).
 
 
 select_result_mapping(Id, mapspec(overlap(List)), P, Mapping) :-
