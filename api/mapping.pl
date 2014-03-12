@@ -70,25 +70,28 @@ sort_key(source, 2).
 sort_key(target, 4).
 
 mapping_label(align(S, T, Prov), align(S,SLabel, T,TLabel, Relation)) :-
-	rdf_display_label(S, SL),
-	rdf_display_label(T, TL),
-
-	(   (rdf(S, skos:notation, SN) ; rdf_has(S, skos:notation, SN))
-	->  literal_text(SN, Sn),
-	    format(atom(SLabel), '~w (~w)', [SL, Sn])
-	;   format(atom(SLabel), '~w', [SL])
-	),
-
-	(   (rdf(T, skos:notation, TN) ; rdf_has(T, skos:notation, TN))
-	->  literal_text(TN, Tn),
-	    format(atom(TLabel), '~w (~w)', [TL, Tn])
-	;   format(atom(TLabel), '~w', [TL])
-	),
+	notation_ish(S, SLabel),
+	notation_ish(T, TLabel),
 	append(Prov, FlatProv),
 	(   option(relation(Rel), FlatProv)
 	->  relation_label(Rel, RLabel),
 	    Relation = json([uri=Rel, label=RLabel])
 	;   Relation = @(null)
+	).
+
+%%	notation_ish(Concept, NotationIsh) is det.
+%
+%	Unify NotationIsh with a label extend by (notation).
+%	For notation, use the skos:notation or dcterms:identifier
+notation_ish(Concept, NotationIsh) :-
+	rdf_display_label(Concept, Label),
+	(   (rdf(Concept, skos:notation, N)
+	    ;	rdf_has(Concept, skos:notation, N)
+	    ;	rdf_has(Concept, dc:identifier, N)
+	    )
+	->  literal_text(N, LT),
+	    format(atom(NotationIsh), '~w (~w)', [Label, LT])
+	;   NotationIsh = Label
 	).
 
 mapping_data([], []).
