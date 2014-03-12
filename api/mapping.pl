@@ -489,7 +489,18 @@ html_definition(_) --> !.
 
 html_scope(URI) -->
 	{ rdf_has(URI, skos:scopeNote, Lit),
-	  literal_text(Lit, Txt)
+	  (   rdf_is_literal(Lit)
+	  ->  literal_text(Lit, Txt)
+	  ;   rdf_is_resource(Lit), % mmm
+	      rdf_has(Lit, rdf:value, RealLiteral),
+	      rdf_is_literal(RealLiteral)
+	  ->  literal_text(RealLiteral, Txt)
+	  ;   rdf_is_resource(Lit), % mmm
+	      rdf_has(Lit, skosxl:literalForm, RealLiteral),
+	      rdf_is_literal(RealLiteral)
+	  ->  literal_text(RealLiteral, Txt)
+	  ;   literal_text(Lit, Txt)
+	  )
 	},
 	!,
 	html_item(scope, Txt).
