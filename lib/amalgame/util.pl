@@ -39,6 +39,9 @@
 :- use_module(library(amalgame/map)).
 :- use_module(library(amalgame/ag_evaluation)).
 
+:- rdf_meta
+	rdf_lang(r,r,-),
+	rdf_lang(r,r,+,-).
 
 %%	mint_node_uri(+Strategy, +Type, -URI) is det.
 %
@@ -399,5 +402,26 @@ rdf_lang(Subject, Predicate, Text) :-
 	;   rdf(Subject, Predicate, literal(lang(en, Text)))
 	->  true
 	;   rdf(Subject, Predicate, literal(lang(_, Text)))
-	).
+	),!.
+
+rdf_lang(Subject, Predicate, Text) :-
+	user_preference(user:lang, literal(Lang)),
+	findall(Literal,
+		literal_object_lit(Subject, Predicate, Literal),
+		Literals),
+	(   member(literal(lang(Lang, Text)), Literals)
+	;   member(literal(lang(en, Text)), Literals)
+	;   member(literal(lang(_, Text)), Literals)
+	;   member(literal(Text), Literals)
+	),
+	!.
+
+literal_object_lit(Subject, Predicate, Literal) :-
+	rdf(Subject, Predicate, Object),
+	rdf_is_resource(Object),
+	(   rdf_has(Object, rdf:value, Literal)
+	;   rdf_has(Object, skosxl:literalForm, Literal)
+	),
+	rdf_is_literal(Literal).
+
 
