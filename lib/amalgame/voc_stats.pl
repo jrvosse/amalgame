@@ -282,14 +282,14 @@ voc_languages_used(Voc, Prop, Langs) :-
 	).
 
 language_used(Voc, Lang) :-
-	vocab_member(Concept, Voc),
-	rdf(Concept, _, literal(lang(Lang, _))),
-	ground(Lang).
+	language_used(Voc, _Prop, Lang).
 
 language_used(Voc, Prop, Lang) :-
 	vocab_member(Concept, Voc),
-	(   rdf_has(Concept, Prop, literal(lang(Lang, _)))
-	;   rdf_has(Concept, Prop, LabelObject), rdf_has(LabelObject, skosxl:literalForm, literal(lang(Lang, _)))
+	(   rdf_has(Concept, Prop, LabelObject),
+	    rdf_is_resource(LabelObject),
+	    rdf_has(LabelObject, skosxl:literalForm, literal(lang(Lang, _)))
+	;   rdf_has(Concept, Prop, literal(lang(Lang, _)))
 	),
 	ground(Lang).
 
