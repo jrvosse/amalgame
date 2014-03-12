@@ -1,5 +1,6 @@
 :- module(ag_string_match_util,
 	  [label_list/1,
+	   skos_match/5,
 	   matching_types/2,
 	   strategy_languages/2
 	  ]).
@@ -23,6 +24,17 @@ label_list(LabelProps) :-
 		),
 		LabelProps0),
 	sort(LabelProps0, LabelProps).
+
+%%	skos_match(Format, Concept, Prop, Lit, RealProp) is nondet.
+%
+%	Match literal Lit to Concept a la rdf_has if Format is skos,
+%	match via literal object if Format is  skosxl.
+
+skos_match(skos, Concept, MatchProp, Literal, RealProp) :-
+	rdf_has(Concept, MatchProp, Literal, RealProp).
+skos_match(skosxl, Concept, MatchProp, Literal, RealProp) :-
+	rdf_has(Concept, MatchProp, LiteralObject, RealProp),
+	rdf(LiteralObject, skosxl:literalForm, Literal).
 
 %%	matching_types(+S, +T) is semidet.
 %

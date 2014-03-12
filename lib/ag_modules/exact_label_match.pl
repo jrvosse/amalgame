@@ -87,8 +87,8 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 	;   true
 	),
 
-	concept_literal_match(FormatS, Source, MatchPropS, literal(lang(SourceLang, SourceLabel)), SourceProp),
-	concept_literal_match(FormatT,   Target, MatchPropT, SearchTarget, TargetProp),
+	skos_match(FormatS, Source, MatchPropS, literal(lang(SourceLang, SourceLabel)), SourceProp),
+	skos_match(FormatT, Target, MatchPropT, SearchTarget, TargetProp),
 
 	(   option(target_scheme(TargetScheme), Options)
 	->  vocab_member(Target, TargetScheme)
@@ -115,10 +115,3 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 		graph([rdf(Source, SourceProp, SourceTerm),
 		       rdf(Target, TargetProp, TargetTerm)])
 	       ].
-
-
-concept_literal_match(skos, Concept, MatchProp, Literal, RealProp) :-
-	rdf_has(Concept, MatchProp, Literal, RealProp).
-concept_literal_match(skosxl, Concept, MatchProp, Literal, RealProp) :-
-	rdf_has(Concept, MatchProp, LiteralObject, RealProp),
-	rdf(LiteralObject, skosxl:literalForm, Literal).
