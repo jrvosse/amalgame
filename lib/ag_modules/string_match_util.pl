@@ -1,6 +1,6 @@
 :- module(ag_string_match_util,
 	  [label_list/1,
-	   skos_match/5,
+	   skos_match/6,
 	   matching_types/2,
 	   strategy_languages/2
 	  ]).
@@ -35,11 +35,13 @@ label_list(LabelProps) :-
 %	** via amalgame:term if literal objects as amalgame:qualifier
 %	** via skosxl:literalForm if no amalgame:qualifier
 
-skos_match(skos, Concept, MatchProp, Literal, RealProp) :-
+skos_match(skos, Concept, MatchProp, Literal, RealProp, _Options) :-
 	rdf_has(Concept, MatchProp, Literal, RealProp).
-skos_match(skosxl, Concept, MatchProp, Literal, RealProp) :-
+skos_match(skosxl, Concept, MatchProp, Literal, RealProp, Options) :-
 	rdf_has(Concept, MatchProp, LiteralObject, RealProp),
-	(   rdf_has(LiteralObject, amalgame:qualifier, _)
+	(   ( rdf_has(LiteralObject, amalgame:qualifier, _),
+	      option(match_qualified_only(false), Options, false)
+            )
 	->  rdf_has(LiteralObject, amalgame:term, Literal)
 	;   rdf(LiteralObject, skosxl:literalForm, Literal)
 	).
