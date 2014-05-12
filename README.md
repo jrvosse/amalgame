@@ -7,7 +7,8 @@ This open source tool has originally been developed as part of the EuropeanaConn
 amalgame provides a web-based interactive platform for creating, analyzing and evaluating vocabulary alignments.  It aims to support domain experts to make alignments interactively.  To realize this it focuses on simple alignment techniques which the user understand and knows how to use, and which are sufficiently fast to be used in an interactive session.  amalgame keeps track of all the provenance related information, so that mapping experiments can be replicated later, and other users can explore the context that played a role in creating the mappings.  amalgame is implemented by using common web technology on the client (e.g. HTML,CSS,AJAX and the YUI toolkit) and SWI-Prolog's ClioPatria platform on the server.
 
 ## Installation
-Amalgame is a web application build as a package in the ClioPatria semantic web server. To install, make sure you have
+Amalgame is a web application build as a package in the ClioPatria semantic web server. To install, make sure you have:
+
 1. The latest development release of SWI Prolog, see http://www.swi-prolog.org/Download.html
 2. ClioPatria itself, see http://cliopatria.swi-prolog.org/help/Download.html
 3. Once you have your ClioPatria server up and running, just install amalgame as a cpack:
