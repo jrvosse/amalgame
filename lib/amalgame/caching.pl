@@ -119,6 +119,7 @@ flush_dependent_caches(Id, Strategy) :-
 		), Results),
 	forall(member(Result, Results),
 	       (   flush_stats_cache(Result, Strategy),
+		   voc_clear_stats(Result), % assume no harm if Result is not a voc...
 		   catch(rdf_unload_graph(Result), _, true),
 		   debug(ag_expand, 'flush stats cache for ~p and unloading any materialized graphs', [Result])
 	       )
