@@ -7,7 +7,6 @@
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_json)).
 :- use_module(library(count)).
-:- use_module(user(preferences)).
 :- use_module(library(semweb/rdf_label)).
 
 :- use_module(library(amalgame/util)).
@@ -17,11 +16,6 @@
 
 :- http_handler(amalgame(data/voc), http_data_voc, []).
 :- http_handler(amalgame(data/mappinglist), http_mapping_list, []).
-
-:- rdf_meta
-	rdf_lang(r,r,-),
-	rdf_lang(r,r,+,-).
-
 
 %%	http_mapping_list(+Request)
 %
@@ -86,26 +80,4 @@ concept_prop(C, altLabel=L) :-
 concept_prop(C, example=L) :-
 	rdf_has(C, skos:example, L).
 
-%%	rdf_lang(+Subject, +Predicate, ?Text, +Default) is det.
-%
-%	Text is unified with the "preferred" textual value of literal
-%	property Predicate on Subject.  Order of preference:
-%	1. Text is in the user:lang defined by user_preference/2.
-%	2. Text is in the English language.
-%	3. Text is in a random other language
-%	4. Text is unified with Default.
 
-rdf_lang(Subject, Predicate, Text, Default) :-
-	(   rdf_lang(Subject, Predicate, Text)
-	->  true
-	;   Text = Default
-	).
-
-rdf_lang(Subject, Predicate, Text) :-
-	user_preference(user:lang, literal(Lang)),
-	(   rdf(Subject, Predicate, literal(lang(Lang, Text)))
-	->  true
-	;   rdf(Subject, Predicate, literal(lang(en, Text)))
-	->  true
-	;   rdf(Subject, Predicate, literal(lang(_, Text)))
-	).

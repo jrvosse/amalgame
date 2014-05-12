@@ -480,16 +480,14 @@ html_label(L) -->
 	turtle_label(L).
 
 html_definition(URI) -->
-	{ rdf_has(URI, skos:definition, Lit),
-	  literal_text(Lit, Txt)
+	{ rdf_lang(URI, skos:definition, Txt)
 	},
 	!,
 	html_item(definition, Txt).
 html_definition(_) --> !.
 
 html_scope(URI) -->
-	{ rdf_has(URI, skos:scopeNote, Lit),
-	  literal_text(Lit, Txt)
+	{ rdf_lang(URI, skos:scopeNote, Txt)
 	},
 	!,
 	html_item(scope, Txt).

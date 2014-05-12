@@ -30,6 +30,8 @@ parameter(matchacross_type, boolean, true,
 	  'Allow labels from different types to be matched').
 parameter(case_sensitive, boolean, false,
 	  'When true the case of labels must be equal').
+parameter(match_qualified_only, boolean, false,
+	  'Match only on the fully qualified label').
 
 %%	filter(+MappingsIn, -MappingsOut, +Options)
 %
@@ -87,8 +89,10 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 	;   true
 	),
 
-	skos_match(FormatS, Source, MatchPropS, literal(lang(SourceLang, SourceLabel)), SourceProp),
-	skos_match(FormatT, Target, MatchPropT, SearchTarget, TargetProp),
+	skos_match(FormatS, Source, MatchPropS, literal(lang(SourceLang, SourceLabel)), 
+		SourceProp, Options),
+	skos_match(FormatT, Target, MatchPropT, SearchTarget,                           
+		TargetProp, Options),
 
 	(   option(target_scheme(TargetScheme), Options)
 	->  vocab_member(Target, TargetScheme)

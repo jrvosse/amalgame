@@ -5,6 +5,9 @@
 
 	      mint_node_uri/3,
 
+	      rdf_lang/3,
+	      rdf_lang/4,
+
 	      assert_user_provenance/2,
 	      amalgame_alignment/2,
 
@@ -30,10 +33,15 @@
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_label)).
 :- use_module(user(user_db)).
+:- use_module(user(preferences)).
 :- use_module(cliopatria(components/label)).
 :- use_module(library(amalgame/caching)).
 :- use_module(library(amalgame/map)).
 :- use_module(library(amalgame/ag_evaluation)).
+
+:- rdf_meta
+	rdf_lang(r,r,-),
+	rdf_lang(r,r,+,-).
 
 %%	mint_node_uri(+Strategy, +Type, -URI) is det.
 %
@@ -352,7 +360,7 @@ html_showlist([]) --> !.
 html_showlist([H]) -->  html(H),!.
 html_showlist([H1,H2|Tail]) -->  html([H1,', ']), html_showlist([H2|Tail]).
 
-save_perc(0, _, 0) :- !. 
+save_perc(0, _, 0) :- !.
 save_perc(Value, Total, Percentage) :-
 	Percentage is (100 * Value) / Total.
 
@@ -370,3 +378,50 @@ dyn_perc_round(P0, P, N) :-
 	    dyn_perc_round(P0, P, N1)
 	;   P is P1/(N/100)
 	).
+
+
+%%	rdf_lang(+Subject, +Predicate, ?Text, +Default) is det.
+%
+%	Text is unified with the "preferred" textual value of literal
+%	property Predicate on Subject.  Order of preference:
+%	1. Text is in the user:lang defined by user_preference/2.
+%	2. Text is in the English language.
+%	3. Text is in a random other language
+%	4. Text is unified with Default.
+
+rdf_lang(Subject, Predicate, Text, Default) :-
+	(   rdf_lang(Subject, Predicate, Text)
+	->  true
+	;   Text = Default
+	).
+
+rdf_lang(Subject, Predicate, Text) :-
+	user_preference(user:lang, literal(Lang)),
+	(   rdf_has(Subject, Predicate, literal(lang(Lang, Text)))
+	->  true
+	;   rdf_has(Subject, Predicate, literal(lang(en, Text)))
+	->  true
+	;   rdf_has(Subject, Predicate, literal(lang(_, Text)))
+	),!.
+
+rdf_lang(Subject, Predicate, Text) :-
+	user_preference(user:lang, literal(Lang)),
+	findall(Literal,
+		literal_object_lit(Subject, Predicate, Literal),
+		Literals),
+	(   member(literal(lang(Lang, Text)), Literals)
+	;   member(literal(lang(en, Text)), Literals)
+	;   member(literal(lang(_, Text)), Literals)
+	;   member(literal(Text), Literals)
+	),
+	!.
+
+literal_object_lit(Subject, Predicate, Literal) :-
+	rdf(Subject, Predicate, Object),
+	rdf_is_resource(Object),
+	(   rdf_has(Object, rdf:value, Literal)
+	;   rdf_has(Object, skosxl:literalForm, Literal)
+	),
+	rdf_is_literal(Literal).
+
+
