@@ -6,6 +6,16 @@ This open source tool has originally been developed as part of the EuropeanaConn
 ## Objective
 amalgame provides a web-based interactive platform for creating, analyzing and evaluating vocabulary alignments.  It aims to support domain experts to make alignments interactively.  To realize this it focuses on simple alignment techniques which the user understand and knows how to use, and which are sufficiently fast to be used in an interactive session.  amalgame keeps track of all the provenance related information, so that mapping experiments can be replicated later, and other users can explore the context that played a role in creating the mappings.  amalgame is implemented by using common web technology on the client (e.g. HTML,CSS,AJAX and the YUI toolkit) and SWI-Prolog's ClioPatria platform on the server.
 
+## Installation
+Amalgame is a web application build as a package in the ClioPatria semantic web server. To install, make sure you have
+1. The latest development release of SWI Prolog, see http://www.swi-prolog.org/Download.html
+2. ClioPatria itself, see http://cliopatria.swi-prolog.org/help/Download.html
+3. Once you have your ClioPatria server up and running, just install amalgame as a cpack:
+
+        :- cpack_install(amalgame).
+4. Done!
+
+
 ## amalgame-specific terminology:
 
 - **Correspondence** : We define a correspondence as a relationship between two concepts.  In amalgame, the key associated data-structure is the align/3 term, that encodes a series of claims (3rd argument) about the relationship between a source (1st argument) and target concept (2nd argument).  The claims can be objective observations (such as the observation that the prefLabels of both concepts are the same) or interpretations (such as the claim that both concepts refer to the same entity or that one has a skos:broadMatch relationship to the other). Note that align/3 always denotes a 1-1 relationship, you need multiple align/3 terms to represent N-M relationships.  In PROV terms, a correspondence is too fine grained to play a direct role in a PROV graph.  However, each correspondence is part of a mapping dataset, which is a PROV Entity with associated provenance information.  For each claim about two concepts, the align/3 term may record the evidence that was used to make or support that claim.
