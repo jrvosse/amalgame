@@ -333,8 +333,10 @@ html_evidences([E|Es],Source,Target) -->
 html_evidence_graph([],_,_) --> !.
 html_evidence_graph(Graph,Node,Layout) -->
 	graphviz_graph(evidence_graph(Graph,Node),
-		       [shape_hook(evidence_shape),
+		       [shape_hook(eq_mapping:evidence_shape),
+			label_hook(eq_mapping:evidence_label),
 			graph_attributes([rankdir(Layout)])]).
+
 
 evidence_graph(Graph, Node, NodeTriples) :-
 	findall(rdf(S,P,O),
@@ -580,3 +582,16 @@ evidence_shape(literal(_),
 	!.
 evidence_shape(_,
 	       [fontsize(10)]).
+
+%%	evidence_label(+Resource, +Lang, +MaxLen, -Label) is det.
+%
+%	Defines graph node label for different types of evidence
+%	resources.
+%
+evidence_label(Resource, Lang, MaxLen, Label) :-
+       rdf_display_label(Resource, Lang, Text),
+       truncate_atom(Text, MaxLen, Label0),
+       (   rdf_global_id(NS:_Local, Resource)
+       ->  atomic_list_concat([NS, ':', Label0], Label)
+       ;   Label = Label0
+       ).
