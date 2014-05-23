@@ -193,15 +193,19 @@ html_new(_) -->
 		     ).
 
 html_vocab_table(Vs) -->
-	html(table([thead(tr(\html_vocab_head)),
+	html([
+	    \html_requires(sortable),
+	    table([class(sortable)],
+		   [thead(tr(\html_vocab_head)),
 		    tbody(\html_vocab_rows(Vs))
-		   ])).
+		   ])
+	]).
 
 html_vocab_head -->
 	html([th([]),
 	      th(class(name),       name),
 	      th(class(version),    version),
-	      th(class(count),     'estimated # concepts'),
+	      th(class(count),     'estimated #concepts'),
 	      th(class(preflangs), 'prefLabels'),
 	      th(class(altlangs),  'altLabels')
 	     ]).

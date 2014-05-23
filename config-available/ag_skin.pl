@@ -1,20 +1,17 @@
 :- module(ag_skin, []).
 
-:- use_module(library(version)).
-
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
-:- use_module(library(http/http_path)).
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
-:- use_module(library(semweb/rdf_label)).
+
 
 :- use_module(cliopatria(hooks)).
-:- use_module(skin(cliopatria)).
+% :- use_module(skin(cliopatria)).
 :- use_module(components(label)).
-:- use_module(components(menu)).
+% :- use_module(components(menu)).
 :- use_module(components(simple_search)).
 
 :- set_setting_default(graphviz:format, svg).
@@ -26,6 +23,12 @@
 :- html_resource(cliopatria,
 		 [ virtual(true),
 		   requires([ css('amalgame.css')
+			    ])
+		 ]).
+
+:- html_resource(sortable,
+		 [ virtual(true),
+		   requires([ js('sorttable.js')
 			    ])
 		 ]).
 
