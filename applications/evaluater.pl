@@ -106,9 +106,9 @@ html_overlay -->
 
 html_options -->
 	html([ 'include all correspondences with the same: ',
-	       input([type(checkbox), id(allsources), autocomplete(off)]),
+	       input([type(checkbox), id(allsources), checked, autocomplete(off)]),
 	       label(' source'),
-	       input([type(checkbox), id(alltargets), autocomplete(off)]),
+	       input([type(checkbox), id(alltargets), checked, autocomplete(off)]),
 	       label(' target')
 	     ]).
 
