@@ -157,7 +157,7 @@ YUI.add('evaluater', function(Y) {
 			this.detailOverlay.set("visible", false);
 			var cs = this._getSelection();
 			var c = cs[0];
-			c.alignment = this.get("alignment");
+			c.strategy = this.get("alignment");
 			c.mapping   = this.get("selected");
 			c.mode      = nav == "setall"?"all":"one";
 			if (c.relation) {
@@ -215,6 +215,7 @@ YUI.add('evaluater', function(Y) {
 				row = this._selectedRow;
 
 			Y.io(server, {
+				method: 'POST',
 				data:c,
 				on:{success:function(e,o) {
 					if (c.mode == "one") {
@@ -264,6 +265,7 @@ YUI.add('evaluater', function(Y) {
 				alltarget: NODE_TARGET_ALL.get("checked")
 			};
 			Y.io(server, {
+				method: 'GET',
 				data: data,
 				on:{success:function(e,o) {
 						NODE_CONCEPTS.setContent(o.responseText);
