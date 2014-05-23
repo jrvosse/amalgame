@@ -70,8 +70,6 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 	option(matchacross_type(IgnoreType),  Options, true),
 	option(case_sensitive(CaseSensitive), Options, false),
 	option(source_language(Lang), Options, 'any'),
-	option(source_format(FormatS), Options, 'skos'),
-	option(target_format(FormatT), Options, 'skos'),
 	(   Lang == 'any'
 	->  SourceLang = _
 	;   SourceLang = Lang
@@ -89,9 +87,11 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 	;   true
 	),
 
-	skos_match(FormatS, Source, MatchPropS, literal(lang(SourceLang, SourceLabel)), 
-		SourceProp, Options),
-	skos_match(FormatT, Target, MatchPropT, SearchTarget,                           
+	skos_match(Source, MatchPropS,
+		   literal(lang(SourceLang, SourceLabel)),
+		   SourceProp, Options),
+	SourceLabel \= '',
+	skos_match(Target, MatchPropT, SearchTarget,
 		TargetProp, Options),
 
 	(   option(target_scheme(TargetScheme), Options)
