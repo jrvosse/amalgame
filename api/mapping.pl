@@ -14,6 +14,7 @@
 :- use_module(components(graphviz)).
 :- use_module(library(amalgame/caching)).
 :- use_module(library(amalgame/ag_evaluation)).
+:- use_module(library(amalgame/ag_provenance)).
 :- use_module(library(amalgame/edoal)).
 :- use_module(library(amalgame/map)).
 :- use_module(library(amalgame/expand_graph)).
@@ -123,7 +124,7 @@ http_data_evaluate(Request) :-
 				    [description('Relation between source and target')]),
 			   mapping(Mapping,
 				   [description('URI of mapping being evaluated')]),
-			   alignment(Alignment,
+			   strategy(Strategy,
 				     [description('Alignment strategy graph')]),
 			   comment(Comment,
 				   [default(''),
@@ -133,16 +134,19 @@ http_data_evaluate(Request) :-
 				description('Apply to one or all correspondences of this mapping')])
 			]),
 
-	evaluation_graph(Alignment, Mapping, Graph),
-	flush_refs_cache(Alignment),           % to recompute all reference stats
-	flush_stats_cache(Graph, Alignment),   % to recompute G's basic stats
+	evaluation_graph(Strategy, Mapping, Graph),
+	process_entity(EvalProcess,  Graph),
+	flush_refs_cache(Strategy),           % to recompute all reference stats
+	flush_stats_cache(Graph, Strategy),   % to recompute G's basic stats
+	flush_expand_cache(EvalProcess, Strategy),  % evaluation graph cache is now outdated
+
 	user_property(User0, url(User)),
 
 	Options = [
 		   user(User),
 		   comment(Comment),
 		   evaluation_graph(Graph),
-		   strategy(Alignment),
+		   strategy(Strategy),
 		   mapping(Mapping)
 		  ],
 
