@@ -6,6 +6,7 @@
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
+:- use_module(library(semweb/rdf_label)).
 
 
 :- use_module(cliopatria(hooks)).
@@ -44,6 +45,14 @@ cliopatria:display_link(Cell, _Options) -->
 	 resource_link(Cell, HREF)
 	},
 	html(a([class(r_def), href(HREF)], ['Map: ', \turtle_label(Cell)])).
+
+cliopatria:display_link(SkosXLLabel, _Options) -->
+	{ rdfs_individual_of(SkosXLLabel, skosxl:'Label'),
+	  rdf_has(SkosXLLabel, skosxl:literalForm, Literal),
+	  literal_text(Literal, Label),
+	  resource_link(SkosXLLabel, HREF)
+	},
+	html(a([class('skosxllabel'), href(HREF)], Label)).
 
 rdf_label:display_label_hook(Cell, _Lang, Label) :-
 	rdfs_individual_of(Cell, align:'Cell'),
