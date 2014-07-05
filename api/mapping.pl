@@ -314,8 +314,8 @@ html_evidences([E|Es],Source,Target) -->
 	  ;   Ss = ''
 	  ),
 	  (   option(target_stem(TargetStem), E)
-	  ->  format(atom(TStemAtom), ' (source stem: ~w)' , [TargetStem]),
-	      Ts = span([class(source_stem)], TStemAtom)
+	  ->  format(atom(TStemAtom), ' (target stem: ~w)' , [TargetStem]),
+	      Ts = span([class(target_stem)], TStemAtom)
 	  ;   Ts = ''
 	  ),
 	  (   option(score(Score), E)
