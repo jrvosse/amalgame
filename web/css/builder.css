@@ -91,6 +91,10 @@ body {
 	white-space: nowrap;
 	padding-right: 10px;
 }
+#controls td span.warn {
+	color: orange;
+}
+
 #controls .control-buttons {
 	text-align: right;
 }
