@@ -81,7 +81,7 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 	;   true
 	),
 
-	rdf_has(Source, MatchProp1, literal(lang(SourceLang, SourceLabel)), SourceProp),
+	skos_match(Source, MatchProp1, literal(lang(SourceLang, SourceLabel)), SourceProp, Options),
 
 	(   sub_atom(SourceLabel, 0, PrefixLength, _, Prefix)
 	->  true
@@ -90,7 +90,7 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 	downcase_atom(SourceLabel, SourceLabel0),
 	snowball(Snowball_Language, SourceLabel0, SourceStem),
 
-	rdf_has(Target, MatchProp2, literal(prefix(Prefix), lang(TargetLang, TargetLabel)), TargetProp),
+	skos_match(Target, MatchProp2, literal(prefix(Prefix), lang(TargetLang, TargetLabel)), TargetProp, Options),
 	(   option(target_scheme(TargetScheme), Options)
 	->  vocab_member(Target, TargetScheme)
 	;   true
