@@ -318,13 +318,18 @@ html_evidences([E|Es],Source,Target) -->
 	      Ts = span([class(source_stem)], TStemAtom)
 	  ;   Ts = ''
 	  ),
+	  (   option(score(Score), E)
+	  ->  format(atom(ScsAtom), ' (score: ~w)', [Score]),
+	      Scs = span([class(score)], ScsAtom)
+	  ;   Scs = ''
+	  ),
 	  (   option(user(User), E)
 	  ->  By = span([class(who)], [' by: ', \rdf_link(User)])
 	  ;   By = ''
 	  )
 	},
 	html(div(class(evidence),
-		 [ div(class(method), ['match: ', Method, By, At, Mt, Src, Trg, Ss, Ts]),
+		 [ div(class(method), ['match: ', Method, By, At, Mt, Src, Trg, Ss, Ts, Scs]),
 		   div(class('graph yui3-g'),
 		       [ div(class('source yui3-u-1-2'),
 			     \html_evidence_graph(Graph, Source, 'LR')),
