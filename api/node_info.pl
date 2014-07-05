@@ -305,17 +305,16 @@ label_stats(Scheme, Strategy, Property, Stats) :-
 label_lang_stat(Scheme, Strategy, Property, Langs,
 		CCount, PlangLabel, Stats) :-
 	Stats = set([NrLabels, LabeledConcepts, LabelsPerConcept,
-		     HomLabels, HomConcepts, EmptyLabels]),
+		     HomLabels, HomConcepts, EmptyLabels, CompoundLabels]),
 	member(Lang, Langs),
-	format(atom(PlangLabel), '~p @~w', [Property, Lang]),
-
-	voc_property(Scheme, numberOfLabels(Property, Lang, LCount, CCount, ECount)),
+	voc_property(Scheme, numberOfLabels(Property, Lang, counts(Counts))),
+	option(concept(CCount), Counts),
 	CCount > 0,
 
+	format(atom(PlangLabel), '~p @~w', [Property, Lang]),
+	option(label(LCount), Counts),
 	format(atom(A), '~d', [LCount]),
 	NrLabels = '# labels' - span([A]),
-
-
 
 	voc_property(Scheme, numberOfConcepts(Total)),
 	voc_property(Scheme, numberOfHomonyms(Property, Lang, HomsL, HomsC)),
@@ -327,6 +326,15 @@ label_lang_stat(Scheme, Strategy, Property, Langs,
 	;   LabeledConcepts = labeled-[]
 	),
 
+	option(compound(Compound), Counts),
+	(   Compound > 0
+	->  save_perc(Compound, LCount, CompoundP),
+	    format(atom(CL), '~d (~2f%)', [Compound, CompoundP]),
+	    CompoundLabels = '# compound labels' - span([class(warn)],[CL])
+	;   CompoundLabels = compound-[]
+	),
+
+	option(empty(ECount), Counts),
 	(   ECount > 0
 	->  save_perc(ECount, LCount, ECountP),
 	    format(atom(EL), '~d (~2f%)', [ECount, ECountP]),

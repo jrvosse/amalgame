@@ -43,7 +43,7 @@ Currently supported statistical properties include:
 	voc_languages(r,-),
 	voc_languages(r,r,-),
 	voc_languages_used(r,r,-),
-	count_labels(r,r,-,-,-,-),
+	count_labels(r,r,-,-,-,-,-),
 	count_homonyms(r,r,-).
 
 voc_property(Voc, P) :-
@@ -117,14 +117,21 @@ voc_ensure_stats(Voc, revision(Revision)) :-
 voc_ensure_stats(Voc, numberOfConcepts(Count)) :-
 	(   count_concepts(Voc, Count) -> true ; Count = 0),
 	assert_voc_prop(Voc, numberOfConcepts(Count)).
-voc_ensure_stats(Voc, numberOfLabels(Prop, Lang, LCount, CCount, ECount)) :-
-	(   count_labels(Voc, Prop, Lang, LCount, CCount, ECount)
+voc_ensure_stats(Voc, numberOfLabels(Prop, Lang, Counts)) :-
+	Counts = counts([label(LCount),
+			concept(CCount),
+			empty(ECount),
+			compound(Compound)
+		       ]),
+	(   count_labels(Voc, Prop, Lang, LCount, CCount, ECount, Compound)
 	->  format(atom(ILabel), '~p ~p ~w', [Voc, Prop, Lang]),
 	    print_message(informational, map(found, 'labels', ILabel, LCount)),
 	    print_message(informational, map(found, 'concepts with labels', ILabel, CCount)),
-	    print_message(informational, map(found, 'empty labels', ILabel, ECount))
-	;   LCount = 0, CCount = 0),
-	assert_voc_prop(Voc, numberOfLabels(Prop, Lang, LCount, CCount, ECount)).
+	    print_message(informational, map(found, 'empty labels', ILabel, ECount)),
+	    print_message(informational, map(found, 'compound labels', ILabel, Compound))
+	;   LCount = 0, CCount = 0, ECount = 0, Compound = 0),
+	assert_voc_prop(Voc, numberOfLabels(Prop, Lang, Counts)).
+
 voc_ensure_stats(Voc, numberOfUniqueLabels(P, Lang, Lcount, Ccount)) :-
 	(   count_unique_labels(Voc, P, Lang, Lcount, Ccount) -> true ; Lcount = 0, Ccount=0),
 	assert_voc_prop(Voc, numberOfUniqueLabels(P, Lang, Lcount, Ccount)).
@@ -180,7 +187,7 @@ count_concepts(Voc, Count) :-
 	length(Concepts, Count),
 	print_message(informational, map(found, 'Concepts', Voc, Count)).
 
-count_labels(Voc, Property, Lang, CCount, LCount, ECount) :-
+count_labels(Voc, Property, Lang, CCount, LCount, ECount, Compound) :-
 	var(Lang),
 	findall(Label-Concept,
 		(   vocab_member(Concept, Voc),
@@ -198,10 +205,11 @@ count_labels(Voc, Property, Lang, CCount, LCount, ECount) :-
 	pairs_values(Sorted, Concepts),
 	sort(Concepts, ConceptsUnique),
 	empty_key_count(Sorted, ECount),
+	compound_count(Sorted, Compound),
 	length(Sorted, LCount),
 	length(ConceptsUnique, CCount).
 
-count_labels(Voc, Property, Lang, LCount, CCount, ECount) :-
+count_labels(Voc, Property, Lang, LCount, CCount, ECount, Compound) :-
 	findall(Label-Concept,
 		(   vocab_member(Concept, Voc),
 		    (	rdf_has(Concept, Property, literal(lang(Lang,Label)))
@@ -213,13 +221,21 @@ count_labels(Voc, Property, Lang, LCount, CCount, ECount) :-
 	keysort(Pairs, Sorted),
 	assert_voc_prop(Voc, cp_pairs(Property, Lang, Sorted)),
 	pairs_values(Sorted, Concepts),
+	pairs_keys(Sorted, Labels),
 	sort(Concepts, ConceptsUnique),
 	empty_key_count(Sorted, ECount),
+	compound_count(Labels, Compound),
 	length(Sorted, LCount),
 	length(ConceptsUnique, CCount).
 
 empty_key_count([''-_|Tail], Count) :- !, empty_key_count(Tail, TCount), Count is TCount + 1.
 empty_key_count(_,0).
+
+is_compound(Atom) :- sub_atom(Atom, B,1,E, ' '), B>0, E>0, !.
+
+compound_count(Labels, Count) :-
+	include(is_compound, Labels, CompoundLabels),
+	length(CompoundLabels, Count).
 
 count_unique_labels(Voc, Prop, Lang, LabelCount, ConceptCount) :-
 	voc_property(Voc, numberOfLabels(Prop, Lang, _, _)), % fill cache if needed
