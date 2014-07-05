@@ -78,7 +78,7 @@ match(align(Source, TargetScheme, Prov0), Results, Options) :-
 		graph([rdf(Source, SourceProp, literal(lang(SourceLang, SourceLabel)))])
 	       ],
 
-	rdf_has(Source, MatchProp1, literal(lang(SourceLang, SourceLabel)), SourceProp),
+	skos_match(Source, MatchProp1, literal(lang(SourceLang, SourceLabel)), SourceProp, Options),
 	rdf_tokenize_literal(SourceLabel, Tokens),
 	findall(Targets-Token-LabelAmbScore,
 		(   member(Token, Tokens),
@@ -133,7 +133,7 @@ match_label(Source, Label, Targets, Options) :-
 	),
 
 	findall(Target-ProvGraph,
-		(   rdf_has(Target, MatchProp, SearchTarget, TargetProp),
+		(   skos_match(Target, MatchProp, SearchTarget, TargetProp, Options),
 		    Source \== Target,  % fix me, replace by target vocab check as in exact_label example
 		    vocab_member(Target, TargetScheme),
 		    (   IgnoreType
