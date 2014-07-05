@@ -32,4 +32,4 @@
 
 % Analyzers
 :- use_module(library(ag_modules/ag_overlap)).
-:- use_module(library(ag_modules/evaluate)).
+% :- use_module(library(ag_modules/evaluate)).
