@@ -72,9 +72,11 @@ html_prop_table(Pairs) -->
 	html(table(tbody(\html_rows('', Pairs)))).
 
 html_rows(_,[]) --> !.
-html_rows(Prefix, [Key-Value|Ss]) -->
+html_rows(Prefix,[_Key-[]|Tail]) -->
+	html_rows(Prefix, Tail).
+html_rows(Prefix, [Key-Value|Tail]) -->
 	html_row(Prefix, Key, Value),
-	html_rows(Prefix, Ss).
+	html_rows(Prefix, Tail).
 
 html_row(Prefix, Key, set(Values)) -->
 	{ atomic_concat('... ', Prefix, NewPrefix) },
@@ -290,47 +292,69 @@ label_stats(Scheme, Strategy, Property, Stats) :-
 	->  Langs = [_UnknownLang]
 	;   Langs = Langs0
 	),
-	findall(CCount-[CountL-
-		 set([
-		     '# labels' - span([A]),
-		     '# labeled concepts'    - span([CCountA]),
-		     '# labels/labeled concept' - span([LPA]),
-		     '# ambiguous labels:'   - span([HomsLA]),
-		     '# ambiguously labeled concepts:' - span([HomsCA])
-		 ])
-		],
+	findall(CCount-[PropertyLangLabel-Stats],
 		label_lang_stat(Scheme, Strategy, Property, Langs,
-			       CCount, A, CountL, CCountA, LPA, HomsLA, HomsCA)
+			       CCount, PropertyLangLabel, Stats)
 		, PrefLabelStatsLoL0),
 	keysort(PrefLabelStatsLoL0, PrefLabelStatsLoL),
 	pairs_values(PrefLabelStatsLoL, Values),
 	reverse(Values, ValuesR),
 	append(ValuesR, Stats).
 
-label_lang_stat(Scheme, Strategy, Property, Langs, CCount, A, CountL, CCountA, LPA, HomsLA, HomsCA) :-
+%%
+label_lang_stat(Scheme, Strategy, Property, Langs,
+		CCount, PlangLabel, Stats) :-
+	Stats = set([NrLabels, LabeledConcepts, LabelsPerConcept,
+		     HomLabels, HomConcepts, EmptyLabels]),
 	member(Lang, Langs),
-	provenance_graph(Strategy, Prov),
+	format(atom(PlangLabel), '~p @~w', [Property, Lang]),
 
-	voc_property(Scheme, numberOfLabels(Property, Lang, LCount, CCount)),
-	voc_property(Scheme, numberOfConcepts(Total)),
-
+	voc_property(Scheme, numberOfLabels(Property, Lang, LCount, CCount, ECount)),
 	CCount > 0,
-	% voc_property(Scheme, numberOfUniqueLabels(Property, Lang, UniqL, UniqC)),
-	voc_property(Scheme, numberOfHomonyms(Property, Lang, HomsL, HomsC)),
-	save_perc(HomsL, LCount, HomsLP),
-	save_perc(HomsC, CCount, HomsCP),
-	save_perc(CCount, Total, CCountP),
-	LP is LCount/CCount,
 
-	(   CCount == Total
-	->  format(atom(CCountA), '100%', [])
-	;   format(atom(CCountA), '~d (~2f%)', [CCount, CCountP])
-	),
-	format(atom(CountL), '~p @~w', [Property, Lang]),
 	format(atom(A), '~d', [LCount]),
-	format(atom(LPA), '~2f', [LP]),
-	format(atom(HomsLA), '~d (~2f%)', [HomsL, HomsLP]),
-	format(atom(HomsCA), '~d (~2f%)', [HomsC, HomsCP]),
+	NrLabels = '# labels' - span([A]),
+
+
+
+	voc_property(Scheme, numberOfConcepts(Total)),
+	voc_property(Scheme, numberOfHomonyms(Property, Lang, HomsL, HomsC)),
+
+	(   CCount \= Total
+	->  save_perc(CCount, Total, CCountP),
+	    format(atom(CCountA), '~d (~2f%)', [CCount, CCountP]),
+	    LabeledConcepts =  '# labeled concepts'    - span([CCountA])
+	;   LabeledConcepts = labeled-[]
+	),
+
+	(   ECount > 0
+	->  save_perc(ECount, LCount, ECountP),
+	    format(atom(EL), '~d (~2f%)', [ECount, ECountP]),
+	    EmptyLabels = '# empty labels' - span([class(warn)],[EL])
+	;   EmptyLabels = empty-[]
+	),
+
+
+	(   LCount \= CCount
+	->  LP is LCount/CCount,
+	    format(atom(LPA), '~2f', [LP]),
+	    LabelsPerConcept = '# labels/labeled concept' - span([LPA])
+	;   LabelsPerConcept = lpa-[]
+	),
+
+	(   HomsC > 0
+	->  save_perc(HomsC, CCount, HomsCP),
+	    format(atom(HomsCA), '~d (~2f%)', [HomsC, HomsCP]),
+	    HomConcepts = '# ambiguously labeled concepts' - span([class(warn)],[HomsCA])
+	;   HomConcepts = hom-[]
+	),
+	(   HomsL > 0
+	->  save_perc(HomsL, LCount, HomsLP),
+	    format(atom(HomsLA), '~d (~2f%)', [HomsL, HomsLP]),
+	    HomLabels = '# ambiguous labels' - span([class(warn)],[HomsLA])
+	;   HomLabels = hom-[]
+	),
+	provenance_graph(Strategy, Prov),
 
 	(   rdf(Scheme, amalgame:labelAmbiguity, Bnode, Prov),
 	    rdf(Bnode, amalgame:predicate, Property, Prov)
@@ -338,6 +362,7 @@ label_lang_stat(Scheme, Strategy, Property, Langs, CCount, A, CountL, CCountA, L
 	;   rdf_bnode(Bnode),
 	    rdf_assert(Scheme, amalgame:labelAmbiguity, Bnode, Prov),
 	    rdf_assert(Bnode,  amalgame:predicate, Property, Prov),
+	    rdf_assert(Bnode,  amalgame:emptyLabels,  literal(type(xsd:int, ECount)), Prov),
 	    rdf_assert(Bnode,  amalgame:ambiguousLabels,  literal(type(xsd:int, HomsL)), Prov),
 	    rdf_assert(Bnode,  amalgame:ambiguousConcepts, literal(type(xsd:int, HomsC)), Prov)
 	).
