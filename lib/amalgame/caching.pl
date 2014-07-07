@@ -107,8 +107,16 @@ flush_dependent_caches(Id, Strategy) :-
 	->  Process = Id
 	;   rdf_has(Process, prov:used, Id, RP2),
 	    rdf(Process, RP2, Id, Strategy)
+	->  true
+	;   true
 	),
+	(   ground(Process)
+	->  flush_process_dependent_caches(Process, Strategy)
+	;   true
+	).
 
+
+flush_process_dependent_caches(Process, Strategy) :-
 	flush_expand_cache(Process, Strategy),
 	provenance_graph(Strategy, ProvGraph),
 	remove_old_prov(Process, ProvGraph),
@@ -131,7 +139,7 @@ flush_dependent_caches(Id, Strategy) :-
 		),
 		Deps),
 	forall(member(Dep, Deps),
-	       flush_dependent_caches(Dep, Strategy)).
+	       flush_process_dependent_caches(Dep, Strategy)).
 
 cache_result_stats(_Process, Strategy, mapspec(overlap(List))) :-
 	forall(member(Id-Mapping, List),
