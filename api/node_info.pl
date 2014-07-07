@@ -42,9 +42,9 @@ http_node_info(Request) :-
 		       ]),
 	amalgame_info(URL, Strategy, Stats),
 	amalgame_provenance(URL, Strategy, Prov),
-	append(Prov, Stats, Info),
 	amalgame_parameters(URL, Strategy, Params),
-	phrase(html([\html_prop_table(Info),
+	phrase(html([\html_prop_table(Prov),
+		     \html_prop_table(Stats),
 		     \html_form(Params, URL)
 		    ]),
 	       HTML),
@@ -191,15 +191,12 @@ amalgame_info(Scheme, Strategy, Stats) :-
 	provenance_graph(Strategy, Prov),
 
 	BasicStats = [
-	    'Version:' - Version,
-	    'Format:' - Format,
 	    'Total concepts: '-Total
 	],
 
 	voc_property(Scheme, numberOfConcepts(Total)),
 	rdf_assert(Scheme, amalgame:numberOfConcepts, literal(type(xsd:int, Total)), Prov),
 
-	voc_property(Scheme, version(Version)),
 	voc_property(Scheme, format(Format)),
 
 	(   Format = skosxl
@@ -422,6 +419,9 @@ ag_prov(R, A, owl:'version', V) :-
 	->  true
 	;   rdf(R, owl:versionInfo, literal(V))
 	).
+ag_prov(R, _, 'format', F) :-
+	voc_property(R, format(F)).
+
 ag_prov(Graph, Graph, contributors, Vs) :-
 	rdfs_individual_of(Graph, amalgame:'AlignmentStrategy'),
 	findall(\rdf_link(V),
