@@ -66,8 +66,8 @@ YUI.add('mappinglist', function(Y) {
 				mappings = this.get("mappings");
 			listNode.append("<tr>"+
 				"<th>Mapping</a></th>"+
-				"<th colspan='2' class='src_mapped'># sources</th>"+
-				"<th colspan='2' class='target_mapped'># trgs</th>"+
+				"<th colspan='1' class='src_mapped'># sources</th>"+
+				"<th colspan='1' class='target_mapped'># trgs</th>"+
 				"<th class='nr_of_mappings'># mappings</th>"+
 				"</tr>");
 
@@ -76,11 +76,9 @@ YUI.add('mappinglist', function(Y) {
 					var m = mappings[i];
 					listNode.append("<tr class='row'>"+
 					"<td><a href='javascript:void(0)'>"+m.label+"</a></td>"+
-					"<td class='src_mapped'>"+m.stats.numberOfSourceConcepts+"</td>"+
-					"<td class='p_src_mapped'>("+m.stats.pSources+"%)</td>"+
-					"<td class='target_mapped'>"+m.stats.numberOfTargetConcepts+"</td>"+
-					"<td class='p_target_map>ed'>("+m.stats.pTargets+"%)</td>"+
-					"<td class='nr_of_mappings'>"+m.stats.numberOfMappings+"</td>"+
+					"<td class='src_mapped'>"+m.stats.mappedSourceConcepts+"</td>"+
+					"<td class='target_mapped'>"+m.stats.mappedTargetConcepts+"</td>"+
+					"<td class='nr_of_mappings'>"+m.stats.totalCount+"</td>"+
 					"</tr>");
 				}
 			}

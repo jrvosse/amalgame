@@ -146,14 +146,7 @@ js_mappings(Strategy, Results) :-
 		Mappings),
 	findall(json([uri=M, label=L, stats=json(Stats)]),
 		(   member(M-L, Mappings),
-		    stats_cache(M-Strategy, stats(MN, SN, TN, SPerc, TPerc)),
-		    Stats = [
-			     numberOfMappings(MN),
-			     numberOfSourceConcepts(SN),
-			     numberOfTargetConcepts(TN),
-			     pSources(SPerc),
-			     pTargets(TPerc)
-			    ]
+		    stats_cache(M-Strategy, mstats(Stats))
 		),
 		Results).
 
