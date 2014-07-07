@@ -127,10 +127,8 @@ html_form(Params, URI) -->
 amalgame_info(URL, Strategy, Stats) :-
 	rdfs_individual_of(URL, amalgame:'Mapping'),
 	!,
-	provenance_graph(Strategy, Prov),
 	node_stats(Strategy, URL, MStats),
 	option(totalCount(MN), MStats),
-	rdf_assert(URL, amalgame:totalCount, literal(type(xsd:int, MN)), Prov),
 	(   option(inputPercentage(IP), MStats)
 	->  format(atom(TmA), '~d (~5f%)', [MN, IP]),
 	    IpStats = [ 'total matches'-span([TmA])]
@@ -188,15 +186,11 @@ amalgame_info(URL, Strategy, Stats) :-
 amalgame_info(Scheme, Strategy, Stats) :-
 	is_vocabulary(Scheme),
 	!,
-	provenance_graph(Strategy, Prov),
-
 	BasicStats = [
 	    'Total concepts: '-Total
 	],
 
 	voc_property(Scheme, numberOfConcepts(Total)),
-	rdf_assert(Scheme, amalgame:numberOfConcepts, literal(type(xsd:int, Total)), Prov),
-
 	voc_property(Scheme, format(Format)),
 
 	(   Format = skosxl
@@ -213,33 +207,20 @@ amalgame_info(Scheme, Strategy, Stats) :-
 	    option(q3(Q3), DepthStats0, 0),
 	    option(max(DepthMax), DepthStats0, 0),
 	    option(min(DepthMin), DepthStats0, 0),
-	    rdf_bnode(DepthBnode),
-	    rdf_assert(DepthBnode, amalgame:median,
-		       literal(type(xsd:float, DepthM)), Prov),
-	    rdf_assert(DepthBnode, amalgame:first_quartile,
-		       literal(type(xsd:float, Q1)), Prov),
-	    rdf_assert(DepthBnode, amalgame:third_quartile,
-		       literal(type(xsd:float, Q3)), Prov),
-	    rdf_assert(DepthBnode, amalgame:maximum,
-		       literal(type(xsd:int, DepthMax)), Prov),
-	    rdf_assert(DepthBnode, amalgame:minimum,
-		       literal(type(xsd:int, DepthMin)), Prov),
-
-	    rdf_assert(Scheme, amalgame:depth, DepthBnode, Prov),
 	    DepthStats = [
 		'depth' - set([
 			      'minimum:'	- span([DepthMin]),
-			      'first quartile:'       - span('~1f'-[Q1]),
-			      'median:'               - span([DepthM]),
-			      'third quartile:'       - span('~1f'-[Q3]),
+			      'first quartile:'	- span('~1f'-[Q1]),
+			      'median:'	        - span([DepthM]),
+			      'third quartile:'	- span('~1f'-[Q3]),
 			      'maximum:'	- span([DepthMax])
 			  ])
-			 ]
+	    ]
 	;   DepthStats = [ a([href('#'), class(compute_deep_stats)],
-			      ['compute additional statistics'])
+			     ['compute additional statistics'])
 			   -
 			   a([href('#'), class(compute_deep_stats)], ['?'])
-			     ]
+			 ]
 	),
 
 	(   voc_property(Scheme, branch(BranchStats0), [compute(C)])
@@ -299,7 +280,7 @@ label_stats(Scheme, Strategy, Property, Stats) :-
 	append(ValuesR, Stats).
 
 %%
-label_lang_stat(Scheme, Strategy, Property, Langs,
+label_lang_stat(Scheme, _Strategy, Property, Langs,
 		CCount, PlangLabel, Stats) :-
 	Stats = set([NrLabels, LabeledConcepts, LabelsPerConcept,
 		     HomLabels, HomConcepts, EmptyLabels, CompoundLabels]),
@@ -358,21 +339,7 @@ label_lang_stat(Scheme, Strategy, Property, Langs,
 	    format(atom(HomsLA), '~d (~2f%)', [HomsL, HomsLP]),
 	    HomLabels = '# ambiguous labels' - span([class(warn)],[HomsLA])
 	;   HomLabels = hom-[]
-	),
-	provenance_graph(Strategy, Prov),
-
-	(   rdf(Scheme, amalgame:labelAmbiguity, Bnode, Prov),
-	    rdf(Bnode, amalgame:predicate, Property, Prov)
-	->  true
-	;   rdf_bnode(Bnode),
-	    rdf_assert(Scheme, amalgame:labelAmbiguity, Bnode, Prov),
-	    rdf_assert(Bnode,  amalgame:predicate, Property, Prov),
-	    rdf_assert(Bnode,  amalgame:emptyLabels,  literal(type(xsd:int, ECount)), Prov),
-	    rdf_assert(Bnode,  amalgame:ambiguousLabels,  literal(type(xsd:int, HomsL)), Prov),
-	    rdf_assert(Bnode,  amalgame:ambiguousConcepts, literal(type(xsd:int, HomsC)), Prov)
 	).
-
-
 
 
 %%	amalgame_provenance(+R, +Alignment, -Provenance:[key-value])
