@@ -74,6 +74,7 @@ YUI.add('mappinglist', function(Y) {
 			if(mappings) {
 				for (var i=0; i < mappings.length; i++) {
 					var m = mappings[i];
+					if (m.stats.totalCount < 1) continue;
 					listNode.append("<tr class='row'>"+
 					"<td><a href='javascript:void(0)'>"+m.label+"</a></td>"+
 					"<td class='src_mapped'>"+m.stats.mappedSourceConcepts+"</td>"+
