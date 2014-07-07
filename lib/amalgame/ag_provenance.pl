@@ -123,13 +123,9 @@ add_amalgame_prov(Strategy, Process, Results) :-
 		),
 		InputTriples),
 
-	(   Results = vocspec(_)
-	->  rdf(Vocab, amalgame:wasGeneratedBy, Process, Strategy),
-	    Artifacts = [Vocab]
-	;   Artifacts = Results,
-	    assert_counts(Results, Strategy, ProvGraph)
-	),
 
+	Artifacts = Results,
+	assert_counts(Results, Strategy, ProvGraph),
 	prov_was_generated_by(Process, Artifacts, ProvGraph, [strategy(Strategy)]),
 
 	% Generate prov:wasDerivedFrom triples between Mappings
@@ -364,7 +360,7 @@ prov_named_graph(NG, Repo, Graph) :-
 	rdf_assert(NG, amalgame:hash, literal(NGHash), Graph),
 	rdf_assert(NG, amalgame:modified_after_loading, literal(NGModified), Graph),
 	rdf_assert(NG, amalgame:source, literal(NGsource), Graph),
-	rdf_assert(NG, amalgame:triples, literal(NGCount), Graph),
+	rdf_assert(NG, amalgame:triples, literal(type(xsd:int, NGCount)), Graph),
 	rdf_assert(NG, rdfs:comment, literal(lang(en, 'Named graph loaded into the triple store while creating this alignment. This may or may not have influenced the results.')), Graph).
 
 get_xml_dateTime(T, TimeStamp) :-
@@ -395,7 +391,14 @@ assert_counts([URI|Tail], Strategy, ProvGraph) :-
 	assert_count(URI, Strategy, ProvGraph),
 	assert_counts(Tail, Strategy, ProvGraph).
 
+assert_count(VocUri, _Strategy, ProvGraph) :-
+	rdfs_individual_of(VocUri, skos:'ConceptScheme'),
+	rdf_retractall(VocUri, amalgame:totalCount, _, ProvGraph),
+	voc_property(VocUri, numberOfConcepts(Count), []),
+	rdf_assert(VocUri, amalgame:totalCount, literal(type(xsd:int, Count)), ProvGraph).
+
 assert_count(MapUri, Strategy, ProvGraph) :-
+	rdfs_individual_of(MapUri, amalgame:'Mapping'),!,
 	node_stats(Strategy, MapUri, MStats),
 	option(totalCount(Count), MStats),
 	option(mappedSourceConcepts(SN), MStats),
