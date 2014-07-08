@@ -165,14 +165,20 @@ html_schemes_only -->
 %
 
 html_new(Schemes) -->
-	{
-	 has_write_permission, !
+	{ has_write_permission, !,
+	  ButtonsBottom = div(\html_submit('Start')),
+	  length(Schemes, N),
+	  (   N > 7
+	  ->  ButtonsTop = ButtonsBottom
+	  ;   ButtonsTop = div([],[])
+	  )
 	},
 	html_acc_item(new,
 		      'new alignment strategy',
 		      [ form(action(location_by_id(http_eq_new)),
-			     [ \html_vocab_table(Schemes),
-			       \html_submit('Start')
+			     [  ButtonsTop,
+				\html_vocab_table(Schemes),
+				ButtonsBottom
 			     ])
 		      ],
 		      [active]
@@ -247,15 +253,25 @@ html_open([]) -->
 		      [inactive]),
 	!.
 html_open(Alignments) -->
+	{ ButtonsBottom = div([ \html_submit('View selected'),
+			  \html_submit('Merge selected'),
+			  \html_submit('Delete selected')
+			]),
+	  length(Alignments, N),
+	  (   N > 7
+	  ->  ButtonsTop = ButtonsBottom
+	  ;   ButtonsTop = div([],[])
+	  )
+	},
 	html_acc_item(open,
 		      'edit/delete pre-loaded alignment strategy',
 		      [ form(action(location_by_id(http_eq_select)),
 			     [
-			      \html_alignment_table(Alignments,
-						    [linkto(http_eq_build)]),
-			      \html_submit('View selected'),
-			      \html_submit('Merge selected'),
-			      \html_submit('Delete selected')
+				 ButtonsTop,
+				 \html_strategy_table(Alignments,
+						       [linkto(http_eq_build)]),
+				 ButtonsBottom
+
 			     ])
 		      ],
 		      [active]
@@ -267,7 +283,7 @@ html_publish([]) -->
 		      [],
 		      [inactive]),
 	!.
-html_publish(Alignments) -->
+html_publish(Strategies) -->
 	{
 	 has_write_permission,
 	 L=http_eq_publish_form,
@@ -276,7 +292,7 @@ html_publish(Alignments) -->
 	html_acc_item(publish,
 		      'publish	alignment results',
 		      [ form(action(location_by_id(L)),
-			     [ \html_alignment_table(Alignments, [linkto(L)]),
+			     [ \html_strategy_table(Strategies, [linkto(L)]),
 			       \html_submit('Publish')
 			     ])
 		      ],
@@ -284,14 +300,19 @@ html_publish(Alignments) -->
 html_publish(_) -->  !.
 
 
-%%	html_alignment_table(+Graphs, +Options)
+%%	html_strategy_table(+Graphs, +Options)
 %
 %	Emit HTML table with alignment graph properties.
 
-html_alignment_table(Alignments, Options) -->
-	html(table([thead(tr(\html_alignment_head)),
-		    tbody(\html_alignment_rows(Alignments, Options))
-		   ])).
+html_strategy_table(Strategies, Options) -->
+	html([
+	    \html_requires(sortable),
+	    table(
+		[class(sortable)],
+		[ thead(tr(\html_alignment_head)),
+		  tbody(\html_alignment_rows(Strategies, Options))
+		])
+	]).
 
 html_alignment_head -->
 	html([th([]),
