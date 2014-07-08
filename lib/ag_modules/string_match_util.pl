@@ -40,7 +40,6 @@ skos_match(Concept, MatchProp, Literal, RealProp, _Options) :-
 
 skos_match(Concept, MatchProp, Literal, RealProp, Options) :-
 	nonvar(Concept),
-	\+ ground(Literal),
 	rdf_has(Concept, MatchProp, LiteralObject, RealProp),
 	rdf_subject(LiteralObject),
 	(   ( rdf_has(LiteralObject, amalgame:qualifier, _),
@@ -52,8 +51,6 @@ skos_match(Concept, MatchProp, Literal, RealProp, Options) :-
 
 skos_match(Concept, MatchProp, Literal, RealProp, Options) :-
 	var(Concept),
-	ground(Literal),
-
 	(   ( option(match_qualified_only(true), Options, false),
 	      rdf_has(_, amalgame:term, Literal)
 	    )
