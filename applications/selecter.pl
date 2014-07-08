@@ -555,9 +555,11 @@ build_redirect(Request, [Strategy|_]) :-
 delete_redirect(Request, Strategies) :-
 	authorized(write(default, _)),
 	forall(member(Strategy, Strategies),
-	       (   provenance_graph(Strategy, Prov),
-		   rdf_unload_graph(Strategy),
-		   rdf_unload_graph(Prov)
+	       (   (   provenance_graph(Strategy, Prov)
+		   ->  rdf_unload_graph(Prov)
+		   ;   true
+		   ),
+		   rdf_unload_graph(Strategy)
 	       )
 	      ),
 	http_link_to_id(http_eq, [], Redirect),
