@@ -2,6 +2,7 @@
 	  [html_schemes_only//0  % for backward compat with europeana demo
 	  ]).
 
+:- use_module(library(option)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_path)).
@@ -117,7 +118,8 @@ http_eq_ref_file_upload(Request) :-
 	rdf_equal(amalgame:'LoadedMapping', LMGraph),
 	rdf_assert(NamedGraph, rdf:type, amalgame:'LoadedMapping', LMGraph),
 
-	http_redirect(moved, location_by_id(http_eq), Request).
+	http_link_to_id(list_graph, [graph(NamedGraph)], ListGraph),
+	http_redirect(moved, ListGraph, Request).
 
 
 
