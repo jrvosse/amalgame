@@ -126,7 +126,9 @@ has_mapping_input(URL, Strategy, Input) :-
 %	vocabularies of Mapping.
 
 mapping_vocab_sources(Manual, Strategy, SV, TV) :-
-	rdf_has(Manual, amalgame:evaluationOf, Strategy),
+	(   rdf_has(Manual, amalgame:evaluationOf, Strategy)
+	;   rdfs_individual_of(Manual, amalgame:'LoadedMapping')
+	),
 	!,
 	has_correspondence_chk(align(SC,TC,_), Manual),
 	rdf_has(Strategy, amalgame:includes, SV),
