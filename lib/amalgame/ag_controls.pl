@@ -350,3 +350,4 @@ status_option(amalgame:final).
 status_option(amalgame:intermediate).
 status_option(amalgame:discarded).
 status_option(amalgame:imported).
+status_option(amalgame:reference).
