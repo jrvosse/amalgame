@@ -10,7 +10,7 @@
 :- use_module(library(amalgame/caching)).
 :- use_module(library(amalgame/vocabulary)).
 :- use_module(library(amalgame/voc_stats)).
-:- use_module(library(amalgame/ag_evaluation)).
+:- use_module(library(amalgame/ag_reference)).
 :- use_module(library(amalgame/map)).
 :- use_module(library(amalgame/util)).
 
@@ -161,9 +161,8 @@ align_source(align(S,_,_), S).
 align_target(align(_,T,_), T).
 
 compute_reference_counts(Id, Strategy, Stats) :-
-	evaluation_graph_chk(Strategy, Id, Ref),
+	reference_mappings(Strategy, References),
 	expand_node(Strategy, Id, Mappings),
-	expand_node(Strategy, Ref, References),
 	rdf(Id, amalgame:default_relation, Relation),
 	compare_against_ref(Mappings, References, Relation,
 			    partition([],[],[],[]), Stats),
