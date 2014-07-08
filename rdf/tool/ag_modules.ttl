@@ -10,7 +10,7 @@ amalgame:EvaluationProcess
 
 amalgame:SelectPreLoaded
     rdfs:label "import/preloaded"@en ;
-    skos:definition "import mappings from preloaded named graph"@en ;
+    skos:definition "Match mappings from preloaded named graph against concepts in source and target vocabularies"@en ;
     rdfs:subClassOf amalgame:Matcher .
 
 amalgame:ExactLabelMatcher
