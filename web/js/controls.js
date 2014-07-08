@@ -79,7 +79,7 @@ YUI.add('controls', function(Y) {
 
 			// The input is selected based on the type of the control
 			// which is stored as a CSS class
-			if(node.hasClass("match")) {
+			if(node.hasClass("match") || node.hasClass("preloaded") ) {
 				if(input) {
 					data.input = input;
 				}
@@ -87,8 +87,7 @@ YUI.add('controls', function(Y) {
 					data.source = source;
 					data.target = target;
 				}
-			}
-			else if(selected) {
+			} else if(selected) {
 				data.input = selected.uri;
 			}
 			Y.log("add process:");
