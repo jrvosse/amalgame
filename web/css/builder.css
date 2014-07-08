@@ -154,7 +154,8 @@ body {
 #info .loading {
 	border-top: 1px solid #CCC;
 	border-bottom: 1px solid #CCC;
-	overflow: hidden;
+	overflow-y: auto;
+	max-height: 60ex;
 }
 #info .parameters {
 	border-top: 1px solid #CCC;
