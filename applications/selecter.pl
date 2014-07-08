@@ -27,6 +27,7 @@
 :- http_handler(amalgame(select),    http_eq_select, []).
 :- http_handler(amalgame(load/url),  http_eq_upload_url, []).
 :- http_handler(amalgame(load/data), http_eq_upload_data, []).
+:- http_handler(amalgame(load/reference), http_eq_ref_file_upload, []).
 
 %%	http_eq(+Request)
 %
@@ -81,7 +82,7 @@ http_eq_new(Request) :-
 
 %%	http_eq_upload_data(+Request)
 %
-%	Handler for alignment import
+%	Handler for strategy data import
 
 http_eq_upload_data(Request) :-
 	authorized(write(default, _)),
@@ -98,6 +99,26 @@ http_eq_upload_data(Request) :-
 			     free_memory_file(MemFile)
 			   )),
 	cp_strategy_from_tmp(Request, TmpGraph).
+
+http_eq_ref_file_upload(Request) :-
+	authorized(write(default, _)),
+	http_parameters(Request,
+			[ data(Data,
+			       [ description('RDF data to be loaded')
+			       ])
+			]),
+	new_reference_name(NamedGraph),
+	atom_to_memory_file(Data, MemFile),
+	setup_call_cleanup(open_memory_file(MemFile, read, Stream),
+			   rdf_guess_format_and_load(Stream, [graph(NamedGraph)]),
+			   ( close(Stream),
+			     free_memory_file(MemFile)
+			   )),
+
+	http_redirect(moved, location_by_id(http_eq), Request).
+
+
+
 
 http_eq_upload_url(Request) :-
 	authorized(write(default, _)),
@@ -139,13 +160,14 @@ html_page :-
 			      [ div(id(header), []),
 				div(id(main),
 				    [
-				      div([id(content), class('yui3-accordion')],
-					  [
-					    \html_open(Alignments),
-					    \html_new(ConceptSchemes),
-					    \html_import,
-					    \html_publish(Alignments)
-					  ])
+					div([id(content), class('yui3-accordion')],
+					    [
+						\html_open(Alignments),
+						\html_new(ConceptSchemes),
+						\html_reference,
+						\html_import,
+						\html_publish(Alignments)
+					    ])
 				    ]),
 				script(type('text/javascript'),
 				       [ \yui_script
@@ -365,6 +387,27 @@ graph_label(Graph, Label) :-
 	literal_text(Lit, Label),!.
 graph_label(Graph, Graph).
 
+html_reference -->
+	{ has_write_permission,
+	  !
+	},
+	html_acc_item(reference,
+		      'upload reference alignment',
+		      [ form([action(location_by_id(http_eq_ref_file_upload)),
+			      method('POST'),
+			      enctype('multipart/form-data') ],
+			     [ 'File: ' ,
+			       input([type(file), name(data),
+				      size(50)%, autocomplete(off)
+				     ]),
+			       input([type(submit), value('Upload')])
+			     ])
+
+		      ],
+		      [inactive]
+		     ).
+
+html_reference --> !.
 
 html_import -->
 	{
@@ -490,7 +533,14 @@ new_strategy_name(Strategy, NS) :-
 	atomic_list_concat([NS,Local], Strategy),
 	\+ rdf_graph(Strategy),
 	!.
-
+new_reference_name(Reference) :-
+	setting(amalgame:default_publish_namespace, NS),
+	reset_gensym(reference_alignment),
+	repeat,
+	gensym(reference_alignment, Local),
+	atomic_list_concat([NS,Local], Reference),
+	\+ rdf_graph(Reference),
+	!.
 
 cp_strategy_from_tmp(Request, TmpGraph) :-
 	rdf(Strategy, rdf:type, amalgame:'AlignmentStrategy', TmpGraph),!,
