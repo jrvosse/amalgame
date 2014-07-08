@@ -114,6 +114,8 @@ http_eq_ref_file_upload(Request) :-
 			   ( close(Stream),
 			     free_memory_file(MemFile)
 			   )),
+	rdf_equal(amalgame:'LoadedMapping', LMGraph),
+	rdf_assert(NamedGraph, rdf:type, amalgame:'LoadedMapping', LMGraph),
 
 	http_redirect(moved, location_by_id(http_eq), Request).
 
