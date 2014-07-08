@@ -37,8 +37,7 @@ create_evaluation_graph(Strategy, Mapping, EvalGraph) :-
 	rdf_assert(EvalGraph, rdfs:label,   literal('Evaluation results'),    Strategy),
 	rdf_assert(EvalGraph, amalgame:wasGeneratedBy, EvalProcess,           Strategy),
 
-	% defaults to final status so it gets saved by default:
-	rdf_assert(EvalGraph, amalgame:status, amalgame:final, Strategy),
+	rdf_assert(EvalGraph, amalgame:status, amalgame:reference, Strategy),
 
 	(   setting(amalgame:reference_alignment, mapping)
 	->  format(atom(Comment), 'Manual evaluation of ~p', [Mapping]),
