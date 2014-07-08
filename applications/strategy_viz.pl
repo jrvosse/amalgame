@@ -198,6 +198,9 @@ artifact_color(R, '#ACFF89') :-
 artifact_color(R, '#FFFFFF') :-
 	rdf(R, amalgame:status, amalgame:discarded),
 	!.
+artifact_color(R, '#ACCF89') :-
+	rdf(R, amalgame:status, amalgame:reference),
+	!.
 artifact_color(_R, '#EEFFEE').
 
 
