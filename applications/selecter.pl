@@ -167,10 +167,10 @@ html_page :-
 					div([id(content), class('yui3-accordion')],
 					    [
 						\html_open(Alignments),
-						\html_new(ConceptSchemes),
 						\html_reference,
 						\html_import,
-						\html_publish(Alignments)
+						\html_publish(Alignments),
+						\html_new(ConceptSchemes)
 					    ])
 				    ]),
 				script(type('text/javascript'),
