@@ -156,6 +156,7 @@
 }
 
 /* import */
-#import form {
+#import form,
+#reference form {
 	padding: 10px;
 }
