@@ -158,5 +158,9 @@
 /* import */
 #import form,
 #reference form {
+	margin: 10px;
 	padding: 10px;
+	border-color:#E5E5E5;
+	border-width: 1px;
+	border-style: solid;
 }
