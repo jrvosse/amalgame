@@ -21,8 +21,8 @@ amalgame_module(amalgame:'MostMethods').
 selecter(AlignmentGraph, S, D, U, _Options) :-
 	partition_(AlignmentGraph, S, D, U).
 
-ap(align(S,T,P), align(S,T,Pnew)) :-
-	append(P, [[method(most_methods)]], Pnew).
+ap(Most, SecondMost, align(S,T,P), align(S,T,Pnew)) :-
+	append(P, [[method(most_methods), score([most(Most), second(SecondMost)])]], Pnew).
 
 
 partition_([], [], [], []).
@@ -39,17 +39,17 @@ partition_([align(S,T,P)|As], Sel, Dis, Und) :-
 	partition_(Rest, SelRest, DisRest, UndRest).
 
 most_methods(As, Selected, [A|T]) :-
-	group_method_count(As, Counts),
-	sort(Counts, [N-Selected0,N1-A|T0]),
+	group_method_count(As, Counts0),
+	sort(Counts0, Counts1),
+	reverse(Counts1, [Most-Selected0,SecondMost-A|T0]),
+	Most \== SecondMost,
 	pairs_values(T0, T),
-	\+ N == N1,
-	maplist(ap, [Selected0], [Selected]).
+	maplist(ap(Most, SecondMost), [Selected0], [Selected]).
 
 
 group_method_count([], []).
 group_method_count([Align|As], [Count-Align|Ts]) :-
 	Align = align(_,_,Provenance),
 	findall(M, (member(P,Provenance),memberchk(M,P)), Methods),
-	length(Methods, Count0),
-	Count is 1/Count0,
+	length(Methods, Count),
 	group_method_count(As, Ts).
