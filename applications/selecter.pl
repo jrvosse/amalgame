@@ -396,18 +396,17 @@ html_reference -->
 	  !
 	},
 	html_acc_item(reference,
-		      'upload reference alignment',
-		      [ form([action(location_by_id(http_eq_ref_file_upload)),
-			      method('POST'),
-			      enctype('multipart/form-data') ],
-			     [ 'File: ' ,
-			       input([type(file), name(data),
-				      size(50)%, autocomplete(off)
-				     ]),
-			       input([type(submit), value('Upload')])
-			     ])
-
-		      ],
+		      'upload existing/reference alignment',
+		      form([action(location_by_id(http_eq_ref_file_upload)),
+			    method('POST'),
+			    enctype('multipart/form-data') ],
+			   [ p(['Upload an exisiting alignment to build upon, ',
+				'or to use as reference (ground truth)' ]),
+			     input([type(file), name(data),
+				    size(50), autocomplete(off)
+				   ]),
+			     input([type(submit), value('Upload')])
+			   ]),
 		      [inactive]
 		     ).
 
