@@ -312,7 +312,7 @@ html_publish([]) -->
 html_publish(Strategies) -->
 	{
 	 has_write_permission,
-	 L=http_eq_publish_form,
+	 L=http_ag_publish_form,
 	 !
 	},
 	html_acc_item(publish,

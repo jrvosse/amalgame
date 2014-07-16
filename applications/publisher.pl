@@ -1,4 +1,4 @@
-:- module(eq_publisher, []).
+:- module(ag_publisher, []).
 
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
@@ -21,17 +21,17 @@
 	   'Default namespace to use on alignment results. Can be changed later.').
 
 % http handlers for this applications
-:- http_handler(amalgame(publish),      http_eq_publish, []).
-:- http_handler(amalgame(publish_form), http_eq_publish_form, []).
+:- http_handler(amalgame(publish),      http_ag_publish, []).
+:- http_handler(amalgame(publish_form), http_ag_publish_form, []).
 
-ag:menu_item(280=http_eq_publish_form, 'publish').
+ag:menu_item(280=http_ag_publish_form, 'publish').
 
-%%	http_eq_publish_form(+Request)
+%%	http_ag_publish_form(+Request)
 %
 %	HTTP handler for web page with interactive vocabulary alignment
 %	exporter.
 
-http_eq_publish_form(Request) :-
+http_ag_publish_form(Request) :-
 	authorized(write(default, _)),
 	http_parameters(Request,
 			[ alignment(Alignment,
@@ -45,7 +45,7 @@ http_eq_publish_form(Request) :-
 			]),
 	html_page(Alignment, Focus).
 
-http_eq_publish(Request) :-
+http_ag_publish(Request) :-
 	http_parameters(Request,
 			[ alignment(Alignment,
 				    [uri,
@@ -88,11 +88,11 @@ html_page(Alignment, Focus) :-
 			  \html_requires(css('eq.css')),
 			 div(class('yui3-skin-sam yui-skin-sam'),
 			      [ \html_eq_header(
-				     [active(http_eq_publish_form),
+				     [active(http_ag_publish_form),
 				      focus(Focus),
 				      strategy(Alignment)]),
 				div([id(main)],
-				    [ form([id(export_form), action(location_by_id(http_eq_publish)), method(post)],
+				    [ form([id(export_form), action(location_by_id(http_ag_publish)), method(post)],
 					   ['Publish the strategy file along with ',
 					    input([type(hidden), name(alignment), value(Alignment)]),
 					    select([name(status), autocomplete(off)],
