@@ -1,4 +1,4 @@
-:- module(eq_builder, []).
+:- module(ag_builder, []).
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
@@ -24,9 +24,9 @@
 	ag:menu_item/2.
 
 % http handlers for this applications
-:- http_handler(amalgame(build), http_eq_build, []).
+:- http_handler(amalgame(build), http_ag_build, []).
 
-ag:menu_item(200=http_eq_build, 'build').
+ag:menu_item(200=http_ag_build, 'build').
 
 
 backward_compatibilty_fixes(Strategy) :-
@@ -48,12 +48,12 @@ precalc_voc_stats(Strategy) :-
 	      ).
 
 
-%%	http_eq_build(+Request)
+%%	http_ag_build(+Request)
 %
 %	HTTP handler for web page with interactive vocabulary alignment
 %	builder.
 
-http_eq_build(Request) :-
+http_ag_build(Request) :-
 	% authorized(write(default, _)),
 	http_parameters(Request,
 			[ alignment(Alignment,
@@ -91,8 +91,8 @@ html_page(Strategy, Focus) :-
 				       'cssfonts/fonts-min.css'
 				      ]),
 			  div(class('yui3-skin-sam yui-skin-sam'),
-			      [ \html_eq_header([
-				     active(http_eq_build),
+			      [ \html_ag_header([
+				     active(http_ag_build),
 				     strategy(Strategy),
 				     focus(Focus)]),
 				div([class('yui3-g'), id(layout)],
@@ -194,8 +194,8 @@ js_path(info, Path) :-
 	http_location_by_id(http_node_info, Path).
 js_path(hint, Path) :-
 	http_location_by_id(http_json_hint, Path).
-js_path(eq_evaluate, Path) :-
-	http_location_by_id(http_eq_evaluate , Path).
+js_path(ag_evaluate, Path) :-
+	http_location_by_id(http_ag_evaluate , Path).
 js_path(mapping, Path) :-
 	http_location_by_id(http_data_mapping, Path).
 js_path(evaluate, Path) :-

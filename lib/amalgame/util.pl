@@ -1,6 +1,6 @@
 :- module(ag_util_components,
 	  [
-	      html_eq_header//1,
+	      html_ag_header//1,
 	      html_showlist//1,
 
 	      mint_node_uri/3,
@@ -74,11 +74,11 @@ has_write_permission :-
 	logged_on(User, anonymous),
 	catch(check_permission(User, write(default,_)), _, fail).
 
-%%	html_eq_header(+Active, +Alignment)
+%%	html_ag_header(+Active, +Alignment)
 %
 %	Emit page header with menu bar
 
-html_eq_header(Options) -->
+html_ag_header(Options) -->
 	{
 	  findall(Rank-(Path-Label), ag:menu_item(Rank=Path, Label), Items0),
 	  keysort(Items0, ItemsSorted),
@@ -86,14 +86,14 @@ html_eq_header(Options) -->
 	},
 	html(div(id(header),
 		 [ div(class(title),
-		       a(href(location_by_id(http_eq)), 'Amalgame')),
-		   ul(\html_eq_menu(Items, Options))
+		       a(href(location_by_id(http_amalgame_main_page)), 'Amalgame')),
+		   ul(\html_ag_menu(Items, Options))
 		 ])).
 
-html_eq_menu([], _) --> !.
-html_eq_menu([Handler-Label|Is], Options) -->
+html_ag_menu([], _) --> !.
+html_ag_menu([Handler-Label|Is], Options) -->
 	html_menu_item(Handler, Label, Options),
-	html_eq_menu(Is, Options).
+	html_ag_menu(Is, Options).
 
 html_menu_item(Handler, Label, Options) -->
 	{ option(active(Handler), Options)
@@ -103,7 +103,7 @@ html_menu_item(Handler, Label, Options) -->
 html_menu_item(Handler, Label, Options) -->
 	{ option(strategy(Strategy), Options),
 	  option(focus(Focus), Options, Strategy),
-	  http_link_to_id(http_eq_build,
+	  http_link_to_id(http_ag_build,
 			  [alignment(Strategy)], ReturnToAfterLogin),
 	  http_link_to_id(Handler, [
 				    'openid.return_to'(ReturnToAfterLogin),

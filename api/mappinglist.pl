@@ -1,4 +1,4 @@
-:- module(eq_voc_api,
+:- module(ag_voc_api,
 	  [
 	  ]).
 

@@ -13,5 +13,5 @@ This module is a ClioPatria plugin that extends the ClioPatria menu.
 %	Provide the Amalgame extensions to the Cliopatria menu.
 
 cliopatria:menu_popup_order(amalgame, 120).
-cliopatria:menu_item(100=amalgame/http_eq, 'Alignment interface').
+cliopatria:menu_item(100=amalgame/http_amalgame_main_page, 'Alignment interface').
 cliopatria:menu_item(250=amalgame/http_skos_browser,   'Vocabulary browser').

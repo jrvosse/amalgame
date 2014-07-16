@@ -1,4 +1,4 @@
-:- module(eq_analyser,
+:- module(ag_analyser,
 	  []).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(http/http_dispatch)).
@@ -16,18 +16,18 @@
 	ag:menu_item/2.
 
 % temp commented out
-% ag:menu_item(240=http_eq_analyse, 'analyse').
+% ag:menu_item(240=http_ag_analyse, 'analyse').
 
 % http handlers for this applications
 
-:- http_handler(amalgame(analyse), http_eq_analyse, []).
+:- http_handler(amalgame(analyse), http_ag_analyse, []).
 :- http_handler(amalgame(analyse/agreement), http_agreement, []).
 
-%%	http_equalizer(+Request)
+%%	http_ag_analyse(+Request) is det
 %
 %	Emit html page with for the alignment analyser.
 
-http_eq_analyse(Request) :-
+http_ag_analyse(Request) :-
 	http_parameters(Request,
 			[ alignment(Alignment,
 				    [uri, optional(true),
@@ -51,7 +51,7 @@ html_page(Alignment, Mapping) :-
 				      ]),
 			 \html_requires(css('eq.css')),
 			 \html_requires(css('analyser.css')),
-			 \html_eq_header([active(http_eq_analyse),
+			 \html_ag_header([active(http_ag_analyse),
 					 strategy(Alignment),
 					  focus(Mapping)
 					 ]),

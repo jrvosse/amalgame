@@ -66,7 +66,7 @@ cliopatria:predicate_order(P, 405) :-
 
 user:body(amalgame(search), Body) -->
 	{
-	 http_link_to_id(http_eq, [], BackOfficeLink)
+	 http_link_to_id(http_amalgame_main_page, [], BackOfficeLink)
 	},
 	html_requires(cliopatria),
 	html(body(class(['yui-skin-sam', ag_search, cliopatria]),

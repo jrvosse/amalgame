@@ -1,4 +1,4 @@
-:- module(eq_selecter,
+:- module(ag_main_page,
 	  [html_schemes_only//0  % for backward compat with europeana demo
 	  ]).
 
@@ -22,29 +22,36 @@
 
 :- use_module(applications(skos_browser)).
 
-% http handlers for this applications
-:- http_handler(amalgame(eq),        http_eq, []).
-:- http_handler(amalgame(new),       http_eq_new, []).
-:- http_handler(amalgame(select),    http_eq_select, []).
-:- http_handler(amalgame(load/url),  http_eq_upload_url, []).
-:- http_handler(amalgame(load/data), http_eq_upload_data, []).
-:- http_handler(amalgame(load/reference), http_eq_ref_file_upload, []).
+% main http handler for amalgame:
+:- http_handler(amalgame(.),         http_amalgame_main_page, []).
 
-%%	http_eq(+Request)
+% handlers for the different forms on the main page.
+% most handle the form request and then redirect to some other page,
+% such as the strategy builder or the main page:
+:- http_handler(amalgame(form/new),       http_ag_form_new_strategy, []).
+:- http_handler(amalgame(form/select),    http_ag_form_select_strategy, []).
+:- http_handler(amalgame(form/url),	  http_ag_form_upload_strategy_resource, []).
+:- http_handler(amalgame(form/data),      http_ag_form_upload_strategy_data, []).
+:- http_handler(amalgame(form/reference), http_ag_form_upload_alignment, []).
+
+% Backward compatibility
+:- http_handler(amalgame(eq),        http_redirect(moved, amalgame(.)), []).
+
+%%	http_amalgame_main_page(+Request) is det.
 %
 %	Emit html page to start a new or select/upload an existing
 %	alignment strategy.
 
-http_eq(_Request) :-
-	html_page.
+http_amalgame_main_page(Request) :-
+	html_main_page(Request).
 
 
-%%	http_eq_select(+Request)
+%%     http_ag_form_select_strategy(+Request)
 %
 %      Execute action on selected strategy and redirect to
 %      appropriate page.
 
-http_eq_select(Request) :-
+http_ag_form_select_strategy(Request) :-
 	http_parameters(Request,
 			[
 			 alignment(Strategies,
@@ -66,11 +73,11 @@ http_eq_select(Request) :-
 	->  delete_redirect(Request, Strategies)
 	).
 
-%%	http_eq_new(+Request)
+%%	http_ag_form_new_strategy(+Request)
 %
-%	Handler to create a new alignment
+%	Handle form data to create a new alignment
 
-http_eq_new(Request) :-
+http_ag_form_new_strategy(Request) :-
 	http_parameters(Request,
 			[ scheme(Schemes,
 				 [zero_or_more,
@@ -81,11 +88,11 @@ http_eq_new(Request) :-
 
 
 
-%%	http_eq_upload_data(+Request)
+%%      http_ag_form_upload_strategy_data(+Request) is det.
 %
-%	Handler for strategy data import
+%	Handler for strategy form data import.
 
-http_eq_upload_data(Request) :-
+http_ag_form_upload_strategy_data(Request) :-
 	authorized(write(default, _)),
 	http_parameters(Request,
 			[ data(Data,
@@ -101,7 +108,23 @@ http_eq_upload_data(Request) :-
 			   )),
 	cp_strategy_from_tmp(Request, TmpGraph).
 
-http_eq_ref_file_upload(Request) :-
+%%      http_ag_form_upload_strategy_resource(+Request) is det.
+%
+%	Handler for strategy form resource import.
+
+http_ag_form_upload_strategy_resource(Request) :-
+	authorized(write(default, _)),
+	http_parameters(Request,
+			[ url(URL, [])
+			]),
+	rdf_bnode(TmpGraph),
+	rdf_load(URL, [graph(TmpGraph)]),
+	cp_strategy_from_tmp(Request, TmpGraph).
+
+%%	http_ag_form_upload_alignment(+Request) is det.
+%
+%	Handle form to upload an existing alignment
+http_ag_form_upload_alignment(Request) :-
 	authorized(write(default, _)),
 	http_parameters(Request,
 			[ data(Data,
@@ -122,18 +145,6 @@ http_eq_ref_file_upload(Request) :-
 	http_redirect(moved, ListGraph, Request).
 
 
-
-
-http_eq_upload_url(Request) :-
-	authorized(write(default, _)),
-	http_parameters(Request,
-			[ url(URL, [])
-			]),
-	rdf_bnode(TmpGraph),
-	rdf_load(URL, [graph(TmpGraph)]),
-	cp_strategy_from_tmp(Request, TmpGraph).
-
-
 find_schemes(Schemes) :-
 	findall(C,
 		(   is_vocabulary(C),
@@ -148,7 +159,7 @@ scheme_label(URI, Key-URI) :-
 	graph_label(URI, CasedKey),
 	downcase_atom(CasedKey, Key).
 
-html_page :-
+html_main_page(_Request) :-
 	findall(A-S, amalgame_alignment(A, S), Alignments),
 	find_schemes(ConceptSchemes),
 	reply_html_page(cliopatria(main),
@@ -201,7 +212,7 @@ html_new(Schemes) -->
 	},
 	html_acc_item(new,
 		      'new alignment strategy',
-		      [ form(action(location_by_id(http_eq_new)),
+		      [ form(action(location_by_id(http_ag_form_new_strategy)),
 			     [  ButtonsTop,
 				\html_vocab_table(Schemes),
 				ButtonsBottom
@@ -212,7 +223,7 @@ html_new(Schemes) -->
 
 html_new(_) -->
 	{
-	 http_location_by_id(http_eq, This),
+	 http_location_by_id(http_amalgame_main_page, This),
 	 http_link_to_id(cliopatria_openid:login_page,
 			 ['openid.return_to'(This)], Login)
 	},
@@ -291,11 +302,11 @@ html_open(Alignments) -->
 	},
 	html_acc_item(open,
 		      'edit/delete pre-loaded alignment strategy',
-		      [ form(action(location_by_id(http_eq_select)),
+		      [ form(action(location_by_id(http_ag_form_select_strategy)),
 			     [
 				 ButtonsTop,
 				 \html_strategy_table(Alignments,
-						       [linkto(http_eq_build)]),
+						       [linkto(http_ag_build)]),
 				 ButtonsBottom
 
 			     ])
@@ -375,7 +386,7 @@ html_scheme_labels([S|Ss]) -->
 
 html_strategy_name(Graph, Options) -->
 	{ graph_label(Graph, Label),
-	  option(linkto(LinkTo), Options, http_eq_build),
+	  option(linkto(LinkTo), Options, http_ag_build),
 	  http_link_to_id(LinkTo, [alignment(Graph)], Link)
 	},
 	html(a([href(Link)],Label)).
@@ -397,7 +408,7 @@ html_reference -->
 	},
 	html_acc_item(reference,
 		      'upload existing/reference alignment',
-		      form([action(location_by_id(http_eq_ref_file_upload)),
+		      form([action(location_by_id(http_ag_form_upload_alignment)),
 			    method('POST'),
 			    enctype('multipart/form-data') ],
 			   [ p(['Upload an exisiting alignment to build upon, ',
@@ -419,14 +430,16 @@ html_import -->
 	},
 	html_acc_item(import,
 		      'upload strategy or clone execution trace',
-		      [ form(action(location_by_id(http_eq_upload_url)),
+		      [ form([action(location_by_id(http_ag_form_upload_strategy_resource)),
+			      method('POST')
+			     ],
 			     [ 'URL: ',
 			       input([type(text), name(url), value('http://'),
 				      autocomplete(off), size(50)
 				     ]),
 			       input([type(submit), value('Upload')])
 			   ]),
-			form([action(location_by_id(http_eq_upload_data)),
+			form([action(location_by_id(http_ag_form_upload_strategy_data)),
 			      method('POST'),
 			      enctype('multipart/form-data')
 			     ],
@@ -552,7 +565,7 @@ cp_strategy_from_tmp(Request, TmpGraph) :-
 	build_redirect(Request, [Strategy]).
 
 build_redirect(Request, [Strategy|_]) :-
-	http_link_to_id(http_eq_build, [alignment(Strategy)], Redirect),
+	http_link_to_id(http_ag_build, [alignment(Strategy)], Redirect),
 	http_redirect(moved, Redirect, Request).
 
 delete_redirect(Request, Strategies) :-
@@ -565,7 +578,7 @@ delete_redirect(Request, Strategies) :-
 		   rdf_unload_graph(Strategy)
 	       )
 	      ),
-	http_link_to_id(http_eq, [], Redirect),
+	http_link_to_id(http_amalgame_main_page, [], Redirect),
 	http_redirect(moved, Redirect, Request).
 
 merge_redirect(Request, Strategies) :-
@@ -582,7 +595,7 @@ merge_redirect(Request, Strategies) :-
 	merge_strategy_nodes(Strategies, New),
 
 	% Redirect to builder
-	http_link_to_id(http_eq_build, [alignment(New)], Redirect),
+	http_link_to_id(http_ag_build, [alignment(New)], Redirect),
 	http_redirect(moved, Redirect, Request).
 
 merge_strategy_nodes([], _New) :- !.

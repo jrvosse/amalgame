@@ -10,7 +10,6 @@
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(amalgame/amalgame_modules)).
 :- use_module(library(amalgame/ag_stats)).
-:- use_module(library(amalgame/ag_provenance)).
 :- use_module(library(amalgame/voc_stats)).
 :- use_module(library(amalgame/caching)).
 :- use_module(library(amalgame/util)).
@@ -29,7 +28,7 @@
 :- rdf_meta
 	label_stats(r, r, r, -).
 
-%%	http_eq_info(+Request)
+%%	http_node_info(+Request)
 %
 %	Emit HTML snippet with information about an amalgame URI
 

@@ -258,7 +258,7 @@ YUI.add('builder', function(Y) {
 		_onEvaluate : function(e) {
 			var focus = e.data.focus;
 			if(focus) {
-				window.location =	this.get("paths").eq_evaluate
+				window.location =	this.get("paths").ag_evaluate
 					+'?alignment='+encodeURIComponent(this.get("alignment"))
 					+"&focus="+encodeURIComponent(focus);
 			}

@@ -87,7 +87,7 @@ html_page(Alignment, Focus) :-
 			[
 			  \html_requires(css('eq.css')),
 			 div(class('yui3-skin-sam yui-skin-sam'),
-			      [ \html_eq_header(
+			      [ \html_ag_header(
 				     [active(http_ag_publish_form),
 				      focus(Focus),
 				      strategy(Alignment)]),

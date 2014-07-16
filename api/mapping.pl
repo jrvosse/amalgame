@@ -1,4 +1,4 @@
-:- module(eq_mapping,
+:- module(ag_mapping,
 	  [
 	  ]).
 
@@ -342,8 +342,8 @@ html_evidences([E|Es],Source,Target) -->
 html_evidence_graph([],_,_) --> !.
 html_evidence_graph(Graph,Node,Layout) -->
 	graphviz_graph(evidence_graph(Graph,Node),
-		       [shape_hook(eq_mapping:evidence_shape),
-			label_hook(eq_mapping:evidence_label),
+		       [shape_hook(ag_mapping:evidence_shape),
+			label_hook(ag_mapping:evidence_label),
 			graph_attributes([rankdir(Layout)])]).
 
 

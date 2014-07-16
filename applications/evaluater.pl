@@ -1,4 +1,4 @@
-:- module(eq_evaluater,
+:- module(ag_evaluater,
 	  []).
 
 :- use_module(library(semweb/rdfs)).
@@ -22,17 +22,17 @@ amalgame_module(amalgame:'EvaluationProcess').
 :- multifile
 	ag:menu_item/2.
 
-ag:menu_item(210=http_eq_evaluate, 'evaluate').
+ag:menu_item(210=http_ag_evaluate, 'evaluate').
 
 % http handlers for this applications
 
-:- http_handler(amalgame(evaluate), http_eq_evaluate, []).
+:- http_handler(amalgame(evaluate), http_ag_evaluate, []).
 
-%%	http_eq_evaluate(+Request)
+%%	http_ag_evaluate(+Request)
 %
 %	Emit html page with for the alignment analyser.
 
-http_eq_evaluate(Request) :-
+http_ag_evaluate(Request) :-
 	authorized(write(default, _)),
 	http_parameters(Request,
 			[ alignment(Alignment,
@@ -61,7 +61,7 @@ html_page(Alignment, Mapping) :-
 				       'cssgrids/grids-min.css',
 				       'cssfonts/fonts-min.css'
 				      ]),
-			  \html_eq_header([active(http_eq_evaluate),
+			  \html_ag_header([active(http_ag_evaluate),
 					   strategy(Alignment),
 					   focus(Mapping)
 					  ]),

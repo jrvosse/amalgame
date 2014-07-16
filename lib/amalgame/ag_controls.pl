@@ -3,7 +3,7 @@
 	    html_parameter_form//1,
 	    module_input_type/2,
 	    module_special_type/2,
-	    status_option/1, % Move to eq_util?
+	    status_option/1, % Move to amalgame(util)?
 	    html_options//2  % idem
 	  ]).
 
