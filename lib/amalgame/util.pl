@@ -61,9 +61,9 @@ mint_node_uri(Strategy, Type, URI) :-
 	!.
 
 :- multifile
-	eq:menu_item/2.
+	ag:menu_item/2.
 
-eq:menu_item(900=Handler, Label) :-
+ag:menu_item(900=Handler, Label) :-
 	(   (logged_on(User, X), X \== User)
 	->  fail
 	;   Handler = cliopatria_openid:login_page,
@@ -80,7 +80,7 @@ has_write_permission :-
 
 html_eq_header(Options) -->
 	{
-	  findall(Rank-(Path-Label), eq:menu_item(Rank=Path, Label), Items0),
+	  findall(Rank-(Path-Label), ag:menu_item(Rank=Path, Label), Items0),
 	  keysort(Items0, ItemsSorted),
 	  pairs_values(ItemsSorted, Items)
 	},

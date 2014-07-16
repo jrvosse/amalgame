@@ -1,26 +1,22 @@
 :- module(eq_analyser,
 	  []).
 :- use_module(library(semweb/rdf_db)).
-:- use_module(library(semweb/rdf_label)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_json)).
-:- use_module(library(http/http_host)).
 :- use_module(library(http/http_path)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/html_write)).
-:- use_module(library(http/js_write)).
 :- use_module(library(yui3_beta)).
-:- use_module(user(user_db)).
 
 :- use_module(library(amalgame/irr)).
 :- use_module(library(amalgame/util)).
 
 :- multifile
-	eq:menu_item/2.
+	ag:menu_item/2.
 
 % temp commented out
-% eq:menu_item(240=http_eq_analyse, 'analyse').
+% ag:menu_item(240=http_eq_analyse, 'analyse').
 
 % http handlers for this applications
 

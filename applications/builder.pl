@@ -21,12 +21,12 @@
 :- use_module(api(ag_process)).
 
 :- multifile
-	eq:menu_item/2.
+	ag:menu_item/2.
 
 % http handlers for this applications
 :- http_handler(amalgame(build), http_eq_build, []).
 
-eq:menu_item(200=http_eq_build, 'build').
+ag:menu_item(200=http_eq_build, 'build').
 
 
 backward_compatibilty_fixes(Strategy) :-
