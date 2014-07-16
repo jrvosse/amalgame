@@ -209,10 +209,7 @@ node_prop(S, R, secondary_inputs, Inputs) :-
 
 		), Inputs).
 node_prop(S, R, local, Local) :-
-	rdf(S, amalgame:publish_ns, NS, S),
-	sub_atom(R, 0, L, _, NS),
-	sub_atom(R, L, _, 0, Local).
-
+	map_localname(S,R,Local).
 node_prop(S, R, status, Status) :-
 	rdf(R, amalgame:status, Status, S).
 node_prop(S, R, default_relation, Relation) :-
@@ -224,7 +221,7 @@ node_prop(_, R, link, Link) :-
 	resource_link(R, Link).
 node_prop(S, R, abbrev, Nick) :-
 	rdfs_individual_of(R, amalgame:'Mapping'),
-	nickname(S,R,Nick).
+	map_nickname(S,R,Nick).
 node_prop(S, R, namespace, NS) :-
 	rdf(R, amalgame:publish_ns, NS, S).
 

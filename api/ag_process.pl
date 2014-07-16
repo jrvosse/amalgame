@@ -230,7 +230,7 @@ assert_output(Process, Type, Strategy, Input, SecInputs, Strategy) :-
 		   new_output(OutputClass, Process, amalgame:wasGeneratedBy, Input, Strategy, OutputUri),
 		   findall(Nick,
 			   (	member(Id, InSet),
-				nickname(Strategy,Id,Nick)
+				map_nickname(Strategy,Id,Nick)
 			   ),
 			   Nicks),
 		   atomic_list_concat(Nicks, AllNicks),
@@ -260,7 +260,7 @@ new_output(Type, Process, P, Input, Strategy, OutputURI) :-
 	),
 
 	assert_relation(OutputURI, Input, Strategy),
-	nickname(Strategy, OutputURI, _Nick).
+	map_nickname(Strategy, OutputURI, _Nick).
 
 assert_relation(Output, Input, Strategy) :-
 	nonvar(Input),

@@ -1,12 +1,12 @@
 :- module(ag_map,
-	  [
-	   has_correspondence/2,    % align/3, MappingGraph URI
+	  [has_correspondence/2,    % align/3, MappingGraph URI
 	   has_correspondence_chk/2,
 	   remove_correspondence/2, % align/3, MappingGraph URI
 	   correspondence_source/2,
 	   correspondence_target/2,
 	   correspondence_evidence/2,
-	   nickname/3,             % +Strategy, +MappingGraph, ?Nickname
+	   map_nickname/3,             % +Strategy, +MappingGraph, ?Nickname
+	   map_localname/3,             % +Strategy, +MappingGraph, ?Localname
 	   nickname_clear_cache/0,
 
 	   augment_relations/5,
@@ -330,17 +330,22 @@ mat_alignment_graph([align(S,T,P)|As], Options) :-
         mat_alignment_graph(As, Options).
 
 
-%%	nickname(+Strategy, +Graph, ?Nickname) is det.
+%%	map_nickname(+Strategy, +Graph, ?Nickname) is det.
 %
 %	Unifies Nickname with the nickname of Graph in Strategy.
 %	Creates Nickname if Graph does not have one yet.
 
-nickname(Strategy, Graph, Nick) :-
+map_nickname(Strategy, Graph, Nick) :-
 	rdf(Graph,  amalgame:nickname, literal(Nick), Strategy),!.
-nickname(Strategy, Graph, Nick) :-
+map_nickname(Strategy, Graph, Nick) :-
 	nickname_cache(Strategy, Graph, Nick), !.
-nickname(Strategy, Graph, Nick) :-
+map_nickname(Strategy, Graph, Nick) :-
 	create_nickname(Strategy, Graph, '', Nick).
+
+map_localname(Strategy, Node, Local) :-
+	rdf(Strategy, amalgame:publish_ns, NS, Strategy),
+	sub_atom(Node, 0, L, _, NS),
+	sub_atom(Node, L, _, 0, Local).
 
 create_nickname(Strategy, Graph, Postfix, Nickname) :-
 	char_type(Nick, alpha),

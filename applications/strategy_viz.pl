@@ -213,7 +213,7 @@ amalgame_label(Alignment, Resource, Lang, MaxLen, Label) :-
 	truncate_atom(Text, MaxLen, Label0),
 	stats_label_list(Alignment, Resource, Stats),
 	(   rdfs_individual_of(Resource, amalgame:'Mapping')
-	->  nickname(Alignment, Resource, Abbreviation),
+	->  map_nickname(Alignment, Resource, Abbreviation),
 	    atomic_list_concat([Abbreviation, '.', Label0, '\n'|Stats], Label)
 	;   atomic_list_concat([Label0, '\n'|Stats], Label)
 	).

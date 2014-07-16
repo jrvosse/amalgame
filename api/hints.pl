@@ -8,6 +8,7 @@
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(amalgame/caching)).
 :- use_module(library(amalgame/voc_stats)).
+:- use_module(library(amalgame/map)).
 
 :- http_handler(amalgame(data/hint), http_json_hint, []).
 
@@ -118,9 +119,12 @@ find_hint(Strategy, Context, Hint) :-
 	!,
 	% this is typically the case for a reloaded strategy,
 	% when no mappings have been expanded yet. Let's expand a random endpoint mapping.
-
 	is_endpoint(Strategy, Mapping),
-	format(atom(Text), 'Step 1: analyze. No mappings have been computed to analyze.  You can click on a mapping like ~p to compute its results.', [Mapping]),
+	map_nickname(Strategy, Mapping, Nickname),
+	map_localname(Strategy, Mapping, Localname),
+	format(atom(Text),
+	       'Step 1: analyze. No mappings have been computed to analyze.  You can click on a mapping like \'~w.~w\' to compute its results.',
+	       [Nickname, Localname]),
 	Hint = json([event(nodeSelect),
 		     data(json([focus(Mapping),
 				uri(Mapping),
