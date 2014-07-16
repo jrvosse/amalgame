@@ -11,6 +11,17 @@
 
 :- http_handler(amalgame(data/hint), http_json_hint, []).
 
+%%	http_json_hint(+Request) is det.
+%
+%	Return a json term Hint that represents an textual hint for the
+%	user. The hint describes a potential next step to extend the
+%	current alignment Strategy, given the most recent action and
+%	current focus node.
+%	In addition to the textual representation the Hint object also
+%	contains sufficient machine-readable data so that the javascript
+%	user interface can fire the associated event and execute the
+%	hint automatically if requested by the user.
+
 http_json_hint(Request) :-
 	http_parameters(Request,
 			[ strategy(Strategy,
@@ -33,12 +44,17 @@ http_json_hint(Request) :-
 	),
 	reply_json(Hint).
 
-find_hint(Strategy, Context, Hint) :-
-% Initial phase: no mappings created, no vocab selected.
-% Focus is on the strategy node.
-% Advise to select the smallest vocab
-% FIX ME: Assumes only two vocabs are being aligned.
 
+%%	find_hint(+Strategy, +Context, -Hint) is nondet.
+%
+%	The predicate is implemented by a number of alternatives, each
+%	representing a different phase in the strategy.
+
+%       Initial phase: no mappings created, no vocab selected.
+%	Focus is on the strategy node. Advise to select the smallest
+%	vocab FIX ME: Assumes only two vocabs are being aligned.
+
+find_hint(Strategy, Context, Hint) :-
 	option(focus(Focus), Context),
 	Focus == Strategy,
 	\+ rdf(_, rdf:type, amalgame:'Mapping',Strategy),
