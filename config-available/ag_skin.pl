@@ -80,7 +80,9 @@ user:body(amalgame(app), Body) -->
 			    'cssfonts/fonts-min.css'
 			   ]),
 
-	       body(class(['yui-skin-sam', cliopatria]),
+	       body(class(['yui3-skin-sam',
+			   'yui-skin-sam',
+			   cliopatria]),
 		    [ Body
 		    ]),
 	       \server_address(amalgame)
