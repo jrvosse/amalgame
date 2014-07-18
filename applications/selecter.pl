@@ -22,7 +22,11 @@
 :- use_module(applications(skos_browser)).
 
 % main http handler for amalgame:
-:- http_handler(amalgame(.),         http_amalgame_main_page, []).
+:- http_handler(amalgame(.), http_amalgame_main_page, []).
+
+% Backward compatibility
+:- http_handler(amalgame(eq),	    http_redirect(moved, amalgame(.)), []).
+:- http_handler(amalgame(app/main), http_redirect(moved, amalgame(.)), []).
 
 % handlers for the different forms on the main page.
 % most handle the form request and then redirect to some other page,
@@ -33,11 +37,7 @@
 :- http_handler(amalgame(form/data),      http_ag_form_upload_strategy_data, []).
 :- http_handler(amalgame(form/reference), http_ag_form_upload_alignment, []).
 
-% Backward compatibility
-:- http_handler(amalgame(eq),         http_redirect(moved, amalgame(.)), []).
-:- http_handler(amalgame(app/main),   http_redirect(moved, amalgame(.)), []).
-
-%%	http_amalgame_main_page(+Request) is det.
+%%      http_amalgame_main_page(+Request) is det.
 %
 %	Emit html page to start a new or select/upload an existing
 %	alignment strategy.
