@@ -78,18 +78,12 @@ http_ag_build(Request) :-
 %	application.
 
 html_page(Strategy, Focus) :-
-	reply_html_page(equalizer(main),
+	reply_html_page(amalgame(app),
 			[ title(['Align vocabularies'])
 			],
-			[ \html_requires(css('eq.css')),
-			  \html_requires(css('builder.css')),
+			[ \html_requires(css('builder.css')),
 			  \html_requires(css('skosbrowser.css')),
 			  \html_requires(css('columnbrowser.css')),
-			  \yui3_combo(yui3,
-				      ['cssreset/reset-min.css',
-				       'cssgrids/grids-min.css',
-				       'cssfonts/fonts-min.css'
-				      ]),
 			  div(class('yui3-skin-sam yui-skin-sam'),
 			      [ \html_ag_header([
 				     active(http_ag_build),

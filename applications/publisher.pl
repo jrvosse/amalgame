@@ -81,12 +81,10 @@ html_page(Alignment, Focus) :-
 	rdf_equal(amalgame:final, DefaultStatus),
 	supported_map_relations(MapRelations),
 	rdf_equal(skos:closeMatch, DefaultRelationIfNoneGiven),
-	reply_html_page(equalizer(main),
+	reply_html_page(amalgame(app),
 			[ title(['Align vocabularies'])
 			],
-			[
-			  \html_requires(css('eq.css')),
-			 div(class('yui3-skin-sam yui-skin-sam'),
+			[ div(class('yui3-skin-sam yui-skin-sam'),
 			      [ \html_ag_header(
 				     [active(http_ag_publish_form),
 				      focus(Focus),

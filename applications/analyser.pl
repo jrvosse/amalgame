@@ -40,21 +40,14 @@ http_ag_analyse(Request) :-
 	html_page(Alignment, Mapping).
 
 html_page(Alignment, Mapping) :-
-	reply_html_page(equalizer(main),
+	reply_html_page(amalgame(app),
 			[ title(['Align vocabularies'])
 			],
-			[
-			 \yui3_combo(yui3,
-				      ['cssreset/reset-min.css',
-				       'cssgrids/grids-min.css',
-				       'cssfonts/fonts-min.css'
-				      ]),
-			 \html_requires(css('eq.css')),
-			 \html_requires(css('analyser.css')),
-			 \html_ag_header([active(http_ag_analyse),
-					 strategy(Alignment),
-					  focus(Mapping)
-					 ]),
+			[ \html_requires(css('analyser.css')),
+			  \html_ag_header([active(http_ag_analyse),
+					   strategy(Alignment),
+					   focus(Mapping)
+					  ]),
 			  div(class('yui3-skin-sam yui-skin-sam'),
 			      [ div([id(main), class('yui3-g')],
 				    [

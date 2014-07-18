@@ -1,6 +1,5 @@
 :- module(ag_skin, []).
 
-:- use_module(library(http/http_dispatch)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
 
@@ -10,10 +9,12 @@
 
 
 :- use_module(cliopatria(hooks)).
-% :- use_module(skin(cliopatria)).
+:- use_module(library(yui3_beta)).
+:- use_module(skin(cliopatria)).
 :- use_module(components(label)).
 % :- use_module(components(menu)).
-:- use_module(components(simple_search)).
+% :- use_module(components(simple_search)).
+
 
 :- set_setting_default(graphviz:format, svg).
 
@@ -64,35 +65,26 @@ cliopatria:predicate_order(P, 400) :-
 cliopatria:predicate_order(P, 405) :-
 	rdf_has(P, rdfs:isDefinedBy, 'http://purl.org/vocabularies/amalgame').
 
-user:body(amalgame(search), Body) -->
-	{
-	 http_link_to_id(http_amalgame_main_page, [], BackOfficeLink)
-	},
-	html_requires(cliopatria),
-	html(body(class(['yui-skin-sam', ag_search, cliopatria]),
-		  [
-		    div(class(ag_search),
-			[
-			 \simple_search_form,
-			 div(class(content), Body)
-			]),
-			br(clear(all)),
-			div(class(footer),
-			    \(cliopatria:server_address)
-			),
-		        div([class(backoffice)],
-			    [a(href(BackOfficeLink), 'back office')
-			    ])
-		  ])).
-
 % Amalgame is an extension of ClioPatria and uses the ClioPatria
 % skin.
 
 :- multifile
         user:body//2.
 
-user:body(user(Style), Body) -->
-        user:body(cliopatria(Style), Body).
+user:body(amalgame(app), Body) -->
+	html([ \html_requires(cliopatria),
+	       \html_requires(css('application.css')),
+	       \yui3_combo(yui3,
+			   ['cssreset/reset-min.css',
+			    'cssgrids/grids-min.css',
+			    'cssfonts/fonts-min.css'
+			   ]),
+
+	       body(class(['yui-skin-sam', cliopatria]),
+		    [ Body
+		    ]),
+	       \server_address(amalgame)
+	     ]).
 
 format_xsd_timestamp(L) -->
 	{

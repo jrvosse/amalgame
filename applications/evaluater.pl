@@ -50,17 +50,11 @@ http_ag_evaluate(Request) :-
 	html_page(Alignment, SelectedMapping).
 
 html_page(Alignment, Mapping) :-
-	reply_html_page(equalizer(main),
+	reply_html_page(amalgame(app),
 			[ title(['Align vocabularies'])
 			],
-			[ \html_requires(css('eq.css')),
-			  \html_requires(css('evaluater.css')),
+			[ \html_requires(css('evaluater.css')),
 			  \html_requires(css('gallery-paginator.css')),
-			  \yui3_combo(yui3,
-				      ['cssreset/reset-min.css',
-				       'cssgrids/grids-min.css',
-				       'cssfonts/fonts-min.css'
-				      ]),
 			  \html_ag_header([active(http_ag_evaluate),
 					   strategy(Alignment),
 					   focus(Mapping)
