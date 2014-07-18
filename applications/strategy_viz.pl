@@ -19,7 +19,7 @@
 :- use_module(library(amalgame/ag_evaluation)).
 :- use_module(library(amalgame/map)).
 
-:- http_handler(amalgame(strategy_viz), http_strategy_viz, []).
+:- http_handler(amalgame(api/strategy_viz), http_strategy_viz, []).
 
 :- setting(amalgame:secondary_input, oneof([show,hide]), show,
 	   'Show or hide arrows for amalgame:secondary_input').

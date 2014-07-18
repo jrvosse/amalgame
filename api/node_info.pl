@@ -20,7 +20,7 @@
 % http handlers for this applications
 
 :- http_handler(amalgame(api/node_info), http_node_info, []).
-:- http_handler(amalgame(analyse/deep_voc_stats), http_deep_voc_stats, []).
+:- http_handler(amalgame(data/deep_voc_stats), http_deep_voc_stats, []).
 
 :- setting(amalgame:vocabulary_statistics, oneof([all,fast]), fast,
 	   'Compute all (takes long) or only the cheap (fast) vocabulary statistics').

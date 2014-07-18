@@ -24,7 +24,7 @@
 	ag:menu_item/2.
 
 % http handlers for this applications
-:- http_handler(amalgame(build), http_ag_build, []).
+:- http_handler(amalgame(app/build), http_ag_build, []).
 
 ag:menu_item(200=http_ag_build, 'build').
 

@@ -21,8 +21,8 @@
 	   'Default namespace to use on alignment results. Can be changed later.').
 
 % http handlers for this applications
-:- http_handler(amalgame(publish),      http_ag_publish, []).
-:- http_handler(amalgame(publish_form), http_ag_publish_form, []).
+:- http_handler(amalgame(app/publish),	http_ag_publish, []).
+:- http_handler(amalgame(form/publish), http_ag_publish_form, []).
 
 ag:menu_item(280=http_ag_publish_form, 'publish').
 

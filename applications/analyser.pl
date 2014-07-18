@@ -20,8 +20,8 @@
 
 % http handlers for this applications
 
-:- http_handler(amalgame(analyse), http_ag_analyse, []).
-:- http_handler(amalgame(analyse/agreement), http_agreement, []).
+:- http_handler(amalgame(app/analyse), http_ag_analyse, []).
+:- http_handler(amalgame(data/agreement), http_agreement, []).
 
 %%	http_ag_analyse(+Request) is det
 %

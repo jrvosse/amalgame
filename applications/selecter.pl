@@ -19,7 +19,6 @@
 :- use_module(library(amalgame/util)).
 :- use_module(library(amalgame/voc_stats)).
 :- use_module(library(amalgame/ag_provenance)).
-
 :- use_module(applications(skos_browser)).
 
 % main http handler for amalgame:
@@ -35,7 +34,8 @@
 :- http_handler(amalgame(form/reference), http_ag_form_upload_alignment, []).
 
 % Backward compatibility
-:- http_handler(amalgame(eq),        http_redirect(moved, amalgame(.)), []).
+:- http_handler(amalgame(eq),         http_redirect(moved, amalgame(.)), []).
+:- http_handler(amalgame(app/main),   http_redirect(moved, amalgame(.)), []).
 
 %%	http_amalgame_main_page(+Request) is det.
 %

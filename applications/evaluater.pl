@@ -26,7 +26,7 @@ ag:menu_item(210=http_ag_evaluate, 'evaluate').
 
 % http handlers for this applications
 
-:- http_handler(amalgame(evaluate), http_ag_evaluate, []).
+:- http_handler(amalgame(app/evaluate), http_ag_evaluate, []).
 
 %%	http_ag_evaluate(+Request)
 %
