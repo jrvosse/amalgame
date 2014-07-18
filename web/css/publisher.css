@@ -1,0 +1,9 @@
+.publisher div#main {
+	background-color: #C2C2C2;
+}
+.publisher form {
+	margin: 1em;
+	padding: 1em;
+	border: 1px solid #808080;
+	background-color: white;
+}
