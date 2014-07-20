@@ -79,7 +79,8 @@ user:body(amalgame(app), Body) -->
 			    'cssgrids/grids-min.css',
 			    'cssfonts/fonts-min.css'
 			   ]),
-
+	       meta([name(viewport),
+                   content('width=device-width, initial-scale=1')]),
 	       body(class(['yui3-skin-sam',
 			   'yui-skin-sam',
 			   cliopatria]),
