@@ -15,12 +15,9 @@ YUI.add('mapping', function(Y) {
 	}
 	Mapping.NAME = "mapping";
 	Mapping.ATTRS = {
-		alignment : {
-			value: null
-		},
- 		selected : {
-			value: null
-		},
+		alignment : { value: null },
+ 		selected : { value: null },
+ 		builder : { value: null },
 		paths:{
 			value:{
 				mapping:"/amalgame/data/mapping",
@@ -84,9 +81,11 @@ YUI.add('mapping', function(Y) {
 
 		_initDetail : function() {
 			this.detailOverlay = new Y.Overlay({
-				srcNode:NODE_DETAIL,
+				id: "detail_overlay",
+			        srcNode:NODE_DETAIL,
 				visible:false,
-				width:"80%",
+				width: '85%',
+				height:'95%',
 				align:{points:[Y.WidgetPositionAlign.TC, Y.WidgetPositionAlign.TC]}
 			}).render();
 			NODE_DETAIL.removeClass("hidden");
@@ -177,18 +176,11 @@ YUI.add('mapping', function(Y) {
 		},
 
 		_fetchDetail : function() {
+			var builder = this.get('builder');
 			var overlay = this.detailOverlay,
 				node = this._selectedRow,
 				server = this.get("paths").cinfo;
 
-			// position the overlay below the currently selected row
-			//overlay.set("width", node.get("offsetWidth"));
-			//overlay.set("align", {
-			//node:node,
-			//points:[Y.WidgetPositionAlign.TR, Y.WidgetPositionAlign.BR]
-			//});
-
-			// call the server
 			var data = {
 				alignment:this.get("alignment"),
 				mapping:this.get("selected").uri,
@@ -202,20 +194,11 @@ YUI.add('mapping', function(Y) {
 				on:{success:function(e,o) {
 						NODE_CONCEPTS.setContent(o.responseText);
 						overlay.set("visible", true);
+						builder.onWindowResize();
 					}
 				}
 			});
 		}
-
-
-/*
-						target.all(".moretoggle").on("click", function(e) {
-							p = e.currentTarget.get("parentNode");
-							p.all(".moretoggle").toggleClass("hidden");
-							p.one(".morelist").toggleClass("hidden");
-						})
-*/
-
 	});
 
 	Y.Mapping = Mapping;

@@ -47,12 +47,12 @@ YUI.add('builder', function(Y) {
 			this.readonly = (this.get('readonly') != "false"); // string/boolean
 
 			// initalize the different modules
-			this._initLayout();
 			this._initGraph();
 			this._initControls();
 			this._initInfo();
 			this._initMapping();
 			this._initVocabulary();
+			this._initLayout();
 
 			// handlers for the controls
 			if (!this.readonly) {
@@ -92,37 +92,48 @@ YUI.add('builder', function(Y) {
 			this.mapping.set("selected", selected);
 			this.vocabulary.set("selected", selected);
 		},
-		_initLayout : function() {
-			var oSelf = this,
-				controls = Y.one("#controls"),
-				bottom = Y.one("#bottom"),
-				graph = Y.one("#graph");
-			
-			function windowResize() {
+
+		onWindowResize : function() {
+			Y.log('onWindowResize');
+			var oSelf = this;
+			function _onWindowResize() {
+				var controls = Y.one("#controls");
+				var bottom = Y.one("#bottom");
+				var graph = Y.one("#graph");
 				var graphWrapper = graph.get("parentNode"),
+					evidences = Y.one(".evidences"),
 					contentHeight = oSelf._contentHeight(),
 					graphHeight = contentHeight - (bottom.get("offsetHeight")+10);
+					evHeight = 0.97 * contentHeight - 360;
 
 				graph.setStyle("height", graphHeight);
 				graphWrapper.setStyle("height", graphHeight);
 				graph.setStyle("width", "100%");
 				graphWrapper.setStyle("width", "100%");
 				controls.setStyle("height", contentHeight);
+				if (evidences) {
+					Y.log(evHeight);
+					evidences.setStyle("max-height", evHeight);
+				} else {
+					Y.log(evidences);
+				}
 			}
+			Y.detach("windowresize", _onWindowResize);
+			Y.on("windowresize", _onWindowResize);
+			_onWindowResize();
+	    	},
 			
+		_initLayout : function() {
 			// graph node is resizable in height
 			var resize = new Y.Resize({
-		        node: '#graph',
+		        	node: '#graph',
 				handles: 'b',
 				wrap: true
-		    });
+		    	});
 			resize.after("resize", this._onGraphResize, this);
 			resize.after("end", this._onGraphResize, this);
-			
-			//			
-			Y.on("windowresize", windowResize);
-			windowResize();
 
+			this.onWindowResize();
 		},
 
 		_initGraph : function() {
@@ -155,6 +166,7 @@ YUI.add('builder', function(Y) {
 
 		_initMapping : function() {
 			this.mapping = new Y.Mapping({
+				builder: this,
 				paths: this.get("paths"),
 				alignment: this.get("alignment"),
 				selected: this.get("selected")
