@@ -260,13 +260,20 @@ img.explain {
 }
 
 /* overlay */
+
 #detail {
 	border: 1px solid #444;
 	background-color: #DDD;
+	height: 100%;
 }
 #detail.hidden {
 	display: none;
 }
+
+#detail form {
+	height: 80%;
+}
+
 #detail .yui3-widget-hd {
 	background: url("http://yui.yahooapis.com/3.0.0/build/assets/skins/sam/sprite.png") repeat-x scroll 0 -1400px transparent;
 	line-height:1.4em;
@@ -355,6 +362,13 @@ img.explain {
 }
 .resource-info .hidden {
 	display: none;
+}
+
+.evidences {
+	overflow: auto;
+	border-width: 0px 0px 1px 0px;
+	border-style: solid;
+	border-color: #888;
 }
 
 .evidence {
