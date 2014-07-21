@@ -11,9 +11,11 @@
 :- use_module(library(amalgame/util)).
 
 :- use_module(user(user_db)).
+:- use_module(components(amalgame/correspondence)).
 
+ % need http handlers of
 :- use_module(api(node_info)).
-:- use_module(api(mapping)). % need http_data_mapping handler
+:- use_module(api(mapping)).
 
 :- public amalgame_module/1.
 
@@ -87,34 +89,17 @@ html_sidebar -->
 
 html_overlay -->
 	html(form([div(class('yui3-widget-bd'),
-		       [ div(class(buttons), \html_buttons),
-			 div([class(concepts), id(concepts)], [])
+		       [
+			   div(class(options), \html_correspondence_options),
+			   div(class(buttons), \html_correspondence_buttons),
+			   div([class(concepts), id(concepts)], [])
 		       ]),
 		   div(class('yui3-widget-ft'),
 		       [ div(class(controls),
-			     [ div(class(buttons), \html_buttons),
-			       div(class(options), \html_options)
+			     [ div(class(buttons), \html_correspondence_buttons)
 			     ])
 		       ])
 		  ])).
-
-html_options -->
-	html([ 'include all correspondences with the same: ',
-	       input([type(checkbox), id(allsources), checked, autocomplete(off)]),
-	       label(' source'),
-	       input([type(checkbox), id(alltargets), checked, autocomplete(off)]),
-	       label(' target')
-	     ]).
-
-html_buttons -->
-	html([
-	       button([type(button), class(setall)], 'apply to all'),
-	       button([type(button), class(cancel)], cancel),
-	       button([type(button), class(submit)], submit),
-	       button([type(button), class(prev)], prev),
-	       button([type(button), class(next)], next)
-	     ]).
-
 
 %%	yui_script(+Graph)
 %
@@ -132,11 +117,11 @@ yui_script(Alignment, Mapping) -->
 	     ],
 	     Includes,
 	     [ \yui3_new(eq, 'Y.Evaluater',
-			 json([alignment(Alignment),
-			       paths(json(Paths)),
-			       mappings(Mappings),
-			       selected(Mapping)
-			      ]))
+			 config{alignment:Alignment,
+			       paths:json(Paths),
+			       mappings:Mappings,
+			       selected:Mapping
+			       })
 	     ]).
 
 %%	js_path(+Key, +Server_Path)
