@@ -75,9 +75,9 @@ user:body(amalgame(app), Body) -->
 	html([ \html_requires(cliopatria),
 	       \html_requires(css('application.css')),
 	       \yui3_combo(yui3,
-			   ['cssreset/reset-min.css',
-			    'cssgrids/grids-min.css',
-			    'cssfonts/fonts-min.css'
+			   ['cssreset/cssreset-min.css',
+			    'cssgrids/cssgrids-min.css',
+			    'cssfonts/cssfonts-min.css'
 			   ]),
 	       meta([name(viewport),
                    content('width=device-width, initial-scale=1')]),
