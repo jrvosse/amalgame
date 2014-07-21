@@ -94,7 +94,6 @@ YUI.add('builder', function(Y) {
 		},
 
 		onWindowResize : function() {
-			Y.log('onWindowResize');
 			var oSelf = this;
 			function _onWindowResize() {
 				var controls = Y.one("#controls");
@@ -112,10 +111,7 @@ YUI.add('builder', function(Y) {
 				graphWrapper.setStyle("width", "100%");
 				controls.setStyle("height", contentHeight);
 				if (evidences) {
-					Y.log(evHeight);
 					evidences.setStyle("max-height", evHeight);
-				} else {
-					Y.log(evidences);
 				}
 			}
 			Y.detach("windowresize", _onWindowResize);
