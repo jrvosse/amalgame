@@ -42,11 +42,11 @@ YUI.add('evaluater', function(Y) {
 			}
 		},
 		relations: {
-	        value: {},
+			value: {},
 			validator: function(val) {
 				return Lang.isObject(val)
 			}
-	    },
+		},
 		allsources: {
 			value: false
 		},
@@ -193,7 +193,7 @@ YUI.add('evaluater', function(Y) {
 
 		_getSelection : function() {
 			var cs = [];
-			Y.all(".relations").each(function(node) {
+			Y.all(".manualfixes").each(function(node) {
 				var source = node.one("input[name=source]").get("value"),
 					target = node.one("input[name=target]").get("value"),
 					checked = node.one("input:checked"),
