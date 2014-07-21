@@ -28,11 +28,13 @@
 	   'Minimum execution time to cache intermediate \c
 	   results, defaults to 0.0, caching everything').
 
+
 user:message_hook(make(done(_)), _, _) :-
 	debug(ag_expand, 'Flushing mapping statistics cache after running make/0', []),
 	flush_stats_cache(_),
 	nickname_clear_cache,
 	fail.
+
 user:message_hook(make(done(_)), _, _) :-
 	debug(ag_expand, 'Flushing expand mapping cache after running make/0', []),
 	flush_expand_cache(_),

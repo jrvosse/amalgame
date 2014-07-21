@@ -335,33 +335,31 @@ compute_depth_stats(Voc, depth(Stats)) :-
 		       findall(Concept, vocab_member(Concept, Voc), Concepts),
 		       maplist(concept_depth, Concepts, Depths),
 		       sort(Depths, SortedDepths),
-		       list_five_number_summary(SortedDepths, Stats)
+		       list_five_number_summary_dict(SortedDepths, Stats)
 		   )
 		  ).
 
-compute_branch_stats(Voc, branch([Tops|Stats])) :-
+compute_branch_stats(Voc, branch(Stats)) :-
 	voc_property(Voc, depth(_)), % ensure basic depth stats for voc have been computed
 	rdf(Voc, amalgame:nrOfTopConcepts, literal(type(xsd:int, NrTops)), vocstats),
-	Tops = nrOfTopConcepts(NrTops),
 	with_mutex(Voc,
 		   (
 		       findall(Concept, vocab_member(Concept, Voc), Concepts),
 		       maplist(concept_children_count, Concepts, Children),
 		       sort(Children, ChildrenS),
-		       list_five_number_summary(ChildrenS, Stats)
-		   )
-		  ).
+		       list_five_number_summary_dict(ChildrenS, Stats5),
+		       Stats = Stats5.put(nrOfTopConcepts, NrTops)
+		   )).
 
 concept_list_depth_stats([], _Voc, depth([])) :-!.
 concept_list_depth_stats(CList, Voc, depth(Stats)) :-
 	voc_property(Voc, depth(_), [compute(no)]), % only if basic depth stats for voc already computed
 	maplist(concept_depth, CList, Depths),
 	sort(Depths, DepthsSorted),
-	list_five_number_summary(DepthsSorted, Stats).
+	list_five_number_summary_dict(DepthsSorted, Stats).
 
 concept_list_branch_stats([], _Voc, branch([])) :-!.
-concept_list_branch_stats(CList, Voc, branch([Tops|Stats])) :-
-	Tops = nrOfTopConcepts(TopConceptsCount),
+concept_list_branch_stats(CList, Voc, branch(Stats)) :-
 	findall(TopConcept,
 		(   member(TopConcept, CList),
 		    \+ (parent_child_chk(Child, TopConcept),
@@ -373,7 +371,8 @@ concept_list_branch_stats(CList, Voc, branch([Tops|Stats])) :-
 	voc_property(Voc, depth(_)), % ensure basic depth stats for voc have been computed
 	maplist(concept_children_count, CList, Children),
 	sort(Children, ChildrenSorted),
-	list_five_number_summary(ChildrenSorted, Stats).
+	list_five_number_summary_dict(ChildrenSorted, Stats5),
+	Stats = Stats5.put(nrOfTopConcepts,TopConceptsCount) .
 
 concept_depth(C, D) :-
 	 rdf(C, amalgame:depth, literal(type(xsd:int, D))),!.

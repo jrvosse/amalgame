@@ -61,7 +61,7 @@ http_deep_voc_stats(Request) :-
 	flush_dependent_caches(Voc, Strategy),
 	voc_property(Voc, depth(D), [compute(yes)]),
 	voc_property(Voc, branch(B), [compute(yes)]),
-	reply_json(json([url=Voc, depth=json(D), branch=json(B)])).
+	reply_json(json{url:Voc, depth:D, branch:B}).
 
 %%	html_prop_table(+Pairs)
 %

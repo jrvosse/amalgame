@@ -136,7 +136,7 @@ is_amalgame_property(P) :-
 
 empty_result(Strategy, M) :-
 	rdfs_individual_of(M, amalgame:'Mapping'),
-	stats_cache(M-Strategy, mstats(Stats)),
+	stats_cache(M-Strategy, Stats),
 	option(totalCount(0), Stats),!.
 
 empty_result(_Strategy,M) :-
@@ -223,14 +223,14 @@ stats_label_list(_Alignment, Resource, [Count]) :-
 	voc_property(Resource, numberOfConcepts(Count), [compute(no)]),
 	!.
 stats_label_list(Alignment, Resource, [IPercA]) :-
-	stats_cache(Resource-Alignment, mstats(Stats)),
+	stats_cache(Resource-Alignment, Stats),
 	option(inputPercentage(IPerc), Stats, 0),
 	IPerc > 1,
 	format(atom(IPercA), '~0f%', [IPerc]),
 	!.
 
 stats_label_list(Alignment, Resource, [ConceptStats]) :-
-	stats_cache(Resource-Alignment, mstats(Stats)),
+	stats_cache(Resource-Alignment, Stats),
 	option(sourcePercentageInput(SPerc), Stats, 0),
 	option(targetPercentageInput(TPerc), Stats, 0),
 	format(atom(ConceptStats), '~0f% ~0f%', [SPerc, TPerc]),

@@ -144,9 +144,12 @@ js_mappings(Strategy, Results) :-
 	findall(M-L,
 		mapping(Strategy, M, L),
 		Mappings),
-	findall(json([uri=M, label=L, stats=json(Stats)]),
+	findall(mapping_dict{uri:M,
+			     label:L,
+			     stats:StatsDict},
 		(   member(M-L, Mappings),
-		    stats_cache(M-Strategy, mstats(Stats))
+		    stats_cache(M-Strategy, StatsDict),
+		    is_dict(StatsDict, mapping_stats_dict)
 		),
 		Results).
 

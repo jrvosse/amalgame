@@ -35,7 +35,8 @@ mapping_counts_(URL, Strategy, Stats) :-
 	->  true
 	;   expand_node(Strategy, URL, _Mapping)
 	),
-	stats_cache(URL-Strategy, mstats(Stats)).
+	stats_cache(URL-Strategy, Stats),
+	is_dict(Stats, mapping_stats_dict).
 
 
 reference_counts(Id, Strategy, Stats) :-
@@ -59,22 +60,22 @@ mapping_stats(URL, Mapping, Strategy, Stats) :-
 	length(Mapping, MN),
 	length(Ss, SN),
 	length(Ts, TN),
-	Stats = mstats([
-		    totalCount(MN),
-		    sourceVoc(InputS),
-		    targetVoc(InputT),
-		    mappedSourceConcepts(SN),
-		    mappedTargetConcepts(TN),
-		    sourcePercentage(SPerc),
-		    targetPercentage(TPerc),
-		    source_depth(DSstats),
-		    target_depth(DTstats),
-		    source_child_stats(BSstats),
-		    target_child_stats(BTstats),
-		    sourcePercentageInput(SiPerc),
-		    targetPercentageInput(TiPerc),
-		    inputPercentage(IP)
-		]),
+	Stats = mapping_stats_dict{
+		    totalCount:MN,
+		    sourceVoc:InputS,
+		    targetVoc:InputT,
+		    mappedSourceConcepts:SN,
+		    mappedTargetConcepts:TN,
+		    sourcePercentage:SPerc,
+		    targetPercentage:TPerc,
+		    source_depth:DSstats,
+		    target_depth:DTstats,
+		    source_child_stats:BSstats,
+		    target_child_stats:BTstats,
+		    sourcePercentageInput:SiPerc,
+		    targetPercentageInput:TiPerc,
+		    inputPercentage:IP
+		},
 	(   mapping_vocab_sources(URL, Strategy, InputS, InputT)
 	->  voc_property(InputS, numberOfConcepts(SourceN)),
 	    voc_property(InputT, numberOfConcepts(TargetN)),

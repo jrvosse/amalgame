@@ -83,7 +83,7 @@ mapping_label(align(S, T, Prov), align(S,SLabel, T,TLabel, Relation)) :-
 %%	notation_ish(Concept, NotationIsh) is det.
 %
 %	Unify NotationIsh with a label extend by (notation).
-%	For notation, use the skos:notation or dcterms:identifier
+%	For notation, use the skos:notation or dc/dcterms:identifier
 notation_ish(Concept, NotationIsh) :-
 	rdf_display_label(Concept, Label),
 	(   (rdf(Concept, skos:notation, N)
@@ -279,7 +279,7 @@ html_correspondence(Source, Target, Evidence, Relations) -->
 			\html_relations(Relations, Relation)),
 		    input([type(text), id(target), class('yui3-u-1-5'),
 			   name(target), value(Target)]),
-		    div(class([comment, 'yui3-u-4-5']), % fix me: howto do 5-5?
+		    div(class([comment, 'yui3-u-1']),
 			['because: ',
 			 input([type(text), name(comment)], [])
 			])

@@ -325,4 +325,4 @@ is_result_of_process_type(Mapping, Type) :-
 % never expand/compute something.
 
 hints_mapping_counts(Id, Strategy, Stats) :-
-	stats_cache(Id-Strategy, mstats(Stats)).
+	stats_cache(Id-Strategy, Stats).
