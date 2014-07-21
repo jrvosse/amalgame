@@ -298,6 +298,7 @@ img.explain {
 #detail .manualfixes .comment {
 	display: inline-block;
 	text-align: center;
+	width: 100%;
 }
 #detail .options {
 	display: default;
