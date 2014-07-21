@@ -20,6 +20,8 @@
 :- use_module(api(virtual_concepts)).
 :- use_module(api(ag_process)).
 
+:- use_module(components(amalgame/correspondence)).
+
 :- multifile
 	ag:menu_item/2.
 
@@ -118,31 +120,16 @@ html_overlay -->
 		       'Correspondence details'
 		      ),
 		   div(class('yui3-widget-bd'),
-		       [ div(class('buttons up'), \html_buttons),
+		       [ div(class('buttons up'), \html_correspondence_buttons),
+			 div(class(options), \html_correspondence_options),
 			 div([class(concepts), id(concepts)], [])
 		       ]),
 		   div(class('yui3-widget-ft'),
 		       [ div(class(controls),
-			     [ div(class('buttons bottom'), \html_buttons),
-			       div(class(options), \html_options)
+			     [ div(class('buttons bottom'), \html_correspondence_buttons)
 			     ])
 		       ])
 		  ])).
-
-html_options -->
-	html([ 'include all correspondences with the same: ',
-	       input([type(checkbox), id(allsources), autocomplete(off)]),
-	       label(' source'),
-	       input([type(checkbox), id(alltargets), autocomplete(off)]),
-	       label(' target')
-	     ]).
-
-html_buttons -->
-	html([ input([type(button), class(cancel), value(cancel)]),
-	       input([type(button), class(submit), value(submit)]),
-	       input([type(button), class(prev), value(prev)]),
-	       input([type(button), class(next), value(next)])
-	     ]).
 
 %%	yui_script(+Graph)
 %
