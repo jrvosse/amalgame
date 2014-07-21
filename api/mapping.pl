@@ -263,8 +263,8 @@ html_correspondences([align(Source,Target,Evidence)|Cs], Relations) -->
 	html_correspondences(Cs, Relations).
 
 html_correspondence(Source, Target, Evidence, Relations) -->
-	{ %option(relation(Relation), Prov, '')
-	  Relation = ''
+	{ Relation = '',
+	  length(Evidence, EvLength)
 	},
 	html([div(class('yui3-g'),
 		  [ div(class('yui3-u-1-2'),
@@ -272,17 +272,22 @@ html_correspondence(Source, Target, Evidence, Relations) -->
 		    div(class('yui3-u-1-2'),
 			\html_resource_context(Target, Evidence))
 		  ]),
-	      div(class(evidences),
-		  \html_evidences(Evidence, Source, Target)
-		  ),
-	      div(class(relations),
-		  [ input([type(hidden), name(source), value(Source)]),
-		    input([type(hidden), name(target), value(Target)]),
-		    div(\html_relations(Relations, Relation)),
-		    div(class(comment), ['because: ',
+	      div(class([manualfixes, 'yui3-g']),
+		  [ input([type(text), id(source), class('yui3-u-1-5'),
+			   name(source), value(Source)]),
+		    div([class([relations, 'yui3-u-3-5'])],
+			\html_relations(Relations, Relation)),
+		    input([type(text), id(target), class('yui3-u-1-5'),
+			   name(target), value(Target)]),
+		    div(class([comment, 'yui3-u-4-5']), % fix me: howto do 5-5?
+			['because: ',
 			 input([type(text), name(comment)], [])
 			])
-		  ])
+		  ]),
+	      div(class(evcount),
+		  [ '~w individual motivations: '-(EvLength)]),
+	      div(class(evidences),
+		  \html_evidences(Evidence, Source, Target))
 	     ]).
 
 html_evidences([],_,_) --> !.

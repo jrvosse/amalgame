@@ -288,8 +288,16 @@ img.explain {
 #detail .yui3-widget-ft {
 	margin: 5px;
 }
-#detail .relations {
+#detail .manualfixes {
 	display: none;
+}
+#detail .manualfixes .relations {
+	display: inline-block;
+	text-align: center;
+}
+#detail .manualfixes .comment {
+	display: inline-block;
+	text-align: center;
 }
 #detail .options {
 	display: default;
@@ -300,7 +308,7 @@ img.explain {
 	padding: 5px;
 }
 #detail .buttons .submit {
-	display: none;
+	display: inline-block;
 }
 #detail .oquote,
 #detail .cquote {
@@ -366,7 +374,7 @@ img.explain {
 
 .evidences {
 	overflow: auto;
-	border-width: 0px 0px 1px 0px;
+	border-width: 1px 0px 1px 0px;
 	border-style: solid;
 	border-color: #888;
 }

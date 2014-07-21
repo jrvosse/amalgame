@@ -96,7 +96,16 @@
 #detail .yui3-widget-ft {
 	margin: 5px;
 }
-#detail .relations {
+#detail .manualfixes {
+	display: block;
+	padding: 5px;
+}
+#detail .manualfixes .relations {
+	display: inline-block;
+	text-align: center;
+}
+#detail .manualfixes .comment {
+	display: inline-block;
 	text-align: center;
 }
 #detail .options {
@@ -113,9 +122,6 @@
 #detail .l_lang,
 #detail .lang {
 	color: #777;
-}
-#detail .relations {
-	padding: 5px;
 }
 #detail .relation {
 	padding: 0 5px;

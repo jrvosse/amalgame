@@ -104,7 +104,7 @@ YUI.add('builder', function(Y) {
 					evidences = Y.one(".evidences"),
 					contentHeight = oSelf._contentHeight(),
 					graphHeight = contentHeight - (bottom.get("offsetHeight")+10);
-					evHeight = 0.97 * contentHeight - 360;
+					evHeight = 0.97 * contentHeight - 380;
 
 				graph.setStyle("height", graphHeight);
 				graphWrapper.setStyle("height", graphHeight);
