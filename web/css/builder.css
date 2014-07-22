@@ -288,9 +288,6 @@ img.explain {
 #detail .yui3-widget-ft {
 	margin: 5px;
 }
-#detail .manualfixes {
-	display: none;
-}
 #detail .manualfixes .relations {
 	display: inline-block;
 	text-align: center;
@@ -308,13 +305,10 @@ img.explain {
 	text-align: right;
 	padding: 5px;
 }
-#detail .buttons .submit {
-	display: inline-block;
-}
-#detail .oquote,
-#detail .cquote {
-	display: none;
-}
+/* do not show change stuff in builder, only for evaluater */
+#detail .manualfixes { display: none; }
+#detail .buttons .change { display: none; }
+
 #detail .l_lang,
 #detail .lang {
 	color: #777;

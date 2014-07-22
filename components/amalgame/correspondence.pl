@@ -14,9 +14,9 @@ html_correspondence_options -->
 	     ]).
 
 html_correspondence_buttons -->
-	html([ button([type(button), class(cancel), value(cancel)], 'cancel'),
-	       button([type(button), class(submit), value(submit)], 'submit'),
-	       button([type(button), class(setall)], 'apply to all'),
+	html([ button([type(button), class(cancel), value(cancel)], 'x'),
+	       button([type(button), class([change, submit]), value(submit)], 'submit'),
+	       button([type(button), class([change, setall])], 'apply to all'),
 	       button([type(button), class(prev), value(prev)], '<'),
 	       button([type(button), class(next), value(next)], '>')
 	     ]).
