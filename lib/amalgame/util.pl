@@ -105,7 +105,7 @@ amalgame_alignment(Alignment, Schemes) :-
 
 js_mappings(Strategy, Results) :-
 	findall(M-L,
-		mapping(Strategy, M, L),
+		mapping_label(Strategy, M, L),
 		Mappings),
 	findall(mapping_dict{uri:M,
 			     label:L,
@@ -116,7 +116,7 @@ js_mappings(Strategy, Results) :-
 		),
 		Results).
 
-mapping(Strategy, URI, Label) :-
+mapping_label(Strategy, URI, Label) :-
 	rdf(URI, rdf:type, amalgame:'Mapping',Strategy),
 	rdf_display_label(URI, Label).
 
