@@ -1,4 +1,4 @@
-YUI.add('selecter', function(Y) {
+YUI.add('startpage', function(Y) {
 	
 	var Lang = Y.Lang,
 		Node = Y.Node,
@@ -6,11 +6,11 @@ YUI.add('selecter', function(Y) {
 	
 	var	NODE_CONTENT 		= Y.one("#content");
 	
-	function Selecter(config) {
-		Selecter.superclass.constructor.apply(this, arguments);
+	function AmalgameStartPage(config) {
+		AmalgameStartPage.superclass.constructor.apply(this, arguments);
 	}
-	Selecter.NAME = "selecter";
-	Selecter.ATTRS = {
+	AmalgameStartPage.NAME = "startpage";
+	AmalgameStartPage.ATTRS = {
 	    strings: {
 	        value: {},
 			validator: function(val) {
@@ -19,7 +19,7 @@ YUI.add('selecter', function(Y) {
 	    }
 	};
 	
-	Y.extend(Selecter, Y.Base, {
+	Y.extend(AmalgameStartPage, Y.Base, {
 		
 		initializer: function(args) {
 			var paths = this.get("paths");
@@ -83,7 +83,7 @@ YUI.add('selecter', function(Y) {
 				
 	});
 	
-	Y.Selecter = Selecter;
+	Y.AmalgameStartPage = AmalgameStartPage;
 	
 }, '0.0.1', { requires: [
 	'node','base','event','anim',

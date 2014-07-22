@@ -1,4 +1,4 @@
-:- module(ag_main_page,
+:- module(ag_start_page,
 	  [html_schemes_only//0  % for backward compat with europeana demo
 	  ]).
 
@@ -167,7 +167,7 @@ html_main_page(_Request) :-
 	reply_html_page(cliopatria(main),
 			[ title(['Amalgame - strategies'])
 			],
-			[ \html_requires(css('selecter.css')),
+			[ \html_requires(css('startpage.css')),
 			  \yui3_combo(yui3,
 				      ['cssreset/cssreset-min.css',
 				       'cssgrids/cssgrids-min.css',
@@ -510,11 +510,11 @@ yui_script -->
 %
 %	YUI3 and application specific modules used in javascript.
 
-js_module(selecter, json([fullpath(Path),
+js_module(startpage, json([fullpath(Path),
 				    requires([node,base,event,anim,
 					      'gallery-node-accordion'])
 			  ])) :-
-	http_absolute_location(js('selecter.js'), Path, []).
+	http_absolute_location(js('startpage.js'), Path, []).
 
 
 %%	new_strategy(-StrategyURI, Options)

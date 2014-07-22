@@ -33,7 +33,7 @@ http:location(img,		 root(img),                  [ priority(-100) ]).
 :- rdf_load_library(dc).
 
 /* Now all namespaces should have been defined, we can load the amalgame code: */
-:- use_module(applications(selecter)).
+:- use_module(applications(startpage)).
 :- use_module(applications(builder)).
 :- use_module(applications(analyser)).
 :- use_module(applications(evaluater)).
