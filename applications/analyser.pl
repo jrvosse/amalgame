@@ -11,7 +11,7 @@
 
 :- use_module(library(amalgame/irr)).
 :- use_module(library(amalgame/util)).
-
+:- use_module(components(amalgame/util)).
 :- multifile
 	ag:menu_item/2.
 

@@ -1,19 +1,14 @@
 :- module(ag_controls,
-	  [ html_controls//0,
-	    html_parameter_form//1,
-	    module_input_type/2,
-	    module_special_type/2,
-	    status_option/1, % Move to amalgame(util)?
-	    html_options//2  % idem
+	  [ html_controls//0
 	  ]).
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
-:- use_module(library(semweb/rdf_label)).
 :- use_module(library(http/html_write)).
 :- use_module(library(amalgame/amalgame_modules)).
 :- use_module(library(amalgame/map)).
-
+:- use_module(library(amalgame/util)).
+:- use_module(components(amalgame/util)).
 
 :- rdf_meta
 	status_option(r).
@@ -121,16 +116,7 @@ html_node_props -->
 		      ])
 		   ])).
 
-html_options([],_) --> !.
-html_options([R|Rs], Default) -->
-	{ rdf_display_label(R, Label),
-	  (   R == Default
-	  ->  Selected = [selected(selected)]
-	  ;   Selected = []
-	  )
-	},
-	html(option([value(R) | Selected], Label)),
-	html_options(Rs, Default).
+
 
 html_select_control(Modules) -->
 	html(div(id(select),
@@ -245,69 +231,7 @@ html_accordion_item(Class, Header, Body) -->
 		 ])).
 
 
-%%	html_module_parameters(+ParameterList)
-%
-%	Emit html form components corresponding to Parameters.
 
-html_parameter_form([]) --> !.
-html_parameter_form([parameter(Name, Type, Default, Desc)|Ps]) -->
-	html(tr(title(Desc),
-		 [td(label(Name)),
-		  td(\input_value(Type, Default, Name))
-		  ])),
-	html_parameter_form(Ps).
-
-
-%%	input_value(+Type, +Value, +Name)// is det.
-%
-%	Emit an form-field for Value.
-
-:- multifile
-	input_item/5.	       % input_item(+Type, +Value, +Name)//
-
-input_value(Type, Value, Name) -->
-	(   input_item(Type, Value, Name)
-	->  []
-	;   builtin_input_item(Type, Value, Name)
-	).
-
-builtin_input_item(boolean, Value, Name) --> !,
-	builtin_input_item(oneof([true,false]), Value, Name).
-builtin_input_item(between(L,U), Value, Name) --> !,
-	html(input([ type(range),
-		     name(Name),
-		     min(L), max(U), value(Value)
-		   ])).
-builtin_input_item(oneof(List), Value, Name) --> !,
-	html(select([name(Name)], \oneof(List, Value))).
-builtin_input_item(uri, Value, Name) -->
-	{ rdf_global_id(NS:Local, Value),!
-	},
-	html(input([name(Name), value(NS+':'+Local)])).
-builtin_input_item(uri, Value, Name) -->
-	html(input([name(Name), value(Value)])).
-builtin_input_item(atom, Value, Name) --> !,
-	html(input([name(Name), value(Value)])).
-builtin_input_item(_, Value, Name) -->
-	{ format(string(S), '~q', [Value])
-	},
-	html(input([name(Name), value(S)])).
-
-oneof([], _) -->
-	[].
-oneof([H|T], Value) -->
-	(   {H == Value}
-	->  html([ option([selected(selected),value(H)], \mylabel(H)) ])
-	;   html([ option([                   value(H)], \mylabel(H)) ])
-	),
-	oneof(T, Value).
-
-mylabel(Value) -->
-	{ rdf_global_id(NS:Local, Value),!
-	},
-	html([NS, ':', Local]).
-mylabel(Value) -->
-	html(Value).
 %%	module_input_type(+ModuleURI, -InputType)
 %
 %	InpuType defines for which type of input the module can be
@@ -341,13 +265,3 @@ module_special_type(M, select) :-
 	rdfs_subclass_of(M, amalgame:'MappingSelecter'),
 	!.
 module_special_type(_, '').
-
-%%	status_option(-Status)
-%
-%	List of status types.
-
-status_option(amalgame:final).
-status_option(amalgame:intermediate).
-status_option(amalgame:discarded).
-status_option(amalgame:imported).
-status_option(amalgame:reference).

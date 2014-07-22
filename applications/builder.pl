@@ -21,6 +21,7 @@
 :- use_module(api(ag_process)).
 
 :- use_module(components(amalgame/correspondence)).
+:- use_module(components(amalgame/util)).
 
 :- multifile
 	ag:menu_item/2.

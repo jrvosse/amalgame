@@ -15,7 +15,7 @@
 :- use_module(library(amalgame/util)).
 :- use_module(components(label)). % we need rdf_link//1 from this module
 
-:- use_module(library(amalgame/ag_controls)).
+:- use_module(components(amalgame/util)).
 
 % http handlers for this applications
 

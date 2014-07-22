@@ -1,9 +1,5 @@
-:- module(ag_util_components,
-	  [
-	      html_ag_header//1,
-	      html_showlist//1,
-
-	      mint_node_uri/3,
+:- module(ag_utils,
+	  [   mint_node_uri/3,
 
 	      rdf_lang/3,
 	      rdf_lang/4,
@@ -23,12 +19,13 @@
 	      list_offset/3,
 	      list_limit/4,
 	      sort_by_arg/3,
+
+	      status_option/1,
+
 	      remove_resource/2 % +Resource, +Graph
 	  ]).
 
 
-:- use_module(library(http/html_write)).
-:- use_module(library(http/http_dispatch)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_label)).
@@ -78,41 +75,6 @@ has_write_permission :-
 %
 %	Emit page header with menu bar
 
-html_ag_header(Options) -->
-	{
-	  findall(Rank-(Path-Label), ag:menu_item(Rank=Path, Label), Items0),
-	  keysort(Items0, ItemsSorted),
-	  pairs_values(ItemsSorted, Items)
-	},
-	html(div(id(header),
-		 [ div(class(title),
-		       a(href(location_by_id(http_amalgame_main_page)), 'Amalgame')),
-		   ul(\html_ag_menu(Items, Options))
-		 ])).
-
-html_ag_menu([], _) --> !.
-html_ag_menu([Handler-Label|Is], Options) -->
-	html_menu_item(Handler, Label, Options),
-	html_ag_menu(Is, Options).
-
-html_menu_item(Handler, Label, Options) -->
-	{ option(active(Handler), Options)
-	},
-	!,
-	html(li(class(selected), span(Label))).
-html_menu_item(Handler, Label, Options) -->
-	{ option(strategy(Strategy), Options),
-	  option(focus(Focus), Options, Strategy),
-	  http_link_to_id(http_ag_build,
-			  [alignment(Strategy)], ReturnToAfterLogin),
-	  http_link_to_id(Handler, [
-				    'openid.return_to'(ReturnToAfterLogin),
-				    focus(Focus),
-				    alignment(Strategy)
-				   ],
-			  Link)
-	},
-	html(li(a(href(Link), Label))).
 
 %%	assert_user_provenance(+Resource, -NamedGraph)
 %
@@ -349,9 +311,7 @@ remove_resource(R, G) :-
 	rdf_retractall(_,_,R,G).
 
 
-html_showlist([]) --> !.
-html_showlist([H]) -->  html(H),!.
-html_showlist([H1,H2|Tail]) -->  html([H1,', ']), html_showlist([H2|Tail]).
+
 
 save_perc(0, _, 0) :- !.
 save_perc(Value, Total, Percentage) :-
@@ -418,3 +378,12 @@ literal_object_lit(Subject, Predicate, Literal) :-
 	rdf_is_literal(Literal).
 
 
+%%	status_option(-Status)
+%
+%	List of status types.
+
+status_option(amalgame:final).
+status_option(amalgame:intermediate).
+status_option(amalgame:discarded).
+status_option(amalgame:imported).
+status_option(amalgame:reference).

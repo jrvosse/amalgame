@@ -12,6 +12,7 @@
 
 :- use_module(user(user_db)).
 :- use_module(components(amalgame/correspondence)).
+:- use_module(components(amalgame/util)).
 
  % need http handlers of
 :- use_module(api(node_info)).

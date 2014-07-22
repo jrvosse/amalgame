@@ -21,6 +21,8 @@
 :- use_module(library(amalgame/ag_provenance)).
 :- use_module(applications(skos_browser)).
 
+:- use_module(components(amalgame/util)).
+
 % main http handler for amalgame:
 :- http_handler(amalgame(.), http_amalgame_main_page, []).
 
