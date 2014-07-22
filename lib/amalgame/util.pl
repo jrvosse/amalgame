@@ -38,7 +38,8 @@
 
 :- rdf_meta
 	rdf_lang(r,r,-),
-	rdf_lang(r,r,+,-).
+	rdf_lang(r,r,+,-),
+	status_option(r).
 
 %%	mint_node_uri(+Strategy, +Type, -URI) is det.
 %

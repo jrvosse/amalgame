@@ -10,7 +10,6 @@
 :- use_module(library(yui3_beta)).
 
 :- use_module(library(amalgame/voc_stats)).
-:- use_module(library(amalgame/ag_controls)).
 :- use_module(library(amalgame/util)).
 :- use_module(library(amalgame/map)).
 
@@ -20,6 +19,7 @@
 :- use_module(api(virtual_concepts)).
 :- use_module(api(ag_process)).
 
+:- use_module(components(amalgame/controls)).
 :- use_module(components(amalgame/correspondence)).
 :- use_module(components(amalgame/util)).
 

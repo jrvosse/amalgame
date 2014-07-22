@@ -10,9 +10,6 @@
 :- use_module(library(amalgame/util)).
 :- use_module(components(amalgame/util)).
 
-:- rdf_meta
-	status_option(r).
-
 html_controls  -->
 	{ amalgame_modules_of_type(amalgame:'Selecter', Selecters),
 	  amalgame_modules_of_type(amalgame:'Matcher', Matchers),
