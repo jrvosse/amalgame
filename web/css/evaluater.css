@@ -20,12 +20,22 @@
 }
 .box .hd {
 	background: url("http://yui.yahooapis.com/3.0.0/build/assets/skins/sam/sprite.png") repeat-x scroll 0 0 transparent;
-    padding: 5px;
+	padding: 5px;
 }
 .box .bd {
+	padding: 2px 4px;
 }
 
 /* mapping list */
+.yui3-mappinglist td {
+	        padding: .2em;
+	}
+.yui3-mappinglist table.mappinglist {
+	width: 100%;
+}
+.yui3-mappinglist .src_mapped , .mappinglist .target_mapped, .mappinglist .nr_of_mappings {
+	text-align: right;
+}
 .yui3-mappinglist li {
 	padding: 2px 4px;
 }
