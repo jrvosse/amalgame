@@ -44,8 +44,6 @@ YUI.add('builder', function(Y) {
 	Y.extend(Builder, Y.Base, {
 
 		initializer: function(args) {
-			this.readonly = (this.get('readonly') != "false"); // string/boolean
-
 			// initalize the different modules
 			this._initGraph();
 			this._initControls();
@@ -55,11 +53,11 @@ YUI.add('builder', function(Y) {
 			this._initLayout();
 
 			// handlers for the controls
-			if (!this.readonly) {
+			if (!this.get('readonly')) {
 				this.controls.on("submit", this._onControlSubmit, this);
 			} else {
-			  Y.one('#hint').setContent('Please login to make changes');
-			  Y.all('button').each(function(button) { button.setAttribute("disabled", true); });
+			  Y.one('#hint').setContent('Readonly mode: Please login to make changes');
+			  Y.all('#controls button').each(function(button) { button.setAttribute("disabled", true); });
 			};
 
 			// handlers for the infobox
@@ -147,7 +145,7 @@ YUI.add('builder', function(Y) {
 				alignment: this.get("alignment"),
 				nodes: this.get("nodes"),
 				selected: this.get("selected"),
-				readonly: this.readonly,
+				readonly: this.get('readonly'),
 				paths: this.get("paths")
 			});
 		},
