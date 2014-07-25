@@ -10,7 +10,7 @@ YUI.add('mappinglist', function(Y) {
 	MappingList.NAME = "mappinglist";
 	MappingList.ATTRS = {
 		mappings: {
-			value:[]
+			value:{}
 		},
 		selected: {
 			value: null
@@ -62,26 +62,24 @@ YUI.add('mappinglist', function(Y) {
 		},
 
 		_setMappings : function() {
-			var listNode = this.listNode,
-				mappings = this.get("mappings");
+			var listNode = this.listNode;
 			listNode.append("<tr>"+
 				"<th>Mapping</a></th>"+
 				"<th colspan='1' class='src_mapped'># sources</th>"+
-				"<th colspan='1' class='target_mapped'># trgs</th>"+
+				"<th colspan='1' class='target_mapped'># targets</th>"+
 				"<th class='nr_of_mappings'># mappings</th>"+
 				"</tr>");
 
-			if(mappings) {
-				for (var i=0; i < mappings.length; i++) {
-					var m = mappings[i];
-					if (m.stats.totalCount < 1) continue;
-					listNode.append("<tr class='row'>"+
-					"<td><a href='javascript:void(0)'>"+m.label+"</a></td>"+
-					"<td class='src_mapped'>"+m.stats.mappedSourceConcepts+"</td>"+
-					"<td class='target_mapped'>"+m.stats.mappedTargetConcepts+"</td>"+
-					"<td class='nr_of_mappings'>"+m.stats.totalCount+"</td>"+
-					"</tr>");
-				}
+			var mappings = this.get("mappings");
+			for (var uri in mappings) {
+				var m = mappings[uri];
+				if (m.stats.totalCount < 1) continue;
+				listNode.append("<tr class='row'>"+
+				"<td><a href='javascript:void(0)'>"+m.label+"</a></td>"+
+				"<td class='src_mapped'>"+m.stats.mappedSourceConcepts+"</td>"+
+				"<td class='target_mapped'>"+m.stats.mappedTargetConcepts+"</td>"+
+				"<td class='nr_of_mappings'>"+m.stats.totalCount+"</td>"+
+				"</tr>");
 			}
 		},
 

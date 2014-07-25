@@ -107,14 +107,15 @@ js_mappings(Strategy, Results) :-
 	findall(M-L,
 		mapping_label(Strategy, M, L),
 		Mappings),
-	findall(mapping_dict{uri:M,
+	findall(M-mapping{uri:M,
 			     label:L,
 			     stats:StatsDict},
 		(   member(M-L, Mappings),
 		    stats_cache(M-Strategy, StatsDict),
 		    is_dict(StatsDict, mapping_stats_dict)
 		),
-		Results).
+		Pairs),
+	dict_pairs(Results, mappings, Pairs).
 
 mapping_label(Strategy, URI, Label) :-
 	rdf(URI, rdf:type, amalgame:'Mapping',Strategy),
