@@ -9,23 +9,16 @@ YUI.add('mappingtable', function(Y) {
 	}
 	MappingTable.NAME = "mappingtable";
 	MappingTable.ATTRS = {
-		srcNode: {
-			value: null
-		},
+		srcNode: { value: null },
+		alignment: { value: null },
+		mapping: { value: null },
+		datasource: { value: null },
+		vocs: { value: { source: null, target: null }},
 		rows: {
 			value:100,
 			validator:function(val) {
 				return Lang.isNumber(val);
 			}
-		},
-		alignment: {
-			value: null
-		},
-		mapping: {
-			value: null
-		},
-		datasource: {
-			value: null
 		},
 		loading: {
 			value:false,
@@ -105,6 +98,8 @@ YUI.add('mappingtable', function(Y) {
 						paginator.setPage(1, true);
 						paginator.setTotalRecords(total, true);
 					}
+					var vocs = o.response.meta.stats.vocs;
+					oSelf.set("vocs", vocs);
 					table.set("data", records);
 					oSelf.set("loading", false);
 				}
@@ -145,6 +140,7 @@ YUI.add('mappingtable', function(Y) {
 					row:row,
 					sourceConcept: source,
 					targetConcept: target,
+					vocs: this.get("vocs"),
 					relation:current.get("relation")
 				};
 			Y.all(".yui3-datatable tr").removeClass("yui3-datatable-selected");
@@ -173,7 +169,7 @@ YUI.add('mappingtable', function(Y) {
 			    } else {
 			      var end = rows.item(rows.size() - 1);
 			      this.fire("wrapAround", null);
-			      Y.log(end.getXY());
+			      // Y.log(end.getXY());
 			      return row; // fix me
 			    }
 			  },
