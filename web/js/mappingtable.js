@@ -39,9 +39,8 @@ YUI.add('mappingtable', function(Y) {
 			this._loadingNode = content.appendChild(Node.create(
 				'<div class="loading"></div>'
 			));
-				
 			this.table = new Y.DataTable({
-				columns:[{key:"source",
+				columns:[{key:"source", label:'SOURCE',
 					       formatter:this.formatResource,
 				 	       allowHTML: true,
 					       sortable:true
@@ -99,8 +98,13 @@ YUI.add('mappingtable', function(Y) {
 						paginator.setTotalRecords(total, true);
 					}
 					var vocs = o.response.meta.stats.vocs;
-					oSelf.set("vocs", vocs);
-					table.set("data", records);
+					if (vocs) {
+						table.head.columns[0][0].label = 'source: ' + vocs.source.label;
+						table.head.columns[0][2].label = 'target: ' + vocs.target.label;
+						table.set("data", records);
+						table.syncUI();
+						oSelf.set("vocs", vocs);
+					}
 					oSelf.set("loading", false);
 				}
 			};
