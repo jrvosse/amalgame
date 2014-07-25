@@ -1,6 +1,5 @@
 :- module(ag_component_correspondence,
-	  [ html_correspondence_options//0,
-	    html_correspondence_buttons//0
+	  [ html_correspondence_overlay//0
 	  ]).
 
 :- use_module(library(http/html_write)).
@@ -20,3 +19,17 @@ html_correspondence_buttons -->
 	       button([type(button), class(prev), value(prev)], '<'),
 	       button([type(button), class(next), value(next)], '>')
 	     ]).
+
+html_correspondence_overlay -->
+	html(form([div(class('yui3-widget-bd'),
+		       [
+			   div(class(options), \html_correspondence_options),
+			   div(class(buttons), \html_correspondence_buttons),
+			   div([class(concepts), id(concepts)], [])
+		       ]),
+		   div(class('yui3-widget-ft'),
+		       [ div(class(controls),
+			     [ div(class(buttons), \html_correspondence_buttons)
+			     ])
+		       ])
+		  ])).
