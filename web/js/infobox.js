@@ -224,8 +224,9 @@ YUI.add('infobox', function(Y) {
 					Node.getDOMNode(NODE_REL).selectedIndex =
 							  NODE_REL.get('options')
 							    .indexOf(NODE_REL.one("option[value='"+relation+"']"));
-					Y.log(NODE_REL.get('options').indexOf(NODE_REL.one("option[value='"+relation+"']")));
-					Y.log(selected);
+					// Y.log('index of selected node:');
+					// Y.log(NODE_REL.get('options').indexOf(NODE_REL.one("option[value='"+relation+"']")));
+					// Y.log(selected);
 				} else {
 					NODE_STATUS_ROW.addClass("hidden")
 					NODE_REL_ROW.addClass("hidden")
