@@ -62,8 +62,10 @@ mapping_stats(URL, Mapping, Strategy, Stats) :-
 	length(Ts, TN),
 	Stats = mapping_stats_dict{
 		    totalCount:MN,
-		    sourceVoc:InputS,
-		    targetVoc:InputT,
+		    vocs:vocs{
+			     source:SvocDict,
+			     target:TvocDict
+			 },
 		    mappedSourceConcepts:SN,
 		    mappedTargetConcepts:TN,
 		    sourcePercentage:SPerc,
@@ -81,6 +83,8 @@ mapping_stats(URL, Mapping, Strategy, Stats) :-
 	    voc_property(InputT, numberOfConcepts(TargetN)),
 	    save_perc(SN, SourceN, SPerc),
 	    save_perc(TN, TargetN, TPerc),
+	    js_focus_node(Strategy, InputS, SvocDict),
+	    js_focus_node(Strategy, InputT, TvocDict),
 	    (	concept_list_depth_stats(Ss, InputS, depth(DSstats)),
 		concept_list_branch_stats(Ss, InputS, branch(BSstats))
 	    ->	true
@@ -91,7 +95,7 @@ mapping_stats(URL, Mapping, Strategy, Stats) :-
 	    ->	true
 	    ;	DTstats = [], BTstats = []
 	    )
-	;   SourceN = 0, TargetN = 0
+	;   SourceN = 0, TargetN = 0, SvocDict = voc{}, TvocDict=voc{}
 	),
 	findall(Input, has_mapping_input(URL, Strategy, Input), Inputs),
 	(   Inputs \= []
