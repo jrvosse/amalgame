@@ -121,12 +121,13 @@ mapping_label(Strategy, URI, Label) :-
 	rdf_display_label(URI, Label).
 
 
-%%	js_focus_node(+Alignment, +URI, -NodeProps)
+%%	js_focus_node(+Strategy, +URI, -NodeProps)
 %
 %	NodeProps contains the currently accessible properties for URI
 
-js_focus_node(Alignment, URI, NodeProps) :-
-	findall(Type=Value, node_prop(Alignment, URI, Type, Value), NodeProps).
+js_focus_node(Strategy, URI, NodeProps) :-
+	findall(Type-Value, node_prop(Strategy, URI, Type, Value), Pairs),
+	dict_pairs(NodeProps, node, Pairs).
 
 %%	js_alignment_nodes(+Alignment, -Nodes)
 %
@@ -134,10 +135,10 @@ js_focus_node(Alignment, URI, NodeProps) :-
 %	(process, vocab, strategy or mapping).
 
 js_alignment_nodes(Strategy, Nodes) :-
-	findall(S, graph_resource(Strategy, S), Nodes0),
-	sort(Nodes0, Nodes1),
-	maplist(node_data(Strategy), Nodes1, Nodes).
-
+	findall(S, graph_resource(Strategy, S), NodeURIs),
+	sort(NodeURIs, URIsUnique),
+	maplist(node_data(Strategy), URIsUnique, Pairs),
+	dict_pairs(Nodes, nodes, Pairs).
 
 graph_resource(Graph, R) :-
 	rdf(R,rdf:type,_,Graph),
@@ -149,8 +150,9 @@ graph_resource(Graph, R) :-
 graph_resource(Graph, R) :-
 	rdf(Graph, amalgame:includes, R).
 
-node_data(Strategy, R, R=json(Props)) :-
-	findall(Type=Value, node_prop(Strategy, R, Type, Value), Props).
+node_data(Strategy, R, R-Props) :-
+	findall(Type-Value, node_prop(Strategy, R, Type, Value), Pairs),
+	dict_pairs(Props, node, Pairs).
 
 node_prop(_, R, uri, R).
 node_prop(S, R, label, Label) :-
