@@ -502,7 +502,7 @@ yui_script -->
 		modules(json(Modules))])
 	     ],
 	     Includes,
-	     [ \yui3_new(eq, 'Y.Selecter', [])
+	     [ \yui3_new(eq, 'Y.AmalgameStartPage', [])
 	     ]).
 
 
