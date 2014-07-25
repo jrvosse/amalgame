@@ -108,36 +108,19 @@ html_page(Strategy, Focus) :-
 					  ])
 				    ]),
 				div([id(detail),class('hidden')],
-				   \html_overlay)
+				   \html_correspondence_overlay)
 			      ]),
 			  script(type('text/javascript'),
 				 [ \yui_script(Strategy, Focus)
 				 ])
 			]).
 
-
-html_overlay -->
-	html(form([div(class('yui3-widget-hd'),
-		       'Correspondence details'
-		      ),
-		   div(class('yui3-widget-bd'),
-		       [ div(class('buttons up'), \html_correspondence_buttons),
-			 div(class(options), \html_correspondence_options),
-			 div([class(concepts), id(concepts)], [])
-		       ]),
-		   div(class('yui3-widget-ft'),
-		       [ div(class(controls),
-			     [ div(class('buttons bottom'), \html_correspondence_buttons)
-			     ])
-		       ])
-		  ])).
-
 %%	yui_script(+Graph)
 %
 %	Emit YUI object.
 
 yui_script(Alignment, Focus) -->
-	{ findall(K-V, js_path(K, V), Paths),
+	{ findall(K-V, js_path(K, V), Paths), dict_pairs(PathD, path, Paths),
 	  findall(M-C, js_module(M,C), Modules),
 	  pairs_keys(Modules, Includes),
 	  js_focus_node(Alignment, Focus, FocusNode),
@@ -152,12 +135,12 @@ yui_script(Alignment, Focus) -->
 	     ],
 	     Includes,
 	     [ \yui3_new(eq, 'Y.Builder',
-			 json([alignment(Alignment),
-			       paths(json(Paths)),
-			       nodes(json(Nodes)),
-			       selected(json(FocusNode)),
-			       readonly(Read_only)
-			      ]))
+			 json{alignment:Alignment,
+			       paths:PathD,
+			       nodes:Nodes,
+			       selected:FocusNode,
+			       readonly:Read_only
+			     })
 	     ]).
 
 %%	js_path(+Key, +Server_Path)
