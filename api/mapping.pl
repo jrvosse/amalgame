@@ -15,6 +15,7 @@
 :- use_module(library(amalgame/caching)).
 :- use_module(library(amalgame/ag_evaluation)).
 :- use_module(library(amalgame/ag_provenance)).
+:- use_module(library(amalgame/ag_stats)).
 :- use_module(library(amalgame/edoal)).
 :- use_module(library(amalgame/map)).
 :- use_module(library(amalgame/expand_graph)).
@@ -60,12 +61,14 @@ http_data_mapping(Request) :-
 	list_offset(MSorted, Offset, MOffset),
 	list_limit(MOffset, Limit, MLimit, _),
 	mapping_data(MLimit, Mapping),
-
-	reply_json(json([url=URL,
-			 limit=Limit,
-			 offset=Offset,
-			 mapping=Mapping,
-			 total=Count])).
+	node_stats(Strategy, URL, Stats),
+	reply_json(jsondict{url:URL,
+			    limit:Limit,
+			    offset:Offset,
+			    stats:Stats,
+			    total:Count,
+			    mapping:Mapping
+			   }).
 
 sort_key(source, 2).
 sort_key(target, 4).
@@ -77,7 +80,7 @@ mapping_label(align(S, T, Prov), align(S,SLabel, T,TLabel, Relation)) :-
 	(   option(relation(Rel), FlatProv)
 	->  relation_label(Rel, RLabel),
 	    Relation = json([uri=Rel, label=RLabel])
-	;   Relation = @(null)
+	;   Relation = null
 	).
 
 %%	notation_ish(Concept, NotationIsh) is det.
@@ -273,11 +276,11 @@ html_correspondence(Source, Target, Evidence, Relations) -->
 			\html_resource_context(Target, Evidence))
 		  ]),
 	      div(class([manualfixes, 'yui3-g']),
-		  [ input([type(text), id(source), class('yui3-u-1-5'),
+		  [ input([type(text), class([skos_ac_field, 'yui3-u-1-5']),
 			   name(source), value(Source)]),
 		    div([class([relations, 'yui3-u-3-5'])],
 			\html_relations(Relations, Relation)),
-		    input([type(text), id(target), class('yui3-u-1-5'),
+		    input([type(text), class([skos_ac_field, 'yui3-u-1-5']),
 			   name(target), value(Target)]),
 		    div(class([comment, 'yui3-u-1']),
 			['because: ',
