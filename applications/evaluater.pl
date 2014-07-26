@@ -7,16 +7,26 @@
 :- use_module(library(http/http_path)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/html_write)).
-:- use_module(library(yui3_beta)).
-:- use_module(library(amalgame/util)).
 
+% Use user authorization from ClioPatria:
 :- use_module(user(user_db)).
+
+% YUI3 scripting utilities;
+:- use_module(library(yui3_beta)).
+
+% From Amalgame:
+:- use_module(library(amalgame/util)).
 :- use_module(components(amalgame/correspondence)).
 :- use_module(components(amalgame/util)).
 
- % need http handlers of
+% We need amalgame http handlers of these:
 :- use_module(api(node_info)).
 :- use_module(api(mapping)).
+
+% For autocompletion on the vocaubalry terms to fix source/target
+% manually:
+:-use_module(api(autocomplete_api)).
+
 
 :- public amalgame_module/1.
 
@@ -54,10 +64,11 @@ http_ag_evaluate(Request) :-
 
 html_page(Alignment, Mapping) :-
 	reply_html_page(amalgame(app),
-			[ title(['Align vocabularies'])
+			[ title(['Manual correspondence evaluation'])
 			],
 			[ \html_requires(css('evaluater.css')),
 			  \html_requires(css('gallery-paginator.css')),
+			  \html_requires(yui3('autocomplete/autocomplete.css')),
 			  \html_ag_header([active(http_ag_evaluate),
 					   strategy(Alignment),
 					   focus(Mapping)
@@ -69,8 +80,8 @@ html_page(Alignment, Mapping) :-
 				      div([class('yui3-u'), id(main)],
 					  div([id(mappingtable)], []))
 				    ]),
-				div(id(detail),
-				   \html_overlay)
+				div([id(detail),class('hidden')],
+				   \html_correspondence_overlay)
 			      ]),
 			  script(type('text/javascript'),
 				 [ \yui_script(Alignment, Mapping)
@@ -88,19 +99,6 @@ html_sidebar -->
 		   ])
 	     ]).
 
-html_overlay -->
-	html(form([div(class('yui3-widget-bd'),
-		       [
-			   div(class(options), \html_correspondence_options),
-			   div(class(buttons), \html_correspondence_buttons),
-			   div([class(concepts), id(concepts)], [])
-		       ]),
-		   div(class('yui3-widget-ft'),
-		       [ div(class(controls),
-			     [ div(class(buttons), \html_correspondence_buttons)
-			     ])
-		       ])
-		  ])).
 
 %%	yui_script(+Graph)
 %
@@ -161,3 +159,14 @@ js_module(mappingtable, json([fullpath(Path),
 					datatable,'datatable-sort'])
 			     ])) :-
 	http_absolute_location(js('mappingtable.js'), Path, []).
+
+js_module(skosautocomplete, json([fullpath(Path),
+				   requires([node,event,io,json,overlay,
+					     autocomplete,
+					     'autocomplete-highlighters',
+					     'event-key',
+					     'event-mouseenter',
+					     'querystring-stringify-simple'
+					    ])
+				 ])) :-
+	http_absolute_location(js('skosautocomplete.js'), Path, []).
