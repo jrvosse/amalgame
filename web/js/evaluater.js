@@ -217,9 +217,16 @@ YUI.add('evaluater', function(Y) {
 				server = this.get("paths").info;
 			var mappings = this.get('mappings');
 			var selected = this.get('selected');
-			var sourcevoc = mappings[selected].stats.vocs.source.uri;
+			var svoc = mappings[selected].stats.vocs.source.uri;
+			var tvoc = mappings[selected].stats.vocs.target.uri;
 			var SourceConfig = { 
-				source: '/api/autocomplete?q={query}', 
+				source: '/api/autocomplete?q={query}&filter=[{\"scheme":\"'+svoc+'\"}]',
+				resultListLocator: 'results',
+				resultTextLocator: 'label',
+				resultHighlighter: 'phraseMatch'
+			};
+			var TargetConfig = { 
+				source: '/api/autocomplete?q={query}&filter=[{\"scheme":\"'+tvoc+'\"}]',
 				resultListLocator: 'results',
 				resultTextLocator: 'label',
 				resultHighlighter: 'phraseMatch'
@@ -246,7 +253,7 @@ YUI.add('evaluater', function(Y) {
 				on:{success:function(e,o) {
 						NODE_CONCEPTS.setContent(o.responseText);
 						Y.all('input[name=source]').plug(Y.Plugin.SkosAutoComplete, SourceConfig);
-						Y.all('input[name=target]').plug(Y.Plugin.SkosAutoComplete, SourceConfig);
+						Y.all('input[name=target]').plug(Y.Plugin.SkosAutoComplete, TargetConfig);
 						overlay.set("visible", true);
 					}
 				}
