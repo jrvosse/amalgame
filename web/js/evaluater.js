@@ -17,48 +17,14 @@ YUI.add('evaluater', function(Y) {
 	}
 	Evaluater.NAME = "evaluater";
 	Evaluater.ATTRS = {
-		alignment : {
-			value: null
-		},
-		selected : {
-			value: null
-		},
-		paths:{
-			value:{
-				mapping:"/amalgame/data/mapping",
-				mappinginfo:'/amalgame/private/info',
-				info:"/amalgame/private/correspondence",
-				evaluate:"/amalgame/data/evaluate"
+		alignment: { value: null },
+		paths: { value: {} },
+		mappings: { value:{} },
+		selected: { value: null },
 
-			},
-			validator: function(val) {
-				return Lang.isObject(val)
-			}
-		},
-		mappings:{
-			value:[],
-			validator: function(val) {
-				return Lang.isArray(val)
-			}
-		},
-		relations: {
-			value: {},
-			validator: function(val) {
-				return Lang.isObject(val)
-			}
-		},
-		allsources: {
-			value: false
-		},
-		alltargets: {
-			value: false
-		},
-	    strings: {
-	        value: {},
-			validator: function(val) {
-				return Lang.isObject(val)
-			}
-	    }
+		relations: { value: {} },
+		allsources: { value: false },
+		alltargets: { value: false }
 	};
 
 	Y.extend(Evaluater, Y.Base, {
@@ -116,7 +82,9 @@ YUI.add('evaluater', function(Y) {
 					resultListLocator: "mapping",
 				resultFields: ["source", "target", "relation"],
 				metaFields: {
-						totalNumberOfResults:"total"
+						totalNumberOfResults:"total",
+						stats:"stats",
+						offset:"offset"
 					}
 			}
 			});
@@ -247,13 +215,21 @@ YUI.add('evaluater', function(Y) {
 			var overlay = this.detailOverlay,
 				node = this._selectedRow,
 				server = this.get("paths").info;
+			var mappings = this.get('mappings');
+			var selected = this.get('selected');
+			var sourcevoc = mappings[selected].stats.vocs.source.uri;
+			var SourceConfig = { 
+				source: '/api/autocomplete?q={query}', 
+				resultListLocator: 'results',
+				resultTextLocator: 'label',
+				resultHighlighter: 'phraseMatch'
+			};
 
 			// position the overlay below the currently selected row
 			overlay.set("width", node.get("offsetWidth"));
-			overlay.set("align", {
-			node:node,
-			points:[Y.WidgetPositionAlign.TR, Y.WidgetPositionAlign.BR]
-			});
+			overlay.set("align", { node:node,
+				points:[Y.WidgetPositionAlign.TR, Y.WidgetPositionAlign.BR]
+				});
 
 			// call the server
 			var data = {
@@ -269,21 +245,13 @@ YUI.add('evaluater', function(Y) {
 				data: data,
 				on:{success:function(e,o) {
 						NODE_CONCEPTS.setContent(o.responseText);
+						Y.all('input[name=source]').plug(Y.Plugin.SkosAutoComplete, SourceConfig);
+						Y.all('input[name=target]').plug(Y.Plugin.SkosAutoComplete, SourceConfig);
 						overlay.set("visible", true);
 					}
 				}
 			});
 		}
-
-
-/*
-						target.all(".moretoggle").on("click", function(e) {
-							p = e.currentTarget.get("parentNode");
-							p.all(".moretoggle").toggleClass("hidden");
-							p.one(".morelist").toggleClass("hidden");
-						})
-*/
-
 	});
 
 	Y.Evaluater = Evaluater;
@@ -292,6 +260,6 @@ YUI.add('evaluater', function(Y) {
 	'node','event','anim','overlay','io-base',
 	'datasource-io','datasource-jsonschema',
 	'querystring-stringify-simple',
-	'mappinglist','mappingtable'
+	'mappinglist','mappingtable', 'skosautocomplete'
 	]
 });
