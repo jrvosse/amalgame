@@ -276,15 +276,18 @@ html_correspondence(Source, Target, Evidence, Relations) -->
 			\html_resource_context(Target, Evidence))
 		  ]),
 	      div(class([manualfixes, 'yui3-g']),
-		  [ input([type(text), class([skos_ac_field, 'yui3-u-1-5']),
-			   name(source), value(Source)]),
+		  [ div([class([sourcediv, 'yui3-u-1-5'])],
+			[div([class(sourceuri)], Source),
+			 input([type(text), class([skos_ac_field]), name(source)])
+			]),
 		    div([class([relations, 'yui3-u-3-5'])],
 			\html_relations(Relations, Relation)),
-		    input([type(text), class([skos_ac_field, 'yui3-u-1-5']),
-			   name(target), value(Target)]),
+		    div([class([targetdiv, 'yui3-u-1-5'])],
+			[div([class(targeturi)], Target),
+			 input([type(text), class([skos_ac_field]), name(target)])
+			]),
 		    div(class([comment, 'yui3-u-1']),
-			['because: ',
-			 input([type(text), name(comment)], [])
+			['because: ', input([type(text), name(comment)], [])
 			])
 		  ]),
 	      div(class(evcount),
