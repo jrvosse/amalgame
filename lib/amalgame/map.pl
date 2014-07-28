@@ -130,8 +130,8 @@ mapping_relation(narrower,  skos:narrowMatch).
 mapping_relation(broader,   skos:broadMatch).
 mapping_relation(related,   skos:relatedMatch).
 mapping_relation(replaces,  dcterms:replaces).
-mapping_relation(unrelated, 'http://purl.org/vocabularies/amalgame/evaluator#unrelated').
-mapping_relation(unsure,    'http://purl.org/vocabularies/amalgame/evaluator#unsure').
+mapping_relation(unrelated, evaluator:unrelated).
+mapping_relation(unsure,    evaluator:unsure).
 
 % mapping_relation(skos, skos:mappingRelation).
 % mapping_relation(owl_sameAs,  owl:sameAs).
