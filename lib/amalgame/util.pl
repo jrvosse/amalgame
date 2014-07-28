@@ -21,6 +21,7 @@
 	      sort_by_arg/3,
 
 	      status_option/1,
+	      my_atom_json_dict/3,
 
 	      remove_resource/2 % +Resource, +Graph
 	  ]).
@@ -29,12 +30,16 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_label)).
+:- use_module(library(http/json)).
 :- use_module(user(user_db)).
 :- use_module(user(preferences)).
 :- use_module(cliopatria(components/label)).
 :- use_module(library(amalgame/caching)).
 :- use_module(library(amalgame/map)).
 :- use_module(library(amalgame/ag_evaluation)).
+
+:- multifile
+	ag:menu_item/2.
 
 :- rdf_meta
 	rdf_lang(r,r,-),
@@ -58,8 +63,26 @@ mint_node_uri(Strategy, Type, URI) :-
 	\+ rdf_graph(URI),
 	!.
 
-:- multifile
-	ag:menu_item/2.
+
+my_atom_json_dict(Json, Dict, Options) :-
+	var(Dict),!,
+	atom_json_dict(Json, StringDict, Options),
+	atomify_dict(StringDict, Dict).
+my_atom_json_dict(Json, Dict, Options) :-
+	atom_json_dict(Json, Dict, Options).
+
+atomify_pairs([], []).
+atomify_pairs([K-Vs|Ts], [K-Va|Ta]) :-
+	atom_string(Va,Vs),!,
+	atomify_pairs(Ts, Ta).
+atomify_pairs([K-V|Ts], [K-V|Ta]) :-
+	atomify_pairs(Ts, Ta).
+
+atomify_dict(S,D) :-
+	dict_pairs(S, d, SPairs),
+	atomify_pairs(SPairs, APairs),
+	dict_pairs(D, d, APairs).
+
 
 ag:menu_item(900=Handler, Label) :-
 	(   (logged_on(User, X), X \== User)
@@ -118,7 +141,8 @@ js_mappings(Strategy, Results) :-
 	dict_pairs(Results, mappings, Pairs).
 
 mapping_label(Strategy, URI, Label) :-
-	rdf(URI, rdf:type, amalgame:'Mapping',Strategy),
+	rdfs_individual_of(URI, amalgame:'Mapping'),
+	rdf(URI, rdf:type, _ ,Strategy),
 	rdf_display_label(URI, Label).
 
 
