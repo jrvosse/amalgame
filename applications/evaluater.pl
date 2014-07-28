@@ -68,7 +68,6 @@ html_page(Alignment, Mapping) :-
 			],
 			[ \html_requires(css('evaluater.css')),
 			  \html_requires(css('gallery-paginator.css')),
-			  \html_requires(yui3('autocomplete/autocomplete.css')),
 			  \html_ag_header([active(http_ag_evaluate),
 					   strategy(Alignment),
 					   focus(Mapping)
@@ -141,10 +140,9 @@ js_path(info, Path) :-
 %	YUI3 and application specific modules used in javascript.
 
 js_module(evaluater, json([fullpath(Path),
-			   requires([node,event,anim,
-				     'overlay','json-parse','io-base',
+			   requires([node,event,anim,json,
+				     overlay,'json-parse','io-base',
 				     'datasource-io','datasource-jsonschema',
-				     'querystring-stringify-simple',
 				     mappinglist,mappingtable])
 			  ])) :-
 	http_absolute_location(js('evaluater.js'), Path, []).
