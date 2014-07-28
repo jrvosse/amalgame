@@ -230,6 +230,9 @@
 	letter-spacing: normal;
 }
 
+.skos_ac_field {
+	width:95%;
+}
 .yui3-overlay {
 	padding: 10px;
 	background-color: white;
