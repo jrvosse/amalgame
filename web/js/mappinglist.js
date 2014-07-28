@@ -1,5 +1,4 @@
 YUI.add('mappinglist', function(Y) {
-
 	var Lang = Y.Lang,
 		Node = Y.Node,
 		Widget = Y.Widget;
@@ -9,12 +8,8 @@ YUI.add('mappinglist', function(Y) {
 	}
 	MappingList.NAME = "mappinglist";
 	MappingList.ATTRS = {
-		mappings: {
-			value:{}
-		},
-		selected: {
-			value: null
-		}
+		mappings: { value:{} },
+		selected: { value: null }
 	};
 
 	Y.extend(MappingList, Y.Widget, {
@@ -43,8 +38,7 @@ YUI.add('mappinglist', function(Y) {
 		// - we only update the selected value in the history manager
 		// - we also update the url of the page
 		_onMappingSelect : function(e) {
-			var index = this.listNode.all("tr.row").indexOf(e.currentTarget);
-			var uri = this.get("mappings")[index].uri;
+			var uri = e.currentTarget.get("title");
 			var params = Y.QueryString.parse(window.location.search.substr(1));
 			params.focus = uri;
 			this._history.addValue("selected", uri, {
@@ -74,7 +68,7 @@ YUI.add('mappinglist', function(Y) {
 			for (var uri in mappings) {
 				var m = mappings[uri];
 				if (m.stats.totalCount < 1) continue;
-				listNode.append("<tr class='row'>"+
+				listNode.append("<tr class='row' title='"+uri+"'>"+
 				"<td><a href='javascript:void(0)'>"+m.label+"</a></td>"+
 				"<td class='src_mapped'>"+m.stats.mappedSourceConcepts+"</td>"+
 				"<td class='target_mapped'>"+m.stats.mappedTargetConcepts+"</td>"+
@@ -84,24 +78,11 @@ YUI.add('mappinglist', function(Y) {
 		},
 
 		_toggleSelection : function() {
-			var sel = this.get("selected"),
-				nodes = this.listNode.all("tr.row"),
-				index = this._mappingIndexOf(sel);
+			var nodes = this.listNode.all("tr.row");
 			nodes.removeClass("selected");
-			if(index >= 0) {
-				nodes.item(index).addClass("selected");
-			}
+			var sel = this.get("selected");
+			if(sel) { this.listNode.one('tr[title='+sel+']').addClass("selected"); }
 		},
-
-		_mappingIndexOf : function(uri) {
-			mappings = this.get("mappings");
-			for (var i = mappings.length - 1; i >= 0; i--){
-				if(mappings[i].uri == uri) {
-					return i;
-				}
-			}
-		}
-
 	});
 
 	Y.MappingList = MappingList;
