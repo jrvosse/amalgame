@@ -13,11 +13,11 @@ html_correspondence_options -->
 	     ]).
 
 html_correspondence_buttons -->
-	html([ button([type(button), class(cancel), value(cancel)], 'x'),
+	html([ button([type(button), class(cancel), value(cancel), title(cancel)],   'x'),
+	       button([type(button), class(prev),   value(prev),   title(previous)], '<'),
+	       button([type(button), class(next),   value(next),   title(next)],     '>'),
 	       button([type(button), class([change, submit]), value(submit)], 'submit'),
-	       button([type(button), class([change, setall])], 'apply to all'),
-	       button([type(button), class(prev), value(prev)], '<'),
-	       button([type(button), class(next), value(next)], '>')
+	       button([type(button), class([change, setall])], 'apply to all')
 	     ]).
 
 html_correspondence_overlay -->
