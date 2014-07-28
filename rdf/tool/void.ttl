@@ -4,8 +4,14 @@
 @prefix     void: <http://rdfs.org/ns/void#> .
 @prefix     vann: <http://purl.org/vocab/vann/> .
 
-[ vann:preferredNamespacePrefix "amalgame"  ; vann:preferredNamespaceUri "http://purl.org/vocabularies/amalgame#" ] .
-[ vann:preferredNamespacePrefix "align"     ; vann:preferredNamespaceUri "http://knowledgeweb.semanticweb.org/heterogeneity/alignment#" ] .
+[ vann:preferredNamespacePrefix "align"; 
+  vann:preferredNamespaceUri "http://knowledgeweb.semanticweb.org/heterogeneity/alignment#" ] .
+
+[ vann:preferredNamespacePrefix "amalgame"; 
+  vann:preferredNamespaceUri "http://purl.org/vocabularies/amalgame#" ] .
+
+[ vann:preferredNamespacePrefix "evaluator"; 
+  vann:preferredNamespaceUri "http://purl.org/vocabularies/amalgame/evaluator#" ] .
 
 <alignmentschema>
 	a void:Dataset ;
