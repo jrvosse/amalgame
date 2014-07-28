@@ -81,7 +81,10 @@ YUI.add('mappinglist', function(Y) {
 			var nodes = this.listNode.all("tr.row");
 			nodes.removeClass("selected");
 			var sel = this.get("selected");
-			if(sel) { this.listNode.one('tr[title='+sel+']').addClass("selected"); }
+			if(sel) { 
+				var selRow = this.listNode.one('tr[title='+sel+']')
+				if (selRow) selRow.addClass("selected"); 
+			}
 		},
 	});
 
