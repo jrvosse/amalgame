@@ -2,6 +2,8 @@ YUI.add('mappingtable', function(Y) {
 
 	var Lang = Y.Lang,
 		Node = Y.Node,
+		SOURCE_COLUMN = 0,
+		TARGET_COLUMN = 1,
 		Widget = Y.Widget;
 
 	function MappingTable(config) {
@@ -13,6 +15,7 @@ YUI.add('mappingtable', function(Y) {
 		alignment: { value: null },
 		mapping: { value: null },
 		datasource: { value: null },
+		showRelation: { value: false },
 		vocs: { value: { source: null, target: null }},
 		rows: {
 			value:100,
@@ -39,24 +42,28 @@ YUI.add('mappingtable', function(Y) {
 			this._loadingNode = content.appendChild(Node.create(
 				'<div class="loading"></div>'
 			));
-			this.table = new Y.DataTable({
-				columns:[{key:"source", label:'SOURCE',
-					       formatter:this.formatResource,
-				 	       allowHTML: true,
-					       sortable:true
-					      },
-					      {key:"relation",
-					       formatter:this.formatRelation,
-				 	       allowHTML: true,
-					       sortable:true
-					      },
-					      {key:"target",
-					       formatter:this.formatResource,
-				 	       allowHTML: true,
-					       sortable:true
-					      }]
-			})
-			.render(this._tableNode);
+			var s_column = { key:"source", 
+					 formatter:this.formatResource,
+				 	 allowHTML: true,
+					 sortable:true };
+			var t_column = { key:"target", 
+				         formatter:this.formatResource,
+				 	 allowHTML: true,
+					 sortable:true };
+			var r_column = { key:"relation", label: 'manually assigned relation',
+					 formatter:this.formatRelation,
+				 	 allowHTML: true,
+					 sortable:true };
+			var columns = [];
+			SOURCE_COLUMN = 0
+			if (this.get('showRelation')) {
+				columns = [s_column, r_column, t_column];
+				TARGET_COLUMN = 2;
+			} else {
+				columns = [s_column, t_column];
+			}
+
+			this.table = new Y.DataTable({columns:columns}).render(this._tableNode);
 
 			this.paginator = new Y.Paginator({
 				rowsPerPage:this.get("rows"),
@@ -99,8 +106,8 @@ YUI.add('mappingtable', function(Y) {
 					}
 					var vocs = o.response.meta.stats.vocs;
 					if (vocs) {
-						table.head.columns[0][0].label = 'source: ' + vocs.source.label;
-						table.head.columns[0][2].label = 'target: ' + vocs.target.label;
+						table.head.columns[0][SOURCE_COLUMN].label = 'source: ' + vocs.source.label;
+						table.head.columns[0][TARGET_COLUMN].label = 'target: ' + vocs.target.label;
 						table.set("data", records);
 						table.syncUI();
 						oSelf.set("vocs", vocs);
