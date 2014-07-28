@@ -21,8 +21,6 @@ YUI.add('evaluater', function(Y) {
 		paths: { value: {} },
 		mappings: { value:{} },
 		selected: { value: null },
-
-		relations: { value: {} },
 		allsources: { value: false },
 		alltargets: { value: false }
 	};
@@ -92,6 +90,7 @@ YUI.add('evaluater', function(Y) {
 			this.mappingtable = new Y.MappingTable({
 				srcNode: NODE_MAPPING_TABLE,
 				datasource:DS,
+				showRelation:true,
 				alignment: this.get("alignment"),
 				focus:this.get("selected")
 			});
@@ -120,6 +119,13 @@ YUI.add('evaluater', function(Y) {
 			this._fetchDetail();
 		},
 
+		_onConceptChange: function(ev, context) {
+			if (ev.preventDefault) ev.preventDefault();
+			var item = ev.details[0].result.raw;
+			NODE_DETAIL.one('.'+context.target).setContent(item.uri);
+			NODE_DETAIL.all(".change").set('disabled', false); 
+		},
+
 		_onSubmit : function(e, nav) {
 			e.preventDefault(e);
 			this.detailOverlay.set("visible", false);
@@ -128,7 +134,7 @@ YUI.add('evaluater', function(Y) {
 			c.strategy = this.get("alignment");
 			c.mapping   = this.get("selected");
 			c.mode      = nav == "setall"?"all":"one";
-			if (c.relation) {
+			if (this.form_dirty()) {
 			  this._submitCorrespondence(c);
 			}
 			var currentRow = this._selectedRow;
@@ -162,16 +168,22 @@ YUI.add('evaluater', function(Y) {
 		_getSelection : function() {
 			var cs = [];
 			Y.all(".manualfixes").each(function(node) {
-				var source = node.one("input[name=source]").get("value"),
-					target = node.one("input[name=target]").get("value"),
-					checked = node.one("input:checked"),
-					relation = checked?checked.get("value"):null,
-					comment = node.one("input[name=comment]").getContent();
+				var source = node.one("div.sourceuri").getContent();
+				var target = node.one("div.targeturi").getContent();
+				var checked = node.one("input:checked");
+				var relation = checked?checked.get("value"):null;
+				var comment = node.one("input[name=comment]").get("value");
+				var origsource = node.one("div.sourcediv input.original").get("value");
+				var origtarget = node.one("div.targetdiv input.original").get("value");
+				var values = Y.JSON.stringify(
+					{ source:source, target: target });
+				var originals = Y.JSON.stringify(
+					{ source: origsource, target: origtarget });
 				cs.push({
-					source:source,
-					target:target,
-					relation:relation,
-					comment:comment
+					values:    values,
+					originals: originals,
+					relation:  relation,
+					comment:   comment
 				});
 			});
 			return cs;
@@ -212,25 +224,10 @@ YUI.add('evaluater', function(Y) {
 		},
 
 		_fetchDetail : function() {
+			var oSelf = this;
 			var overlay = this.detailOverlay,
 				node = this._selectedRow,
 				server = this.get("paths").info;
-			var mappings = this.get('mappings');
-			var selected = this.get('selected');
-			var svoc = mappings[selected].stats.vocs.source.uri;
-			var tvoc = mappings[selected].stats.vocs.target.uri;
-			var SourceConfig = { 
-				source: '/api/autocomplete?q={query}&filter=[{\"scheme":\"'+svoc+'\"}]',
-				resultListLocator: 'results',
-				resultTextLocator: 'label',
-				resultHighlighter: 'phraseMatch'
-			};
-			var TargetConfig = { 
-				source: '/api/autocomplete?q={query}&filter=[{\"scheme":\"'+tvoc+'\"}]',
-				resultListLocator: 'results',
-				resultTextLocator: 'label',
-				resultHighlighter: 'phraseMatch'
-			};
 
 			// position the overlay below the currently selected row
 			overlay.set("width", node.get("offsetWidth"));
@@ -252,21 +249,65 @@ YUI.add('evaluater', function(Y) {
 				data: data,
 				on:{success:function(e,o) {
 						NODE_CONCEPTS.setContent(o.responseText);
-						Y.all('input[name=source]').plug(Y.Plugin.SkosAutoComplete, SourceConfig);
-						Y.all('input[name=target]').plug(Y.Plugin.SkosAutoComplete, TargetConfig);
+						oSelf.init_active_form_elements();
 						overlay.set("visible", true);
 					}
 				}
 			});
+		},
+
+		form_dirty: function() {
+			return (NODE_DETAIL.one(".change").get('disabled') == false);
+		},
+		init_active_form_elements: function() {
+			function activate(e) { 
+				NODE_DETAIL.all(".change").set('disabled', false); 
+			};
+			// Disable submit buttons until ...
+			NODE_DETAIL.all(".change").set('disabled', true);
+			// ... we have something to submit
+			NODE_DETAIL.all(".manualfixes .relation").on("change", activate);
+			NODE_DETAIL.all(".skos_ac_field").on("select", activate);
+		
+			// Activate skos autocompletion on sourceuri, targeturi input nodes:	
+			var mappings = this.get('mappings');
+			var selected = this.get('selected');
+			var svoc = mappings[selected].stats.vocs.source.uri;
+			var tvoc = mappings[selected].stats.vocs.target.uri;
+			var SourceConfig = { 
+				// our skos-specific ac attrs:
+				caller: this,
+				handler: this._onConceptChange,
+				context: { target:'sourceuri' },
+				
+				// YUI autocomplete attrs:
+				source: '/api/autocomplete?q={query}&filter=[{\"scheme":\"'+svoc+'\"}]',
+				resultListLocator: 'results',
+				resultTextLocator: 'label',
+				resultHighlighter: 'phraseMatch'
+			};
+			var TargetConfig = { 
+				// our skos-specific ac attrs:
+				caller: this,
+				handler: this._onConceptChange,
+				context: { target:'targeturi' },
+
+				// YUI autocomplete attrs:
+				source: '/api/autocomplete?q={query}&filter=[{\"scheme":\"'+tvoc+'\"}]',
+				resultListLocator: 'results',
+				resultTextLocator: 'label',
+				resultHighlighter: 'phraseMatch'
+			};
+			Y.all('input[name=source]').plug(Y.Plugin.SkosAutoComplete, SourceConfig);
+			Y.all('input[name=target]').plug(Y.Plugin.SkosAutoComplete, TargetConfig);
 		}
 	});
 
 	Y.Evaluater = Evaluater;
 
 }, '0.0.1', { requires: [
-	'node','event','anim','overlay','io-base',
+	'node','event','json', 'anim','overlay','io-base',
 	'datasource-io','datasource-jsonschema',
-	'querystring-stringify-simple',
 	'mappinglist','mappingtable', 'skosautocomplete'
 	]
 });
