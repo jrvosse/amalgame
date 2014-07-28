@@ -77,8 +77,8 @@ http_add_process(Request) :-
 	),
 	js_focus_node(Strategy, Focus, FocusNode),
 	js_strategy_nodes(Strategy, Nodes),
-	reply_json(json([focus=json(FocusNode),
-			 nodes=json(Nodes)])).
+	reply_json(json{focus:FocusNode,
+			nodes:Nodes}).
 
 
 %%	http_update_node(+Request)
@@ -110,10 +110,10 @@ http_update_node(Request) :-
 	js_strategy_nodes(NewStrategy, Nodes),
 	js_focus_node(NewStrategy, URI, FocusNode),
 
-	reply_json(json([strategy=NewStrategy,
-			 nodes=json(Nodes),
-			 focus=json(FocusNode)
-			])),
+	reply_json(json{strategy:NewStrategy,
+			 nodes:Nodes,
+			 focus:FocusNode
+		       }),
 
 	% precompute results to speed things up
 	(   setting(amalgame:precompute_mapping, true)
@@ -365,9 +365,9 @@ http_delete_node(Request) :-
 			)),
 	js_strategy_nodes(Strategy, Nodes),
 	js_focus_node(Strategy, Strategy, FocusNode),
-	reply_json(json([nodes=json(Nodes),
-			 focus=json(FocusNode)
-			])).
+	reply_json(json{nodes:Nodes,
+			focus:FocusNode
+		       }).
 
 node_retract(URI, Strategy) :-
 	provenance_graph(Strategy, ProvGraph),
