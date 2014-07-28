@@ -36,7 +36,7 @@ http_node_info(Request) :-
 	http_parameters(Request,
 			[ url(URL,
 			      [description('URL of a node (mapping,vocab,process,strategy)')]),
-			  alignment(Strategy,
+			  strategy(Strategy,
 				    [description('URL of the alignment strategy')])
 		       ]),
 	amalgame_info(URL, Strategy, Stats),

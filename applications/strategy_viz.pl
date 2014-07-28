@@ -1,6 +1,6 @@
 :- module(strategy_graph_viz,
 	  [ html_strategy_viz//1,
-	    reply_alignment_graph/2
+	    reply_strategy_graph/2
 	  ]).
 
 :- use_module(library(option)).
@@ -24,10 +24,10 @@
 :- setting(amalgame:secondary_input, oneof([show,hide]), show,
 	   'Show or hide arrows for amalgame:secondary_input').
 
-strategy_viz_options(Alignment,
+strategy_viz_options(Strategy,
 	       [edge_links(false),
 		shape_hook(amalgame_shape),
-		label_hook(amalgame_label(Alignment)),
+		label_hook(amalgame_label(Strategy)),
 		graph_attributes([rankdir('BT')])
 	       ]).
 
@@ -46,7 +46,7 @@ http_strategy_viz(Request) :-
 				  oneof([xdot,svg,html]),
 				  description('Return svg graph or html page with embedded object')
 				 ]),
-			  alignment(Alignment,
+			  strategy(Strategy,
 				 [description('URI from which we request the context')]),
 			  selected(Selected,
 			      [uri,
@@ -55,25 +55,25 @@ http_strategy_viz(Request) :-
 			      ])
 			]),
 	% When a node has been selected, make sure we know the stats
-	(   ground(Selected) -> node_stats(Alignment, Selected, _); true),
+	(   ground(Selected) -> node_stats(Strategy, Selected, _); true),
 
 	(   Format \== html
-	->  reply_alignment_graph(Alignment, Format)
-	;   strategy_viz_options(Alignment, Options),
+	->  reply_strategy_graph(Strategy, Format)
+	;   strategy_viz_options(Strategy, Options),
 	    reply_html_page(cliopatria(default),
-			    [ title(['Graph for ', \turtle_label(Alignment)])
+			    [ title(['Graph for ', \turtle_label(Strategy)])
 			    ],
-			    [ \graphviz_graph(amalgame_triples(Alignment), Options)
+			    [ \graphviz_graph(amalgame_triples(Strategy), Options)
 			    ])
 	).
 
-%%	reply_alignment_graph(+AlignmentURI)
+%%	reply_strategy_graph(+StrategyURI)
 %
-%	Emit an alignment graph.
+%	Emit a strategy graph.
 
-reply_alignment_graph(Alignment, Format) :-
-	strategy_viz_options(Alignment, Options),
-	amalgame_triples(Alignment, Triples),
+reply_strategy_graph(Strategy, Format) :-
+	strategy_viz_options(Strategy, Options),
+	amalgame_triples(Strategy, Triples),
 	meta_options(is_meta, Options, QOptions),
 	reply_graphviz_graph(Triples, Format, QOptions).
 
@@ -204,33 +204,33 @@ artifact_color(R, '#ACCF89') :-
 artifact_color(_R, '#EEFFEE').
 
 
-%%	amalgame_label(+Alignment, +Resource, +Lang, +MaxLenth, -Label)
+%%	amalgame_label(+Strategy, +Resource, +Lang, +MaxLenth, -Label)
 %
 %	Defines the node label of Resource.
 
-amalgame_label(Alignment, Resource, Lang, MaxLen, Label) :-
+amalgame_label(Strategy, Resource, Lang, MaxLen, Label) :-
 	rdf_display_label(Resource, Lang, Text),
 	truncate_atom(Text, MaxLen, Label0),
-	stats_label_list(Alignment, Resource, Stats),
+	stats_label_list(Strategy, Resource, Stats),
 	(   rdfs_individual_of(Resource, amalgame:'Mapping')
-	->  map_nickname(Alignment, Resource, Abbreviation),
+	->  map_nickname(Strategy, Resource, Abbreviation),
 	    atomic_list_concat([Abbreviation, '.', Label0, '\n'|Stats], Label)
 	;   atomic_list_concat([Label0, '\n'|Stats], Label)
 	).
 
-stats_label_list(_Alignment, Resource, [Count]) :-
+stats_label_list(_Strategy, Resource, [Count]) :-
 	is_vocabulary(Resource),
 	voc_property(Resource, numberOfConcepts(Count), [compute(no)]),
 	!.
-stats_label_list(Alignment, Resource, [IPercA]) :-
-	stats_cache(Resource-Alignment, Stats),
+stats_label_list(Strategy, Resource, [IPercA]) :-
+	stats_cache(Resource-Strategy, Stats),
 	option(inputPercentage(IPerc), Stats, 0),
 	IPerc > 1,
 	format(atom(IPercA), '~0f%', [IPerc]),
 	!.
 
-stats_label_list(Alignment, Resource, [ConceptStats]) :-
-	stats_cache(Resource-Alignment, Stats),
+stats_label_list(Strategy, Resource, [ConceptStats]) :-
+	stats_cache(Resource-Strategy, Stats),
 	option(sourcePercentageInput(SPerc), Stats, 0),
 	option(targetPercentageInput(TPerc), Stats, 0),
 	format(atom(ConceptStats), '~0f% ~0f%', [SPerc, TPerc]),

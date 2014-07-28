@@ -44,8 +44,8 @@ YUI.add('startpage', function(Y) {
      		});
 
 			
-			// the start button for the open alignment selector is only shown when
-			// an alignment is selected
+			// the start button for the open strategy selector is only shown when
+			// an strategy is selected
 			Y.all("#open .option").on("click", function(e) {
 	  			e.target.toggleClass("selected");
 	  			var nodes = Y.Node.all("#open .selected");
@@ -55,8 +55,8 @@ YUI.add('startpage', function(Y) {
 	     			Y.all("#open .start").set("disabled", true);
 	  			}
      		});
-			// the start button for the publish alignment selector is only shown when
-			// an alignment is selected
+			// the start button for the publish strategy selector is only shown when
+			// an strategy is selected
 			Y.all("#publish .option").on("click", function(e) {
 	  			e.target.toggleClass("selected");
 	  			var nodes = Y.Node.all("#publish .selected");

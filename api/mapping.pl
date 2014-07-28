@@ -39,7 +39,7 @@ http_data_mapping(Request) :-
 	http_parameters(Request,
 			[ url(URL,
 			      [description('URL of mapping or evaluation graph')]),
-			  alignment(Strategy, [description('URL of strategy')]),
+			  strategy(Strategy, [description('URL of strategy')]),
 			  sort(SortBy,
 			       [default(source),
 				oneof([source,target]),
@@ -213,7 +213,7 @@ http_correspondence(Request) :-
 				 [description('URI of the target concept')]),
 			  mapping(Mapping,
 				  [description('URI of the mapping')]),
-			  alignment(Strategy, [description('URL of strategy')]),
+			  strategy(Strategy, [description('URL of strategy')]),
 			  allsource(AllSource,
 				 [boolean, default(false),
 				  description('Include all sources')]),
@@ -229,7 +229,7 @@ http_correspondence(Request) :-
 	print_html(HTML).
 
 find_correspondences(Mapping, Strategy, Source, Target, true, true, Cs):-
-% Case we need all alignments involving Source or Target
+% Case we need all correspondences involving Source or Target
 	As = align(Source, _, _),
 	At = align(_, Target, _),
 	(   rdf(_, amalgame:evidenceGraph, _, Mapping)

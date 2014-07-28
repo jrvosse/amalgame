@@ -53,11 +53,11 @@ html_menu_item(Handler, Label, Options) -->
 	{ option(strategy(Strategy), Options),
 	  option(focus(Focus), Options, Strategy),
 	  http_link_to_id(http_ag_build,
-			  [alignment(Strategy)], ReturnToAfterLogin),
+			  [strategy(Strategy)], ReturnToAfterLogin),
 	  http_link_to_id(Handler, [
 				    'openid.return_to'(ReturnToAfterLogin),
 				    focus(Focus),
-				    alignment(Strategy)
+				    strategy(Strategy)
 				   ],
 			  Link)
 	},

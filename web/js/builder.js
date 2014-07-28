@@ -15,7 +15,7 @@ YUI.add('builder', function(Y) {
 	}
 	Builder.NAME = "builder";
 	Builder.ATTRS = {
-		alignment : {
+		strategy : {
 			value: null
 		},
 		readonly : {
@@ -133,7 +133,7 @@ YUI.add('builder', function(Y) {
 		_initGraph : function() {
 			this.strategy_viz = new Y.StratViz({
 				paths:this.get("paths"),
-				alignment: this.get("alignment"),
+				strategy: this.get("strategy"),
 				selected: this.get("selected"),
 				nodes: this.get("nodes")
 			}).render(NODE_GRAPH);
@@ -142,7 +142,7 @@ YUI.add('builder', function(Y) {
 		_initInfo : function() {
 			this.infobox = new Y.InfoBox({
 				srcNode: NODE_INFO,
-				alignment: this.get("alignment"),
+				strategy: this.get("strategy"),
 				nodes: this.get("nodes"),
 				selected: this.get("selected"),
 				readonly: this.get('readonly'),
@@ -162,7 +162,7 @@ YUI.add('builder', function(Y) {
 			this.mapping = new Y.Mapping({
 				builder: this,
 				paths: this.get("paths"),
-				alignment: this.get("alignment"),
+				strategy: this.get("strategy"),
 				selected: this.get("selected")
 			});
 		},
@@ -171,7 +171,7 @@ YUI.add('builder', function(Y) {
 			this.vocabulary = new Y.Vocabulary({
 				paths:this.get("paths"),
 				selected: this.get("selected"),
-				alignment: this.get("alignment")
+				strategy: this.get("strategy")
 			});
 		},
 
@@ -198,7 +198,7 @@ YUI.add('builder', function(Y) {
 
 			// data only contains the process parameters
 			// we need to add the context
-			data.alignment = this.get("alignment");
+			data.strategy = this.get("strategy");
 			if (data.lastAction) this.infobox.set("lastAction", data.lastAction);
 			Y.io(paths.addprocess, {
 				data:data,
@@ -218,7 +218,7 @@ YUI.add('builder', function(Y) {
 			var oSelf = this,
 				paths = this.get("paths"),
 				data = o.data;
-			data.alignment = this.get("alignment");
+			data.strategy = this.get("strategy");
 
 			Y.io(paths.updatenode, {
 				data:data,
@@ -226,11 +226,11 @@ YUI.add('builder', function(Y) {
 					var r = Y.JSON.parse(o.responseText);
 					oSelf.set("nodes", r.nodes);
 					oSelf.set("selected", r.focus);
-					if (!data.alignment == r.alignment) {
-						// alignment changed name, we need to fully reload ...
+					if (!data.strategy == r.strategy) {
+						// strategy changed name, we need to fully reload ...
 						var l = window.location;
 						var newURL = l.protocol + "//" + l.host + l.pathname +
-							"?alignment=" + encodeURIComponent(r.alignment);
+							"?strategy=" + encodeURIComponent(r.strategy);
 						window.location.replace(newURL);
 					}
 				}}
@@ -240,12 +240,12 @@ YUI.add('builder', function(Y) {
 		_onNodeDelete : function(o) {
 			var oSelf = this,
 				paths = this.get("paths"),
-				alignment = this.get("alignment");
+				strategy = this.get("strategy");
 
 			// inform the server and update the nodes
 			Y.io(paths.deletenode, {
 				data:{
-					alignment:alignment,
+					strategy:strategy,
 					uri:o.uri
 				},
 				on:{success:function(e,o) {
@@ -265,7 +265,7 @@ YUI.add('builder', function(Y) {
 			var focus = e.data.focus;
 			if(focus) {
 				window.location =	this.get("paths").ag_evaluate
-					+'?alignment='+encodeURIComponent(this.get("alignment"))
+					+'?strategy='+encodeURIComponent(this.get("strategy"))
 					+"&focus="+encodeURIComponent(focus);
 			}
 		}

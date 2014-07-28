@@ -29,23 +29,23 @@
 
 http_ag_analyse(Request) :-
 	http_parameters(Request,
-			[ alignment(Alignment,
+			[ strategy(Strategy,
 				    [uri, optional(true),
-				     description('URI of an alignment')]),
+				     description('URI of an strategy')]),
 			   mapping(Mapping,
 				  [uri, default(''),
 				   description('URI of initially selected mapping')
 				  ])
 			]),
-	html_page(Alignment, Mapping).
+	html_page(Strategy, Mapping).
 
-html_page(Alignment, Mapping) :-
+html_page(Strategy, Mapping) :-
 	reply_html_page(amalgame(app),
 			[ title(['Align vocabularies'])
 			],
 			[ \html_requires(css('analyser.css')),
 			  \html_ag_header([active(http_ag_analyse),
-					   strategy(Alignment),
+					   strategy(Strategy),
 					   focus(Mapping)
 					  ]),
 			  div(class('yui3-skin-sam yui-skin-sam'),
@@ -60,7 +60,7 @@ html_page(Alignment, Mapping) :-
 			      ]
 			     ),
 			 script(type('text/javascript'),
-				[ \yui_script(Alignment, Mapping)])
+				[ \yui_script(Strategy, Mapping)])
 			]).
 
 agreement_table -->
@@ -99,18 +99,18 @@ http_agreement(Request) :-
 %
 %	Emit YUI object.
 
-yui_script(Alignment, Mapping) -->
+yui_script(Strategy, Mapping) -->
 	{
 	 findall(M-C, js_module(M,C), Modules),
 	 pairs_keys(Modules, Includes),
 	 findall(K-V, js_path(K, V), Paths),
-	 js_mappings(Alignment, JSMappings)
+	 js_mappings(Strategy, JSMappings)
 	},
 	yui3([json([modules(json(Modules))])
 	     ],
 	     Includes,
 	     [ \yui3_new(eq, 'Y.Analyser',
-			 json([strategy(Alignment),
+			 json([strategy(Strategy),
 			       paths(json(Paths)),
 			       mappings(JSMappings),
 			       selected(Mapping)

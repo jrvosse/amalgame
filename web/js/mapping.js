@@ -15,7 +15,7 @@ YUI.add('mapping', function(Y) {
 	}
 	Mapping.NAME = "mapping";
 	Mapping.ATTRS = {
-		alignment : { value: null },
+		strategy : { value: null },
  		selected : { value: null },
  		builder : { value: null },
 		paths:{
@@ -76,7 +76,7 @@ YUI.add('mapping', function(Y) {
 			this.mappingtable = new Y.MappingTable({
 				srcNode: NODE_MAPPING_TABLE,
 				datasource:DS,
-				alignment: this.get("alignment"),
+				strategy: this.get("strategy"),
 				mapping:mapping
 			});
 		},
@@ -117,7 +117,7 @@ YUI.add('mapping', function(Y) {
 			this.detailOverlay.set("visible", false);
 			var cs = this._getSelection();
 			var c = cs[0];
-			c.alignment = this.get("alignment");
+			c.strategy = this.get("strategy");
 			c.mapping   = this.get("selected").uri;
 			if (c.relation) {
 			  this._submitCorrespondence(c);
@@ -184,7 +184,7 @@ YUI.add('mapping', function(Y) {
 				server = this.get("paths").cinfo;
 
 			var data = {
-				alignment:this.get("alignment"),
+				strategy:this.get("strategy"),
 				mapping:this.get("selected").uri,
 				source: this._source,
 				target: this._target,

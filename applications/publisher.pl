@@ -32,22 +32,22 @@ ag:menu_item(280=http_ag_publish_form, 'publish').
 http_ag_publish_form(Request) :-
 	authorized(write(default, _)),
 	http_parameters(Request,
-			[ alignment(Alignment,
+			[ strategy(Strategy,
 				    [uri,
-				     description('URI of an alignment workflow')]),
+				     description('URI of an alignment strategy')]),
 			  focus(Focus,
 				[uri,
 				 description('URI of current focus node'),
-				 default(Alignment)
+				 default(Strategy)
 				])
 			]),
-	html_page(Alignment, Focus).
+	html_page(Strategy, Focus).
 
 http_ag_publish(Request) :-
 	http_parameters(Request,
-			[ alignment(Alignment,
+			[ strategy(Strategy,
 				    [uri,
-				     description('URI of an alignment workflow')]),
+				     description('URI of an alignment strategy')]),
 			  status(Status, [uri, description('amalgame:status value')]),
 			  format(Format, [one_of([both, simple, edoal]), description('Format to publish in')]),
 			  default_relation(DefaultRelation,
@@ -59,9 +59,9 @@ http_ag_publish(Request) :-
 	expand_file_search_path(alignment_results(.), L),
 	exists_directory(L),
 	absolute_file_name(L,BaseDir),!,
-	file_base_name(Alignment, AlignmentB),
+	file_base_name(Strategy, AlignmentB),
 	atomic_list_concat([BaseDir, AlignmentB], '/', Dir),
-	save_mappings(Alignment, Dir, [status(Status), format(Format),default_relation(DefaultRelation)]),
+	save_mappings(Strategy, Dir, [status(Status), format(Format),default_relation(DefaultRelation)]),
 	http_redirect(moved, alignment_results(AlignmentB), Request).
 
 
@@ -69,12 +69,12 @@ http_ag_publish(Request) :-
 		 *	      HTML		*
 		 *******************************/
 
-%%	html_page(+Alignment)
+%%	html_page(+Strategy)
 %
-%	Emit html page with layout for the alignment exporter
+%	Emit html page with layout for the alignment strategy exporter
 %	application.
 
-html_page(Alignment, Focus) :-
+html_page(Strategy, Focus) :-
 	findall(R, status_option(R), StatusOptions),
 	rdf_equal(amalgame:final, DefaultStatus),
 	supported_map_relations(MapRelations),
@@ -87,13 +87,13 @@ html_page(Alignment, Focus) :-
 			      [ \html_ag_header(
 				     [active(http_ag_publish_form),
 				      focus(Focus),
-				      strategy(Alignment)]),
+				      strategy(Strategy)]),
 				div([id(main), class('yui3-g')],
 				    [ form([class('yui3-u'),
 					    id(export_form),
 					    action(location_by_id(http_ag_publish)), method(post)],
 					   ['Publish the strategy file along with ',
-					    input([type(hidden), name(alignment), value(Alignment)]),
+					    input([type(hidden), name(strategy), value(Strategy)]),
 					    select([name(status), autocomplete(off)],
 						   [ \html_options([no,all|StatusOptions],DefaultStatus)]),
 					    ' mappings.',

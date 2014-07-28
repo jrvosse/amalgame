@@ -37,7 +37,7 @@
 :- http_handler(amalgame(form/select),    http_ag_form_select_strategy, []).
 :- http_handler(amalgame(form/url),	  http_ag_form_upload_strategy_resource, []).
 :- http_handler(amalgame(form/data),      http_ag_form_upload_strategy_data, []).
-:- http_handler(amalgame(form/reference), http_ag_form_upload_alignment, []).
+:- http_handler(amalgame(form/reference), http_ag_form_upload_reference, []).
 
 %%      http_amalgame_main_page(+Request) is det.
 %
@@ -56,7 +56,7 @@ http_amalgame_main_page(Request) :-
 http_ag_form_select_strategy(Request) :-
 	http_parameters(Request,
 			[
-			 alignment(Strategies,
+			 strategy(Strategies,
 				    [list(uri),
 				     description('URI of the selected strategy')]),
 			 submit(Action,
@@ -77,7 +77,7 @@ http_ag_form_select_strategy(Request) :-
 
 %%	http_ag_form_new_strategy(+Request)
 %
-%	Handle form data to create a new alignment
+%	Handle form data to create a new strategy
 
 http_ag_form_new_strategy(Request) :-
 	http_parameters(Request,
@@ -123,10 +123,10 @@ http_ag_form_upload_strategy_resource(Request) :-
 	rdf_load(URL, [graph(TmpGraph)]),
 	cp_strategy_from_tmp(Request, TmpGraph).
 
-%%	http_ag_form_upload_alignment(+Request) is det.
+%%	http_ag_form_upload_reference(+Request) is det.
 %
-%	Handle form to upload an existing alignment
-http_ag_form_upload_alignment(Request) :-
+%	Handle form to upload an existing strategy
+http_ag_form_upload_reference(Request) :-
 	authorized(write(default, _)),
 	http_parameters(Request,
 			[ data(Data,
@@ -162,7 +162,7 @@ scheme_label(URI, Key-URI) :-
 	downcase_atom(CasedKey, Key).
 
 html_main_page(_Request) :-
-	findall(A-S, amalgame_alignment(A, S), Alignments),
+	findall(A-S, amalgame_strategy(A, S), Alignments),
 	find_schemes(ConceptSchemes),
 	reply_html_page(cliopatria(main),
 			[ title(['Amalgame - strategies'])
@@ -329,7 +329,7 @@ html_publish(Strategies) -->
 	 !
 	},
 	html_acc_item(publish,
-		      'publish	alignment results',
+		      'publish alignment strategy results',
 		      [ form(action(location_by_id(L)),
 			     [ \html_strategy_table(Strategies, [linkto(L)]),
 			       \html_submit('Publish')
@@ -341,7 +341,7 @@ html_publish(_) -->  !.
 
 %%	html_strategy_table(+Graphs, +Options)
 %
-%	Emit HTML table with alignment graph properties.
+%	Emit HTML table with strategy graph properties.
 
 html_strategy_table(Strategies, Options) -->
 	html([
@@ -373,7 +373,7 @@ html_alignment_rows([URI-Schemes|Gs], Options) -->
 	 ;   Comment = ''
 	 )
 	},
-	html(tr([td(input([type(checkbox), autocomplete(off), class(option), name(alignment), value(URI)])),
+	html(tr([td(input([type(checkbox), autocomplete(off), class(option), name(strategy), value(URI)])),
 		 td(\html_strategy_name(URI, Options)),
 		 td(\html_scheme_labels(Schemes)),
 		 td(\turtle_label(Author)),
@@ -389,7 +389,7 @@ html_scheme_labels([S|Ss]) -->
 html_strategy_name(Graph, Options) -->
 	{ graph_label(Graph, Label),
 	  option(linkto(LinkTo), Options, http_ag_build),
-	  http_link_to_id(LinkTo, [alignment(Graph)], Link)
+	  http_link_to_id(LinkTo, [strategy(Graph)], Link)
 	},
 	html(a([href(Link)],Label)).
 
@@ -410,7 +410,7 @@ html_reference -->
 	},
 	html_acc_item(reference,
 		      'upload existing/reference alignment',
-		      form([action(location_by_id(http_ag_form_upload_alignment)),
+		      form([action(location_by_id(http_ag_form_upload_reference)),
 			    method('POST'),
 			    enctype('multipart/form-data') ],
 			   [ p(['Upload an exisiting alignment to build upon, ',
@@ -567,7 +567,7 @@ cp_strategy_from_tmp(Request, TmpGraph) :-
 	build_redirect(Request, [Strategy]).
 
 build_redirect(Request, [Strategy|_]) :-
-	http_link_to_id(http_ag_build, [alignment(Strategy)], Redirect),
+	http_link_to_id(http_ag_build, [strategy(Strategy)], Redirect),
 	http_redirect(moved, Redirect, Request).
 
 delete_redirect(Request, Strategies) :-
@@ -597,7 +597,7 @@ merge_redirect(Request, Strategies) :-
 	merge_strategy_nodes(Strategies, New),
 
 	% Redirect to builder
-	http_link_to_id(http_ag_build, [alignment(New)], Redirect),
+	http_link_to_id(http_ag_build, [strategy(New)], Redirect),
 	http_redirect(moved, Redirect, Request).
 
 merge_strategy_nodes([], _New) :- !.

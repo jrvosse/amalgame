@@ -17,7 +17,7 @@ YUI.add('evaluater', function(Y) {
 	}
 	Evaluater.NAME = "evaluater";
 	Evaluater.ATTRS = {
-		alignment: { value: null },
+		strategy: { value: null },
 		paths: { value: {} },
 		mappings: { value:{} },
 		selected: { value: null },
@@ -91,7 +91,7 @@ YUI.add('evaluater', function(Y) {
 				srcNode: NODE_MAPPING_TABLE,
 				datasource:DS,
 				showRelation:true,
-				alignment: this.get("alignment"),
+				strategy: this.get("strategy"),
 				focus:this.get("selected")
 			});
 		},
@@ -131,7 +131,7 @@ YUI.add('evaluater', function(Y) {
 			this.detailOverlay.set("visible", false);
 			var cs = this._getSelection();
 			var c = cs[0];
-			c.strategy = this.get("alignment");
+			c.strategy = this.get("strategy");
 			c.mapping   = this.get("selected");
 			c.mode      = nav == "setall"?"all":"one";
 			if (this.form_dirty()) {
@@ -212,7 +212,7 @@ YUI.add('evaluater', function(Y) {
 		_fetchInfo : function(uri) {
 			if(uri) {
 				this.infoDS.sendRequest({
-					request:'?url='+uri+'&alignment='+this.get("alignment"),
+					request:'?url='+uri+'&strategy='+this.get("strategy"),
 					callback:{success:function(o) {
 						var HTML = o.response.results[0].responseText;
 						NODE_INFO.setContent(HTML);
@@ -237,7 +237,7 @@ YUI.add('evaluater', function(Y) {
 
 			// call the server
 			var data = {
-				alignment:this.get("alignment"),
+				strategy:this.get("strategy"),
 				mapping:this.get("selected"),
 				source: this._source,
 				target: this._target,

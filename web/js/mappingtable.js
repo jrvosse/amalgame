@@ -12,7 +12,7 @@ YUI.add('mappingtable', function(Y) {
 	MappingTable.NAME = "mappingtable";
 	MappingTable.ATTRS = {
 		srcNode: { value: null },
-		alignment: { value: null },
+		strategy: { value: null },
 		mapping: { value: null },
 		datasource: { value: null },
 		showRelation: { value: false },
@@ -92,7 +92,7 @@ YUI.add('mappingtable', function(Y) {
 			var oSelf = this,
 				mapping = this.get("mapping"),
 				datasource = this.get("datasource"),
-				alignment = this.get("alignment"),
+				strategy = this.get("strategy"),
 				table = this.table,
 				paginator = this.paginator;
 
@@ -119,7 +119,7 @@ YUI.add('mappingtable', function(Y) {
 			if(mapping) {
 				conf = conf ? conf : {};
 				conf.url = mapping;
-				conf.alignment=alignment;
+				conf.strategy=strategy;
 				this.set("loading", true);
 				datasource.sendRequest({
 					request:'?'+Y.QueryString.stringify(conf),

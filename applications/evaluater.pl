@@ -43,14 +43,14 @@ ag:menu_item(210=http_ag_evaluate, 'evaluate').
 
 %%	http_ag_evaluate(+Request)
 %
-%	Emit html page with for the alignment analyser.
+%	Emit html page with for the mapping analyser.
 
 http_ag_evaluate(Request) :-
 	authorized(write(default, _)),
 	http_parameters(Request,
-			[ alignment(Alignment,
+			[ strategy(Strategy,
 				    [uri,
-				     description('URI of an alignment')]),
+				     description('URI of an alignment strategy')]),
 			  focus(Mapping,
 				  [uri, default(''),
 				   description('URI of initially selected mapping')
@@ -60,16 +60,16 @@ http_ag_evaluate(Request) :-
 	->  SelectedMapping = Mapping
 	;   rdfs_individual_of(SelectedMapping, amalgame:'Mapping')
 	),
-	html_page(Alignment, SelectedMapping).
+	html_page(Strategy, SelectedMapping).
 
-html_page(Alignment, Mapping) :-
+html_page(Strategy, Mapping) :-
 	reply_html_page(amalgame(app),
 			[ title(['Manual correspondence evaluation'])
 			],
 			[ \html_requires(css('evaluater.css')),
 			  \html_requires(css('gallery-paginator.css')),
 			  \html_ag_header([active(http_ag_evaluate),
-					   strategy(Alignment),
+					   strategy(Strategy),
 					   focus(Mapping)
 					  ]),
 			  div(class('yui3-skin-sam yui-skin-sam'),
@@ -83,7 +83,7 @@ html_page(Alignment, Mapping) :-
 				   \html_correspondence_overlay)
 			      ]),
 			  script(type('text/javascript'),
-				 [ \yui_script(Alignment, Mapping)
+				 [ \yui_script(Strategy, Mapping)
 				 ])
 			]).
 
@@ -103,11 +103,11 @@ html_sidebar -->
 %
 %	Emit YUI object.
 
-yui_script(Alignment, Mapping) -->
+yui_script(Strategy, Mapping) -->
 	{ findall(K-V, js_path(K, V), Paths),
 	  findall(M-C, js_module(M,C), Modules),
 	  pairs_keys(Modules, Includes),
-	  js_mappings(Alignment, Mappings)
+	  js_mappings(Strategy, Mappings)
 	},
 	yui3([json([
 		gallery('gallery-2011.02.23-19-01'),
@@ -115,7 +115,7 @@ yui_script(Alignment, Mapping) -->
 	     ],
 	     Includes,
 	     [ \yui3_new(eq, 'Y.Evaluater',
-			 config{alignment:Alignment,
+			 config{strategy:Strategy,
 			       paths:json(Paths),
 			       mappings:Mappings,
 			       selected:Mapping

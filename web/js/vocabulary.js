@@ -14,7 +14,7 @@ YUI.add('vocabulary', function(Y) {
 		conceptscheme : {
 			value: null
 		},
-		alignment : {
+		strategy : {
 			value: null
 		},
 		selected : {
@@ -127,7 +127,7 @@ YUI.add('vocabulary', function(Y) {
 		},
 
 		fetchMappings : function() {
-			var alignment = this.get("alignment"),
+			var strategy = this.get("strategy"),
 				mappingNode = this.mappingList,
 				mappingSelect = this.mappingSelect,
 				currentMappings = this._currentMappings;
@@ -154,7 +154,7 @@ YUI.add('vocabulary', function(Y) {
 
 			Y.io(this.get("paths").mappinglist, {
 				data: {
-					'alignment':alignment
+					'strategy':strategy
 				},
 				on:{
 					success:formatMappings

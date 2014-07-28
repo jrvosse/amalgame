@@ -14,24 +14,24 @@
 :- use_module(library(amalgame/voc_stats)).
 :- use_module(library(amalgame/expand_graph)).
 
-:- http_handler(amalgame(data/voc), http_data_voc, []).
+:- http_handler(amalgame(data/voc),         http_data_voc,     []).
 :- http_handler(amalgame(data/mappinglist), http_mapping_list, []).
 
 %%	http_mapping_list(+Request)
 %
-%	Return a JSON object with the mappings in an alignment
+%	Return a JSON object with the mappings in an alignment strategy.
 
 http_mapping_list(Request) :-
 	http_parameters(Request,
-			[ alignment(Alignment, [description('URL of strategy')]),
+			[ strategy(Strategy, [description('URL of strategy')]),
 			  status(Status, [default(finalized)])
 			]),
 	Obj = json([uri=URI, label=Label]),
-	findall(Obj, mapping_in_alignment(Alignment, URI, Label, [status(Status)]), Mappings),
+	findall(Obj, mapping_in_strategy(Strategy, URI, Label, [status(Status)]), Mappings),
 	reply_json(Mappings).
 
-mapping_in_alignment(Alignment, MappingId, Label, Options) :-
-	rdf(MappingId, rdf:type, amalgame:'Mapping', Alignment),
+mapping_in_strategy(Strategy, MappingId, Label, Options) :-
+	rdf(MappingId, rdf:type, amalgame:'Mapping', Strategy),
 	(   option(status(finalized), Options)
 	->  rdf_graph(MappingId)
 	;   true
@@ -44,7 +44,7 @@ http_data_voc(Request) :-
 	http_parameters(Request,
 			[ url(URL,
 			      [description('URL of scheme or vocabulary')]),
-			  alignment(Strategy, [description('URL of strategy')]),
+			  strategy(Strategy, [description('URL of strategy')]),
 			  limit(Limit,
 				[default(RowsPerPage), number,
 				 description('limit number of concepts returned')]),

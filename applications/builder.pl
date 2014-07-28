@@ -54,22 +54,22 @@ precalc_voc_stats(Strategy) :-
 %%	http_ag_build(+Request)
 %
 %	HTTP handler for web page with interactive vocabulary alignment
-%	builder.
+%	strategy builder.
 
 http_ag_build(Request) :-
 	% authorized(write(default, _)),
 	http_parameters(Request,
-			[ alignment(Alignment,
+			[ strategy(Strategy,
 				    [uri,
-				     description('URI of an alignment')]),
+				     description('URI of an alignment strategy')]),
 			  focus(Focus,
 				[uri,
 				 description('URI of current focus node'),
-				 default(Alignment)
+				 default(Strategy)
 				])
 			]),
-	backward_compatibilty_fixes(Alignment),
-	html_page(Alignment, Focus).
+	backward_compatibilty_fixes(Strategy),
+	html_page(Strategy, Focus).
 
 		 /*******************************
 		 *	      HTML		*
@@ -119,12 +119,12 @@ html_page(Strategy, Focus) :-
 %
 %	Emit YUI object.
 
-yui_script(Alignment, Focus) -->
+yui_script(Strategy, Focus) -->
 	{ findall(K-V, js_path(K, V), Paths), dict_pairs(PathD, path, Paths),
 	  findall(M-C, js_module(M,C), Modules),
 	  pairs_keys(Modules, Includes),
-	  js_focus_node(Alignment, Focus, FocusNode),
-	  js_alignment_nodes(Alignment, Nodes),
+	  js_focus_node(Strategy, Focus, FocusNode),
+	  js_strategy_nodes(Strategy, Nodes),
 	  (   has_write_permission
 	  ->  Read_only = false
 	  ;   Read_only = true
@@ -135,7 +135,7 @@ yui_script(Alignment, Focus) -->
 	     ],
 	     Includes,
 	     [ \yui3_new(eq, 'Y.Builder',
-			 json{alignment:Alignment,
+			 json{strategy:Strategy,
 			       paths:PathD,
 			       nodes:Nodes,
 			       selected:FocusNode,
@@ -297,10 +297,10 @@ cliopatria:concept_property(count, Concept, Graphs0, Count) :-
 	mapped_descendant_count(Concept, Graphs, Count).
 
 
-graph_mappings([Alignment], Graphs) :-
-	rdf(Alignment, rdf:type, amalgame:'AlignmentStrategy'),
+graph_mappings([Strategy], Graphs) :-
+	rdf(Strategy, rdf:type, amalgame:'AlignmentStrategy'),
 	!,
-	findall(Mapping, rdf(Mapping, rdf:type, amalgame:'Mapping', Alignment), Graphs).
+	findall(Mapping, rdf(Mapping, rdf:type, amalgame:'Mapping', Strategy), Graphs).
 graph_mappings(Graphs, Graphs).
 
 

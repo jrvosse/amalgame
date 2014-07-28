@@ -54,16 +54,16 @@ http_add_process(Request) :-
 			  process(Process,
 				  [uri,
 				   description('URI of an existing process or type of new process')]),
-			  alignment(Strategy,
+			  strategy(Strategy,
 				    [uri,
-				     description('URI of the alignment graph to which the process is added')]),
+				     description('URI of the strategy graph to which the process is added')]),
 			  update(Update,
 				 [boolean, default(false),
 				  descrption('When set to true process is updated with new parameters')])
 			],
 			[form_data(Params0)]),
 	sort(SecInputs0, SecInputs),
-	subtract(Params0, [input=_,source=_,target=_,process=_,alignment=_,update=_,graphic=_], Params1),
+	subtract(Params0, [input=_,source=_,target=_,process=_,strategy=_,update=_,graphic=_], Params1),
 	findall(secondary_input=S,member(secondary_input=S, Params1), SecParams),
 	subtract(Params1, SecParams, Params),
 	fix_not_expanded_options(Params, ExpandedParams),
@@ -76,7 +76,7 @@ http_add_process(Request) :-
 	;   true
 	),
 	js_focus_node(Strategy, Focus, FocusNode),
-	js_alignment_nodes(Strategy, Nodes),
+	js_strategy_nodes(Strategy, Nodes),
 	reply_json(json([focus=json(FocusNode),
 			 nodes=json(Nodes)])).
 
@@ -89,9 +89,9 @@ http_add_process(Request) :-
 http_update_node(Request) :-
 	authorized(write(default, _)),
 	http_parameters(Request,
-			[ alignment(Strategy,
+			[ strategy(Strategy,
 				    [uri,
-				     description('URI of alignment')
+				     description('URI of strategy')
 				    ]),
 			  uri(URI,
 				[uri,
@@ -107,10 +107,10 @@ http_update_node(Request) :-
 	rdf_transaction(update_node_props(Params, URI, Strategy)),
 	update_amalgame_prov(Strategy, URI),
 	change_ns_if_needed(PublishNS, URI, Strategy, NewStrategy),
-	js_alignment_nodes(NewStrategy, Nodes),
+	js_strategy_nodes(NewStrategy, Nodes),
 	js_focus_node(NewStrategy, URI, FocusNode),
 
-	reply_json(json([alignment=NewStrategy,
+	reply_json(json([strategy=NewStrategy,
 			 nodes=json(Nodes),
 			 focus=json(FocusNode)
 			])),
@@ -151,7 +151,7 @@ is_dependent_chk(Mapping, Process, Strategy) :-
 
 new_process(Type, Strategy, Source, Target, Input, SecInputs, Params, Focus) :-
 	% hack needed till we have nested rdf transactions:
-	retractall(ag_alignment:nickname_cache(Strategy,_,_)),
+	retractall(ag_map:nickname_cache(Strategy,_,_)),
 
 	rdf_bnode(URI),
 	rdf_transaction( % this rdf_transaction is to make it MT safe
@@ -352,9 +352,9 @@ change_ns_if_needed(NS, URI, Strategy, NewStrategy) :-
 http_delete_node(Request) :-
 	authorized(write(default, _)),
 	http_parameters(Request,
-			[ alignment(Strategy,
+			[ strategy(Strategy,
 				    [uri,
-				     description('URI of alignment')
+				     description('URI of strategy')
 				    ]),
 			  uri(URI,
 				[uri,
@@ -363,7 +363,7 @@ http_delete_node(Request) :-
 	rdf_transaction((process_retract(URI, Strategy),
 			 node_retract(URI, Strategy)
 			)),
-	js_alignment_nodes(Strategy, Nodes),
+	js_strategy_nodes(Strategy, Nodes),
 	js_focus_node(Strategy, Strategy, FocusNode),
 	reply_json(json([nodes=json(Nodes),
 			 focus=json(FocusNode)

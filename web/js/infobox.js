@@ -41,7 +41,7 @@ YUI.add('infobox', function(Y) {
 		lastAction: {
 			     value: null
 			     },
-		alignment: {
+		strategy: {
 			value: null
 		},
 		paths : {
@@ -81,7 +81,7 @@ YUI.add('infobox', function(Y) {
 			var oSelf = this,
 				paths = this.get("paths"),
 				selected = this.get("selected"),
-				alignment = this.get("alignment");
+				strategy = this.get("strategy");
 
 			// update the node properties that we already have
 			this._setProperties(selected);
@@ -91,7 +91,7 @@ YUI.add('infobox', function(Y) {
 			Y.io(paths.info, {
 				data: {
 					'url':selected.uri,
-					'alignment':alignment
+					'strategy':strategy
 				},
 				on:{
 					success:function(e,r) {
@@ -172,12 +172,12 @@ YUI.add('infobox', function(Y) {
 				 e.currentTarget.set('innerHTML', 'computing statistics ...');
 				 var voc = this.get("selected").uri;
 				 var paths = this.get("paths");
-				 var alignment = this.get("alignment");
+				 var strategy = this.get("strategy");
 				 var oSelf = this;
 				 Y.io(paths.deep_voc_stats, {
 							  data: {
 								url:voc,
-								strategy:alignment
+								strategy:strategy
 								},
 							  on: {
 							      success:function(e,r) {
@@ -190,7 +190,7 @@ YUI.add('infobox', function(Y) {
 		 },
 
 		_setProperties : function(selected) {
-			var alignment = this.get("alignment"),
+			var strategy = this.get("strategy"),
 				content = this.get("srcNode");
 
 			if(selected) {
@@ -270,7 +270,7 @@ YUI.add('infobox', function(Y) {
 				Y.io(this.get("paths").hint,
 				     {
 				     data: {
-					   strategy: this.get("alignment"),
+					   strategy: this.get("strategy"),
 					   lastAction: this.get("lastAction"),
 					   focus: focus
 					   },

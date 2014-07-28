@@ -5,11 +5,11 @@
 	      rdf_lang/4,
 
 	      assert_user_provenance/2,
-	      amalgame_alignment/2,
+	      amalgame_strategy/2,
 
 	      js_mappings/2,
 	      js_focus_node/3,
-	      js_alignment_nodes/2,
+	      js_strategy_nodes/2,
 
 	      now_xsd/1,
 	      xsd_timestamp/2,
@@ -95,10 +95,6 @@ has_write_permission :-
 	logged_on(User, anonymous),
 	catch(check_permission(User, write(default,_)), _, fail).
 
-%%	html_ag_header(+Active, +Alignment)
-%
-%	Emit page header with menu bar
-
 
 %%	assert_user_provenance(+Resource, -NamedGraph)
 %
@@ -115,14 +111,14 @@ assert_user_provenance(R, Graph) :-
 	rdf_assert(R, dcterms:date, literal(type(xsd:dateTime, Time)), Graph).
 
 
-%%	amalgame_alignment(?Alignment, ?Schemes)
+%%	amalgame_strategy(?Strategy, ?Schemes)
 %
-%	Alignment is an amalgame alignment and schemes are the
+%	Strategy is an amalgame alignment strategy and Schemes are the
 %       conceptSchemes that it includes.
 
-amalgame_alignment(Alignment, Schemes) :-
-	rdfs_individual_of(Alignment, amalgame:'AlignmentStrategy'),
-	findall(S,  rdf(Alignment, amalgame:includes, S), Schemes),
+amalgame_strategy(Strategy, Schemes) :-
+	rdfs_individual_of(Strategy, amalgame:'AlignmentStrategy'),
+	findall(S,  rdf(Strategy, amalgame:includes, S), Schemes),
 	Schemes \== [].
 
 
@@ -154,12 +150,12 @@ js_focus_node(Strategy, URI, NodeProps) :-
 	findall(Type-Value, node_prop(Strategy, URI, Type, Value), Pairs),
 	dict_pairs(NodeProps, node, Pairs).
 
-%%	js_alignment_nodes(+Alignment, -Nodes)
+%%	js_alignment_nodes(+Strategy, -Nodes)
 %
-%	Nodes contains all nodes in alignment with their Strategy type
+%	Nodes contains all nodes in alignment Strategy with their type
 %	(process, vocab, strategy or mapping).
 
-js_alignment_nodes(Strategy, Nodes) :-
+js_strategy_nodes(Strategy, Nodes) :-
 	findall(S, graph_resource(Strategy, S), NodeURIs),
 	sort(NodeURIs, URIsUnique),
 	maplist(node_data(Strategy), URIsUnique, Pairs),

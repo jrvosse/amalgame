@@ -11,15 +11,9 @@ YUI.add('strategy_viz', function(Y) {
 	}
 	StratViz.NAME = "strategy_viz";
 	StratViz.ATTRS = {
-		alignment: {
-			value: null
-		},
-		paths: {
-			value: null
-		},
-		selected: {
-			value: null
-		}
+		strategy: { value: null },
+		paths: { value: null },
+		selected: { value: null }
 	};
 
 	Y.extend(StratViz, Y.Widget, {
@@ -52,7 +46,7 @@ YUI.add('strategy_viz', function(Y) {
 		updateGraph : function(uri) {
 			var oSelf = this,
 				paths = this.get("paths"),
-				data = {"alignment":this.get("alignment")};
+				data = {"strategy":this.get("strategy")};
 				
 			if(uri) {
 				data.selected = uri
