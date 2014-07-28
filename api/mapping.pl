@@ -119,16 +119,16 @@ relation_label(R, R).
 http_data_evaluate(Request) :-
 	logged_on(User0, anonymous),
 	http_parameters(Request,
-			[  source(Source,
-				  [description('Source of mapping')]),
-			   target(Target,
-				  [descript('Target of mapping')]),
+			[  values(Values,
+				  [description('JSON object with the new source/target pair values')]),
+			   originals(Originals,
+				     [description('JSON object with original source/target pair')]),
 			   relation(Relation,
 				    [description('Relation between source and target')]),
 			   mapping(Mapping,
 				   [description('URI of mapping being evaluated')]),
 			   strategy(Strategy,
-				     [description('Alignment strategy graph')]),
+				    [description('Alignment strategy graph')]),
 			   comment(Comment,
 				   [default(''),
 				    description('Explanation of action')]),
@@ -136,36 +136,70 @@ http_data_evaluate(Request) :-
 				[default(one), oneof([all,one]),
 				description('Apply to one or all correspondences of this mapping')])
 			]),
-
 	evaluation_graph(Strategy, Mapping, Graph),
 	process_entity(EvalProcess,  Graph),
 	flush_refs_cache(Strategy),           % to recompute all reference stats
 	flush_stats_cache(Graph, Strategy),   % to recompute G's basic stats
 	flush_expand_cache(EvalProcess, Strategy),  % evaluation graph cache is now outdated
-
 	user_property(User0, url(User)),
 
-	Options = [
-		   user(User),
-		   comment(Comment),
-		   evaluation_graph(Graph),
-		   strategy(Strategy),
-		   mapping(Mapping)
-		  ],
+	my_atom_json_dict(Values,    V, []),
+	my_atom_json_dict(Originals, O, []),
 
-	(   Mode == one
-	->  assert_relation(Source, Relation, Target, Options)
-	;   assert_relations(Mapping, Relation, Options)
+	Options = [
+	    user(User),
+	    evaluation_graph(Graph),
+	    strategy(Strategy),
+	    mapping(Mapping),
+	    comment(Comment),
+	    relation(Relation),
+	    mode(Mode)
+	],
+
+
+	(   V=O
+	->  original_concepts_assessment(V, Options)
+	;   WithdrawOptions = [
+		user(User),
+		evaluation_graph(Graph),
+		strategy(Strategy),
+		mapping(Mapping),
+		comment(WithDrawComment),
+		relation(Unrelated)
+	    ],
+	    format(atom(WithDrawComment), 'Overruled by ~p ~p ~p', [V.source, Relation, V.target]),
+	    rdf_equal(evaluator:unrelated, Unrelated),
+	    new_concepts_assessment(V, O, Options, WithdrawOptions)
+	).
+
+original_concepts_assessment(V, Options) :-
+	(   option(mode(one), Options)
+	->  assert_relation(V.source, V.target, Options)
+	;   option(mapping(Mapping), Options),
+	    assert_relations(Mapping, Options)
 	),
 
+	option(relation(Relation), Options),
 	mapping_relation(RLabel, Relation),
-	rdf_display_label(Source, SLabel),
-	rdf_display_label(Target, TLabel),
-	reply_json(json([source=json([uri=Source, label=SLabel]),
-			 target=json([uri=Target, label=TLabel]),
+	rdf_display_label(V.source, SLabel),
+	rdf_display_label(V.target, TLabel),
+	reply_json(json([source=json([uri=V.source, label=SLabel]),
+			 target=json([uri=V.target, label=TLabel]),
 			 relation=json([uri=Relation, label=RLabel])
 			])).
 
+
+new_concepts_assessment(V, O, Options, WithdrawOptions) :-
+	assert_relation(O.source, O.target, WithdrawOptions),
+	assert_relation(V.source, V.target, Options),
+	option(relation(Relation), WithdrawOptions),
+	mapping_relation(RLabel, Relation),
+	rdf_display_label(O.source, SLabel),
+	rdf_display_label(O.target, TLabel),
+	reply_json(json([source=json([uri=V.source, label=SLabel]),
+			 target=json([uri=V.target, label=TLabel]),
+			 relation=json([uri=Relation, label=RLabel])
+			])).
 
 %%	http_correspondence(+Request)
 %
@@ -225,15 +259,16 @@ find_correspondences(Mapping, Strategy, Source, Target, AllSource, AllTarget, Cs
 	    findall(A, member(A, Ms), Cs)
 	).
 
-assert_relations(Mapping, Relation, Options) :-
+assert_relations(Mapping, Options) :-
 	option(strategy(Strategy), Options),
 	expand_node(Strategy, Mapping, Mappings),
 	forall(member(align(Source, Target, Prov), Mappings),
-	       assert_relation(Source, Relation, Target,
+	       assert_relation(Source, Target,
 			       [prov(Prov)|Options])
 	      ).
 
-assert_relation(Source, Relation, Target, Options) :-
+assert_relation(Source, Target, Options) :-
+	option(relation(Relation), Options),
 	option(evaluation_graph(Graph), Options, eval),
 	option(comment(Comment), Options, ''),
 	option(user(User), Options, ''),
@@ -278,12 +313,14 @@ html_correspondence(Source, Target, Evidence, Relations) -->
 	      div(class([manualfixes, 'yui3-g']),
 		  [ div([class([sourcediv, 'yui3-u-1-5'])],
 			[div([class(sourceuri)], Source),
+			 input([type(hidden), class(original), value(Source)]),
 			 input([type(text), class([skos_ac_field]), name(source)])
 			]),
 		    div([class([relations, 'yui3-u-3-5'])],
 			\html_relations(Relations, Relation)),
 		    div([class([targetdiv, 'yui3-u-1-5'])],
 			[div([class(targeturi)], Target),
+			 input([type(hidden), class(original), value(Target)]),
 			 input([type(text), class([skos_ac_field]), name(target)])
 			]),
 		    div(class([comment, 'yui3-u-1']),
@@ -337,10 +374,14 @@ html_evidences([E|Es],Source,Target) -->
 	  (   option(user(User), E)
 	  ->  By = span([class(who)], [' by: ', \rdf_link(User)])
 	  ;   By = ''
+	  ),
+	  (   option(comment(Comment), E)
+	  ->  Cm = span([class(comment)], [' with comment: ', Comment])
+	  ;   Cm = ''
 	  )
 	},
 	html(div(class(evidence),
-		 [ div(class(method), ['match: ', Method, By, At, Mt, Src, Trg, Ss, Ts, Scs]),
+		 [ div(class(method), ['match: ', Method, By, At, Mt, Src, Trg, Ss, Ts, Scs, Cm]),
 		   div(class('graph yui3-g'),
 		       [ div(class('source yui3-u-1-2'),
 			     \html_evidence_graph(Graph, Source, 'LR')),
