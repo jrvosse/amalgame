@@ -150,7 +150,7 @@ js_focus_node(Strategy, URI, NodeProps) :-
 	findall(Type-Value, node_prop(Strategy, URI, Type, Value), Pairs),
 	dict_pairs(NodeProps, node, Pairs).
 
-%%	js_alignment_nodes(+Strategy, -Nodes)
+%%	js_strategy_nodes(+Strategy, -Nodes)
 %
 %	Nodes contains all nodes in alignment Strategy with their type
 %	(process, vocab, strategy or mapping).
