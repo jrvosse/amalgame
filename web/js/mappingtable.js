@@ -17,18 +17,14 @@ YUI.add('mappingtable', function(Y) {
 		datasource: { value: null },
 		showRelation: { value: false },
 		vocs: { value: { source: null, target: null }},
-		rows: {
-			value:100,
+		rows: { value:100,
 			validator:function(val) {
 				return Lang.isNumber(val);
-			}
-		},
-		loading: {
-			value:false,
+			}},
+		loading: { value:false,
 			validator:function(val) {
 				return Lang.isBoolean(val);
-			}
-		}
+			}}
 	};
 
 	Y.extend(MappingTable, Y.Base, {
