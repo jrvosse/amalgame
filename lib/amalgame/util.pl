@@ -133,12 +133,11 @@ js_mappings_metadata(Strategy, Results) :-
 	dict_pairs(Results, mappings, Pairs).
 
 mapping_metadata(Strategy, M, M-Dict) :-
-	Dict = mapping{uri:M, label:L, stats:Stats},
-	(   stats_cache(M-Strategy, Stats)
-	->  true
-	;   Stats = _{}
-	),
+	Dict = mapping{uri:M, label:L, stats:Stats, agStatus:Status},
+	(   stats_cache(M-Strategy, Stats) ->  true;   Stats = _{} ),
 	is_dict(Stats, mapping_stats_dict),
+	rdf_has(M, amalgame:status, StatusQ),
+	rdf_global_id(_:Status, StatusQ),
 	rdf_display_label(M, L).
 
 %%	js_focus_node(+Strategy, +URI, -NodeProps)

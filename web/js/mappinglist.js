@@ -68,7 +68,8 @@ YUI.add('mappinglist', function(Y) {
 			for (var uri in mappings) {
 				var m = mappings[uri];
 				if (!m.stats.totalCount > 0) continue;
-				listNode.append("<tr class='row' title='"+uri+"'>"+
+				listNode.append("<tr class='row "+m.agStatus+"' "+
+			        "title='"+uri+"'>"+
 				"<td><a href='javascript:void(0)'>"+m.label+"</a></td>"+
 				"<td class='src_mapped'>"+m.stats.mappedSourceConcepts+"</td>"+
 				"<td class='target_mapped'>"+m.stats.mappedTargetConcepts+"</td>"+
