@@ -17,10 +17,10 @@ YUI.add('evaluater', function(Y) {
 	}
 	Evaluater.NAME = "evaluater";
 	Evaluater.ATTRS = {
-		strategy: { value: null },
-		paths: { value: {} },
-		mappings: { value:{} },
-		selected: { value: null },
+		strategy:   { value: null  },
+		paths:      { value: {}    },
+		mappings:   { value: {}    },
+		selected:   { value: null  },
 		allsources: { value: false },
 		alltargets: { value: false }
 	};
