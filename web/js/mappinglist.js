@@ -67,7 +67,7 @@ YUI.add('mappinglist', function(Y) {
 			var mappings = this.get("mappings");
 			for (var uri in mappings) {
 				var m = mappings[uri];
-				if (m.stats.totalCount < 1) continue;
+				if (!m.stats.totalCount > 0) continue;
 				listNode.append("<tr class='row' title='"+uri+"'>"+
 				"<td><a href='javascript:void(0)'>"+m.label+"</a></td>"+
 				"<td class='src_mapped'>"+m.stats.mappedSourceConcepts+"</td>"+
