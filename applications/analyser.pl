@@ -104,7 +104,7 @@ yui_script(Strategy, Mapping) -->
 	 findall(M-C, js_module(M,C), Modules),
 	 pairs_keys(Modules, Includes),
 	 findall(K-V, js_path(K, V), Paths),
-	 js_mappings(Strategy, JSMappings)
+	 js_mappings_metadata(Strategy, JSMappings)
 	},
 	yui3([json([modules(json(Modules))])
 	     ],

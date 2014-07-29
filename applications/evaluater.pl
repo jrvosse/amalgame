@@ -107,7 +107,7 @@ yui_script(Strategy, Mapping) -->
 	{ findall(K-V, js_path(K, V), Paths),
 	  findall(M-C, js_module(M,C), Modules),
 	  pairs_keys(Modules, Includes),
-	  js_mappings(Strategy, Mappings)
+	  js_mappings_metadata(Strategy, Mappings)
 	},
 	yui3([json([
 		gallery('gallery-2011.02.23-19-01'),

@@ -2,7 +2,7 @@
 	  [   mint_node_uri/3,
 	      amalgame_strategy_schemes/2,
 
-	      js_mappings/2,
+	      js_mappings_metadata/2,
 	      js_focus_node/3,
 	      js_strategy_nodes/2,
 
@@ -127,12 +127,12 @@ amalgame_strategy_mappings(Strategy, Mappings) :-
 		      rdfs_individual_of(URI, amalgame:'Mapping')
 		     ), Mappings).
 
-js_mappings(Strategy, Results) :-
+js_mappings_metadata(Strategy, Results) :-
 	amalgame_strategy_mappings(Strategy, Mappings),
-	maplist(mapping_expand(Strategy), Mappings, Pairs),
+	maplist(mapping_metadata(Strategy), Mappings, Pairs),
 	dict_pairs(Results, mappings, Pairs).
 
-mapping_expand(Strategy, M, M-Dict) :-
+mapping_metadata(Strategy, M, M-Dict) :-
 	Dict = mapping{uri:M, label:L, stats:Stats},
 	(   stats_cache(M-Strategy, Stats)
 	->  true
