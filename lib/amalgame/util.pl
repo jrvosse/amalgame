@@ -1,15 +1,15 @@
 :- module(ag_utils,
 	  [   mint_node_uri/3,
+	      amalgame_strategy_schemes/2,
+
+	      js_mappings/2,
+	      js_focus_node/3,
+	      js_strategy_nodes/2,
 
 	      rdf_lang/3,
 	      rdf_lang/4,
 
 	      assert_user_provenance/2,
-	      amalgame_strategy/2,
-
-	      js_mappings/2,
-	      js_focus_node/3,
-	      js_strategy_nodes/2,
 
 	      now_xsd/1,
 	      xsd_timestamp/2,
@@ -111,36 +111,35 @@ assert_user_provenance(R, Graph) :-
 	rdf_assert(R, dcterms:date, literal(type(xsd:dateTime, Time)), Graph).
 
 
-%%	amalgame_strategy(?Strategy, ?Schemes)
+%%	amalgame_strategy_schemes(?Strategy, ?Schemes)
 %
 %	Strategy is an amalgame alignment strategy and Schemes are the
 %       conceptSchemes that it includes.
 
-amalgame_strategy(Strategy, Schemes) :-
+amalgame_strategy_schemes(Strategy, Schemes) :-
 	rdfs_individual_of(Strategy, amalgame:'AlignmentStrategy'),
 	findall(S,  rdf(Strategy, amalgame:includes, S), Schemes),
 	Schemes \== [].
 
+amalgame_strategy_mappings(Strategy, Mappings) :-
+	rdfs_individual_of(Strategy, amalgame:'AlignmentStrategy'),
+	findall(URI, (rdf(URI, rdf:type, _ ,Strategy),
+		      rdfs_individual_of(URI, amalgame:'Mapping')
+		     ), Mappings).
 
 js_mappings(Strategy, Results) :-
-	findall(M-L,
-		mapping_label(Strategy, M, L),
-		Mappings),
-	findall(M-mapping{uri:M,
-			     label:L,
-			     stats:StatsDict},
-		(   member(M-L, Mappings),
-		    stats_cache(M-Strategy, StatsDict),
-		    is_dict(StatsDict, mapping_stats_dict)
-		),
-		Pairs),
+	amalgame_strategy_mappings(Strategy, Mappings),
+	maplist(mapping_expand(Strategy), Mappings, Pairs),
 	dict_pairs(Results, mappings, Pairs).
 
-mapping_label(Strategy, URI, Label) :-
-	rdfs_individual_of(URI, amalgame:'Mapping'),
-	rdf(URI, rdf:type, _ ,Strategy),
-	rdf_display_label(URI, Label).
-
+mapping_expand(Strategy, M, M-Dict) :-
+	Dict = mapping{uri:M, label:L, stats:Stats},
+	(   stats_cache(M-Strategy, Stats)
+	->  true
+	;   Stats = _{}
+	),
+	is_dict(Stats, mapping_stats_dict),
+	rdf_display_label(M, L).
 
 %%	js_focus_node(+Strategy, +URI, -NodeProps)
 %

@@ -162,7 +162,7 @@ scheme_label(URI, Key-URI) :-
 	downcase_atom(CasedKey, Key).
 
 html_main_page(_Request) :-
-	findall(A-S, amalgame_strategy(A, S), Alignments),
+	findall(A-S, amalgame_strategy_schemes(A, S), Alignments),
 	find_schemes(ConceptSchemes),
 	reply_html_page(cliopatria(main),
 			[ title(['Amalgame - strategies'])
