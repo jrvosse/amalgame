@@ -161,16 +161,14 @@ YUI.add('evaluater', function(Y) {
 		},
 
 		_onEditModeChange: function(e) {
-			Y.log('_onEditModeChange');
-			Y.log(e);
 			if (e.newVal == 'edit') {
 				Y.all('#header, #header a').setStyle('color', '#ACCF89');
 				Y.one('#detail').setStyle('background-color', '#ACCF89');
-				Y.one('#agMessages').setContent('Warning: editing reference alignment directly');
+				Y.one('#agMessages').setContent('Warning: edits will be applied to the reference alignment graph directly');
 			} else {
 				Y.all('#header, #header a').setStyle('color', '#3875D7');
 				Y.one('#detail').setStyle('background-color', '#DDD');
-				Y.one('#agMessages').setContent('Submissions will be recorded in the manual reference alignment');
+				Y.one('#agMessages').setContent('Changes will be recorded in the manual reference alignment graph');
 			}
 		},
 		_onWrapAround : function(e) {
