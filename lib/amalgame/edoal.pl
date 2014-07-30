@@ -155,8 +155,8 @@ assert_prov_elem(user, User, Subject, Graph, _Options) :-
 
 assert_prov_elem(Key, Value, Subject, Graph, _Options) :-
 	rdf_global_id(amalgame:Key, Property),
-	term_to_atom(Value, ValueTxt),
-	rdf_assert(Subject, Property, literal(ValueTxt), Graph).
+	format(atom(Atom), '~w', [Value]),
+	rdf_assert(Subject, Property, literal(Atom), Graph).
 
 rdf_assert_triples([], _).
 rdf_assert_triples([rdf(S,P,O)|Tail], Graph) :-
