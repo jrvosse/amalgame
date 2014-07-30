@@ -207,6 +207,7 @@ YUI.add('infobox', function(Y) {
 					sec_inputs = selected.secondary_inputs|| [];
 
 				this.emptyNode.addClass("hidden");
+				NODE_DELETE.removeAttribute("disabled");
 				NODE_LABEL.set("value", label);
 				NODE_COMMENT.set("value", comment);
 				NODE_ABBREV.set("value", abbrev);
@@ -214,7 +215,7 @@ YUI.add('infobox', function(Y) {
 				NODE_TYPE.setContent(type);
 				NODE_URI.setContent('<a href="'+link+'">'+local+'</a>');
 
-				// the status row is only shown for mappings
+				// the status and relation rows only shown for mappings:
 				if(type=="mapping") {
 					NODE_STATUS_ROW.removeClass("hidden")
 					NODE_REL_ROW.removeClass("hidden")
@@ -224,20 +225,17 @@ YUI.add('infobox', function(Y) {
 					Node.getDOMNode(NODE_REL).selectedIndex =
 							  NODE_REL.get('options')
 							    .indexOf(NODE_REL.one("option[value='"+relation+"']"));
-					// Y.log('index of selected node:');
-					// Y.log(NODE_REL.get('options').indexOf(NODE_REL.one("option[value='"+relation+"']")));
-					// Y.log(selected);
 				} else {
 					NODE_STATUS_ROW.addClass("hidden")
 					NODE_REL_ROW.addClass("hidden")
 				}
 
+				// more mapping only things:
 				if (type == "mapping") {
 					NODE_EVAL.removeClass("hidden");
 					NODE_ABBREV.removeClass("hidden");
 					Y.all('span.abbrev').removeClass("hidden");
-				}
-				else {
+				} else {
 					NODE_EVAL.addClass("hidden");
 					NODE_ABBREV.addClass("hidden");
 					Y.all('span.abbrev').addClass("hidden");
@@ -246,10 +244,11 @@ YUI.add('infobox', function(Y) {
 				if(type =='alignment' || type=='strategy') {
 					NODE_NAMESPACE_ROW.removeClass("hidden");
 					NODE_DELETE.setAttribute("disabled", true);
-
-				} else if (!this.get('readonly')) {
-					NODE_NAMESPACE_ROW.addClass("hidden");
-					NODE_DELETE.removeAttribute("disabled");
+				} else if (this.get('readonly')) { 
+					NODE_NAMESPACE_ROW.removeClass("hidden");
+					NODE_DELETE.setAttribute("disabled", true);
+				} else if (status.search('reference') > -1) {
+					NODE_DELETE.setAttribute("disabled", true);
 				}
 
 				// hide the parameter form submit button in case we are not a process
