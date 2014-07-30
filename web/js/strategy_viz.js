@@ -80,7 +80,7 @@ YUI.add('strategy_viz', function(Y) {
 			var target = e.currentTarget,
 				uri = target.getAttribute("xlink:href");
 
-			Y.log("select node: "+uri);
+			Y.log("node selected in strategy svg: "+uri);
 			Y.all("svg a").removeAttribute("class", "selected");
 			target.setAttribute("class", "selected");
 			this.fire("nodeSelect", {target:target, uri:uri});
