@@ -42,6 +42,9 @@
 .yui3-mappinglist tr.selected {
 	background-color: #3875D7;
 }
+.yui3-mappinglist tr.reference {
+	background-color: #ACCF89;
+}
 .yui3-mappinglist tr a {
 	text-decoration: none;
 	color: #222;
