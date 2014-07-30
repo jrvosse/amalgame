@@ -116,6 +116,7 @@ YUI.add('mappingtable', function(Y) {
 				conf = conf ? conf : {};
 				conf.url = mapping;
 				conf.strategy=strategy;
+				conf.limit=this.get('rows');
 				this.set("loading", true);
 				datasource.sendRequest({
 					request:'?'+Y.QueryString.stringify(conf),
@@ -152,7 +153,7 @@ YUI.add('mappingtable', function(Y) {
 				};
 			Y.all(".yui3-datatable tr").removeClass("yui3-datatable-selected");
 			row.addClass("yui3-datatable-selected");
-			Y.log("selected correspondence: "+source.uri+" - "+target.uri);
+			Y.log("selected correspondence in mappingtable: "+source.uri+" - "+target.uri);
 			this.fire("rowSelect", data);
 		},
 
@@ -176,7 +177,6 @@ YUI.add('mappingtable', function(Y) {
 			    } else {
 			      var end = rows.item(rows.size() - 1);
 			      this.fire("wrapAround", null);
-			      // Y.log(end.getXY());
 			      return row; // fix me
 			    }
 			  },
