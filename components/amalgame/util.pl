@@ -21,7 +21,8 @@ html_ag_header(Options) -->
 	html(div(id(header),
 		 [ div(class(title),
 		       a(href(location_by_id(http_amalgame_main_page)), 'Amalgame')),
-		   ul(\html_ag_menu(Items, Options))
+		   ul(\html_ag_menu(Items, Options)),
+		   span([id(agMessages)],[''])
 		 ])).
 
 html_showlist([]) --> !.

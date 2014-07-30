@@ -21,6 +21,7 @@ YUI.add('evaluater', function(Y) {
 		paths:      { value: {}    },
 		mappings:   { value: {}    },
 		selected:   { value: null  },
+		editmode:   { value: 'eval'}, // or edit. 
 		allsources: { value: false },
 		alltargets: { value: false }
 	};
@@ -38,6 +39,7 @@ YUI.add('evaluater', function(Y) {
 			this.mappinglist.on("mappingSelect", this._onMappingSelect, this);
 			this.mappinglist.on("wrapAround", this._onWrapAround, this);
 			this.mappingtable.on("rowSelect", this._onCorrespondenceSelect, this);
+			this.after('editmodeChange', this._onEditModeChange, this);
 			NODE_DETAIL.all(".setall").on("click", this._onSubmit, this, "setall");
 			NODE_DETAIL.all(".submit").on("click", this._onSubmit, this, "submit");
 			NODE_DETAIL.all(".next").on(  "click", this._onSubmit, this, "next");
@@ -47,8 +49,11 @@ YUI.add('evaluater', function(Y) {
 			NODE_SOURCE_ALL.on("click", this._fetchDetail, this);
 			NODE_TARGET_ALL.on("click", this._fetchDetail, this);
 
-			var selected = this.get("selected");
-			if (selected) this.mappinglist.fire('mappingSelect', {uri:selected});
+			var selected = this.get('selected');
+			if (selected) {
+				var isReference =this.get('mappings')[selected].agStatus == 'reference' 
+				this.mappinglist.fire('mappingSelect', {uri:selected, isReference:isReference});
+			}
 
 		},
 
@@ -105,11 +110,11 @@ YUI.add('evaluater', function(Y) {
 		},
 
 		_onMappingSelect : function(e) {
-			var uri = e.uri;
-			this.set("selected", uri);
+			if (e.isReference) this.set('editmode', "edit"); else this.set('editmode', "eval");
+			this.set("selected", e.uri);
 			this.detailOverlay.set("visible", false);
-			this._fetchInfo(uri);
-			this.mappingtable.set("mapping", uri);
+			this._fetchInfo(e.uri);
+			this.mappingtable.set("mapping", e.uri);
 		},
 
 		_onCorrespondenceSelect : function(e) {
@@ -155,6 +160,19 @@ YUI.add('evaluater', function(Y) {
 			}
 		},
 
+		_onEditModeChange: function(e) {
+			Y.log('_onEditModeChange');
+			Y.log(e);
+			if (e.newVal == 'edit') {
+				Y.all('#header, #header a').setStyle('color', '#ACCF89');
+				Y.one('#detail').setStyle('background-color', '#ACCF89');
+				Y.one('#agMessages').setContent('Warning: editing reference alignment directly');
+			} else {
+				Y.all('#header, #header a').setStyle('color', '#3875D7');
+				Y.one('#detail').setStyle('background-color', '#DDD');
+				Y.one('#agMessages').setContent('Submissions will be recorded in the manual reference alignment');
+			}
+		},
 		_onWrapAround : function(e) {
 				  Y.log("got wraparound event");
 				  window.scrollTo(e);
@@ -235,12 +253,14 @@ YUI.add('evaluater', function(Y) {
 				points:[Y.WidgetPositionAlign.TR, Y.WidgetPositionAlign.BR]
 				});
 
+			var mode = (this.get('editmode') == "eval")?"empty":"fill-in";
 			// call the server
 			var data = {
 				strategy:this.get("strategy"),
 				mapping:this.get("selected"),
 				source: this._source,
 				target: this._target,
+				mode:   mode,
 				allsource: NODE_SOURCE_ALL.get("checked"),
 				alltarget: NODE_TARGET_ALL.get("checked")
 			};

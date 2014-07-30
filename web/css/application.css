@@ -6,12 +6,12 @@ body {
 /* header */
 #header {
 	border-bottom: 2px solid #3875D7;
-    padding: 5px 10px;
+	padding: 5px 10px;
 	height: 19px;
 }
 #header .title {
-    font-size: 120%;
-    font-weight: bold;
+	font-size: 120%;
+	font-weight: bold;
 	margin-right: 10px;
 	display: inline;
 }
@@ -20,6 +20,7 @@ body {
 	display: inline;
 }
 #header li {
+	color: black;
 	list-style: none;
 	margin: 0 10px;
 	padding: 0 2px;
@@ -32,4 +33,8 @@ body {
 #header a {
 	text-decoration: none;
 	color: #3875D7;
+}
+
+#agMessages {
+	padding-left: 10%;
 }

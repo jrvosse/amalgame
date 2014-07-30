@@ -217,6 +217,10 @@ http_correspondence(Request) :-
 			  mapping(Mapping,
 				  [description('URI of the mapping')]),
 			  strategy(Strategy, [description('URL of strategy')]),
+			  mode(Mode, [
+                                   oneof(empty, 'fill-in'),
+                                   default(empty),
+                                   description('Fill-in the form or leave it empty')]),
 			  allsource(AllSource,
 				 [boolean, default(false),
 				  description('Include all sources')]),
@@ -227,7 +231,7 @@ http_correspondence(Request) :-
 	find_correspondences(Mapping, Strategy, Source, Target, AllSource, AllTarget, Cs),
 	html_current_option(content_type(Type)),
 	findall(R-L, mapping_relation(L, R), Relations),
-	phrase(html_correspondences(Cs, Relations), HTML),
+	phrase(html_correspondences(Cs, Relations, [mode(Mode)]), HTML),
 	format('Content-type: ~w~n~n', [Type]),
 	print_html(HTML).
 
@@ -298,21 +302,26 @@ assert_relation(Source, Target, Options) :-
 	assert_cell(Source, Target, NewOptions).
 
 
-html_correspondences([], _) --> !.
-html_correspondences([align(Source,Target,Evidence)|Cs], Relations) -->
-	html_correspondence(Source, Target, Evidence, Relations),
-	html_correspondences(Cs, Relations).
+html_correspondences([], _,_) --> !.
+html_correspondences([align(Source,Target,Evidence)|Cs], Relations, Options) -->
+        html_correspondence(Source, Target, Evidence, Relations, Options),
+        html_correspondences(Cs, Relations, Options).
 
-html_correspondence(Source, Target, Evidence, Relations) -->
-	{ Relation = '',
-	  length(Evidence, EvLength)
-	},
+html_correspondence(Source, Target, Evidence, Relations, Options) -->
+        { length(Evidence, EvLength),
+	  (   option(mode('fill-in'), Options)
+	  ->  member(Method, Evidence),
+	      member(relation(Relation), Method),
+	      member(comment(Comment), Method)
+	  ;   Comment = '', Relation = undefined
+	  )
+        },
 	html([div(class('yui3-g'),
 		  [ div(class('yui3-u-1-2'),
 			\html_resource_context(Source, Evidence)),
 		    div(class('yui3-u-1-2'),
 			\html_resource_context(Target, Evidence))
-		  ]),
+                  ]),
 	      div(class([manualfixes, 'yui3-g']),
 		  [ div([class([sourcediv, 'yui3-u-1-5'])],
 			[div([class(sourceuri)], Source),
@@ -320,21 +329,21 @@ html_correspondence(Source, Target, Evidence, Relations) -->
 			 input([type(text), class([skos_ac_field]), name(source)])
 			]),
 		    div([class([relations, 'yui3-u-3-5'])],
-			\html_relations(Relations, Relation)),
-		    div([class([targetdiv, 'yui3-u-1-5'])],
-			[div([class(targeturi)], Target),
-			 input([type(hidden), class(original), value(Target)]),
-			 input([type(text), class([skos_ac_field]), name(target)])
-			]),
-		    div(class([comment, 'yui3-u-1']),
-			['because: ', input([type(text), name(comment)], [])
-			])
-		  ]),
-	      div(class(evcount),
-		  [ '~w individual motivations: '-(EvLength)]),
-	      div(class(evidences),
-		  \html_evidences(Evidence, Source, Target))
-	     ]).
+                        \html_relations(Relations, Relation)),
+                    div([class([targetdiv, 'yui3-u-1-5'])],
+                        [div([class(targeturi)], Target),
+                         input([type(hidden), class(original), value(Target)]),
+                         input([type(text), class([skos_ac_field]), name(target)])
+                        ]),
+                    div(class([comment, 'yui3-u-1']),
+                        ['because: ', input([type(text), name(comment), value(Comment)])
+                        ])
+                  ]),
+              div(class(evcount),
+                  [ '~w individual motivations: '-(EvLength)]),
+              div(class(evidences),
+                  \html_evidences(Evidence, Source, Target))
+             ]).
 
 html_evidences([],_,_) --> !.
 html_evidences([E|Es],Source,Target) -->
