@@ -48,11 +48,10 @@ YUI.add('mappinglist', function(Y) {
 
 		_onSelectChange : function(e) {
 			var uri = e.newVal;
-
 			Y.log('mappinglist :: select '+uri);
 			this.set("selected", uri);
-			this._toggleSelection();
-			this.fire("mappingSelect", {uri:uri});
+			var isReference = this._toggleSelection();
+			this.fire("mappingSelect", {uri:uri, isReference:isReference});
 		},
 
 		_setMappings : function() {
@@ -79,13 +78,18 @@ YUI.add('mappinglist', function(Y) {
 		},
 
 		_toggleSelection : function() {
+			var isReference = false;
 			var nodes = this.listNode.all("tr.row");
 			nodes.removeClass("selected");
 			var sel = this.get("selected");
 			if(sel) { 
 				var selRow = this.listNode.one('tr[title='+sel+']')
-				if (selRow) selRow.addClass("selected"); 
+				if (selRow) {
+					selRow.addClass("selected");
+					isReference = selRow.hasClass("reference");
+				}
 			}
+			return isReference;
 		},
 	});
 
