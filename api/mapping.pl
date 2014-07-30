@@ -2,6 +2,9 @@
 	  [
 	  ]).
 
+:- use_module(library(apply)).
+:- use_module(library(lists)).
+:- use_module(library(option)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/html_write)).
@@ -60,7 +63,7 @@ http_data_mapping(Request) :-
 	sort_by_arg(Labeled, SortKey, MSorted),
 	list_offset(MSorted, Offset, MOffset),
 	list_limit(MOffset, Limit, MLimit, _),
-	mapping_data(MLimit, Mapping),
+	mapping_json(MLimit, Mapping),
 	node_stats(Strategy, URL, Stats),
 	reply_json(jsondict{url:URL,
 			    limit:Limit,
@@ -98,14 +101,14 @@ notation_ish(Concept, NotationIsh) :-
 	;   NotationIsh = Label
 	).
 
-mapping_data([], []).
-mapping_data([Align|As], [json(Data)|Os]) :-
+mapping_json([], []).
+mapping_json([Align|As], [json(Data)|Os]) :-
 	Align = align(Source, SLabel, Target, TLabel, Relation),
 	Data = [source=json([uri=Source, label=SLabel]),
 		target=json([uri=Target, label=TLabel]),
 		relation = Relation
 	       ],
-	mapping_data(As, Os).
+	mapping_json(As, Os).
 
 relation_label(R, Label) :-
 	mapping_relation(Label, R), !.
