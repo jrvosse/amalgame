@@ -15,6 +15,9 @@
 :- use_module(user(user_db)).
 :- use_module(components(label)).
 :- use_module(components(graphviz)).
+
+:- use_module(library(skos/util)).
+
 :- use_module(library(amalgame/caching)).
 :- use_module(library(amalgame/ag_evaluation)).
 :- use_module(library(amalgame/ag_provenance)).
@@ -77,28 +80,13 @@ sort_key(source, 2).
 sort_key(target, 4).
 
 mapping_label(align(S, T, Prov), align(S,SLabel, T,TLabel, Relation)) :-
-	notation_ish(S, SLabel),
-	notation_ish(T, TLabel),
+	skos_notation_ish(S, SLabel),
+	skos_notation_ish(T, TLabel),
 	append(Prov, FlatProv),
 	(   option(relation(Rel), FlatProv)
 	->  relation_label(Rel, RLabel),
 	    Relation = json([uri=Rel, label=RLabel])
 	;   Relation = null
-	).
-
-%%	notation_ish(Concept, NotationIsh) is det.
-%
-%	Unify NotationIsh with a label extend by (notation).
-%	For notation, use the skos:notation or dc/dcterms:identifier
-notation_ish(Concept, NotationIsh) :-
-	rdf_display_label(Concept, Label),
-	(   (rdf(Concept, skos:notation, N)
-	    ;	rdf_has(Concept, skos:notation, N)
-	    ;	rdf_has(Concept, dc:identifier, N)
-	    )
-	->  literal_text(N, LT),
-	    format(atom(NotationIsh), '~w (~w)', [Label, LT])
-	;   NotationIsh = Label
 	).
 
 mapping_json([], []).
@@ -420,11 +408,12 @@ evidence_graph(Graph, Node, NodeTriples) :-
 
 
 html_resource_context('',_) --> !.
-html_resource_context(URI, Prov) -->
+html_resource_context(URI, _Prov) -->
 	{ rdf_display_label(URI, Label),
-	  resource_alternative_labels(URI, Label, Prov, Alt),
+	  skos_all_labels(URI, Alt0),
+	  select(Label, Alt0, Alt),
 	  resource_tree(URI, Tree),
-	  related_resources(URI, Related),
+	  skos_related_concepts(URI, Related),
 	  image_examples(URI, Examples)
 	},
 	html(div(class('resource-info'),
@@ -461,32 +450,7 @@ html_image_examples([E|Tail]) -->
 		)),
 	html_image_examples(Tail).
 
-resource_alternative_labels(R, Label, _Prov, Alt) :-
-	findall(L, (rdf_label(R, L)), Ls),
-	delete(Ls, Label, Alt0),
-	sort(Alt0, Alt).
 
-/*
-	(   matching_label(R, Prov, MatchingLabel), selectchk(MatchingLabel, Alt1, Rest)
-	->  Alt = [match(MatchingLabel)|Rest]
-	;   Alt = Ls
-	).
-
-
-matching_label(S, Prov, MatchingLabel) :-
-	option(graph(Graph), Prov),
-	member(rdf(S,_P,O), Graph),
-	literal_text(O, MatchingLabel).
-*/
-
-
-%%	related_resources(+Resource, -Related)
-%
-%	Related resources are linked by skos:related to Resource.
-
-related_resources(S, Rs) :-
-	findall(R, skos_related(S, R), Rs0),
-	sort(Rs0, Rs).
 
 image_examples(R, Es) :-
 	% hack: assume non-literal examples to be image urls ...
@@ -495,11 +459,6 @@ image_examples(R, Es) :-
 		   ),
 		List),
 	sort(List, Es).
-
-skos_related(R1, R2) :-
-	rdf_has(R1, skos:related, R2).
-skos_related(R2, R1) :-
-	rdf_has(R2, skos:related, R1).
 
 %%	resource_tree(+Resource, -Tree)
 %
@@ -548,11 +507,8 @@ html_label_list([L|Ls]) -->
 	html([', ']),
 	html_label_list(Ls).
 
-%html_label(match(L)) -->
-%	html(span([class(match), style('font-weight: bold')], L)).
-
 html_label(L) -->
-	turtle_label(L).
+	html(L).
 
 html_definition(URI) -->
 	{ rdf_lang(URI, skos:definition, Txt)
