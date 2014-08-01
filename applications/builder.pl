@@ -13,15 +13,19 @@
 :- use_module(library(amalgame/util)).
 :- use_module(library(amalgame/map)).
 
+:- use_module(components(amalgame/controls)).
+:- use_module(components(amalgame/correspondence)).
+:- use_module(components(amalgame/util)).
+
+% we need http handlers of these APIs
+:- use_module(api(mapping)).
+:- use_module(api(correspondence)).
 :- use_module(api(hints)).
 :- use_module(api(node_info)).
 :- use_module(api(mappinglist)).
 :- use_module(api(virtual_concepts)).
 :- use_module(api(ag_process)).
 
-:- use_module(components(amalgame/controls)).
-:- use_module(components(amalgame/correspondence)).
-:- use_module(components(amalgame/util)).
 
 :- multifile
 	ag:menu_item/2.

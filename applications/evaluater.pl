@@ -22,11 +22,11 @@
 % We need amalgame http handlers of these:
 :- use_module(api(node_info)).
 :- use_module(api(mapping)).
+:- use_module(api(correspondence)).
 
 % For autocompletion on the vocaubalry terms to fix source/target
-% manually:
+% manually, we need the autocompletion cpack http api:
 :-use_module(api(autocomplete_api)).
-
 
 :- public amalgame_module/1.
 
