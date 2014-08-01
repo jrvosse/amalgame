@@ -32,7 +32,7 @@ http_correspondence(Request) :-
 			  mapping(Mapping,
 				  [description('URI of the mapping')]),
 			  strategy(Strategy, [description('URL of strategy')]),
-			  mode(Mode, [
+			  fillmode(Mode, [
                                    oneof(empty, 'fill-in'),
                                    default(empty),
                                    description('Fill-in the form or leave it empty')]),

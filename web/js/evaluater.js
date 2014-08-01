@@ -251,14 +251,13 @@ YUI.add('evaluater', function(Y) {
 				points:[Y.WidgetPositionAlign.TR, Y.WidgetPositionAlign.BR]
 				});
 
-			var mode = (this.get('editmode') == "eval")?"empty":"fill-in";
 			// call the server
 			var data = {
 				strategy:this.get("strategy"),
 				mapping:this.get("selected"),
+				fillmode:   'fill-in',
 				source: this._source,
 				target: this._target,
-				mode:   mode,
 				allsource: NODE_SOURCE_ALL.get("checked"),
 				alltarget: NODE_TARGET_ALL.get("checked")
 			};
