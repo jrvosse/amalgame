@@ -1,6 +1,6 @@
 :- module(ag_component_correspondence,
-	  [ html_correspondence_overlay//0,% correspondence detail view, static part
-	    html_correspondences//2	   % idem, dynamic part
+	  [ html_correspondence_overlay//1,  % correspondence detail view, static part
+	    html_correspondences//2	     % idem, dynamic part
 	  ]).
 :- use_module(library(option)).
 :- use_module(library(lists)).
@@ -15,7 +15,7 @@
 :- use_module(library(skos/util)).
 :- use_module(library(amalgame/util)).
 
-html_correspondence_options -->
+html_correspondence_options(_Options) -->
 	html([ 'include all correspondences with the same: ',
 	       input([type(checkbox), id(allsources), autocomplete(off)]),
 	       label(' source'),
@@ -23,24 +23,41 @@ html_correspondence_options -->
 	       label(' target')
 	     ]).
 
-html_correspondence_buttons -->
+html_correspondence_buttons(Options) -->
+	{ is_list(Options),
+	  option(editmode(none), Options, none),!
+	},
+	html_correspondence_buttons(nav).
+
+
+html_correspondence_buttons(Options) -->
+	{ is_list(Options),
+	  option(editmode(edit), Options, none),!
+	},
+	html_correspondence_buttons(nav),
+	html_correspondence_buttons(edit).
+
+html_correspondence_buttons(nav) -->
 	html([ button([type(button), class(cancel), value(cancel), title(cancel)],   'x'),
 	       button([type(button), class(prev),   value(prev),   title(previous)], '<'),
-	       button([type(button), class(next),   value(next),   title(next)],     '>'),
+	       button([type(button), class(next),   value(next),   title(next)],     '>')
+	     ]).
+
+html_correspondence_buttons(edit) -->
+	html([ button([type(button), class([change, delete]), value(delete)], 'delete'),
 	       button([type(button), class([change, submit]), value(submit)], 'submit'),
 	       button([type(button), class([change, setall])], 'apply to all')
 	     ]).
 
-html_correspondence_overlay -->
-	html(form([div(class('yui3-widget-bd'),
-		       [
-			   div(class(options), \html_correspondence_options),
-			   div(class(buttons), \html_correspondence_buttons),
-			   div([class(concepts), id(concepts)], [])
+html_correspondence_overlay(Options) -->
+	html(form([div([class('yui3-widget-bd')],
+		       [ div(class(options), \html_correspondence_options(Options)),
+			 div(class(buttons), \html_correspondence_buttons(Options)),
+			 div([class(concepts), id(concepts)], [])
 		       ]),
 		   div(class('yui3-widget-ft'),
-		       [ div(class(controls),
-			     [ div(class(buttons), \html_correspondence_buttons)
+		       [ div([class(controls)],
+			     [ div(class(buttons), \html_correspondence_buttons(Options))
 			     ])
 		       ])
 		  ])).
@@ -59,8 +76,8 @@ html_correspondence(align(Source, Target, Evidence), Options) -->
 	  option(relations(Relations), Options, []),
 	  (   option(mode('fill-in'), Options)
 	  ->  member(Method, Evidence),
-	      member(relation(Relation), Method),
-	      member(comment(Comment), Method)
+	      option(relation(Relation), Method, undefined),
+	      option(comment(Comment),   Method, '')
 	  ;   Comment = '', Relation = undefined
 	  )
         },
@@ -154,8 +171,8 @@ html_evidences([E|Es],Source,Target) -->
 html_evidence_graph([],_,_) --> !.
 html_evidence_graph(Graph,Node,Layout) -->
 	graphviz_graph(evidence_graph(Graph,Node),
-		       [shape_hook(ag_api_correspondence:evidence_shape),
-			label_hook(ag_api_correspondence:evidence_label),
+		       [shape_hook(ag_component_correspondence:evidence_shape),
+			label_hook(ag_component_correspondence:evidence_label),
 			graph_attributes([rankdir(Layout)])]).
 
 

@@ -80,7 +80,8 @@ html_page(Strategy, Mapping) :-
 					  div([id(mappingtable)], []))
 				    ]),
 				div([id(detail),class('hidden')],
-				   \html_correspondence_overlay)
+				    [\html_correspondence_overlay([editmode(edit)])
+				    ])
 			      ]),
 			  script(type('text/javascript'),
 				 [ \yui_script(Strategy, Mapping)

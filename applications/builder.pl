@@ -112,7 +112,8 @@ html_page(Strategy, Focus) :-
 					  ])
 				    ]),
 				div([id(detail),class('hidden')],
-				   \html_correspondence_overlay)
+				    [\html_correspondence_overlay([editmode(none)])
+				    ])
 			      ]),
 			  script(type('text/javascript'),
 				 [ \yui_script(Strategy, Focus)
