@@ -119,15 +119,24 @@ http_data_evaluate(Request) :-
 			   comment(Comment,
 				   [default(''),
 				    description('Explanation of action')]),
-			   mode(Mode,
+			   editmode(EditMode,
+				    [default(eval),
+				     oneof([eval,edit]),
+				     description('Save edits in the same or in the evaluation Graph')
+				    ]),
+			   applyTo(ApplyMode,
 				[default(one), oneof([all,one]),
 				description('Apply to one or all correspondences of this mapping')])
 			]),
-	evaluation_graph(Strategy, Mapping, Graph),
+	(   EditMode == eval
+	->  evaluation_graph(Strategy, Mapping, Graph)
+	;   Graph = Mapping
+	),
 	process_entity(EvalProcess,  Graph),
-	flush_refs_cache(Strategy),           % to recompute all reference stats
-	flush_stats_cache(Graph, Strategy),   % to recompute G's basic stats
-	flush_expand_cache(EvalProcess, Strategy),  % evaluation graph cache is now outdated
+	flush_expand_cache(EvalProcess, Strategy),  % graph cache is now outdated
+	flush_refs_cache(Strategy),                 % to recompute all reference stats
+	flush_stats_cache(Graph, Strategy),         % to recompute G's basic stats
+
 	user_property(User0, url(User)),
 
 	my_atom_json_dict(Values,    V, []),
@@ -135,12 +144,13 @@ http_data_evaluate(Request) :-
 
 	Options = [
 	    user(User),
-	    evaluation_graph(Graph),
+	    graph(Graph),
 	    strategy(Strategy),
 	    mapping(Mapping),
 	    comment(Comment),
 	    relation(Relation),
-	    mode(Mode)
+	    editmode(EditMode),
+	    applyTo(ApplyMode)
 	],
 
 
@@ -148,7 +158,7 @@ http_data_evaluate(Request) :-
 	->  original_concepts_assessment(V, Options)
 	;   WithdrawOptions = [
 		user(User),
-		evaluation_graph(Graph),
+	        graph(Graph),
 		strategy(Strategy),
 		mapping(Mapping),
 		comment(WithDrawComment),
@@ -160,7 +170,7 @@ http_data_evaluate(Request) :-
 	).
 
 original_concepts_assessment(V, Options) :-
-	(   option(mode(one), Options)
+	(   option(applyTo(one), Options)
 	->  assert_relation(V.source, V.target, Options)
 	;   option(mapping(Mapping), Options),
 	    assert_relations(Mapping, Options)
@@ -198,7 +208,7 @@ assert_relations(Mapping, Options) :-
 
 assert_relation(Source, Target, Options) :-
 	option(relation(Relation), Options),
-	option(evaluation_graph(Graph), Options, eval),
+	option(graph(Graph), Options, eval),
 	option(comment(Comment), Options, ''),
 	option(user(User), Options, ''),
 	option(prov(Prov), Options, []),

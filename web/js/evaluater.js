@@ -138,7 +138,8 @@ YUI.add('evaluater', function(Y) {
 			var c = cs[0];
 			c.strategy = this.get("strategy");
 			c.mapping   = this.get("selected");
-			c.mode      = nav == "setall"?"all":"one";
+			c.editmode  = this.get("editmode");
+			c.applyTo   = nav == "setall"?"all":"one";
 			if (this.form_dirty()) {
 			  this._submitCorrespondence(c);
 			}
@@ -214,7 +215,7 @@ YUI.add('evaluater', function(Y) {
 				method: 'POST',
 				data:c,
 				on:{success:function(e,o) {
-					if (c.mode == "one") {
+					if (c.applyTo == "one") {
 						var r = Y.JSON.parse(o.responseText);
 						row.one(".relation").setContent(r.relation.label);
 					} else {
