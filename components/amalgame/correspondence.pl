@@ -44,9 +44,11 @@ html_correspondence_buttons(nav) -->
 	     ]).
 
 html_correspondence_buttons(edit) -->
-	html([ button([type(button), class([change, delete]), value(delete)], 'delete'),
-	       button([type(button), class([change, submit]), value(submit)], 'submit'),
-	       button([type(button), class([change, setall])], 'apply to all')
+	% delete button only valid if nothing has changed,
+	% submit/setall only if something has:
+	html([ button([type(button), class([edit, notchanged, delete]), value(delete)], 'delete'),
+	       button([type(button), class([edit, changed,    submit]), value(submit)], 'submit'),
+	       button([type(button), class([edit, changed,    setall])], 'apply to all')
 	     ]).
 
 html_correspondence_overlay(Options) -->
