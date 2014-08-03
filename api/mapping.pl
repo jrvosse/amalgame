@@ -5,12 +5,13 @@
 :- use_module(library(apply)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
+:- use_module(library(settings)).
+
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_json)).
 :- use_module(library(semweb/rdf_db)).
-:- use_module(library(semweb/rdf_label)).
-:- use_module(library(settings)).
+
 :- use_module(user(user_db)).
 
 :- use_module(library(skos/util)).
@@ -81,7 +82,8 @@ mapping_label(align(S, T, Prov), align(S,SLabel, T,TLabel, Relation)) :-
 	append(Prov, FlatProv),
 	(   option(relation(Rel), FlatProv)
 	->  relation_label(Rel, RLabel),
-	    Relation = json([uri=Rel, label=RLabel])
+	    option(comment(Comment), FlatProv, ''),
+	    Relation = json([uri=Rel, label=RLabel, comment=Comment])
 	;   Relation = null
 	).
 
@@ -106,12 +108,13 @@ relation_label(R, R).
 http_data_evaluate(Request) :-
 	logged_on(User0, anonymous),
 	http_parameters(Request,
-			[  values(Values,
+			[  new(Values,
 				  [description('JSON object with the new source/target pair values')]),
 			   originals(Originals,
 				     [description('JSON object with original source/target pair')]),
 			   relation(Relation,
-				    [description('Relation between source and target')]),
+				    [optional(true),
+				     description('Relation between source and target')]),
 			   mapping(Mapping,
 				   [description('URI of mapping being evaluated')]),
 			   strategy(Strategy,
@@ -124,6 +127,11 @@ http_data_evaluate(Request) :-
 				     oneof([eval,edit]),
 				     description('Save edits in the same or in the evaluation Graph')
 				    ]),
+			   remove(Remove,
+				  [ default(false),
+				    boolean,
+				    description('Remove this mapping from the manual evaluation graph')
+				  ]),
 			   applyTo(ApplyMode,
 				[default(one), oneof([all,one]),
 				description('Apply to one or all correspondences of this mapping')])
@@ -150,6 +158,7 @@ http_data_evaluate(Request) :-
 	    comment(Comment),
 	    relation(Relation),
 	    editmode(EditMode),
+	    remove(Remove),
 	    applyTo(ApplyMode)
 	],
 
@@ -167,36 +176,26 @@ http_data_evaluate(Request) :-
 	    format(atom(WithDrawComment), 'Overruled by ~p ~p ~p', [V.source, Relation, V.target]),
 	    rdf_equal(evaluator:unrelated, Unrelated),
 	    new_concepts_assessment(V, O, Options, WithdrawOptions)
-	).
+	),
+	mapping_relation(RLabel, Relation),
+	reply_json(json{
+		       new:correspondence{source:s{uri:V.source},
+					  target:t{uri:target},
+					  relation:relation{uri:Relation, label:RLabel}
+					 }
+		   }).
+
 
 original_concepts_assessment(V, Options) :-
 	(   option(applyTo(one), Options)
 	->  assert_relation(V.source, V.target, Options)
 	;   option(mapping(Mapping), Options),
 	    assert_relations(Mapping, Options)
-	),
-
-	option(relation(Relation), Options),
-	mapping_relation(RLabel, Relation),
-	rdf_display_label(V.source, SLabel),
-	rdf_display_label(V.target, TLabel),
-	reply_json(json([source=json([uri=V.source, label=SLabel]),
-			 target=json([uri=V.target, label=TLabel]),
-			 relation=json([uri=Relation, label=RLabel])
-			])).
-
+	).
 
 new_concepts_assessment(V, O, Options, WithdrawOptions) :-
 	assert_relation(O.source, O.target, WithdrawOptions),
-	assert_relation(V.source, V.target, Options),
-	option(relation(Relation), WithdrawOptions),
-	mapping_relation(RLabel, Relation),
-	rdf_display_label(O.source, SLabel),
-	rdf_display_label(O.target, TLabel),
-	reply_json(json([source=json([uri=V.source, label=SLabel]),
-			 target=json([uri=V.target, label=TLabel]),
-			 relation=json([uri=Relation, label=RLabel])
-			])).
+	assert_relation(V.source, V.target, Options).
 
 assert_relations(Mapping, Options) :-
 	option(strategy(Strategy), Options),
@@ -207,16 +206,27 @@ assert_relations(Mapping, Options) :-
 	      ).
 
 assert_relation(Source, Target, Options) :-
-	option(relation(Relation), Options),
+	remove_existing_correspondence(Source, Target, Options),
+	(   option(remove(false), Options, false)
+	->  assert_new__correspondence(Source, Target, Options)
+	;   true
+	).
+
+remove_existing_correspondence(Source, Target, Options) :-
 	option(graph(Graph), Options, eval),
-	option(comment(Comment), Options, ''),
-	option(user(User), Options, ''),
-	option(prov(Prov), Options, []),
 
 	(   has_correspondence(align(Source, Target, OldProv), Graph)
 	->  remove_correspondence(align(Source, Target, OldProv), Graph)
 	;   true
-	),
+	).
+
+assert_new__correspondence(Source, Target, Options) :-
+	option(graph(Graph), Options, eval),
+	option(relation(Relation), Options),
+	option(comment(Comment), Options, ''),
+	option(user(User), Options, ''),
+	option(prov(Prov), Options, []),
+
 	now_xsd(Now),
 	NewProv = [ method(manual_evaluation),
 		    user(User),
