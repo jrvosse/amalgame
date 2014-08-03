@@ -134,7 +134,11 @@ js_mappings_metadata(Strategy, Results) :-
 
 mapping_metadata(Strategy, M, M-Dict) :-
 	Dict = mapping{uri:M, label:L, stats:Stats, agStatus:Status},
-	(   stats_cache(M-Strategy, Stats) ->  true;   Stats = _{} ),
+	(   stats_cache(M-Strategy, Stats),
+	    Stats.totalCount > 0
+	->  true
+	;   Stats = _{}
+	),
 	is_dict(Stats, mapping_stats_dict),
 	rdf_has(M, amalgame:status, StatusQ),
 	rdf_global_id(_:Status, StatusQ),
