@@ -44,9 +44,12 @@ http_correspondence(Request) :-
 				  description('Include all target')])
 			]),
 	find_correspondences(Mapping, Strategy, Source, Target, AllSource, AllTarget, Cs),
-	html_current_option(content_type(Type)),
+	augment_relations(Strategy, Mapping, Cs, CS_augmented, []),
+
 	findall(R-L, mapping_relation(L, R), Relations),
-	phrase(html_correspondences(Cs, [relations(Relations), mode(Mode)]), HTML),
+	phrase(html_correspondences(CS_augmented, [relations(Relations), mode(Mode)]), HTML),
+
+	html_current_option(content_type(Type)),
 	format('Content-type: ~w~n~n', [Type]),
 	print_html(HTML).
 
