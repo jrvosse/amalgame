@@ -146,6 +146,7 @@ YUI.add('mappingtable', function(Y) {
 				
 			var data = {
 					row:row,
+					selected:current,
 					sourceConcept: source,
 					targetConcept: target,
 					vocs: this.get("vocs"),
@@ -153,7 +154,8 @@ YUI.add('mappingtable', function(Y) {
 				};
 			Y.all(".yui3-datatable tr").removeClass("yui3-datatable-selected");
 			row.addClass("yui3-datatable-selected");
-			Y.log("selected correspondence in mappingtable: "+source.uri+" - "+target.uri);
+			Y.log("selected correspondence in mappingtable: "+source.uri+ " - " +target.uri);
+			Y.log(current);
 			this.fire("rowSelect", data);
 		},
 
@@ -182,13 +184,17 @@ YUI.add('mappingtable', function(Y) {
 			  },
 		nextRecord : function(row) {
 			       var next = this.nextRow(row);
-			       return id = this.table.getRecord(next.get("id"));
+			       return this.table.getRecord(next.get("id"));
 			     },
 		prevRecord : function(row) {
 			       var prev = this.prevRow(row);
 			       return this.table.getRecord(prev.get("id"));
 			     },
 			
+		addRow    : function(value)         { this.table.addRow(value); },
+		removeRow : function(record)        { this.table.removeRow(record); },
+		modifyRow : function(record, value) { this.table.modifyRow(record, value); },
+
 		_onLoadingChange : function (o) {
 			if(o.newVal) {
 				this._tableNode.addClass("hidden");
