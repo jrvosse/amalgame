@@ -1,0 +1,42 @@
+/* mapping table */
+#mappingtable.hidden {
+	display: none;
+}
+#mappingtable .table.hidden,
+#mappingtable .loading.hidden {
+	display:none;
+}
+#mappingtable .loading {
+	padding: 20px 0;
+	background: url("loading.gif") no-repeat 50% 50%;
+}
+.yui3-datatable { 
+	margin: 0;
+}
+.yui3-datatable table {
+	width: 100%;
+}
+.yui3-datatable caption {
+	display: none;
+}
+.yui3-datatable th {
+	text-align: center;
+}
+.yui3-datatable td {
+	cursor: pointer;
+	vertical-align: top;
+}
+.yui3-datatable-selected {
+	color: #3875D7;
+	background-color: white; /* background does not seem to work in new datatable */
+}
+.yui3-datatable td:first-child,
+.yui3-datatable td:last-child {
+	width: 40%;
+}
+.yui3-datatable td .relation {
+	text-align: center;
+}
+.paginator {
+	text-align: center;
+}

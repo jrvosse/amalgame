@@ -1,0 +1,20 @@
+/* strategy graph */
+.yui3-strategy_viz {
+	padding: 5px 5px 15px;
+}
+.yui3-strategy_viz .edge text {
+	font-size: 11px;
+}
+.yui3-strategy_viz .selected text {
+	font-weight: bold;
+}
+.yui3-strategy_viz .info,
+.yui3-strategy_viz .selected .info {
+	font-weight: normal;
+	font-size: 9px;
+}
+.yui3-strategy_viz .selected ellipse,
+.yui3-strategy_viz .selected polygon {
+	/*fill: #DBEAFF;*/
+	stroke-width: 3px;
+}

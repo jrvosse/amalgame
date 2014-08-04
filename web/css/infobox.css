@@ -1,0 +1,35 @@
+/* infobox */
+#info {
+}
+#info .loading {
+	padding: 20px 0;
+	background: url("loading.gif") no-repeat 50% 50%;
+}
+#info .hidden {
+	display: none;
+}
+#infocontent,
+#info .loading {
+	border-top: 1px solid #CCC;
+	border-bottom: 1px solid #CCC;
+	overflow-y: auto;
+	max-height: 60ex;
+}
+#info .parameters {
+	border-top: 1px solid #CCC;
+	margin-top: 5px;
+	padding-top: 5px;
+}
+#details td {
+	padding-bottom: 4px;
+}
+
+/* select */
+#select li {
+	list-style: disc inside;
+}
+
+/* align */
+#inputselect {
+	padding: 5px 10px;
+}

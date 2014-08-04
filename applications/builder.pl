@@ -35,6 +35,30 @@
 
 ag:menu_item(200=http_ag_build, 'build').
 
+:- html_resource(css_ag_build,
+		 [ virtual(true),
+		   requires([ ag_build_core,
+			      ag_build_extra
+		   ])
+		 ]).
+
+:- html_resource(ag_build_core,
+		 [ virtual(true),
+		   requires([ css('builder.css'),
+			      css('strategy_viz.css'),
+			      css('infobox.css'),
+			      css('controls.css'),
+			      css('mappingtable.css'),
+			      css('detail-overlay.css')
+			    ])
+		 ]).
+
+:- html_resource(ag_build_extra,
+		 [ virtual(true)
+-		   requires([css('skosbrowser.css'),
+-                            css('columnbrowser.css')
+			    ])
+		 ]).
 
 backward_compatibilty_fixes(Strategy) :-
 	fix_opmv_ns(Strategy),
@@ -88,9 +112,7 @@ html_page(Strategy, Focus) :-
 	reply_html_page(amalgame(app),
 			[ title(['Align vocabularies'])
 			],
-			[ \html_requires(css('builder.css')),
-			  \html_requires(css('skosbrowser.css')),
-			  \html_requires(css('columnbrowser.css')),
+			[ \html_requires(css_ag_build),
 			  div(class('yui3-skin-sam yui-skin-sam'),
 			      [ \html_ag_header([
 				     active(http_ag_build),
