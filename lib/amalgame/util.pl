@@ -2,7 +2,7 @@
 	  [   mint_node_uri/3,
 	      amalgame_strategy_schemes/2,
 
-	      js_mappings_metadata/2,
+	      js_mappings_metadata/3,
 	      js_focus_node/3,
 	      js_strategy_nodes/2,
 
@@ -36,6 +36,7 @@
 :- use_module(cliopatria(components/label)).
 :- use_module(library(amalgame/caching)).
 :- use_module(library(amalgame/map)).
+:- use_module(library(amalgame/ag_reference)).
 :- use_module(library(amalgame/ag_evaluation)).
 
 :- multifile
@@ -121,14 +122,25 @@ amalgame_strategy_schemes(Strategy, Schemes) :-
 	findall(S,  rdf(Strategy, amalgame:includes, S), Schemes),
 	Schemes \== [].
 
-amalgame_strategy_mappings(Strategy, Mappings) :-
+amalgame_strategy_mappings(Strategy, Mappings, Options) :-
 	rdfs_individual_of(Strategy, amalgame:'AlignmentStrategy'),
 	findall(URI, (rdf(URI, rdf:type, _ ,Strategy),
-		      rdfs_individual_of(URI, amalgame:'Mapping')
+		      rdfs_individual_of(URI, amalgame:'Mapping'),
+		      ag_map_filter(Strategy, URI, Options)
 		     ), Mappings).
 
-js_mappings_metadata(Strategy, Results) :-
-	amalgame_strategy_mappings(Strategy, Mappings),
+ag_map_filter(Strategy, M, Options) :-
+	option(references(exclude), Options),
+	is_reference(Strategy, M),
+	!, fail.
+ag_map_filter(Strategy, M, Options) :-
+	option(references(only), Options),
+	\+ is_reference(Strategy, M),
+	!, fail.
+ag_map_filter(_,_,_).
+
+js_mappings_metadata(Strategy, Results, Options) :-
+	amalgame_strategy_mappings(Strategy, Mappings, Options),
 	maplist(mapping_metadata(Strategy), Mappings, Pairs),
 	dict_pairs(Results, mappings, Pairs).
 

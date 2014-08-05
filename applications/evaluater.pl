@@ -1,6 +1,9 @@
 :- module(ag_evaluater,
 	  []).
 
+:- use_module(library(pairs)).
+:- use_module(library(lists)).
+
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
@@ -16,15 +19,16 @@
 
 % From Amalgame:
 :- use_module(library(amalgame/util)).
+:- use_module(library(amalgame/ag_reference)).
 :- use_module(components(amalgame/correspondence)).
 :- use_module(components(amalgame/util)).
 
-% We need amalgame http handlers of these:
+% We need amalgame http handlers from these:
 :- use_module(api(node_info)).
 :- use_module(api(mapping)).
 :- use_module(api(correspondence)).
 
-% For autocompletion on the vocaubalry terms to fix source/target
+% For autocompletion on the vocabulary terms to fix source/target
 % manually, we need the autocompletion cpack http api:
 :-use_module(api(autocomplete_api)).
 
@@ -108,7 +112,10 @@ yui_script(Strategy, Mapping) -->
 	{ findall(K-V, js_path(K, V), Paths),
 	  findall(M-C, js_module(M,C), Modules),
 	  pairs_keys(Modules, Includes),
-	  js_mappings_metadata(Strategy, Mappings)
+	  (   is_reference(Strategy, Mapping)
+	  ->  js_mappings_metadata(Strategy, Mappings, [references(only)])
+	  ;   js_mappings_metadata(Strategy, Mappings, [references(exclude)])
+	  )
 	},
 	yui3([json([
 		gallery('gallery-2011.02.23-19-01'),
