@@ -87,6 +87,13 @@ mapping_label(align(S, T, Prov), align(S,SLabel, T,TLabel, Relation)) :-
 	;   Relation = null
 	).
 
+concept_labels(In, Out) :-
+	skos_notation_ish(In.source, SLabel),
+	skos_notation_ish(In.target, TLabel),
+	Out = c{source:s{uri:In.source, label:SLabel},
+		target:t{uri:In.target, label:TLabel}
+	       }.
+
 mapping_json([], []).
 mapping_json([Align|As], [json(Data)|Os]) :-
 	Align = align(Source, SLabel, Target, TLabel, Relation),
@@ -147,80 +154,78 @@ http_data_evaluate(Request) :-
 
 	user_property(User0, url(User)),
 
-	my_atom_json_dict(Values,    V, []),
-	my_atom_json_dict(Originals, O, []),
+	my_atom_json_dict(Values,    Va, []),
+	my_atom_json_dict(Originals, Oa, []),
+	concept_labels(Va, V),
+	concept_labels(Oa, O),
 
-	Options = [
-	    user(User),
-	    graph(Graph),
-	    strategy(Strategy),
-	    mapping(Mapping),
-	    comment(Comment),
-	    relation(Relation),
-	    editmode(EditMode),
-	    remove(Remove),
-	    applyTo(ApplyMode)
-	],
-
-
+	BasicOptions = options{user:User,
+			       graph:Graph,
+			       strategy:Strategy,
+			       mapping:Mapping},
+	Options = BasicOptions.put(options{
+				       comment:Comment,
+				       relation:Relation,
+				       editmode:EditMode,
+				       remove:Remove,
+				       applyTo:ApplyMode
+				   }),
 	(   V=O
-	->  original_concepts_assessment(V, Options)
-	;   WithdrawOptions = [
-		user(User),
-	        graph(Graph),
-		strategy(Strategy),
-		mapping(Mapping),
-		comment(WithDrawComment),
-		relation(Unrelated)
-	    ],
+	->  original_concepts_assessment(V, JSON, Options)
+	;   WithdrawOptions = BasicOptions.put(options{comment:WithDrawComment,
+						       relation:Unrelated}),
 	    format(atom(WithDrawComment), 'Overruled by ~p ~p ~p', [V.source, Relation, V.target]),
 	    rdf_equal(evaluator:unrelated, Unrelated),
-	    new_concepts_assessment(V, O, Options, WithdrawOptions)
+	    new_concepts_assessment(V, O, JSON, Options, WithdrawOptions)
 	),
-	mapping_relation(RLabel, Relation),
-	reply_json(json{
-		       new:correspondence{source:s{uri:V.source},
-					  target:t{uri:target},
-					  relation:relation{uri:Relation, label:RLabel}
-					 }
-		   }).
+	reply_json(JSON).
 
 
-original_concepts_assessment(V, Options) :-
+
+original_concepts_assessment(V, JSON, Options) :-
 	(   option(applyTo(one), Options)
-	->  assert_relation(V.source, V.target, Options)
+	->  assert_relation(V, JSON, Options)
 	;   option(mapping(Mapping), Options),
-	    assert_relations(Mapping, Options)
+	    assert_relations(Mapping, JSON, Options)
 	).
 
-new_concepts_assessment(V, O, Options, WithdrawOptions) :-
-	assert_relation(O.source, O.target, WithdrawOptions),
-	assert_relation(V.source, V.target, Options).
+new_concepts_assessment(V, O, JSON, Options, WithdrawOptions) :-
+	assert_relation(O, WithdrawOptions, JSONwith),
+	assert_relation(V, Options, JSONadd),
+	JSON = JSONwith.put(JSONadd).
 
-assert_relations(Mapping, Options) :-
+assert_relations(Mapping, JSON, Options) :-
 	option(strategy(Strategy), Options),
 	expand_node(Strategy, Mapping, Mappings),
-	forall(member(align(Source, Target, Prov), Mappings),
-	       assert_relation(Source, Target,
-			       [prov(Prov)|Options])
-	      ).
+	forall(member(A, Mappings),
+	       assert_relation(A, Options)
+	      ),
+	JSON = json{status:ok}.
 
-assert_relation(Source, Target, Options) :-
-	remove_existing_correspondence(Source, Target, Options),
+assert_relation(align(S,T,E), Options) :-
+	C = correspondence{source:s{uri:S, label:undefined},
+			   target:t{uri:T, label:undefined}},
+	assert_relation(C, _, Options.put(prov,E)).
+
+assert_relation(C, JSON, Options) :-
+	remove_existing_correspondence(C, JSONrm, Options),
 	(   option(remove(false), Options, false)
-	->  assert_new__correspondence(Source, Target, Options)
-	;   true
-	).
+	->  assert_new__correspondence(C, JSONadd, Options)
+	;   JSONadd = json{}
+	),
+	JSON = JSONrm.put(JSONadd).
 
-remove_existing_correspondence(Source, Target, Options) :-
+
+remove_existing_correspondence(C, JSON, Options) :-
 	option(graph(Graph), Options, eval),
 
-	(   has_correspondence(align(Source, Target, OldProv), Graph)
-	->  remove_correspondence(align(Source, Target, OldProv), Graph)
-	;   true
+	(   has_correspondence(   align(C.source.uri, C.target.uri, Prov), Graph)
+	->  remove_correspondence(align(C.source.uri, C.target.uri, Prov), Graph),
+	    JSON = json{ remove:C }
+	;   JSON = json{ remove:status{status:'nothing removed'}}
 	).
 
-assert_new__correspondence(Source, Target, Options) :-
+assert_new__correspondence(C, JSON, Options) :-
 	option(graph(Graph), Options, eval),
 	option(relation(Relation), Options),
 	option(comment(Comment), Options, ''),
@@ -239,8 +244,14 @@ assert_new__correspondence(Source, Target, Options) :-
 			 graph(Graph),
 			 prov([NewProv|Prov])
 			],
-	append(AssertOptions, Options, NewOptions),
+	merge_options(AssertOptions, Options, NewOptions),
 	debug(ag_expand, 'assert cell options: ~w', NewOptions),
-	assert_cell(Source, Target, NewOptions).
+	assert_cell(C.source.uri, C.target.uri, NewOptions),
+	mapping_relation(RLabel, Relation),
+	JSON = json{add:correspondence{source:C.source,
+				       target:C.target,
+				       relation:r{uri:Relation, label:RLabel}
+				      }
+		   }.
 
 
