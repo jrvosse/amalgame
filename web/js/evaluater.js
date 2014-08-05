@@ -213,7 +213,6 @@ YUI.add('evaluater', function(Y) {
 			var oSelf  = this;
 			var server = this.get("paths").evaluate;
 			var record = this._selectedRecord;
-			var newRecord = { source:record.get('source'), target:record.get('target') } ;
 
 			Y.io(server, {
 				method: 'POST',
@@ -221,9 +220,12 @@ YUI.add('evaluater', function(Y) {
 				on:{success:function(e,o) {
 					if (c.applyTo == "one") {
 						var r = Y.JSON.parse(o.responseText);
-						if (r.new && r.new.relation) {
-							newRecord.relation =  r.new.relation;
-							oSelf.mappingtable.modifyRow(record, newRecord);
+						if (c.remove) {
+							oSelf.mappingtable.removeRow(record);
+						} else if (r.overruled) {
+							oSelf.mappingtable.modifyRow(record, r.overruled);
+						} else if (r.add) {
+							oSelf.mappingtable.modifyRow(record, r.add);
 						}
 					} else { // applyTo == setall
 			  			oSelf.mappingtable.loadData(); // reload if all have been set at once
