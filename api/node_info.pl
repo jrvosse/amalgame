@@ -165,7 +165,7 @@ amalgame_info(URL, Strategy, Stats) :-
 	option(target_child_stats(ChildT), MStats),
 	(   ChildT \= []
 	->  format_5numsum('# of children (of source concepts)', ChildT, ChildTStats0),
-	    option(nrOfTopConcepts(TTop), ChildT),
+	    option(nrOfTopConcepts(TTop), ChildT, 0),
 	    save_perc(TTop, TN0, TTopP),
 	    format(atom(TopTatom), '~d (~2f%)', [TTop, TTopP]),
 	    ChildTStats = ['# top concepts'-TopTatom | ChildTStats0 ]

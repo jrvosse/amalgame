@@ -95,7 +95,12 @@ mapping_stats(URL, Mapping, Strategy, Stats) :-
 	    ->	true
 	    ;	DTstats = [], BTstats = []
 	    )
-	;   SourceN = 0, TargetN = 0, SvocDict = voc{}, TvocDict=voc{}
+	;   SourceN  = 0,	TargetN = 0,
+	    SvocDict = voc{},   TvocDict=voc{},
+	    SPerc    = 0,	TPerc = 0,
+	    SiPerc   = 0,	TiPerc = 0,
+	    DSstats  = [],      DTstats = [],
+	    BSstats  = [],      BTstats = []
 	),
 	findall(Input, has_mapping_input(URL, Strategy, Input), Inputs),
 	(   Inputs \= []
