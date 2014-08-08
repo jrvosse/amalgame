@@ -1,8 +1,8 @@
+/* this widget lists the available mapping nodes to choose from.
+ * Not to be confused with the mapping table, 
+ * which lists the correspondences for a single mapping node.
+ */
 YUI.add('mappinglist', function(Y) {
-	var Lang = Y.Lang,
-		Node = Y.Node,
-		Widget = Y.Widget;
-
 	function MappingList(config) {
 		MappingList.superclass.constructor.apply(this, arguments);
 	}
@@ -22,7 +22,7 @@ YUI.add('mappinglist', function(Y) {
 		},
 		destructor : function() {},
 		renderUI : function() {
-			this.listNode = this.get("contentBox").appendChild(Node.create("<table class='mappinglist'></table>"));
+			this.listNode = this.get("contentBox").appendChild(Y.Node.create("<table class='mappinglist'></table>"));
 		},
 		bindUI : function() {
 			this._history.on('selectedChange', this._onSelectChange, this);
