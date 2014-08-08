@@ -203,6 +203,17 @@ html_schemes_only -->
 %
 %
 
+html_new([]) -->
+	html_acc_item(new,
+		      'new alignment strategy: no (SKOS) vocabularies found',
+		      div([style('padding: 1%')],[
+			  'Please use the Repository drop-down menu to load ',
+			  'the vocabularies you would like to align ',
+			  'into the repository/triple store.'
+		      ]),
+		      [active]
+		     ).
+
 html_new(Schemes) -->
 	{ has_write_permission, !,
 	  ButtonsBottom = div(\html_submit('Start')),
