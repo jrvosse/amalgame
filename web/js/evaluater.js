@@ -212,12 +212,13 @@ YUI.add('evaluater', function(Y) {
 			var oSelf  = this;
 			var server = this.get("paths").evaluate;
 			var record = this._selectedRecord;
+			var conceptsUnchanged = (c.new == c.originals);
 
 			Y.io(server, {
 				method: 'POST',
 				data:c,
 				on:{success:function(e,o) {
-					if (c.applyTo == "one") {
+					if (c.applyTo == "one" && conceptsUnchanged) {
 						var r = Y.JSON.parse(o.responseText);
 						if (c.remove) {
 							oSelf.mappingtable.removeRow(record);
@@ -226,8 +227,8 @@ YUI.add('evaluater', function(Y) {
 						} else if (r.add) {
 							oSelf.mappingtable.modifyRow(record, r.add);
 						}
-					} else { // applyTo == setall
-			  			oSelf.mappingtable.loadData(); // reload if all have been set at once
+					} else { // applyTo == setall or !conceptsUnchanged
+			  			oSelf.mappingtable.loadData(); // reload if too much has changed
 					}
 					oSelf._fetchInfo(c.mapping);
 				}}
