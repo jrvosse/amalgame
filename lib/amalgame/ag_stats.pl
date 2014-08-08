@@ -176,14 +176,14 @@ compute_reference_counts(Id, Strategy, Stats) :-
 	rdf(Id, amalgame:default_relation, Relation),
 	compare_against_ref(Mappings, References, Relation,
 			    partition([],[],[],[]), Stats),
-	assert(stats_cache(Id-Strategy, refs(Stats))).
+	assert(stats_cache(Id-Strategy, Stats)).
 
 part_ref_stats(partition(Matches,Conflicts,Unknown, Missing), Stats) :-
-	Stats = [ 'matching with ref. relations'-MLengthS,
-		  'conflicting with  ref. relations'-CLengthS,
-		  'not yet in reference'-ULengthS,
-		  'in ref. but missing here'-MisLengthS
-		],
+	Stats = refs_stats_dict{matching:MLengthS,
+				conflicting:CLengthS,
+				notInRef:ULengthS,
+				missing:MisLengthS
+			       },
 	length(Matches, MLength),
 	length(Conflicts, CLength),
 	length(Unknown, ULength),

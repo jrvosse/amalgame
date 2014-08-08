@@ -173,7 +173,12 @@ amalgame_info(URL, Strategy, Stats) :-
 	),
 
 	(   rdf(URL, amalgame:default_relation, _R),
-	    reference_counts(URL, Strategy, ReferenceStats)
+	    reference_counts(URL, Strategy, D),
+	    ReferenceStats = [ 'matching with ref. relations'    - D.matching,
+			       'conflicting with  ref. relations'- D.conflicting,
+			       'not yet in reference'		 - D.notInRef,
+			       'in ref. but missing here'	 - D.missing
+			     ]
 	->  true
 	;   ReferenceStats = []
 	),
