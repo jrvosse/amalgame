@@ -2,7 +2,6 @@
 	  []).
 
 :- use_module(library(pairs)).
-:- use_module(library(lists)).
 
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(http/http_dispatch)).
