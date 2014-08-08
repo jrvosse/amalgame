@@ -459,6 +459,7 @@ mean_std_([Value|Tail], Mean, S, Min, Max, K) :-
 
 
 
-
-
+list_five_number_summary_dict(List, Stats) :-
+	list_five_number_summary(List, OptionFormat),
+	dict_create(Stats, stats, OptionFormat).
 
