@@ -13,7 +13,6 @@
 :- use_module(library(semweb/rdf_label)).
 :- use_module(components(label)).
 :- use_module(components(graphviz)).
-:- use_module(library(amalgame/caching)).
 :- use_module(library(amalgame/voc_stats)).
 :- use_module(library(amalgame/ag_stats)).
 :- use_module(library(amalgame/ag_evaluation)).
@@ -55,7 +54,7 @@ http_strategy_viz(Request) :-
 			      ])
 			]),
 	% When a node has been selected, make sure we know the stats
-	(   ground(Selected) -> node_stats(Strategy, Selected, _); true),
+	(   ground(Selected) -> node_stats(Strategy, Selected, _, [compute(true)]); true),
 
 	(   Format \== html
 	->  reply_strategy_graph(Strategy, Format)
@@ -136,7 +135,7 @@ is_amalgame_property(P) :-
 
 empty_result(Strategy, M) :-
 	rdfs_individual_of(M, amalgame:'Mapping'),
-	stats_cache(M-Strategy, Stats),
+	node_stats(Strategy, M, Stats, [compute(false)]),
 	option(totalCount(0), Stats),!.
 
 empty_result(_Strategy,M) :-
@@ -220,22 +219,21 @@ amalgame_label(Strategy, Resource, Lang, MaxLen, Label) :-
 
 stats_label_list(_Strategy, Resource, [Count]) :-
 	is_vocabulary(Resource),
-	voc_property(Resource, numberOfConcepts(Count), [compute(no)]),
+	voc_property(Resource, numberOfConcepts(Count), [compute(false)]),
 	!.
+stats_label_list(Strategy, Resource, [ConceptStats]) :-
+	node_stats(Strategy, Resource, Stats, [compute(false)]),
+	option(sourcePercentageInput(SPerc), Stats),
+	option(targetPercentageInput(TPerc), Stats),
+	format(atom(ConceptStats), '~0f% ~0f%', [SPerc, TPerc]),
+	!.
+
 stats_label_list(Strategy, Resource, [IPercA]) :-
-	stats_cache(Resource-Strategy, Stats),
+	node_stats(Strategy, Resource, Stats, [compute(false)]),
 	option(inputPercentage(IPerc), Stats, 0),
 	IPerc > 1,
 	format(atom(IPercA), '~0f%', [IPerc]),
 	!.
-
-stats_label_list(Strategy, Resource, [ConceptStats]) :-
-	stats_cache(Resource-Strategy, Stats),
-	option(sourcePercentageInput(SPerc), Stats, 0),
-	option(targetPercentageInput(TPerc), Stats, 0),
-	format(atom(ConceptStats), '~0f% ~0f%', [SPerc, TPerc]),
-	!.
-
 
 stats_label_list(_, _, []).
 

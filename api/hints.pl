@@ -6,7 +6,7 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_label)).
-:- use_module(library(amalgame/caching)).
+:- use_module(library(amalgame/ag_stats)).
 :- use_module(library(amalgame/voc_stats)).
 :- use_module(library(amalgame/map)).
 
@@ -325,4 +325,4 @@ is_result_of_process_type(Mapping, Type) :-
 % never expand/compute something.
 
 hints_mapping_counts(Id, Strategy, Stats) :-
-	stats_cache(Id-Strategy, Stats).
+	node_stats(Strategy, Id, Stats, [compute(false)]).

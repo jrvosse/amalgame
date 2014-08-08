@@ -268,7 +268,7 @@ html_vocab_head -->
 
 html_vocab_rows([]) --> !.
 html_vocab_rows([Scheme|Vs]) --> {
-    (   voc_property(Scheme, numberOfConcepts(ConceptCount), [compute(no)])
+    (   voc_property(Scheme, numberOfConcepts(ConceptCount), [compute(false)])
     ->  true
     ;   rdf_estimate_complexity(_, skos:inScheme, Scheme, ConceptCount)
     ),

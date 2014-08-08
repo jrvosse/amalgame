@@ -34,8 +34,8 @@
 :- use_module(user(user_db)).
 :- use_module(user(preferences)).
 :- use_module(cliopatria(components/label)).
-:- use_module(library(amalgame/caching)).
 :- use_module(library(amalgame/map)).
+:- use_module(library(amalgame/ag_stats)).
 :- use_module(library(amalgame/ag_reference)).
 :- use_module(library(amalgame/ag_evaluation)).
 
@@ -146,7 +146,7 @@ js_mappings_metadata(Strategy, Results, Options) :-
 
 mapping_metadata(Strategy, M, M-Dict) :-
 	Dict = mapping{uri:M, label:L, stats:Stats, agStatus:Status},
-	(   stats_cache(M-Strategy, Stats),
+	(   node_stats(Strategy, M, Stats, [compute(false)]),
 	    Stats.totalCount > 0
 	->  true
 	;   Stats = _{}

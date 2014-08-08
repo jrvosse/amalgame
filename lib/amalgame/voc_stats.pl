@@ -53,7 +53,7 @@ voc_property(Voc, P, Options) :-
 	rdf_global_term(P, PG),
 	(   voc_stats_cache(Voc, PG)
 	->  true
-	;   (   option(compute(no), Options)
+	;   (   option(compute(false), Options)
 	    ->  fail
 	    ;   voc_ensure_stats(Voc, PG)
 	    )
@@ -353,7 +353,7 @@ compute_branch_stats(Voc, branch(Stats)) :-
 
 concept_list_depth_stats([], _Voc, depth([])) :-!.
 concept_list_depth_stats(CList, Voc, depth(Stats)) :-
-	voc_property(Voc, depth(_), [compute(no)]), % only if basic depth stats for voc already computed
+	voc_property(Voc, depth(_), [compute(false)]), % only if basic depth stats for voc already computed
 	maplist(concept_depth, CList, Depths),
 	sort(Depths, DepthsSorted),
 	list_five_number_summary_dict(DepthsSorted, Stats).

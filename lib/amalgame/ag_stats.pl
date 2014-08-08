@@ -1,5 +1,5 @@
 :- module(ag_stats,[
-	      node_stats/3,
+	      node_stats/4,
 	      reference_counts/3,
 	      mapping_stats/4
 	  ]).
@@ -14,29 +14,33 @@
 :- use_module(library(amalgame/map)).
 :- use_module(library(amalgame/util)).
 
-node_stats(Strategy, Node, Stats) :-
+node_stats(Strategy, Node, Stats, Options) :-
 	(   rdfs_individual_of(Node, amalgame:'Mapping')
-	->  mapping_counts(Node, Strategy, Stats)
+	->  mapping_counts(Node, Strategy, Stats, Options)
 	;   is_vocabulary(Node)
-	->  voc_property(Node, numberOfConcepts(Stats))
+	->  voc_property(Node, numberOfConcepts(Stats), Options)
 	;   Stats = []
 	).
 
-%%	mapping_counts(+MappingURI,+Strategy, Stats)
+%%	mapping_counts(+MappingURI,+Strategy, Stats, +Options)
 %	is det.
 %
 %	Counts for the mappings in MappingURI.
 
-mapping_counts(URL, Strategy, Stats) :-
-	with_mutex(URL,	mapping_counts_(URL, Strategy, Stats)).
+mapping_counts(URL, Strategy, Stats, Options) :-
+	with_mutex(URL,	mapping_counts_(URL, Strategy, Stats, Options)).
 
-mapping_counts_(URL, Strategy, Stats) :-
+mapping_counts_(URL, Strategy, Stats, Options) :-
 	(   stats_cache(URL-Strategy, _)
 	->  true
-	;   expand_node(Strategy, URL, _Mapping)
+	;   option(compute(true), Options, true),
+	    expand_node(Strategy, URL, _Mapping)
 	),
-	stats_cache(URL-Strategy, Stats),
-	is_dict(Stats, mapping_stats_dict).
+	(   stats_cache(URL-Strategy, Stats),
+	    is_dict(Stats, mapping_stats_dict)
+	->  true
+	;   Stats = dict{error:'No stats computed'}
+	).
 
 
 reference_counts(Id, Strategy, Stats) :-

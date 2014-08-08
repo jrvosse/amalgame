@@ -59,8 +59,8 @@ http_deep_voc_stats(Request) :-
 				   [description('URL of the alignment strategy')])
 		       ]),
 	flush_dependent_caches(Voc, Strategy),
-	voc_property(Voc, depth(D), [compute(yes)]),
-	voc_property(Voc, branch(B), [compute(yes)]),
+	voc_property(Voc, depth(D), [compute(true)]),
+	voc_property(Voc, branch(B), [compute(true)]),
 	reply_json(json{url:Voc, depth:D, branch:B}).
 
 %%	html_prop_table(+Pairs)
@@ -126,7 +126,7 @@ html_form(Params, URI) -->
 amalgame_info(URL, Strategy, Stats) :-
 	rdfs_individual_of(URL, amalgame:'Mapping'),
 	!,
-	node_stats(Strategy, URL, MStats),
+	node_stats(Strategy, URL, MStats, []),
 	option(totalCount(MN), MStats),
 	(   option(inputPercentage(IP), MStats)
 	->  format(atom(TmA), '~d (~5f%)', [MN, IP]),
@@ -204,7 +204,7 @@ amalgame_info(Scheme, Strategy, Stats) :-
 	    label_stats(Scheme, Strategy, skos:altLabel,  AltLabelStats)
 	),
 
-	(   setting(amalgame:vocabulary_statistics, fast) ->  C = no; C = yes),
+	(   setting(amalgame:vocabulary_statistics, fast) ->  C = false; C = true),
 	(   voc_property(Scheme, depth(DepthStats0), [compute(C)])
 	->  option(median(DepthM), DepthStats0, 0),
 	    option(q1(Q1), DepthStats0, 0),

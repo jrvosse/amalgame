@@ -64,7 +64,7 @@ http_data_mapping(Request) :-
 	list_offset(MSorted, Offset, MOffset),
 	list_limit(MOffset, Limit, MLimit, _),
 	mapping_json(MLimit, Mapping),
-	node_stats(Strategy, URL, Stats),
+	node_stats(Strategy, URL, Stats, []),
 	reply_json(jsondict{url:URL,
 			    limit:Limit,
 			    offset:Offset,
@@ -190,8 +190,8 @@ original_concepts_assessment(V, JSON, Options) :-
 	).
 
 new_concepts_assessment(V, O, JSON, Options, WithdrawOptions) :-
-	assert_relation(O, WithdrawOptions, JSONwith),
-	assert_relation(V, Options, JSONadd),
+	assert_relation(O, JSONwith, WithdrawOptions),
+	assert_relation(V, JSONadd, Options),
 	JSON = JSONwith.put(JSONadd).
 
 assert_relations(Mapping, JSON, Options) :-
