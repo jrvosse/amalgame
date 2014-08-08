@@ -398,7 +398,7 @@ augment_relation(Mappings, Reference, NewResults, Options) :-
 	    ;	member(method(preloaded), Manual)
 	    ),
 	    option(relation(_Rel), Manual),
-	    NProv = [Manual|Prov],
+	    NProv0 = [Manual|Prov], sort(NProv0, NProv),
 	    NewResults =  [align(S,T,NProv)|Results],
 	    NewMappings = Tail,
 	    NewRef= RTail
