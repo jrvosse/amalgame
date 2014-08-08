@@ -127,7 +127,6 @@ YUI.add('evaluater', function(Y) {
 		},
 
 		_onConceptChange: function(ev, context) {
-			if (ev.preventDefault) ev.preventDefault();
 			var item = ev.details[0].result.raw;
 			NODE_DETAIL.one('.'+context.target).setContent(item.uri);
 			NODE_DETAIL.all(".changed").set('disabled', false); 
