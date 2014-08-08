@@ -174,7 +174,8 @@ http_data_evaluate(Request) :-
 	->  original_concepts_assessment(V, JSON, Options)
 	;   WithdrawOptions = BasicOptions.put(options{comment:WithDrawComment,
 						       relation:Unrelated}),
-	    format(atom(WithDrawComment), 'Overruled by ~p ~p ~p', [V.source, Relation, V.target]),
+	    format(atom(WithDrawComment), 'Overruled by ~p ~p ~p',
+		   [V.source.uri, Relation, V.target.uri]),
 	    rdf_equal(evaluator:unrelated, Unrelated),
 	    new_concepts_assessment(V, O, JSON, Options, WithdrawOptions)
 	),
