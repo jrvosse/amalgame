@@ -54,9 +54,9 @@ ag:menu_item(200=http_ag_build, 'build').
 		 ]).
 
 :- html_resource(ag_build_extra,
-		 [ virtual(true)
--		   requires([css('skosbrowser.css'),
--                            css('columnbrowser.css')
+		 [ virtual(true),
+		   requires([css('skosbrowser.css'),
+			     css('columnbrowser.css')
 			    ])
 		 ]).
 
