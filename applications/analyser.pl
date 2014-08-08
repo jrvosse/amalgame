@@ -12,8 +12,6 @@
 :- use_module(library(amalgame/irr)).
 :- use_module(library(amalgame/util)).
 :- use_module(components(amalgame/util)).
-:- multifile
-	ag:menu_item/2.
 
 % temp commented out
 % ag:menu_item(240=http_ag_analyse, 'analyse').

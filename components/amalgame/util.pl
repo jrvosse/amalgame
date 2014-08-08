@@ -12,6 +12,9 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_label)).
 
+:- multifile
+	ag:menu_item/2.
+
 html_ag_header(Options) -->
 	{
 	  findall(Rank-(Path-Label), ag:menu_item(Rank=Path, Label), Items0),

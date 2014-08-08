@@ -27,9 +27,6 @@
 :- use_module(api(ag_process)).
 
 
-:- multifile
-	ag:menu_item/2.
-
 % http handlers for this applications
 :- http_handler(amalgame(app/build), http_ag_build, []).
 

@@ -36,9 +36,6 @@
 
 amalgame_module(amalgame:'EvaluationProcess').
 
-:- multifile
-	ag:menu_item/2.
-
 ag:menu_item(210=http_ag_evaluate, 'evaluate').
 
 % http handlers for this applications

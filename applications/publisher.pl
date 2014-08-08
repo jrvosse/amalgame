@@ -12,9 +12,6 @@
 :- use_module(library(amalgame/util)).
 :- use_module(components(amalgame/util)).
 
-:- multifile
-	ag:menu_item/2.
-
 :- setting(amalgame:default_publish_namespace, atom, 'http://localhost/ns/',
 	   'Default namespace to use on alignment results. Can be changed later.').
 
