@@ -25,6 +25,7 @@
 % We need amalgame http handlers from these:
 :- use_module(api(node_info)).
 :- use_module(api(mapping)).
+:- use_module(api(evaluate)).
 :- use_module(api(correspondence)).
 
 % For autocompletion on the vocabulary terms to fix source/target
