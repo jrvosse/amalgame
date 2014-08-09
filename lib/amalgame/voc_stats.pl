@@ -46,8 +46,19 @@ Currently supported statistical properties include:
 	count_labels(r,r,-,-,-,-,-),
 	count_homonyms(r,r,-).
 
+
 voc_property(Voc, P) :-
+	nonvar(P),
 	voc_property(Voc, P, []).
+
+voc_property(Voc, Dict, _Options) :-
+	var(Dict),!,
+	findall(P, ( voc_stats_cache(Voc, P),
+		     compound_name_arity(P,_,1)
+		   ),
+		Stats),
+	sort(Stats, Unique),
+	dict_create(Dict, voc_stats, Unique).
 
 voc_property(Voc, P, Options) :-
 	rdf_global_term(P, PG),
@@ -86,7 +97,10 @@ voc_ensure_stats(Voc, virtual(Result)) :-
 	->  Virtual = false
 	;   Virtual = true
 	),
-	assert(voc_stats_cache(Voc, virtual(Virtual))),
+	(   voc_stats_cache(Voc, virtual(Virtual))
+	->  true
+	;   assert(voc_stats_cache(Voc, virtual(Virtual)))
+	),
 	Result = Virtual.
 
 voc_ensure_stats(Voc, format(Format)) :-

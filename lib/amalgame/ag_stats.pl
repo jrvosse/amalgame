@@ -18,7 +18,7 @@ node_stats(Strategy, Node, Stats, Options) :-
 	(   rdfs_individual_of(Node, amalgame:'Mapping')
 	->  mapping_counts(Node, Strategy, Stats, Options)
 	;   is_vocabulary(Node)
-	->  voc_property(Node, numberOfConcepts(Stats), Options)
+	->  voc_property(Node, Stats, Options)
 	;   Stats = []
 	).
 
