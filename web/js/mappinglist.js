@@ -22,7 +22,7 @@ YUI.add('mappinglist', function(Y) {
 		},
 		destructor : function() {},
 		renderUI : function() {
-			this.listNode = this.get("contentBox").appendChild(Y.Node.create("<table class='mappinglist'></table>"));
+			this.listNode = this.get("contentBox").appendChild(Y.Node.create("<table/>"));
 		},
 		bindUI : function() {
 			this._history.on('selectedChange', this._onSelectChange, this);
@@ -56,6 +56,8 @@ YUI.add('mappinglist', function(Y) {
 
 		_setMappings : function() {
 			var listNode = this.listNode;
+			listNode.empty();
+			listNode.addClass('mappinglist');
 			listNode.append("<tr>"+
 				"<th>Mapping</a></th>"+
 				"<th colspan='1' class='src_mapped'># sources</th>"+

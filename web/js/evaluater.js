@@ -73,6 +73,9 @@ YUI.add('evaluater', function(Y) {
 				mappings:this.get("mappings"),
 				selected:this.get("selected")
 			}).render(NODE_MAPPING_LIST);
+			this.on('mappingsChange', function(e) { 
+				this.mappinglist.set('mappings', e.newVal); 
+			}, this);
 		},
 
 		_initTable : function() {
@@ -209,17 +212,18 @@ YUI.add('evaluater', function(Y) {
 		},
 
 		_submitCorrespondence : function(c) {
-			var oSelf  = this;
-			var server = this.get("paths").evaluate;
-			var record = this._selectedRecord;
+			var oSelf  =   this;
+			var mappings = this.get("mappings")
+			var server =   this.get("paths").evaluate;
+			var record =   this._selectedRecord;
 			var conceptsUnchanged = (c.new == c.originals);
 
 			Y.io(server, {
 				method: 'POST',
 				data:c,
 				on:{success:function(e,o) {
+					var r = Y.JSON.parse(o.responseText);
 					if (c.applyTo == "one" && conceptsUnchanged) {
-						var r = Y.JSON.parse(o.responseText);
 						if (c.remove) {
 							oSelf.mappingtable.removeRow(record);
 						} else if (r.overruled) {
@@ -231,6 +235,10 @@ YUI.add('evaluater', function(Y) {
 			  			oSelf.mappingtable.loadData(); // reload if too much has changed
 					}
 					oSelf._fetchInfo(c.mapping);
+					if (r.mapping.uri && r.mapping.stats) {
+						mappings[r.mapping.uri].stats = r.mapping.stats;
+					       	oSelf.set("mappings", mappings);
+					}
 				}}
 			});
 		},

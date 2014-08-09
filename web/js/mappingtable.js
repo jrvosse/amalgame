@@ -154,8 +154,8 @@ YUI.add('mappingtable', function(Y) {
 				};
 			Y.all(".yui3-datatable tr").removeClass("yui3-datatable-selected");
 			row.addClass("yui3-datatable-selected");
-			Y.log("selected correspondence in mappingtable: "+source.uri+ " - " +target.uri);
-			Y.log(current);
+			// Y.log("selected correspondence in mappingtable: "+source.uri+ " - " +target.uri);
+			// Y.log(current);
 			this.fire("rowSelect", data);
 		},
 
