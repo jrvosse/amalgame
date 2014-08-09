@@ -99,7 +99,8 @@ http_data_evaluate(Request) :-
 	    new_concepts_assessment(V, O, JSON, Options, WithdrawOptions)
 	),
 	node_stats(Strategy, Mapping, Stats, Options),
-	reply_json(JSON.put(stats, Stats)).
+	MappingInfo = mapping{uri:Mapping, stats:Stats},
+	reply_json(JSON.put(mapping, MappingInfo)).
 
 
 concept_labels(In, Out) :-
