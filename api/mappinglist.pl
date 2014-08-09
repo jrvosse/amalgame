@@ -19,7 +19,8 @@
 
 %%	http_mapping_list(+Request)
 %
-%	Return a JSON object with the mappings in an alignment strategy.
+%	Return a JSON object with the (finalize) mappings in an
+%	alignment strategy. This is a hack that needs fixing.
 
 http_mapping_list(Request) :-
 	http_parameters(Request,
