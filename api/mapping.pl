@@ -2,7 +2,7 @@
 	  [
 	  ]).
 
-/** Return the correspondences and the statistics for a given mapping node
+/* Return the correspondences and the statistics for a given mapping node
 */
 
 :- use_module(library(apply)).
