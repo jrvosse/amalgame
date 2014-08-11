@@ -1,4 +1,4 @@
-:- module(strategy_graph_viz,
+:- module(api_strategy_graph_viz,
 	  [ html_strategy_viz//1,
 	    reply_strategy_graph/2
 	  ]).

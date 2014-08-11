@@ -32,15 +32,13 @@ http:location(img,		 root(img),                  [ priority(-100) ]).
 :- rdf_load_library(amalgame).
 :- rdf_load_library(dc).
 
-/* Now all namespaces should have been defined, we can load the amalgame code: */
+/* Now all namespaces should have been defined, 
+*  we can load the amalgame applications: 
+*/
 :- use_module(applications(startpage)).
 :- use_module(applications(builder)).
-:- use_module(applications(analyser)).
 :- use_module(applications(evaluater)).
 :- use_module(applications(publisher)).
-:- use_module(applications(strategy_viz)).
-
-% :- use_module(api(http_mapping)).
 
 % add local web directories from which static files are served.
 

@@ -18,6 +18,7 @@
 :- use_module(components(amalgame/util)).
 
 % we need http handlers of these APIs
+:- use_module(api(strategy_viz)).
 :- use_module(api(mapping)).
 :- use_module(api(correspondence)).
 :- use_module(api(hints)).
@@ -26,8 +27,7 @@
 :- use_module(api(virtual_concepts)).
 :- use_module(api(ag_process)).
 
-
-% http handlers for this applications
+% http handlers for this application
 :- http_handler(amalgame(app/build), http_ag_build, []).
 
 ag:menu_item(200=http_ag_build, 'build').
