@@ -10,6 +10,7 @@
 :- use_module(library(semweb/rdf_label)).
 
 :- use_module(library(amalgame/util)).
+:- use_module(library(amalgame/rdf_util)).
 :- use_module(library(amalgame/vocabulary)).
 :- use_module(library(amalgame/voc_stats)).
 :- use_module(library(amalgame/expand_graph)).

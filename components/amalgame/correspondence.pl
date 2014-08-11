@@ -14,6 +14,7 @@
 
 :- use_module(library(skos/util)).
 :- use_module(library(amalgame/util)).
+:- use_module(library(amalgame/rdf_util)).
 
 html_correspondence_options(_Options) -->
 	html([ 'include all correspondences with the same: ',

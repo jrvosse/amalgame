@@ -16,6 +16,7 @@
 :- use_module(components(label)).
 
 :- use_module(library(amalgame/util)).
+:- use_module(library(amalgame/rdf_util)).
 :- use_module(library(amalgame/voc_stats)).
 :- use_module(components(amalgame/util)).
 
