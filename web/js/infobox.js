@@ -232,6 +232,7 @@ YUI.add('infobox', function(Y) {
 
 				// more mapping only things:
 				if (type == "mapping") {
+					NODE_EVAL.setContent("evaluate");
 					NODE_EVAL.removeClass("hidden");
 					NODE_ABBREV.removeClass("hidden");
 					Y.all('span.abbrev').removeClass("hidden");
@@ -249,6 +250,7 @@ YUI.add('infobox', function(Y) {
 					NODE_DELETE.setAttribute("disabled", true);
 				} else if (status.search('reference') > -1) {
 					NODE_DELETE.setAttribute("disabled", true);
+					NODE_EVAL.setContent("manual edit");
 				}
 
 				// hide the parameter form submit button in case we are not a process
