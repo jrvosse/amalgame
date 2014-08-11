@@ -31,7 +31,7 @@ parameter(snowball_language, oneof(Languages), english,
 	  'Language to use for stemmer') :-
 	findall(Alg, snowball_current_algorithm(Alg), Languages).
 parameter(prefix, integer, 4,
-	  'Optmise performence by first generating candidates by matching the prefix.Input is an integer for the prefix length.').
+	  'Optimise performence by first generating candidates by matching the prefix.Input is an integer for the prefix length.').
 parameter(edit_distance, integer, 0,
 	  'When >0 allow additional differences between labels').
 
