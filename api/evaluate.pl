@@ -21,6 +21,7 @@
 :- use_module(library(amalgame/edoal)).
 :- use_module(library(amalgame/map)).
 :- use_module(library(amalgame/expand_graph)).
+:- use_module(library(amalgame/json_util)).
 :- use_module(library(amalgame/util)).
 
 % http handlers:

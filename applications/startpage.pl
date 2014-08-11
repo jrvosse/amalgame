@@ -22,7 +22,6 @@
 :- http_handler(amalgame(eq),	    http_redirect(moved, amalgame(.)), []).
 :- http_handler(amalgame(app/main), http_redirect(moved, amalgame(.)), []).
 
-
 %%      http_amalgame_main_page(+Request) is det.
 %
 %	Emit html page to start a new or select/upload an existing

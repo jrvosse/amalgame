@@ -17,7 +17,9 @@
 	   compare_align/4,        % +Type, ?Order, A1, A2
 	   same_source/4,          % +List, +Source, -Same, -Rest
 	   same_target/4,          % +List, +Target, -Same, -Rest
-	   supported_map_relations/1 % ?URIList
+	   supported_map_relations/1, % ?URIList
+
+	   status_option/1
 	  ]
 	 ).
 
@@ -36,12 +38,25 @@ align(Source,Target,EvidenceList) terms.
 :- use_module(library(semweb/rdfs)).
 
 :- use_module(library(amalgame/edoal)).
-:- use_module(library(amalgame/util)).
+:- use_module(library(amalgame/rdf_util)).
 :- use_module(library(amalgame/expand_graph)).
 :- use_module(library(amalgame/ag_evaluation)).
 
 :- dynamic
 	nickname_cache/3.
+
+:- rdf_meta
+	status_option(r).
+
+%%	status_option(-Status)
+%
+%	List of status types.
+
+status_option(amalgame:final).
+status_option(amalgame:intermediate).
+status_option(amalgame:discarded).
+status_option(amalgame:imported).
+status_option(amalgame:reference).
 
 %%	correspondence_source(?C,?S) is det.
 %
@@ -114,7 +129,7 @@ remove_correspondence(align(E1, E2, Prov), Graph) :-
 	has_edoal_map_([E1, E2], Cell, Graph),
 	has_correspondence(align(E1, E2, Prov), Graph),
 	!,
-	remove_resource(Cell, Graph).
+	rdf_remove_resource(Cell, Graph).
 
 
 :- rdf_meta

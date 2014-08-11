@@ -124,7 +124,7 @@ http_ag_form_upload_reference(Request) :-
 
 cp_strategy_from_tmp(Request, TmpGraph) :-
 	rdf(Strategy, rdf:type, amalgame:'AlignmentStrategy', TmpGraph),!,
-	cp_graph(TmpGraph, Strategy, true),
+	rdf_cp_graph(TmpGraph, Strategy, true),
 	rdf_unload_graph(TmpGraph),
 	build_redirect(Request, [Strategy]).
 
@@ -155,7 +155,7 @@ merge_redirect(Request, Strategies) :-
 
 	% Create merged strategy
 	new_strategy(New, [comment(Comment)]),
-	cp_graphs(Strategies, New),
+	rdf_cp_graphs(Strategies, New),
 	merge_strategy_nodes(Strategies, New),
 
 	% Redirect to builder

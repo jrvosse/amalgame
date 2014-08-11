@@ -17,7 +17,7 @@
 :- use_module(library(yui3_beta)).
 
 % From Amalgame:
-:- use_module(library(amalgame/util)).
+:- use_module(library(amalgame/json_util)).
 :- use_module(library(amalgame/ag_reference)).
 :- use_module(components(amalgame/correspondence)).
 :- use_module(components(amalgame/util)).
@@ -109,7 +109,7 @@ yui_script(Strategy, Mapping) -->
 	{ findall(K-V, js_path(K, V), Paths),
 	  findall(M-C, js_module(M,C), Modules),
 	  pairs_keys(Modules, Includes),
-	  (   is_reference(Strategy, Mapping)
+	  (   is_reference_mapping(Strategy, Mapping)
 	  ->  js_mappings_metadata(Strategy, Mappings, [references(only)])
 	  ;   js_mappings_metadata(Strategy, Mappings, [references(exclude)])
 	  )

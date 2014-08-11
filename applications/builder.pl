@@ -8,9 +8,11 @@
 :- use_module(library(http/html_head)).
 :- use_module(library(http/html_write)).
 :- use_module(library(yui3_beta)).
+:- use_module(user(user_db)).
 
 :- use_module(library(amalgame/voc_stats)).
 :- use_module(library(amalgame/util)).
+:- use_module(library(amalgame/json_util)).
 :- use_module(library(amalgame/map)).
 
 :- use_module(components(amalgame/controls)).
@@ -31,7 +33,12 @@
 :- http_handler(amalgame(app/build), http_ag_build, []).
 
 ag:menu_item(200=http_ag_build, 'build').
-
+ag:menu_item(900=Handler, Label) :-
+	(   (logged_on(User, X), X \== User)
+	->  fail
+	;   Handler = cliopatria_openid:login_page,
+	    Label = 'login'
+	).
 :- html_resource(css_ag_build,
 		 [ virtual(true),
 		   requires([ ag_build_core,

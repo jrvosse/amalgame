@@ -1,7 +1,4 @@
-:- module(api_strategy_graph_viz,
-	  [ html_strategy_viz//1,
-	    reply_strategy_graph/2
-	  ]).
+:- module(api_strategy_graph_viz,[]). % provides http handler only
 
 :- use_module(library(option)).
 :- use_module(library(http/http_dispatch)).

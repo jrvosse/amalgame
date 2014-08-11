@@ -13,6 +13,7 @@
 :- use_module(library(amalgame/ag_reference)).
 :- use_module(library(amalgame/map)).
 :- use_module(library(amalgame/util)).
+:- use_module(library(amalgame/json_util)).
 
 node_stats(Strategy, Node, Stats, Options) :-
 	(   rdfs_individual_of(Node, amalgame:'Mapping')

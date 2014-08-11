@@ -15,6 +15,7 @@
 :- use_module(library(amalgame/caching)).
 :- use_module(library(amalgame/ag_provenance)).
 :- use_module(library(amalgame/util)).
+:- use_module(library(amalgame/json_util)).
 :- use_module(library(amalgame/map)).
 
 :- setting(amalgame:precompute_mapping, boolean, true,

@@ -7,7 +7,6 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(amalgame/amalgame_modules)).
 :- use_module(library(amalgame/map)).
-:- use_module(library(amalgame/util)).
 :- use_module(components(amalgame/util)).
 
 html_controls  -->

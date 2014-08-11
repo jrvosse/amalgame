@@ -3,14 +3,6 @@
 	      amalgame_strategy_schemes/2,
 	      amalgame_alignable_schemes/1,
 
-	      js_mappings_metadata/3,
-	      js_focus_node/3,
-	      js_strategy_nodes/2,
-
-	      rdf_lang/3,
-	      rdf_lang/4,
-	      rdf_graph_label/2,
-
 	      assert_user_provenance/2,
 
 	      now_xsd/1,
@@ -20,35 +12,16 @@
 	      save_perc/3,
 	      list_offset/3,
 	      list_limit/4,
-	      sort_by_arg/3,
-
-	      status_option/1,
-	      my_atom_json_dict/3,
-
-	      remove_resource/2 % +Resource, +Graph
+	      sort_by_arg/3
 	  ]).
 
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
-:- use_module(library(semweb/rdf_label)).
-:- use_module(library(http/json)).
 :- use_module(user(user_db)).
-:- use_module(user(preferences)).
-:- use_module(cliopatria(components/label)).
-:- use_module(library(amalgame/map)).
-:- use_module(library(amalgame/ag_stats)).
-:- use_module(library(amalgame/ag_reference)).
-:- use_module(library(amalgame/ag_evaluation)).
 :- use_module(library(amalgame/voc_stats)).
+:- use_module(library(amalgame/rdf_util)).
 
-:- multifile
-	ag:menu_item/2.
-
-:- rdf_meta
-	rdf_lang(r,r,-),
-	rdf_lang(r,r,+,-),
-	status_option(r).
 
 %%	mint_node_uri(+Strategy, +Type, -URI) is det.
 %
@@ -88,37 +61,6 @@ scheme_label(URI, Key-URI) :-
 	rdf_graph_label(URI, CasedKey),
 	downcase_atom(CasedKey, Key).
 
-rdf_graph_label(Graph, Label) :-
-	rdf_display_label(Graph, Lit),
-	literal_text(Lit, Label),!.
-rdf_graph_label(Graph, Graph).
-
-my_atom_json_dict(Json, Dict, Options) :-
-	var(Dict),!,
-	atom_json_dict(Json, StringDict, Options),
-	atomify_dict(StringDict, Dict).
-my_atom_json_dict(Json, Dict, Options) :-
-	atom_json_dict(Json, Dict, Options).
-
-atomify_pairs([], []).
-atomify_pairs([K-Vs|Ts], [K-Va|Ta]) :-
-	atom_string(Va,Vs),!,
-	atomify_pairs(Ts, Ta).
-atomify_pairs([K-V|Ts], [K-V|Ta]) :-
-	atomify_pairs(Ts, Ta).
-
-atomify_dict(S,D) :-
-	dict_pairs(S, d, SPairs),
-	atomify_pairs(SPairs, APairs),
-	dict_pairs(D, d, APairs).
-
-
-ag:menu_item(900=Handler, Label) :-
-	(   (logged_on(User, X), X \== User)
-	->  fail
-	;   Handler = cliopatria_openid:login_page,
-	    Label = 'login'
-	).
 
 has_write_permission :-
 	logged_on(User, anonymous),
@@ -150,131 +92,6 @@ amalgame_strategy_schemes(Strategy, Schemes) :-
 	findall(S,  rdf(Strategy, amalgame:includes, S), Schemes),
 	Schemes \== [].
 
-amalgame_strategy_mappings(Strategy, Mappings, Options) :-
-	rdfs_individual_of(Strategy, amalgame:'AlignmentStrategy'),
-	findall(URI, (rdf(URI, rdf:type, _ ,Strategy),
-		      rdfs_individual_of(URI, amalgame:'Mapping'),
-		      ag_map_filter(Strategy, URI, Options)
-		     ), Mappings).
-
-ag_map_filter(Strategy, M, Options) :-
-	option(references(exclude), Options),
-	is_reference(Strategy, M),
-	!, fail.
-ag_map_filter(Strategy, M, Options) :-
-	option(references(only), Options),
-	\+ is_reference(Strategy, M),
-	!, fail.
-ag_map_filter(_,_,_).
-
-js_mappings_metadata(Strategy, Results, Options) :-
-	amalgame_strategy_mappings(Strategy, Mappings, Options),
-	maplist(mapping_metadata(Strategy), Mappings, Pairs),
-	dict_pairs(Results, mappings, Pairs).
-
-mapping_metadata(Strategy, M, M-Dict) :-
-	Dict = mapping{uri:M, label:L, stats:Stats, agStatus:Status},
-	(   node_stats(Strategy, M, Stats, [compute(false)]),
-	    Stats.totalCount > 0
-	->  true
-	;   Stats = _{}
-	),
-	is_dict(Stats, mapping_stats_dict),
-	(   rdf_has(M, amalgame:status, StatusQ)
-	->  rdf_global_id(_:Status, StatusQ)
-	;     Status = undefined
-	),
-	rdf_display_label(M, L),!.
-
-mapping_metadata(Strategy, M, _) :-
-	debug(js_mappings_metadata, 'mapping_metadata failed for ~p/~p', [Strategy, M]),
-	fail.
-
-%%	js_focus_node(+Strategy, +URI, -NodeProps)
-%
-%	NodeProps contains the currently accessible properties for URI
-
-js_focus_node(Strategy, URI, NodeProps) :-
-	findall(Type-Value, node_prop(Strategy, URI, Type, Value), Pairs),
-	group_pairs_by_key_if_needed(Pairs, Grouped),
-	dict_pairs(NodeProps, node, Grouped).
-
-group_pairs_by_key_if_needed([], []).
-group_pairs_by_key_if_needed([M-N|T0], [M-Result|T]) :-
-	same_key(M, T0, TN, T1),
-	(   TN == []
-	->  Result = N
-	;   Result = [N|TN]
-	),
-	group_pairs_by_key_if_needed(T1, T).
-
-same_key(M, [M-N|T0], [N|TN], T) :- !,
-	same_key(M, T0, TN, T).
-same_key(_, L, [], L).
-%%	js_strategy_nodes(+Strategy, -Nodes)
-%
-%	Nodes contains all nodes in alignment Strategy with their type
-%	(process, vocab, strategy or mapping).
-
-js_strategy_nodes(Strategy, Nodes) :-
-	findall(S, graph_resource(Strategy, S), NodeURIs),
-	sort(NodeURIs, URIsUnique),
-	maplist(node_data(Strategy), URIsUnique, Pairs),
-	dict_pairs(Nodes, nodes, Pairs).
-
-graph_resource(Graph, R) :-
-	rdf(R,rdf:type,_,Graph),
-	\+ is_empty_eval_graph(R).
-graph_resource(Graph, R) :-
-	rdf(_,amalgame:source,R,Graph).
-graph_resource(Graph, R) :-
-	rdf(_,amalgame:target,R,Graph).
-graph_resource(Graph, R) :-
-	rdf(Graph, amalgame:includes, R).
-
-node_data(Strategy, R, R-Props) :-
-	findall(Type-Value, node_prop(Strategy, R, Type, Value), Pairs),
-	group_pairs_by_key_if_needed(Pairs, Grouped),
-	dict_pairs(Props, node, Grouped).
-
-node_prop(_, R, uri, R).
-node_prop(S, R, label, Label) :-
-	(   rdf(R, rdfs:label, Lit, S) % use label defined in strategy by user!
-	->  true
-	;   rdf_display_label(R, Lit)
-	),
-	literal_text(Lit, Label).
-node_prop(_S, R, type, Type) :-
-	(   rdfs_individual_of(R, amalgame:'AlignmentStrategy')
-	->  Type = strategy
-	;   rdfs_individual_of(R, amalgame:'Mapping')
-	->  Type = mapping
-	;   rdfs_individual_of(R, amalgame:'Process')
-	->  Type = process
-	;   Type = vocab
-	).
-node_prop(S, R, secondary_inputs, Inputs) :-
-	findall(I,
-		(   rdf_has(R, amalgame:secondary_input, I, RP),
-		    rdf(R, RP, I, S)
-
-		), Inputs).
-node_prop(S, R, local, Local) :-
-	map_localname(S,R,Local).
-node_prop(S, R, status, Status) :-
-	rdf(R, amalgame:status, Status, S).
-node_prop(S, R, default_relation, Relation) :-
-	rdf(R, amalgame:default_relation, Relation, S).
-node_prop(S, R, comment, Comment) :-
-	rdf(R, rdfs:comment, literal(Lit), S),
-	literal_text(Lit, Comment).
-node_prop(_, R, link, Link) :-
-	resource_link(R, Link).
-node_prop(S, R, abbrev, Nick) :-
-	rdfs_individual_of(R, amalgame:'Mapping'),
-	map_nickname(S,R,Nick).
-node_prop(S, R, namespace, NS) :-
-	rdf(R, amalgame:publish_ns, NS, S).
 
 
 %%	http:convert_parameter(+Type, +In, -URI) is semidet.
@@ -374,102 +191,9 @@ args([A|As], Term, [Key|Ks]) :-
 	arg(A, Term, Key),
 	args(As, Term, Ks).
 
-%%	remove_resource(+Resource, +Graph) is det.
-%
-%	Remove all references to Resource from Graph,
-%	including (recursively) all blank nodes that
-%	Resource uniquely referred to.
-
-remove_resource(R, G) :-
-	ground(R),
-	ground(G),
-	findall(Blank,
-		(   rdf(R,_,Blank, G),
-		    rdf_is_bnode(Blank),
-		    \+ (rdf(R2, _, Blank, G), R2 \= R)
-		),
-		BlankNodes),
-	forall(member(B, BlankNodes),
-	       remove_resource(B, G)
-	      ),
-	rdf_retractall(R,_,_,G),
-	rdf_retractall(_,R,_,G),
-	rdf_retractall(_,_,R,G).
-
-
 
 
 save_perc(0, _, 0) :- !.
 save_perc(Value, Total, Percentage) :-
 	Percentage is (100 * Value) / Total.
 
-% no longer used
-rounded_perc(0, _, 0.0) :- !.
-rounded_perc(_, 0, 0.0) :- !.
-rounded_perc(Total, V, Perc) :-
-	Perc0 is V/Total,
-	dyn_perc_round(Perc0, Perc, 100).
-
-dyn_perc_round(P0, P, N) :-
-	P1 is round(P0*N),
-	(   P1 == 0
-	->  N1 is N*10,
-	    dyn_perc_round(P0, P, N1)
-	;   P is P1/(N/100)
-	).
-
-
-%%	rdf_lang(+Subject, +Predicate, ?Text, +Default) is det.
-%
-%	Text is unified with the "preferred" textual value of literal
-%	property Predicate on Subject.  Order of preference:
-%	1. Text is in the user:lang defined by user_preference/2.
-%	2. Text is in the English language.
-%	3. Text is in a random other language
-%	4. Text is unified with Default.
-
-rdf_lang(Subject, Predicate, Text, Default) :-
-	(   rdf_lang(Subject, Predicate, Text)
-	->  true
-	;   Text = Default
-	).
-
-rdf_lang(Subject, Predicate, Text) :-
-	user_preference(user:lang, literal(Lang)),
-	(   rdf_has(Subject, Predicate, literal(lang(Lang, Text)))
-	->  true
-	;   rdf_has(Subject, Predicate, literal(lang(en, Text)))
-	->  true
-	;   rdf_has(Subject, Predicate, literal(lang(_, Text)))
-	),!.
-
-rdf_lang(Subject, Predicate, Text) :-
-	user_preference(user:lang, literal(Lang)),
-	findall(Literal,
-		literal_object_lit(Subject, Predicate, Literal),
-		Literals),
-	(   member(literal(lang(Lang, Text)), Literals)
-	;   member(literal(lang(en, Text)), Literals)
-	;   member(literal(lang(_, Text)), Literals)
-	;   member(literal(Text), Literals)
-	),
-	!.
-
-literal_object_lit(Subject, Predicate, Literal) :-
-	rdf(Subject, Predicate, Object),
-	rdf_is_resource(Object),
-	(   rdf_has(Object, rdf:value, Literal)
-	;   rdf_has(Object, skosxl:literalForm, Literal)
-	),
-	rdf_is_literal(Literal).
-
-
-%%	status_option(-Status)
-%
-%	List of status types.
-
-status_option(amalgame:final).
-status_option(amalgame:intermediate).
-status_option(amalgame:discarded).
-status_option(amalgame:imported).
-status_option(amalgame:reference).
