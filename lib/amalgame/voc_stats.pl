@@ -74,7 +74,7 @@ get_from_cache(Voc, numberOfLabels(D), Options) :-
 	voc_stats_cache(Voc, numberOfLabels(D)),
 	option(label_prop(P), Options),
 	option(lang(L), Options),
-	D.get(P).get(L).
+	_R = D.get(P).get(L).
 
 get_from_cache(Voc, Prop, _Options) :-
 	voc_stats_cache(Voc, Prop).
@@ -166,7 +166,6 @@ voc_ensure_stats(Voc, numberOfLabels(NewDict), Options) :-
 	),
 	LangDict = OldLangDict.put(Lang, CountDict),
 	NewDict = OldDict.put(Prop, LangDict),
-	debug(stats, '~w~n', [NewDict]),
 	assert(voc_stats_cache(Voc, numberOfLabels(NewDict))).
 
 voc_ensure_stats(Voc, numberOfUniqueLabels(P, Lang, Lcount, Ccount), _) :-
@@ -276,7 +275,8 @@ compound_count(Labels, Count) :-
 	length(CompoundLabels, Count).
 
 count_unique_labels(Voc, Prop, Lang, LabelCount, ConceptCount) :-
-	voc_property(Voc, numberOfLabels(Prop, Lang, _, _)), % fill cache if needed
+	voc_property(Voc, numberOfLabels(_),
+		     [label_prop(Prop), lang(Lang)]), % fill cache if needed
 	voc_stats_cache(Voc, cp_pairs(Prop, Lang, Sorted)),
 	group_pairs_by_key(Sorted, Grouped),
 	include(is_unique_label, Grouped, Uniques),
@@ -291,7 +291,8 @@ count_unique_labels(Voc, Prop, Lang, LabelCount, ConceptCount) :-
 	print_message(informational, map(found, 'unique concepts', Voc, ConceptCount)).
 
 count_homonyms(Voc, Prop, Lang, LabelCount, ConceptCount) :-
-	voc_property(Voc, numberOfLabels(Prop, Lang, _, _)), % fill cache if needed
+	voc_property(Voc, numberOfLabels(_),
+		     [label_prop(Prop), lang(Lang)]), % fill cache if needed
 	voc_stats_cache(Voc, cp_pairs(Prop, Lang, Sorted)),
 	group_pairs_by_key(Sorted, Grouped),
 	include(is_homonym, Grouped, Homonyms),
