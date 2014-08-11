@@ -1,6 +1,7 @@
 :- module(ag_utils,
 	  [   mint_node_uri/3,
 	      amalgame_strategy_schemes/2,
+	      amalgame_alignable_schemes/1,
 
 	      js_mappings_metadata/3,
 	      js_focus_node/3,
@@ -8,6 +9,7 @@
 
 	      rdf_lang/3,
 	      rdf_lang/4,
+	      rdf_graph_label/2,
 
 	      assert_user_provenance/2,
 
@@ -38,6 +40,7 @@
 :- use_module(library(amalgame/ag_stats)).
 :- use_module(library(amalgame/ag_reference)).
 :- use_module(library(amalgame/ag_evaluation)).
+:- use_module(library(amalgame/voc_stats)).
 
 :- multifile
 	ag:menu_item/2.
@@ -64,6 +67,31 @@ mint_node_uri(Strategy, Type, URI) :-
 	\+ rdf_graph(URI),
 	!.
 
+%%	amalgame_alignable_schemes(-Schemes) is det.
+%
+%	Schemes is unified with a sorted list of urls of
+%	skos:ConceptSchemes or other alignable objects.
+%
+%	Sorting is based on case insensitive scheme labels.
+
+amalgame_alignable_schemes(Schemes) :-
+	findall(C,
+		(   is_vocabulary(C),
+		    voc_property(C, virtual(false))
+		),
+		All),
+	maplist(scheme_label, All, Labeled),
+	keysort(Labeled, Sorted),
+	pairs_values(Sorted, Schemes).
+
+scheme_label(URI, Key-URI) :-
+	rdf_graph_label(URI, CasedKey),
+	downcase_atom(CasedKey, Key).
+
+rdf_graph_label(Graph, Label) :-
+	rdf_display_label(Graph, Lit),
+	literal_text(Lit, Label),!.
+rdf_graph_label(Graph, Graph).
 
 my_atom_json_dict(Json, Dict, Options) :-
 	var(Dict),!,
@@ -168,8 +196,21 @@ mapping_metadata(Strategy, M, _) :-
 
 js_focus_node(Strategy, URI, NodeProps) :-
 	findall(Type-Value, node_prop(Strategy, URI, Type, Value), Pairs),
-	dict_pairs(NodeProps, node, Pairs).
+	group_pairs_by_key_if_needed(Pairs, Grouped),
+	dict_pairs(NodeProps, node, Grouped).
 
+group_pairs_by_key_if_needed([], []).
+group_pairs_by_key_if_needed([M-N|T0], [M-Result|T]) :-
+	same_key(M, T0, TN, T1),
+	(   TN == []
+	->  Result = N
+	;   Result = [N|TN]
+	),
+	group_pairs_by_key_if_needed(T1, T).
+
+same_key(M, [M-N|T0], [N|TN], T) :- !,
+	same_key(M, T0, TN, T).
+same_key(_, L, [], L).
 %%	js_strategy_nodes(+Strategy, -Nodes)
 %
 %	Nodes contains all nodes in alignment Strategy with their type
@@ -193,7 +234,8 @@ graph_resource(Graph, R) :-
 
 node_data(Strategy, R, R-Props) :-
 	findall(Type-Value, node_prop(Strategy, R, Type, Value), Pairs),
-	dict_pairs(Props, node, Pairs).
+	group_pairs_by_key_if_needed(Pairs, Grouped),
+	dict_pairs(Props, node, Grouped).
 
 node_prop(_, R, uri, R).
 node_prop(S, R, label, Label) :-
