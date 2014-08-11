@@ -62,13 +62,22 @@ voc_property(Voc, Dict, _Options) :-
 
 voc_property(Voc, P, Options) :-
 	rdf_global_term(P, PG),
-	(   voc_stats_cache(Voc, PG)
+	(   get_from_cache(Voc, PG, Options)
 	->  true
 	;   (   option(compute(false), Options)
 	    ->  fail
-	    ;   voc_ensure_stats(Voc, PG)
+	    ;   voc_ensure_stats(Voc, PG, Options)
 	    )
 	).
+get_from_cache(Voc, numberOfLabels(D), Options) :-
+	!,
+	voc_stats_cache(Voc, numberOfLabels(D)),
+	option(label_prop(P), Options),
+	option(lang(L), Options),
+	D.get(P).get(L).
+
+get_from_cache(Voc, Prop, _Options) :-
+	voc_stats_cache(Voc, Prop).
 
 assert_voc_prop(Voc, M) :-
 	assert(voc_stats_cache(Voc, M)).
@@ -90,7 +99,8 @@ is_vocabulary(Voc) :-
 is_vocabulary(Voc) :-
 	rdfs_individual_of(Voc, amalgame:'Alignable').
 
-voc_ensure_stats(Voc, virtual(Result)) :-
+
+voc_ensure_stats(Voc, virtual(Result), _) :-
 	(   rdf_has(_, skos:inScheme, Voc)
 	->  Virtual = false
 	;   rdfs_individual_of(Voc, amalgame:'Alignable')
@@ -103,7 +113,7 @@ voc_ensure_stats(Voc, virtual(Result)) :-
 	),
 	Result = Virtual.
 
-voc_ensure_stats(Voc, format(Format)) :-
+voc_ensure_stats(Voc, format(Format),_) :-
 	rdfs_individual_of(Voc, skos:'ConceptScheme'),
 	(   voc_stats_cache(Voc, format(Format))
 	->  true
@@ -111,14 +121,14 @@ voc_ensure_stats(Voc, format(Format)) :-
 	    assert(voc_stats_cache(Voc, format(Format)))
 	).
 
-voc_ensure_stats(Voc, version(Version)) :-
+voc_ensure_stats(Voc, version(Version),_) :-
 	(   rdf_has(Voc, owl:versionInfo, literal(Version))
 	->  true
 	;   Version = ''
 	),
 	assert(voc_stats_cache(Voc, version(Version))).
 
-voc_ensure_stats(Voc, revision(Revision)) :-
+voc_ensure_stats(Voc, revision(Revision),_) :-
 	(   rdf(Voc, amalgame:wasGeneratedBy, _)
 	->  Revision = amalgame_generated
 	;   assert_voc_version(Voc, Revision)
@@ -128,15 +138,17 @@ voc_ensure_stats(Voc, revision(Revision)) :-
 	),
 	assert(voc_stats_cache(Voc, revision(Revision))).
 
-voc_ensure_stats(Voc, numberOfConcepts(Count)) :-
+voc_ensure_stats(Voc, numberOfConcepts(Count),_) :-
 	(   count_concepts(Voc, Count) -> true ; Count = 0),
 	assert_voc_prop(Voc, numberOfConcepts(Count)).
-voc_ensure_stats(Voc, numberOfLabels(Prop, Lang, Counts)) :-
-	Counts = counts([label(LCount),
-			concept(CCount),
-			empty(ECount),
-			compound(Compound)
-		       ]),
+
+voc_ensure_stats(Voc, numberOfLabels(NewDict), Options) :-
+	option(lang(Lang), Options),
+	option(label_prop(Prop), Options),
+	CountDict = counts{label:LCount,
+			concept:CCount,
+			empty:ECount,
+			compound:Compound},
 	(   count_labels(Voc, Prop, Lang, LCount, CCount, ECount, Compound)
 	->  format(atom(ILabel), '~p ~p ~w', [Voc, Prop, Lang]),
 	    print_message(informational, map(found, 'labels', ILabel, LCount)),
@@ -144,33 +156,45 @@ voc_ensure_stats(Voc, numberOfLabels(Prop, Lang, Counts)) :-
 	    print_message(informational, map(found, 'empty labels', ILabel, ECount)),
 	    print_message(informational, map(found, 'compound labels', ILabel, Compound))
 	;   LCount = 0, CCount = 0, ECount = 0, Compound = 0),
-	assert_voc_prop(Voc, numberOfLabels(Prop, Lang, Counts)).
+	(   voc_stats_cache(Voc, numberOfLabels(OldDict))
+	->  retractall(voc_stats_cache(Voc, numberOfLabels(OldDict))),
+	    (	OldLangDict = OldDict.get(Prop)
+	    ->	true
+	    ;	OldLangDict = lang{}
+	    )
+	;   OldDict = vocstats{}, OldLangDict = lang{}
+	),
+	LangDict = OldLangDict.put(Lang, CountDict),
+	NewDict = OldDict.put(Prop, LangDict),
+	debug(stats, '~w~n', [NewDict]),
+	assert(voc_stats_cache(Voc, numberOfLabels(NewDict))).
 
-voc_ensure_stats(Voc, numberOfUniqueLabels(P, Lang, Lcount, Ccount)) :-
+voc_ensure_stats(Voc, numberOfUniqueLabels(P, Lang, Lcount, Ccount), _) :-
 	(   count_unique_labels(Voc, P, Lang, Lcount, Ccount) -> true ; Lcount = 0, Ccount=0),
 	assert_voc_prop(Voc, numberOfUniqueLabels(P, Lang, Lcount, Ccount)).
-voc_ensure_stats(Voc, numberOfMappedConcepts(Count)) :-
+voc_ensure_stats(Voc, numberOfMappedConcepts(Count), _) :-
 	(   count_mapped_concepts(Voc, Count) -> true ; Count = 0),
 	assert_voc_prop(Voc, numberOfMappedConcepts(Count)).
-voc_ensure_stats(Voc, languages(L)) :-
+voc_ensure_stats(Voc, languages(L), _) :-
 	(   voc_languages_used(Voc, L) -> true ; L = []),
 	assert(voc_stats_cache(Voc, languages(L))).
-voc_ensure_stats(Voc, languages(P,L)) :-
+voc_ensure_stats(Voc, languages(P,L), _) :-
 	(   voc_languages_used(Voc, P, L) -> true ; L = []),
 	assert(voc_stats_cache(Voc, languages(P,L))).
-voc_ensure_stats(Voc, numberOfHomonyms(P, Lang, Lcount, Ccount)) :-
+voc_ensure_stats(Voc, numberOfHomonyms(P, Lang, Lcount, Ccount),_) :-
 	(   count_homonyms(Voc, P, Lang, Lcount, Ccount) -> true ; Lcount = 0, Ccount=0),
 	assert_voc_prop(Voc, numberOfHomonyms(P, Lang, Lcount, Ccount)).
-voc_ensure_stats(Voc, depth(Stats)) :-
+voc_ensure_stats(Voc, depth(Stats),_) :-
 	(  compute_depth_stats(Voc, depth(Stats)) -> true ; Stats = []),
 	assert_voc_prop(Voc, depth(Stats)).
-voc_ensure_stats(Voc, branch(Stats)) :-
+voc_ensure_stats(Voc, branch(Stats), _) :-
 	(  compute_branch_stats(Voc, branch(Stats)) -> true ; Stats = []),
 	assert_voc_prop(Voc, branch(Stats)).
-voc_ensure_stats(Voc, nrOfTopConcepts(Count)) :-
+voc_ensure_stats(Voc, nrOfTopConcepts(Count), _) :-
 	voc_property(Voc, depth(_)), % ensure nrOfTopConcepts has been computed
 	(   rdf(Voc, amalgame:nrOfTopConcepts, literal(type(xsd:int, Count))) -> true ; Count = 0 ),
 	assert_voc_prop(Voc, nrOfTopConcepts(Count)).
+
 
 
 %%	assert_voc_version(+Voc, +TargetGraph) is det.

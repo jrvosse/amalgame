@@ -283,63 +283,59 @@ label_stats(Scheme, Strategy, Property, Stats) :-
 	reverse(Values, ValuesR),
 	append(ValuesR, Stats).
 
-%%
 label_lang_stat(Scheme, _Strategy, Property, Langs,
 		CCount, PlangLabel, Stats) :-
 	Stats = set([NrLabels, LabeledConcepts, LabelsPerConcept,
 		     HomLabels, HomConcepts, EmptyLabels, CompoundLabels]),
 	member(Lang, Langs),
-	voc_property(Scheme, numberOfLabels(Property, Lang, counts(Counts))),
-	option(concept(CCount), Counts),
-	CCount > 0,
+	voc_property(Scheme, numberOfLabels(L), [lang(Lang), label_prop(Property)]),
+	D = L.Property.Lang,
+	D.concept > 0,
+	CCount = D.concept,
 
 	format(atom(PlangLabel), '~p @~w', [Property, Lang]),
-	option(label(LCount), Counts),
-	format(atom(A), '~d', [LCount]),
+	format(atom(A), '~d', [D.label]),
 	NrLabels = '# labels' - span([A]),
 
 	voc_property(Scheme, numberOfConcepts(Total)),
 	voc_property(Scheme, numberOfHomonyms(Property, Lang, HomsL, HomsC)),
 
-	(   CCount \= Total
-	->  save_perc(CCount, Total, CCountP),
-	    format(atom(CCountA), '~d (~2f%)', [CCount, CCountP]),
+	(   D.concept \= Total
+	->  save_perc(D.concept, Total, CCountP),
+	    format(atom(CCountA), '~d (~2f%)', [D.concept, CCountP]),
 	    LabeledConcepts =  '# labeled concepts'    - span([CCountA])
 	;   LabeledConcepts = labeled-[]
 	),
 
-	option(compound(Compound), Counts),
-	(   Compound > 0
-	->  save_perc(Compound, LCount, CompoundP),
-	    format(atom(CL), '~d (~2f%)', [Compound, CompoundP]),
+	(   D.compound > 0
+	->  save_perc(D.compound, D.label, CompoundP),
+	    format(atom(CL), '~d (~2f%)', [D.compound, CompoundP]),
 	    CompoundLabels = '# compound labels' - span([class(warn)],[CL])
 	;   CompoundLabels = compound-[]
 	),
 
-	option(empty(ECount), Counts),
-	(   ECount > 0
-	->  save_perc(ECount, LCount, ECountP),
-	    format(atom(EL), '~d (~2f%)', [ECount, ECountP]),
+	(   D.empty > 0
+	->  save_perc(D.empty, D.label, ECountP),
+	    format(atom(EL), '~d (~2f%)', [D.empty, ECountP]),
 	    EmptyLabels = '# empty labels' - span([class(warn)],[EL])
 	;   EmptyLabels = empty-[]
 	),
 
-
-	(   LCount \= CCount
-	->  LP is LCount/CCount,
+	(   D.label \=  D.concept
+	->  LP is D.label/D.concept,
 	    format(atom(LPA), '~2f', [LP]),
 	    LabelsPerConcept = '# labels/labeled concept' - span([LPA])
 	;   LabelsPerConcept = lpa-[]
 	),
 
 	(   HomsC > 0
-	->  save_perc(HomsC, CCount, HomsCP),
+	->  save_perc(HomsC, D.concept, HomsCP),
 	    format(atom(HomsCA), '~d (~2f%)', [HomsC, HomsCP]),
 	    HomConcepts = '# ambiguously labeled concepts' - span([class(warn)],[HomsCA])
 	;   HomConcepts = hom-[]
 	),
 	(   HomsL > 0
-	->  save_perc(HomsL, LCount, HomsLP),
+	->  save_perc(HomsL, D.label, HomsLP),
 	    format(atom(HomsLA), '~d (~2f%)', [HomsL, HomsLP]),
 	    HomLabels = '# ambiguous labels' - span([class(warn)],[HomsLA])
 	;   HomLabels = hom-[]
