@@ -23,7 +23,7 @@ parameter(targetlabel, oneof(LabelProps), Default,
 	  '(Super)Property to get the label of the target by') :-
 	rdf_equal(Default, rdfs:label),
 	label_list(LabelProps).
-parameter(threshold, float, 0.0,
+parameter(threshold, float, 0.7,
 	  'threshold edit distance').
 parameter(language, oneof(['any'|L]), 'any', 'Language of source label') :-
 	strategy_languages(_,L).
@@ -102,10 +102,3 @@ match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Options
 		graph([rdf(Source, SourceProp, SourceLit),
 		       rdf(Target, TargetProp, TargetLit)])
 	       ].
-
-
-
-
-
-
-
