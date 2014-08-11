@@ -152,9 +152,15 @@ mapping_metadata(Strategy, M, M-Dict) :-
 	;   Stats = _{}
 	),
 	is_dict(Stats, mapping_stats_dict),
-	rdf_has(M, amalgame:status, StatusQ),
-	rdf_global_id(_:Status, StatusQ),
-	rdf_display_label(M, L).
+	(   rdf_has(M, amalgame:status, StatusQ)
+	->  rdf_global_id(_:Status, StatusQ)
+	;     Status = undefined
+	),
+	rdf_display_label(M, L),!.
+
+mapping_metadata(Strategy, M, _) :-
+	debug(js_mappings_metadata, 'mapping_metadata failed for ~p/~p', [Strategy, M]),
+	fail.
 
 %%	js_focus_node(+Strategy, +URI, -NodeProps)
 %
