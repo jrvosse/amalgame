@@ -15,6 +15,7 @@
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
+:- use_module(library(skos/util)).
 :- use_module(library(amalgame/ag_provenance)).
 :- use_module(library(amalgame/map)).
 :- use_module(library(amalgame/voc_stats)).
@@ -252,7 +253,7 @@ mapping_to_delete(Id, Strategy) :-
 
 del_materialized_vocs(Strategy) :-
 	findall(Voc,
-		(   rdfs_individual_of(Voc, skos:'ConceptScheme'),
+		(   skos_is_vocabulary(Voc),
 		    rdf_graph(Voc),
 		    rdf_has(Voc, amalgame:wasGeneratedBy, Process, RP),
 		    rdf(Voc, RP, Process, Strategy)

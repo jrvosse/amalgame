@@ -4,6 +4,7 @@
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
+:- use_module(library(skos/util)).
 :- use_module(voc_stats).
 :- use_module(expand_graph). % for virtual vocab schemes
 
@@ -70,7 +71,7 @@ vocab_member(F, 'http://sws.geonames.org/') :-
 	rdfs_individual_of(F, 'http://www.geonames.org/ontology#Feature').
 vocab_member(E, Scheme) :-
 	atom(Scheme),
-	rdfs_individual_of(Scheme, skos:'ConceptScheme'),
+	skos_is_vocabulary(Scheme),
 	!,
 	vocab_member(E, scheme(Scheme)).
 

@@ -6,6 +6,8 @@
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_abstract)).
 
+:- use_module(library(skos/util)).
+
 :- rdf_meta
         context_triple(r, t),
         transitive_context(r).
@@ -14,7 +16,7 @@ cliopatria:context_graph(URI, RDF) :-
 	(   rdfs_individual_of(URI, prov:'Entity')
 	;   rdfs_individual_of(URI, prov:'Activity')
 	;   rdfs_individual_of(URI, prov:'Agent')
-	;   rdfs_individual_of(URI, skos:'ConceptScheme')
+	;   skos_is_vocabulary(URI)
 	;   rdfs_individual_of(URI, amalgame:'Alignment')
 	),
 	findall(T, prov_context_triple(URI, T), RDF0),
@@ -113,5 +115,5 @@ cliopatria:node_shape(URI, Shape, _Options) :-
 
 % Vocabulary (up)loaded, typically not made with amalgame
 cliopatria:node_shape(URI, Shape, _Options) :-
-	rdfs_individual_of(URI, skos:'ConceptScheme'),
+	skos_is_vocabulary(URI),
 	Shape = [shape(box3d),style(filled),fillcolor('#AAAAAA')].

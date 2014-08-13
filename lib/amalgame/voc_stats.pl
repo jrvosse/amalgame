@@ -112,7 +112,7 @@ voc_ensure_stats(Voc, virtual(Result), _) :-
 	Result = Virtual.
 
 voc_ensure_stats(Voc, format(Format),_) :-
-	rdfs_individual_of(Voc, skos:'ConceptScheme'),
+	skos_is_vocabulary(Voc),
 	(   voc_stats_cache(Voc, format(Format))
 	->  true
 	;   voc_find_format(Voc, Format),
@@ -321,7 +321,7 @@ count_mapped_concepts(Voc, Count) :-
 
 voc_languages_used(all, Langs) :-
 	findall(L,
-		(   rdfs_individual_of(Voc, skos:'ConceptScheme'),
+		(   skos_is_vocabulary(Voc),
 		    voc_languages_used(Voc, L)
 		),
 		Ls),
