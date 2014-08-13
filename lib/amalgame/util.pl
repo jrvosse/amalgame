@@ -21,6 +21,7 @@
 :- use_module(user(user_db)).
 :- use_module(library(amalgame/voc_stats)).
 :- use_module(library(amalgame/rdf_util)).
+:- use_module(library(skos/util)).
 
 
 %%	mint_node_uri(+Strategy, +Type, -URI) is det.
@@ -49,7 +50,7 @@ mint_node_uri(Strategy, Type, URI) :-
 
 amalgame_alignable_schemes(Schemes) :-
 	findall(C,
-		(   is_vocabulary(C),
+		(   skos_is_vocabulary(C),
 		    voc_property(C, virtual(false))
 		),
 		All),

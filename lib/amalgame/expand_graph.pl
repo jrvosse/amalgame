@@ -5,9 +5,11 @@
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
+
+:- use_module(library(skos/util)).
+
 :- use_module(library(amalgame/caching)).
 :- use_module(library(amalgame/map)).
-:- use_module(library(amalgame/voc_stats)).
 :- use_module(library(amalgame/ag_provenance)).
 :- use_module(library(amalgame/amalgame_modules)).
 
@@ -40,7 +42,7 @@ expand_node_(Strategy, Id, Result) :-
 
 	(   rdfs_individual_of(Id, amalgame:'Mapping')
 	->  select_result_mapping(Id, ProcessResult, OutputType, Result)
-	;   is_vocabulary(Id)
+	;   skos_is_vocabulary(Id)
 	->  Result = ProcessResult
 	;   Result = error(Id)
 	).
@@ -50,7 +52,7 @@ expand_node_(Strategy, Id, Result) :-
 	% Cache miss, we need to do the work ...
 	(   rdfs_individual_of(Id, amalgame:'Mapping')
 	->  expand_mapping(Strategy, Id, Result)
-	;   is_vocabulary(Id)
+	;   skos_is_vocabulary(Id)
 	->  expand_vocab(Strategy, Id, Result)
 	;   Result=error(Id)
 	).

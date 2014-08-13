@@ -10,6 +10,7 @@
 :- use_module(library(semweb/rdf_label)).
 :- use_module(components(label)).
 :- use_module(components(graphviz)).
+:- use_module(library(skos/util)).
 :- use_module(library(amalgame/voc_stats)).
 :- use_module(library(amalgame/ag_stats)).
 :- use_module(library(amalgame/ag_evaluation)).
@@ -162,7 +163,7 @@ amalgame_shape(R, [shape(ellipse),
 	      fillcolor('#EEEEEE'),
 	      fontsize(10)]) :-
 	atom(R),
-	is_vocabulary(R).
+	skos_is_vocabulary(R).
 amalgame_shape(R, [shape(ellipse),
 	      fillcolor(Color),
 	      style(filled),
@@ -215,7 +216,7 @@ amalgame_label(Strategy, Resource, Lang, MaxLen, Label) :-
 	).
 
 stats_label_list(_Strategy, Resource, [Count]) :-
-	is_vocabulary(Resource),
+	skos_is_vocabulary(Resource),
 	voc_property(Resource, numberOfConcepts(Count), [compute(false)]),
 	!.
 stats_label_list(Strategy, Resource, [ConceptStats]) :-

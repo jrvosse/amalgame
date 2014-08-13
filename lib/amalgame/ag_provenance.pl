@@ -21,6 +21,7 @@
 :- use_module(user(user_db)).
 :- use_module(library(version)).
 :- use_module(library(prov_schema)).
+:- use_module(library(skos/util)).
 
 :- use_module(ag_stats).
 :- use_module(util).
@@ -84,7 +85,7 @@ prov_ensure_entity(Entity, Graph) :-
 	rdf(Entity, 'http://usefulinc.com/ns/doap#revision' , _, Graph),
 	!. % prov already recorded
 prov_ensure_entity(Entity, Graph) :-
-	is_vocabulary(Entity),
+	skos_is_vocabulary(Entity),
 	prov_named_graphs(Repo, Graph),
 	rdf_assert(Entity, prov:wasDerivedFrom, Repo, Graph),
 	voc_property(Entity, revision(Revision)),

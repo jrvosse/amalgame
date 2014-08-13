@@ -8,6 +8,10 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
+
+:- use_module(library(skos/util)).
+
+
 :- use_module(library(amalgame/amalgame_modules)).
 :- use_module(library(amalgame/ag_stats)).
 :- use_module(library(amalgame/voc_stats)).
@@ -188,7 +192,7 @@ amalgame_info(URL, Strategy, Stats) :-
 	       ], Stats).
 
 amalgame_info(Scheme, Strategy, Stats) :-
-	is_vocabulary(Scheme),
+	skos_is_vocabulary(Scheme),
 	!,
 	BasicStats = [
 	    'Total concepts: '-Total

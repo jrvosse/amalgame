@@ -1,6 +1,5 @@
 :- module(am_vocstats,
 	  [
-	      is_vocabulary/1,
 	      voc_property/2,
 	      voc_property/3,
 	      voc_clear_stats/1,
@@ -12,6 +11,8 @@
 :- use_module(library(semweb/rdf_db)).
 
 :- use_module(library(stat_lists)).
+:- use_module(library(skos/util)).
+
 :- use_module(library(amalgame/map)).
 :- use_module(library(amalgame/ag_provenance)).
 :- use_module(library(amalgame/vocabulary)).
@@ -93,10 +94,7 @@ voc_clear_stats(Voc) :-
 	print_message(informational, map(cleared, 'vocabulary statistics', Voc, all)).
 
 
-is_vocabulary(Voc) :-
-	rdfs_individual_of(Voc, skos:'ConceptScheme').
-
-is_vocabulary(Voc) :-
+skos_util:skos_is_vocabulary(Voc) :-
 	rdfs_individual_of(Voc, amalgame:'Alignable').
 
 
@@ -445,7 +443,7 @@ assert_depth(Concept, _Voc, _Depth) :-
 
 assert_depth(Concept, Voc, Depth) :-
 	findall(Child,
-		(   parent_child(Concept, Child),
+		(   skos_parent_child(Concept, Child),
 		    vocab_member(Child, Voc)
 		),
 		Children),
@@ -459,13 +457,7 @@ assert_depth(Concept, Voc, Depth) :-
 	      ).
 
 parent_child_chk(P,C) :-
-	parent_child(P,C),!.
-
-parent_child(Parent, Child) :-
-	(   rdf_has(Child, skos:broader, Parent)
-	;   rdf_has(Parent, skos:narrower, Child)
-	),
-	Parent \= Child.
+	skos_parent_child(P,C),!.
 
 
 list_five_number_summary_dict(List, Stats) :-

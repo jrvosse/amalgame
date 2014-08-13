@@ -6,6 +6,9 @@
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
+
+:- use_module(library(skos/util)).
+
 :- use_module(library(amalgame/expand_graph)).
 :- use_module(library(amalgame/caching)).
 :- use_module(library(amalgame/vocabulary)).
@@ -18,7 +21,7 @@
 node_stats(Strategy, Node, Stats, Options) :-
 	(   rdfs_individual_of(Node, amalgame:'Mapping')
 	->  mapping_counts(Node, Strategy, Stats, Options)
-	;   is_vocabulary(Node)
+	;   skos_is_vocabulary(Node)
 	->  voc_property(Node, Stats, Options)
 	;   Stats = []
 	).
