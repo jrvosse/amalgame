@@ -247,9 +247,9 @@ prop_to_term(Prop, Value, Term) :-
 	    term_to_atom(RealValue, LRealValue)
 	;   NS:Local = align:relation
 	->  atom_to_skos_relation(Value, RealValue)
-	;   NS:Local = amalgame:method
-	->  literal(Literal) = Value,
+	;   literal(Literal) = Value,
 	    term_to_atom(RealValue, Literal)
+	->  true
 	;   literal(RealValue) = Value
 	->  true
 	;   RealValue = Value
