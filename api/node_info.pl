@@ -331,7 +331,7 @@ label_lang_stat(Scheme, _Strategy, Property, Langs,
 	(   HomsC > 0
 	->  save_perc(HomsC, D.concept, HomsCP),
 	    format(atom(HomsCA), '~d (~2f%)', [HomsC, HomsCP]),
-	    HomConcepts = '# ambiguously labeled concepts' - span([class(warn)],[HomsCA])
+	    HomConcepts = '# amb. labeled concepts' - span([class(warn)],[HomsCA])
 	;   HomConcepts = hom-[]
 	),
 	(   HomsL > 0
