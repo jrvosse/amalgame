@@ -8,6 +8,7 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_json)).
+:- use_module(library(http/json)).
 :- use_module(library(semweb/rdf_db)).
 
 :- use_module(user(user_db)).
@@ -21,7 +22,6 @@
 :- use_module(library(amalgame/edoal)).
 :- use_module(library(amalgame/map)).
 :- use_module(library(amalgame/expand_graph)).
-:- use_module(library(amalgame/json_util)).
 :- use_module(library(amalgame/util)).
 
 % http handlers:
