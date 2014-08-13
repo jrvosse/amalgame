@@ -10,7 +10,7 @@
 :- use_module(library(yui3_beta)).
 
 :- use_module(library(amalgame/irr)).
-:- use_module(library(amalgame/util)).
+:- use_module(library(amalgame/json_util)).
 :- use_module(components(amalgame/util)).
 
 % temp commented out
