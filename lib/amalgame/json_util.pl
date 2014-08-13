@@ -1,8 +1,7 @@
 :- module(ag_json_util,
 	  [   js_mappings_metadata/3,
 	      js_focus_node/3,
-	      js_strategy_nodes/2,
-	      my_atom_json_dict/3
+	      js_strategy_nodes/2
 	  ]).
 
 :- use_module(library(http/json)).
@@ -16,13 +15,6 @@
 :- use_module(library(amalgame/ag_stats)).
 :- use_module(library(amalgame/ag_reference)).
 :- use_module(library(amalgame/ag_evaluation)).
-
-my_atom_json_dict(Json, Dict, Options) :-
-	var(Dict),!,
-	atom_json_dict(Json, StringDict, Options),
-	atomify_dict(StringDict, Dict).
-my_atom_json_dict(Json, Dict, Options) :-
-	atom_json_dict(Json, Dict, Options).
 
 js_mappings_metadata(Strategy, Results, Options) :-
 	amalgame_strategy_mappings(Strategy, Mappings, Options),

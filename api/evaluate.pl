@@ -74,8 +74,8 @@ http_data_evaluate(Request) :-
 
 	user_property(User0, url(User)),
 
-	my_atom_json_dict(Values,    Va, []),
-	my_atom_json_dict(Originals, Oa, []),
+	atom_json_dict(Values,    Va, [value_string_as(atom)]),
+	atom_json_dict(Originals, Oa, [value_string_as(atom)]),
 	concept_labels(Va, V),
 	concept_labels(Oa, O),
 
