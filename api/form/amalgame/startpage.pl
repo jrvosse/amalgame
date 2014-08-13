@@ -2,8 +2,15 @@
 	  [
 	  ]).
 
+:- use_module(library(apply)).
+:- use_module(library(gensym)).
+:- use_module(library(memfile)).
+:- use_module(library(pairs)).
+:- use_module(library(settings)).
+
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
+:- use_module(library(semweb/rdf_db)).
 
 :- use_module(library(semweb/rdf_file_type)).
 :- use_module(user(user_db)).
