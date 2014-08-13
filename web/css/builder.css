@@ -5,18 +5,14 @@ body {
 	background-color: #FFF;
 	overflow: auto;
 }
-#main { width: 100%; }
 
 #layout {
-	padding: 6px 6px 6px 362px;
+	padding: 6px 6px 6px 6px;
 	background-color: #C2C2C2;
 }
-#controls {
-	margin-left: -356px;
-	margin-right: 6px;
-	width: 350px;
-}
+
 #controls .content {
+	margin: 0px;
 	border: 1px solid #808080;
 	overflow: scroll;
 	background-color: #FFF;
@@ -26,6 +22,7 @@ body {
 	height: 500px;
 }
 #graph .content {
+	margin: 0px;
 	border: 1px solid #808080;
 	background-color: #FFF;
 	overflow: auto;
