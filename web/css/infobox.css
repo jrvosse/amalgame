@@ -24,6 +24,9 @@
 	width: 100%;
 }
 
+#info td {
+	white-space: nowrap;
+}
 #info th {
 	vertical-align: top;
 	white-space: nowrap;
