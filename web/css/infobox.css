@@ -20,10 +20,28 @@
 	margin-top: 5px;
 	padding-top: 5px;
 }
+#info table {
+	width: 100%;
+}
+
+#info th {
+	vertical-align: top;
+	white-space: nowrap;
+	padding-right: 10px;
+}
+
+#info td span.warn {
+	color: orange;
+}
+
 #details td {
 	padding-bottom: 4px;
 }
 
+#info table.stats {
+	margin-top: 2px;
+	border-top: 1px solid #CCC;
+}
 /* select */
 #select li {
 	list-style: disc inside;

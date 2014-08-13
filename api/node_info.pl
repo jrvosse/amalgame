@@ -42,8 +42,8 @@ http_node_info(Request) :-
 	amalgame_info(URL, Strategy, Stats),
 	amalgame_provenance(URL, Strategy, Prov),
 	amalgame_parameters(URL, Strategy, Params),
-	phrase(html([\html_prop_table(Prov),
-		     \html_prop_table(Stats),
+	phrase(html([\html_prop_table(prov, Prov),
+		     \html_prop_table(stats, Stats),
 		     \html_form(Params, URL)
 		    ]),
 	       HTML),
@@ -63,12 +63,12 @@ http_deep_voc_stats(Request) :-
 	voc_property(Voc, branch(B), [compute(true)]),
 	reply_json(json{url:Voc, depth:D, branch:B}).
 
-%%	html_prop_table(+Pairs)
+%%	html_prop_table(Class, +Pairs)
 %
 %	Emit an HTML table with key-value pairs.
 
-html_prop_table(Pairs) -->
-	html(table(tbody(\html_rows('', Pairs)))).
+html_prop_table(Class, Pairs) -->
+	html(table([class(Class)], tbody(\html_rows('', Pairs)))).
 
 html_rows(_,[]) --> !.
 html_rows(Prefix,[_Key-[]|Tail]) -->
