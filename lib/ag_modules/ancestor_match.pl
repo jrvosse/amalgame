@@ -2,6 +2,7 @@
 	  []).
 
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(skos/util)).
 :- use_module(library(amalgame/vocabulary)).
 :- use_module(library(amalgame/map)).
 
@@ -78,15 +79,8 @@ match(align(S, T, Prov0), BackgroundMatches, align(S, T, [Prov|Prov0]), Options)
 	       ].
 
 ancestor(R, MaxSteps, Parent, rdf(R, Prop, Parent), Steps) :-
-	rdf_equal(skos:broader, Prop),
-	rdf_reachable(R, Prop, Parent, MaxSteps, Steps),
-	\+ R == Parent.
-ancestor(R, MaxSteps, Parent, rdf(R, Broader, Parent), Steps) :-
-	rdf_equal(skos:narrower, Narrower),
-	rdf_equal(skos:broader, Broader),
-	rdf_reachable(Parent, Narrower, R, MaxSteps, Steps),
-	\+ R == Parent,
-	\+ rdf_reachable(R, Broader, Parent).
+	skos_descendant_of(Parent, R, MaxSteps, Steps),
+	rdf_equal(amalgame:descendant, Prop).
 
 selecter(In, Sel, Dis, Und, Options) :-
 	option(snd_input(SecList), Options),

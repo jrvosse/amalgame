@@ -2,6 +2,7 @@
 	  []).
 
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(skos/util)).
 :- use_module(library(amalgame/vocabulary)).
 :- use_module(library(amalgame/map)).
 
@@ -76,18 +77,9 @@ match(align(S, T, Prov0), BackgroundMatches, align(S, T, [Prov|Prov0]), Options)
 		graph([R1,R2])
 	       ].
 
-	/* FIXME: need to make a decision about what to do with align:relation ...
-        */
-
 descendent(R, MaxSteps, Child, rdf(R, Prop, Child), Steps) :-
-	rdf_equal(skos:narrower, Prop),
-	rdf_reachable(R, Prop, Child, MaxSteps, Steps),
-	\+ R == Child.
-descendent(R, MaxSteps, Child, rdf(Child, Prop, R), Steps) :-
-	rdf_equal(skos:broader, Prop),
-	rdf_reachable(Child, Prop, R, MaxSteps, Steps),
-	\+ R == Child,
-	\+ rdf_reachable(R, skos:narrower, Child).
+	skos_descendant_of(R, Child, MaxSteps, Steps),
+	rdf_equal(amalgame:descendant, Prop).
 
 selecter(In, Sel, Dis, Und, Options) :-
 	option(snd_input(SecList), Options),

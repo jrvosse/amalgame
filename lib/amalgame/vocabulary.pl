@@ -65,7 +65,8 @@ vocab_member(E, propvalue(Property, Value)) :- !,
 	rdf(E, Property, Value).
 vocab_member(E, subtree(Root)) :-
 	!,
-	rdf_reachable(E, skos:broader, Root).
+	skos_descendant_of(Root, E).
+
 vocab_member(F, 'http://sws.geonames.org/') :-
 	!,
 	rdfs_individual_of(F, 'http://www.geonames.org/ontology#Feature').

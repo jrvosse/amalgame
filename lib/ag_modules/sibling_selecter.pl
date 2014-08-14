@@ -1,6 +1,7 @@
 :- module(sibling_selecter,[]).
 
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(skos/util)).
 :- use_module(library(amalgame/map)).
 
 :- public amalgame_module/1.
@@ -43,7 +44,7 @@ partition_(target, [A|As], Depth, Sel, Und) :-
 	A = align(S,T,_),
 	same_source(As, S, Same, Rest),
 	(   Same \= [],
-	    rdf_reachable(T, skos:broader, Parent, Depth, _),
+	    skos_descendant_of(Parent,T, Depth, _),
 	    siblings(target, Same, Parent, Depth)
 	->  append([A|Same], SelRest, Sel),
 	    Und = UndRest
@@ -56,7 +57,7 @@ partition_(source, [A|As], Depth, Sel, Und) :-
 	A = align(S,T,_),
 	same_target(As, T, Same, Rest),
 	(   Same \= [],
-	    rdf_reachable(S, skos:broader, Parent, Depth, _),
+	    skos_descendant_of(Parent, S, Depth, _),
 	    siblings(source, Same, Parent, Depth)
 	->  append([A|Same], SelRest, Sel),
 	    Und = UndRest
@@ -68,13 +69,13 @@ partition_(source, [A|As], Depth, Sel, Und) :-
 siblings(_, [], _, _).
 siblings(target, [A|As], Parent, Depth) :-
 	A = align(_,T,_),
-	rdf_reachable(T, skos:broader, Parent, Depth, _),
+	skos_descendant_of(Parent, T, Depth, _),
 	!,
 	siblings(target, As, Parent, Depth).
 
 siblings(source, [A|As], Parent, Depth) :-
 	A = align(S,_,_),
-	rdf_reachable(S, skos:broader, Parent, Depth, _),
+	skos_descendant_of(Parent, S, Depth, _),
 	!,
 	siblings(source, As, Parent, Depth).
 

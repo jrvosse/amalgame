@@ -242,39 +242,34 @@ image_examples(R, Es) :-
 
 %%	resource_tree(+Resource, -Tree)
 %
-%	Tree contains the ancesestors and children from Resource.
+%	Tree contains the ancestors and children from Resource.
 
 resource_tree(R, Tree) :-
 	Node = node(R, [hit], Children),
-	rdf_equal(skos:broader, Rel),
-	ancestor_tree(Node, Rel, Tree, []),
-        children(R, Rel, Children, []).
+	ancestor_tree(Node, Tree, []),
+        children(R, Children).
 
-ancestor_tree(Node, Rel, Tree, Options) :-
+ancestor_tree(Node, Tree, Options) :-
         Node = node(URI,_,_),
-        rdf_has(URI, Rel, Parent),
+	skos_parent_child(Parent, URI),
         URI \== Parent,
         (   select_option(sibblings(true), Options, Options1)
-        ->  ancestor_tree(node(Parent, [], [Node|Siblings]), Rel, Tree, Options1),
-            children(Parent, Rel, Children, Options),
+        ->  ancestor_tree(node(Parent, [], [Node|Siblings]), Tree, Options1),
+            children(Parent, Children),
             select(node(URI,_,_), Children, Siblings)
-        ;   ancestor_tree(node(Parent, [], [Node]), Rel, Tree, Options)
+        ;   ancestor_tree(node(Parent, [], [Node]), Tree, Options)
         ).
-ancestor_tree(Tree, _Rel, Tree, _).
+ancestor_tree(Tree, Tree, _).
 
-children(R, Rel, Children, _Options) :-
-        findall(node(Child, [], HasChild),
-		(   rdf_has(Child, Rel, R),
-		    has_child(Child, Rel, HasChild)
-		),
-		Children).
+children(Concept, List) :-
+	findall(D, skos_descendant_of(Concept, D), Dlist),
+	maplist(has_child, Dlist, List).
 
-has_child(R, Rel, true) :-
-        rdf_has(_, Rel, R),
-        !.
-has_child(_, _, false).
-
-
+has_child(C, node(C, [], HasChild)) :-
+	  (   skos_parent_child(C, _)
+	  ->  HasChild = true
+	  ;   HasChild = false
+	  ).
 
 html_alt_labels([]) --> !.
 html_alt_labels(Alt) -->

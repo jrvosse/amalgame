@@ -10,6 +10,8 @@
 :- use_module(library(yui3_beta)).
 :- use_module(user(user_db)).
 
+:- use_module(library(skos/util)).
+
 :- use_module(library(amalgame/voc_stats)).
 :- use_module(library(amalgame/util)).
 :- use_module(library(amalgame/json_util)).
@@ -336,7 +338,7 @@ graph_mappings(Graphs, Graphs).
 
 
 mapped_descendant_count(Concept, Graphs, Count) :-
-	findall(C, descendant_of(Concept, C), Descendants0),
+	findall(C, skos_descendant_of(Concept, C), Descendants0),
 	sort(Descendants0, Descendants),
 	(   Descendants	= []
 	->  Count = @null
@@ -345,14 +347,6 @@ mapped_descendant_count(Concept, Graphs, Count) :-
 	    length(Mapped, Mapped_Count),
 	    atomic_list_concat([Mapped_Count, '/', Descendant_Count], Count)
 	).
-
-descendant_of(Concept, D) :-
-	rdf_reachable(D, skos:broader, Concept),
-	\+ D = Concept.
-descendant_of(Concept, D) :-
-	rdf_reachable(Concept, skos:narrower, D),
-	\+ D = Concept.
-
 
 mapped_chk([], _, []).
 mapped_chk([C|T], Graphs, [C|Rest]) :-

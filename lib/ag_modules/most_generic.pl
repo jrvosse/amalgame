@@ -1,6 +1,7 @@
 :- module(most_generic,[]).
 
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(skos/util)).
 :- use_module(library(amalgame/map)).
 
 :- public amalgame_module/1.
@@ -60,10 +61,10 @@ hierarchy_related([], _, align(S,T,P), align(S,T,Pnew), []) :-
 hierarchy_related([A|As], target, G0, G, [A1|Rest]) :-
 	A = align(_,T,_),
 	G0 = align(_,T0,_),
-	(   rdf_reachable(T, skos:broader, T0)
+	(   skos_descendant_of(T0, T)
 	->  G1 = G0,
 	    A1 = A
-	;   rdf_reachable(T0, skos:broader, T)
+	;   skos_descendant_of(T, T0)
 	->  G1 = A,
 	    A1 = G0
 	),
@@ -72,10 +73,10 @@ hierarchy_related([A|As], target, G0, G, [A1|Rest]) :-
 hierarchy_related([A|As], source, G0, G, [A1|Rest]) :-
 	A = align(S,_,_),
 	G0 = align(S0,_,_),
-	(   rdf_reachable(S, skos:broader, S0)
+	(   skos_descendant_of(S0, S)
 	->  G1 = G0,
 	    A1 = A
-	;   rdf_reachable(S0, skos:broader, S)
+	;   skos_descendant_of(S, S0)
 	->  G1 = A,
 	    A1 = G0
 	),
