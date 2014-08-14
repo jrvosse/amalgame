@@ -132,7 +132,7 @@ mapping_stats(URL, Mapping, Strategy, Stats) :-
 	).
 
 has_mapping_input(URL, Strategy, Input) :-
-	rdf_has(URL, prov:wasGeneratedBy, Process, RP),
+	rdf_has(URL, amalgame:wasGeneratedBy, Process, RP),
 	rdf(URL, RP, Process, Strategy),
 	rdf_has(Process, amalgame:input, Input),
 	rdfs_individual_of(Input, amalgame:'Mapping').
