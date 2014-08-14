@@ -8,7 +8,7 @@
 :- use_module(library(ag_modules/isub_match)).
 :- use_module(library(ag_modules/ancestor_match)).
 :- use_module(library(ag_modules/descendent_match)).
-:- use_module(library(ag_modules/related_match)).
+% :- use_module(library(ag_modules/related_match)). fix sec inputs first! see anc/dec matchers
 :- use_module(library(ag_modules/preloaded_mapping)).
 
 % Alignment filters/selecters
