@@ -238,9 +238,10 @@ count_labels(Voc, Property, Lang, CCount, LCount, ECount, Compound) :-
 	Lang='?',
 	assert_voc_prop(Voc, cp_pairs(Property, Lang, Sorted)),
 	pairs_values(Sorted, Concepts),
+	pairs_keys(Sorted, Labels),
 	sort(Concepts, ConceptsUnique),
 	empty_key_count(Sorted, ECount),
-	compound_count(Sorted, Compound),
+	compound_count(Labels, Compound),
 	length(Sorted, LCount),
 	length(ConceptsUnique, CCount).
 
