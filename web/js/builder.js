@@ -201,6 +201,7 @@ YUI.add('builder', function(Y) {
 			data.strategy = this.get("strategy");
 			if (data.lastAction) this.infobox.set("lastAction", data.lastAction);
 			Y.io(paths.addprocess, {
+				method: 'POST',
 				data:data,
 				on:{success:function(e,o) {
 					var r =	Y.JSON.parse(o.responseText);
@@ -222,6 +223,7 @@ YUI.add('builder', function(Y) {
 
 			Y.io(paths.updatenode, {
 				data:data,
+				method: 'POST',
 				on:{success:function(e,o) {
 					var r = Y.JSON.parse(o.responseText);
 					oSelf.set("nodes", r.nodes);
@@ -244,6 +246,7 @@ YUI.add('builder', function(Y) {
 
 			// inform the server and update the nodes
 			Y.io(paths.deletenode, {
+				method: 'POST',
 				data:{
 					strategy:strategy,
 					uri:o.uri
