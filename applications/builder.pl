@@ -1,5 +1,7 @@
 :- module(ag_builder, []).
 
+:- use_module(library(settings)).
+
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(http/http_dispatch)).
@@ -16,6 +18,7 @@
 :- use_module(library(amalgame/util)).
 :- use_module(library(amalgame/json_util)).
 :- use_module(library(amalgame/map)).
+:- use_module(library(amalgame/expand_graph)).
 
 :- use_module(components(amalgame/controls)).
 :- use_module(components(amalgame/correspondence)).
@@ -31,7 +34,7 @@
 :- use_module(api(virtual_concepts)).
 :- use_module(api(ag_process)).
 
-% http handlers for this application
+% http handler for this application
 :- http_handler(amalgame(app/build), http_ag_build, []).
 
 ag:menu_item(200=http_ag_build, 'build').
@@ -78,7 +81,10 @@ precalc_voc_stats(Strategy) :-
 	% both for the user as for the hints system etc.
 	forall(rdf(Strategy, amalgame:includes, Vocab),
 	       (   voc_property(Vocab, numberOfConcepts(_))
-	       ->  true
+	       ->  ( setting(amalgame:precompute, true)
+		   ->  precompute_node(Strategy, Vocab)
+		   ;   true
+		   )
 	       ;   print_message(informational,
 			     map(found, 'No SKOS Concepts for ', Vocab, 0))
 	       )
