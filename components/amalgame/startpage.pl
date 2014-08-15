@@ -42,7 +42,8 @@ html_new(Schemes) -->
 	},
 	html_acc_item(new,
 		      'new alignment strategy',
-		      [ form(action(location_by_id(http_ag_form_new_strategy)),
+		      [ form([ method('POST'),
+			       action(location_by_id(http_ag_form_new_strategy))],
 			     [  ButtonsTop,
 				\html_vocab_table(Schemes),
 				ButtonsBottom
@@ -88,7 +89,8 @@ html_open(Strategies) -->
 	},
 	html_acc_item(open,
 		      'edit/delete pre-loaded alignment strategy',
-		      [ form(action(location_by_id(http_ag_form_select_strategy)),
+		      [ form([ method('POST'),
+			       action(location_by_id(http_ag_form_select_strategy))],
 			     [
 				 ButtonsTop,
 				 \html_strategy_table(Strategies,
@@ -114,7 +116,8 @@ html_publish(Strategies) -->
 	},
 	html_acc_item(publish,
 		      'publish alignment strategy results',
-		      [ form(action(location_by_id(L)),
+		      [ form([method('POST'),
+			      action(location_by_id(L))],
 			     [ \html_strategy_table(Strategies, [linkto(L)]),
 			       \html_submit('Publish')
 			     ])
