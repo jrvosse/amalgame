@@ -32,7 +32,8 @@ node_stats(Strategy, Node, Stats, Options) :-
 %	Counts for the mappings in MappingURI.
 
 mapping_counts(URL, Strategy, Stats, Options) :-
-	with_mutex(URL,	mapping_counts_(URL, Strategy, Stats, Options)).
+	atomic_concat(mapping_counts, URL, Mutex),
+	with_mutex(Mutex, mapping_counts_(URL, Strategy, Stats, Options)).
 
 mapping_counts_(URL, Strategy, Stats, Options) :-
 	(   stats_cache(URL-Strategy, _)
@@ -48,7 +49,8 @@ mapping_counts_(URL, Strategy, Stats, Options) :-
 
 
 reference_counts(Id, Strategy, Stats) :-
-	with_mutex(Id, reference_counts_(Id, Strategy, Stats)).
+	atom_concat(reference_counts, Id, Mutex),
+	with_mutex(Mutex, reference_counts_(Id, Strategy, Stats)).
 
 reference_counts_(Id, Strategy, Stats) :-
 	(   stats_cache(Id-Strategy, refs(Stats))

@@ -368,7 +368,8 @@ voc_find_format(Voc, Format) :-
 	).
 
 compute_depth_stats(Voc, depth(Stats)) :-
-	with_mutex(Voc,
+	atomic_concat(compute_depth_stats, Voc, Mutex),
+	with_mutex(Mutex,
 		   (   assert_depth(Voc),
 		       findall(Concept, vocab_member(Concept, Voc), Concepts),
 		       maplist(concept_depth, Concepts, Depths),
@@ -380,7 +381,8 @@ compute_depth_stats(Voc, depth(Stats)) :-
 compute_branch_stats(Voc, branch(Stats)) :-
 	voc_property(Voc, depth(_)), % ensure basic depth stats for voc have been computed
 	rdf(Voc, amalgame:nrOfTopConcepts, literal(type(xsd:int, NrTops)), vocstats),
-	with_mutex(Voc,
+	atomic_concat(compute_depth_stats, Voc, Mutex),
+	with_mutex(Mutex,
 		   (
 		       findall(Concept, vocab_member(Concept, Voc), Concepts),
 		       maplist(concept_children_count, Concepts, Children),

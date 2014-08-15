@@ -29,7 +29,9 @@
 expand_node(Strategy, Id, Result) :-
 	ground(Strategy),
 	ground(Id),
-	with_mutex(Id, expand_node_(Strategy, Id, Result)).
+	atomic_concat(expand_node, Id, Mutex),
+	with_mutex(Mutex, expand_node_(Strategy, Id, Result)).
+
 
 %%	precompute_node(+Strategy, +Mapping) is det.
 %
@@ -93,7 +95,8 @@ expand_mapping(Strategy, Id, Mapping) :-
 	rdf_has(Id, amalgame:wasGeneratedBy, Process, OutputType),
 	rdf(Id, OutputType, Process, Strategy),
 	!,
-	with_mutex(Process,
+	atom_concat(expand_process, Process, Mutex),
+	with_mutex(Mutex,
 		   expand_process(Strategy, Process, Result)),
 	materialize_results_if_needed(Strategy, Process, Result),
 	select_result_mapping(Id, Result, OutputType, Mapping).
@@ -117,7 +120,8 @@ expand_vocab(Strategy, Id, Vocab) :-
 	rdf_has(Id, amalgame:wasGeneratedBy, Process, OutputType),
 	rdf(Id, OutputType, Process, Strategy),
 	!,
-	with_mutex(Process,
+	atomic_concat(expand_process, Process, Mutex),
+	with_mutex(Mutex,
 		   expand_process(Strategy, Process, Vocab)).
 
 expand_vocab(Strategy, Vocab, vocspec(alignable(Vocab))) :-
