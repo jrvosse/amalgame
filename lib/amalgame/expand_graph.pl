@@ -1,6 +1,6 @@
 :- module(expand_graph,
-	  [
-	    expand_node/3
+	  [ expand_node/3,
+	    precompute_node/2
 	  ]).
 
 :- use_module(library(semweb/rdf_db)).
@@ -31,6 +31,18 @@ expand_node(Strategy, Id, Result) :-
 	ground(Id),
 	with_mutex(Id, expand_node_(Strategy, Id, Result)).
 
+%%	precompute_node(+Strategy, +Mapping) is det.
+%
+%	Mapping is precomputed in the background in a separate thread.
+%	Subsequent expand_node/3 calls will use the cached results
+%	computed here.
+
+precompute_node(Strategy, Mapping) :-
+	thread_create( % Write debug output to server console, cannot write to client:
+	    (	set_stream(user_output, alias(current_output)),
+		expand_node(Strategy, Mapping, _)
+	    ),
+	    _,[ detached(true) ]).
 expand_node_(Strategy, Id, Result) :-
 	% Try if we get this result from the expand_cache first:
 	rdf_has(Id, amalgame:wasGeneratedBy, Process, OutputType),

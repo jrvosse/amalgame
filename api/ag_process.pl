@@ -18,8 +18,8 @@
 :- use_module(library(amalgame/json_util)).
 :- use_module(library(amalgame/map)).
 
-:- setting(amalgame:precompute_mapping, boolean, true,
-	   'When true mappings are computed in the background').
+:- setting(amalgame:precompute, boolean, true,
+	   'When true new mappings and virtual vocabularies are pre-computed in the background').
 
 :- http_handler(amalgame(data/addprocess), http_add_process, []).
 :- http_handler(amalgame(data/updatenode), http_update_node, []).
@@ -117,8 +117,8 @@ http_update_node(Request) :-
 		       }),
 
 	% precompute results to speed things up
-	(   setting(amalgame:precompute_mapping, true)
-	->  precompute_mapping(Strategy, URI)
+	(   setting(amalgame:precompute, true)
+	->  precompute_node(Strategy, URI)
 	;   true).
 
 %%	update_process(+Process, +Strategy, +SecInputs, +Params)
@@ -164,21 +164,14 @@ new_process(Type, Strategy, Source, Target, Input, SecInputs, Params, Focus) :-
 	    )),
 
 	% precompute results to speed things up
-	(   setting(amalgame:precompute_mapping, true)
+	(   setting(amalgame:precompute, true)
 	->  precompute_process(Strategy, URI)
 	;   true).
 
 precompute_process(Strategy, Process) :-
 	rdf_has(Mapping, amalgame:wasGeneratedBy, Process, RP),
 	rdf(Mapping, RP, Process, Strategy),
-	precompute_mapping(Strategy, Mapping).
-
-precompute_mapping(Strategy, Mapping) :-
-	thread_create( % Write debug output to server console, cannot write to client:
-	    (	set_stream(user_output, alias(current_output)),
-		expand_node(Strategy, Mapping, _)
-	    ),
-	    _,[ detached(true) ]).
+	precompute_node(Strategy, Mapping).
 
 assert_input(_Process, Type, _Graph, _Source, _Target, _Input) :-
 	rdfs_subclass_of(Type, amalgame:'MultiInputComponent'),
