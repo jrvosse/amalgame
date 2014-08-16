@@ -400,7 +400,7 @@ assert_count(VocUri, _Strategy, ProvGraph) :-
 
 assert_count(MapUri, Strategy, ProvGraph) :-
 	rdfs_individual_of(MapUri, amalgame:'Mapping'),!,
-	node_stats(Strategy, MapUri, MStats, []),
+	node_stats(Strategy, MapUri, MStats, [compute(false)]),
 	option(totalCount(Count), MStats),
 	option(mappedSourceConcepts(SN), MStats),
 	option(mappedTargetConcepts(TN), MStats),
