@@ -30,7 +30,9 @@ expand_node(Strategy, Id, Result) :-
 	ground(Strategy),
 	ground(Id),
 	atomic_concat(expand_node, Id, Mutex),
-	with_mutex(Mutex, expand_node_(Strategy, Id, Result)).
+	debug(mutex, 'Locking mutex: ~w', [Mutex]),
+	with_mutex(Mutex, expand_node_(Strategy, Id, Result)),
+	debug(mutex, 'Releasing mutex: ~w', [Mutex]).
 
 
 %%	precompute_node(+Strategy, +Mapping) is det.
@@ -40,11 +42,13 @@ expand_node(Strategy, Id, Result) :-
 %	computed here.
 
 precompute_node(Strategy, Mapping) :-
+	debug(ag_expand, 'Precomputing ~p', [Mapping]),
 	thread_create( % Write debug output to server console, cannot write to client:
 	    (	set_stream(user_output, alias(current_output)),
 		expand_node(Strategy, Mapping, _)
 	    ),
 	    _,[ detached(true) ]).
+
 expand_node_(Strategy, Id, Result) :-
 	% Try if we get this result from the expand_cache first:
 	rdf_has(Id, amalgame:wasGeneratedBy, Process, OutputType),
@@ -96,8 +100,11 @@ expand_mapping(Strategy, Id, Mapping) :-
 	rdf(Id, OutputType, Process, Strategy),
 	!,
 	atom_concat(expand_process, Process, Mutex),
+	debug(mutex, 'Locking mutex: ~w', [Mutex]),
 	with_mutex(Mutex,
 		   expand_process(Strategy, Process, Result)),
+	debug(mutex, 'Releasing mutex: ~w', [Mutex]),
+
 	materialize_results_if_needed(Strategy, Process, Result),
 	select_result_mapping(Id, Result, OutputType, Mapping).
 
@@ -121,8 +128,10 @@ expand_vocab(Strategy, Id, Vocab) :-
 	rdf(Id, OutputType, Process, Strategy),
 	!,
 	atomic_concat(expand_process, Process, Mutex),
+	debug(mutex, 'Locking mutex: ~w', [Mutex]),
 	with_mutex(Mutex,
-		   expand_process(Strategy, Process, Vocab)).
+		   expand_process(Strategy, Process, Vocab)),
+	debug(mutex, 'Releasing mutex: ~w', [Mutex]).
 
 expand_vocab(Strategy, Vocab, vocspec(alignable(Vocab))) :-
 	rdfs_individual_of(Vocab, amalgame:'Alignable'),
