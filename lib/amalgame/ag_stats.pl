@@ -32,21 +32,26 @@ node_stats(Strategy, Node, Stats, Options) :-
 %	Counts for the mappings in MappingURI.
 
 mapping_counts(URL, Strategy, Stats, Options) :-
-	atomic_concat(mapping_counts, URL, Mutex),
-	with_mutex(Mutex, mapping_counts_(URL, Strategy, Stats, Options)).
-
-mapping_counts_(URL, Strategy, Stats, Options) :-
-	(   stats_cache(URL-Strategy, _)
-	->  true
-	;   option(compute(true), Options, true),
-	    expand_node(Strategy, URL, _Mapping)
-	),
+	option(compute(false), Options, true),
+	!,
 	(   stats_cache(URL-Strategy, Stats),
 	    is_dict(Stats, mapping_stats_dict)
 	->  true
 	;   Stats = dict{error:'No stats computed'}
 	).
 
+mapping_counts(URL, Strategy, Stats, Options) :-
+	option(compute(true), Options, true),
+	atomic_concat(mapping_counts, URL, Mutex),
+	debug(mutex, 'xLocking mutex: ~w', [Mutex]),
+	with_mutex(Mutex, mapping_counts_(URL, Strategy, Stats)),
+	debug(mutex, 'xReleasing mutex: ~w', [Mutex]).
+
+
+mapping_counts_(URL, Strategy, Stats) :-
+	expand_node(Strategy, URL, _Mapping),
+	stats_cache(URL-Strategy, Stats),
+	is_dict(Stats, mapping_stats_dict).
 
 reference_counts(Id, Strategy, Stats) :-
 	atom_concat(reference_counts, Id, Mutex),
