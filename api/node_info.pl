@@ -391,7 +391,11 @@ ag_prov(R, A, owl:'version', V) :-
 	;   rdf(R, owl:versionInfo, literal(V))
 	).
 ag_prov(R, _, 'format', F) :-
-	voc_property(R, format(F)).
+	voc_property(R, format(Format)),
+	(   voc_property(R, virtual(true))
+	->  format(atom(F), 'virtual ~w', [Format])
+	;   format(atom(F), '~w loaded in store', [Format])
+	).
 
 ag_prov(Graph, Graph, contributors, Vs) :-
 	rdfs_individual_of(Graph, amalgame:'AlignmentStrategy'),

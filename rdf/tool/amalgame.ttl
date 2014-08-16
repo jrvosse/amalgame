@@ -74,22 +74,22 @@ amalgame:secondary_input
 	rdfs:subPropertyOf prov:used .
 
 amalgame:wasGeneratedBy rdfs:subPropertyOf prov:wasGeneratedBy.
-prov:wasGeneratedBy rdfs:subPropertyOf amalgame:wasGeneratedBy.
+# prov:wasGeneratedBy rdfs:subPropertyOf amalgame:wasGeneratedBy.
 
 amalgame:selectedBy
 	rdfs:domain  amalgame:Alignment ;
 	rdfs:range prov:Activity ;
-	rdfs:subPropertyOf prov:wasGeneratedBy.
+	rdfs:subPropertyOf amalgame:wasGeneratedBy.
 
 amalgame:discardedBy
 	rdfs:domain  amalgame:Alignment ;
 	rdfs:range prov:Activity ;
-	rdfs:subPropertyOf prov:wasGeneratedBy.
+	rdfs:subPropertyOf amalgame:wasGeneratedBy.
 
 amalgame:undecidedBy
 	rdfs:domain  amalgame:Alignment ;
 	rdfs:range prov:Activity ;
-	rdfs:subPropertyOf prov:wasGeneratedBy.
+	rdfs:subPropertyOf amalgame:wasGeneratedBy.
 
 amalgame:evaluationOf
 	rdfs:subPropertyOf prov:wasDerivedFrom.
