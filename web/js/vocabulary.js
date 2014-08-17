@@ -1,9 +1,8 @@
+/* Widget displaying a columnbrowser for skos concepts when the current "selected" node is of type "vocab"
+ * Uses the browser from the skos_browser cpack.
+ */
+
 YUI.add('vocabulary', function(Y) {
-
-	var Lang = Y.Lang,
-		Node = Y.Node,
-		Plugin = Y.Plugin;
-
 	var	NODE_BROWSER = Y.one("#vocabularybrowser");
 
 	function Vocabulary(config) {
@@ -11,24 +10,13 @@ YUI.add('vocabulary', function(Y) {
 	}
 	Vocabulary.NAME = "vocabulary";
 	Vocabulary.ATTRS = {
-		conceptscheme : {
-			value: null
-		},
-		strategy : {
-			value: null
-		},
-		selected : {
-			value: null
-		},
-		paths:{
-			value:{
+		conceptscheme : { value: null },
+		strategy : { value: null },
+		selected : { value: null },
+		concept  : { value: null },
+		paths:{ value:{
 				concepts:"/skosapi/concepts",
-				mappinglist:"amalgame/data/mappinglist"
-
-			},
-			validator: function(val) {
-				return Lang.isObject(val)
-			}
+				mappinglist:"amalgame/data/mappinglist" }
 		}
 	};
 
@@ -49,12 +37,12 @@ YUI.add('vocabulary', function(Y) {
 			var oSelf = this;
 
 			var selected = this.get("selected");
-			var mappingHeader = NODE_BROWSER.appendChild(Node.create('<div class="header"></div>'));
-			var titleBox = mappingHeader.appendChild(Node.create('<div class="title-box" title="click to show options"></div>'));
-			this.title = titleBox.appendChild(Node.create('<span class="title"></span>'));
-			var mappingSelect = mappingHeader.appendChild(Node.create('<div class="mapping-select"></div>'));
+			var mappingHeader = NODE_BROWSER.appendChild(Y.Node.create('<div class="header"></div>'));
+			var titleBox = mappingHeader.appendChild(Y.Node.create('<div class="title-box" title="click to show options"></div>'));
+			this.title = titleBox.appendChild(Y.Node.create('<span class="title"></span>'));
+			var mappingSelect = mappingHeader.appendChild(Y.Node.create('<div class="mapping-select"></div>'));
 			mappingSelect.appendChild('<span>highlight mappings from: </span>');
-			mappingList = mappingSelect.appendChild(Node.create('<ul class="mappings"></ul>'));
+			mappingList = mappingSelect.appendChild(Y.Node.create('<ul class="mappings"></ul>'));
 
 
 			mappingList.delegate('click', function(e) {
@@ -83,7 +71,7 @@ YUI.add('vocabulary', function(Y) {
 			var DS = new Y.DataSource.IO({
 				source: ""
 			})
-			.plug(Plugin.DataSourceJSONSchema, {
+			.plug(Y.Plugin.DataSourceJSONSchema, {
 				schema: {
 					resultListLocator: "results",
 					resultFields: ["id", "label", "hasNext", "count", "class"],
@@ -92,7 +80,7 @@ YUI.add('vocabulary', function(Y) {
 					}
 				}
 			});
-			//.plug(Plugin.DataSourceCache, {"max":10});
+			//.plug(Y.Plugin.DataSourceCache, {"max":10});
 
 			this.browser = new Y.mazzle.ColumnBrowser({
 				datasource:DS,
@@ -112,6 +100,14 @@ YUI.add('vocabulary', function(Y) {
 				]
 			});
 			this.browser.render(NODE_BROWSER);
+			this.browser.after('itemSelect', this._onItemSelect, this);
+		},
+
+		_onItemSelect : function (ev) {
+			if (ev.id && ev.label) {
+				var selectedItem = { id:ev.id, label:ev.label };
+				this.set("concept", selectedItem);
+			}
 		},
 
 		_onSelectedChange : function() {
