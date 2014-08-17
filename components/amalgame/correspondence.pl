@@ -193,7 +193,7 @@ html_resource_context(URI, _Prov) -->
 	  skos_all_labels(URI, Alt0),
 	  select(Label, Alt0, Alt),
 	  resource_tree(URI, Tree),
-	  skos_related_concepts(URI, Related),
+	  findall(R, skos_related_concept(URI, R), Related),
 	  image_examples(URI, Examples)
 	},
 	html(div(class('resource-info'),
