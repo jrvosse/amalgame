@@ -239,7 +239,7 @@ YUI.add('controls', function(Y) {
 			(n.type == "vocab")
 		       ) others.push(n);
 		  }
-		  if (n.length == 1) return n[0]; else return null;
+		  if (others.length == 1) return others[0]; else return null;
 		},
 
 
