@@ -36,9 +36,26 @@ http_virtual_concepts(Request) :-
 				 description('Named graph to restrict the concepts by')
 				])
 			]),
-	(   ( voc_property(Parent, virtual(true)), var(Query), Type == inscheme)
-	->  findall(Label-C, (
-		    vocab_member(C, Parent),
+	(   ( voc_property(Parent, virtual(true)),
+	      var(Query),
+	      Type == inscheme)
+	->  virtual_inscheme(Parent, [graphs(Graphs), limit(Limit), offset(Offset)])
+	;   ( voc_property(Parent, virtual(true)),
+	      var(Query),
+	      Type == topconcept)
+	->  virtual_topconcepts(Parent, [graphs(Graphs), limit(Limit), offset(Offset)])
+	;   http_concepts(Request)
+	).
+
+virtual_topconcepts(Scheme, Options) :-
+	virtual_inscheme(Scheme, Options).
+
+virtual_inscheme(Scheme, Options) :-
+	option(graphs(Graphs), Options),
+	option(limit(Limit), Options),
+	option(offset(Offset), Options),
+	findall(Label-C, (
+		    vocab_member(C, Scheme),
 		    rdf_display_label(C, Label)
 		), Concepts),
 	    sort(Concepts, Sorted),
@@ -46,11 +63,8 @@ http_virtual_concepts(Request) :-
 	    list_offset(Sorted, Offset, OffsetResults),
 	    list_limit(OffsetResults, Limit, LimitResults, _),
 	    concept_results(LimitResults, Graphs, JSONResults),
-	    reply_json(json([parent=Parent,
+	    reply_json(json([parent=Scheme,
 			 offset=Offset,
 			 limit=Limit,
 			 totalNumberOfResults=Total,
-			 results=JSONResults]))
-	;   http_concepts(Request)
-	).
-
+			 results=JSONResults])).
