@@ -6,6 +6,10 @@
 :- public selecter/5.
 :- public parameter/4.
 
+:- use_module(library(apply)).
+:- use_module(library(lists)).
+:- use_module(library(pairs)).
+
 parameter(type,
 	  oneof([source,target]), target,
 	  'source = select source with most matching labels for each target, target = select target with most matching labels for each source').
@@ -60,23 +64,28 @@ partition_(target, [align(S,T,P)|As], Sel, Dis, Und) :-
 	),
 	partition_(target, Rest, SelRest, DisRest, UndRest).
 
+ap(Result, Most, SecondMost, align(S,T,P), align(S,T,Pnew)) :-
+	append(P, [[method(most_labels),
+		    score([result(Result),
+			   most(Most),
+			   second(SecondMost)])]], Pnew).
+
 most_labels(As, Selected, Discarded) :-
 	group_label_count(As, Counts),
 	!,
-	(   Counts = [_N-Selected]
-	->  Discarded = []
-	;   sort(Counts, [N-Selected,N1-A|T0]),
-	    N > N1,
-	    pairs_values(T0, T),
-	    Discarded = [A|T]
-	).
+	sort(Counts, Sorted),
+	append(T0, [N2-DA, N1-Selected0], Sorted),
+	N1 > N2,
+	pairs_values(T0, T),
+	Discarded0 = [DA|T],
+	ap(selected, N1, N2, Selected0,  Selected),
+	maplist(ap(discarded, N1, N2), Discarded0, Discarded).
 
-group_label_count([], []).
+group_label_count([],[]).
 group_label_count([Align|As], [Count-Align|Ts]) :-
 	Align = align(_,_,Provenance),
 	findall(M, (member(P,Provenance),label_match(M,P)), Methods),
-	length(Methods, Count0),
-	Count is 1/Count0,
+	length(Methods, Count),
 	group_label_count(As, Ts).
 
 label_match(SP-TP, Prov) :-
