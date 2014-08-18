@@ -1,7 +1,9 @@
 :- module(most_methods, []).
 
+:- use_module(library(apply)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
+:- use_module(library(pairs)).
 :- use_module(library(sort)).
 
 :- use_module(library(amalgame/map)).
@@ -32,10 +34,12 @@ selecter(AlignmentGraph, S, D, U, Options) :-
 	predsort(ag_map:compare_align(source), Disc0, D),
 	predsort(ag_map:compare_align(source), Und0,  U).
 
-ap(Most, SecondMost, align(S,T,P), align(S,T,Pnew)) :-
+ap(Result, Most, SecondMost, align(S,T,P), align(S,T,Pnew)) :-
 	append(P, [[method(most_methods),
-		    score([most(Most),
-			   second(SecondMost)])]], Pnew).
+		    score([ result(Result),
+			    most(Most),
+			    second(SecondMost)])]],
+	       Pnew).
 
 
 partition_(_, [], [], [], []).
@@ -63,14 +67,14 @@ partition_(target, [align(S,T,P)|As], Sel, Dis, Und) :-
 	),
 	partition_(target, Rest, SelRest, DisRest, UndRest).
 
-most_methods(As, Selected, [A|T]) :-
+most_methods(As, Selected, Discarded) :-
 	group_method_count(As, Counts0),
-	sort(Counts0, Counts1),
-	reverse(Counts1, [Most-Selected0,SecondMost-A|T0]),
+	sort(Counts0, Sorted),
+	append(T0, [SecondMost-A,Most-Selected0], Sorted),
 	Most \== SecondMost,
 	pairs_values(T0, T),
-	maplist(ap(Most, SecondMost), [Selected0], [Selected]).
-
+	maplist(ap(selected, Most, SecondMost), [Selected0], [Selected]),
+	maplist(ap(discarded, Most, SecondMost), [A|T], Discarded).
 
 group_method_count([], []).
 group_method_count([Align|As], [Count-Align|Ts]) :-
