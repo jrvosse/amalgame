@@ -18,7 +18,7 @@ amalgame_module(amalgame:'MostLabels').
 
 %%      selecter(+Source, -Selected, -Discarded, -Undecided, +Options)
 %
-%
+%	Source is sorted (e.g. on S).
 
 selecter(AlignmentGraph, Sel, Disc, Und, Options) :-
 	option(type(SourceOrTarget), Options, target),
