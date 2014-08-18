@@ -85,10 +85,10 @@ html_parameter_form([parameter(Name, Type, Default, Desc)|Ps]) -->
 %	Emit an form-field for Value.
 
 :- multifile
-	input_item/5.	       % input_item(+Type, +Value, +Name)//
+	amalgame:input_item//3.	       % input_item(+Type, +Value, +Name)//
 
 input_value(Type, Value, Name) -->
-	(   input_item(Type, Value, Name)
+	(   amalgame:input_item(Type, Value, Name)
 	->  []
 	;   builtin_input_item(Type, Value, Name)
 	).
