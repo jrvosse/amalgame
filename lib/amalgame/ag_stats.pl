@@ -34,19 +34,16 @@ node_stats(Strategy, Node, Stats, Options) :-
 mapping_counts(URL, Strategy, Stats, Options) :-
 	option(compute(false), Options, true),
 	!,
-	(   stats_cache(URL-Strategy, Stats),
-	    is_dict(Stats, mapping_stats_dict)
-	->  true
-	;   Stats = dict{error:'No stats computed'}
-	).
+	stats_cache(URL-Strategy, Stats),
+	is_dict(Stats, mapping_stats_dict).
 
 mapping_counts(URL, Strategy, Stats, Options) :-
 	option(compute(true), Options, true),
+	!,
 	atomic_concat(mapping_counts, URL, Mutex),
 	debug(mutex, 'xLocking mutex: ~w', [Mutex]),
 	with_mutex(Mutex, mapping_counts_(URL, Strategy, Stats)),
 	debug(mutex, 'xReleasing mutex: ~w', [Mutex]).
-
 
 mapping_counts_(URL, Strategy, Stats) :-
 	expand_node(Strategy, URL, _Mapping),
