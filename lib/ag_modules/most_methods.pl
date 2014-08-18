@@ -1,5 +1,9 @@
 :- module(most_methods, []).
 
+:- use_module(library(lists)).
+:- use_module(library(option)).
+:- use_module(library(sort)).
+
 :- use_module(library(amalgame/map)).
 
 :- public amalgame_module/1.
@@ -16,17 +20,38 @@ amalgame_module(amalgame:'MostMethods').
 %%	selecter(+Source, -Selected, -Discarded, -Undecided, +Options)
 %
 %       Source is a sorted list of alignment terms.
-%       TODO: add source/target option
 
-selecter(AlignmentGraph, S, D, U, _Options) :-
-	partition_(AlignmentGraph, S, D, U).
+selecter(AlignmentGraph, S, D, U, Options) :-
+	option(type(target), Options, target),!,
+	partition_(target, AlignmentGraph, S, D, U).
+selecter(AlignmentGraph, S, D, U, Options) :-
+	option(type(source), Options, target),!,
+	predsort(ag_map:compare_align(target), AlignmentGraph, SortedAlignmentGraph),
+	partition_(source, SortedAlignmentGraph, Sel0, Disc0, Und0),
+	predsort(ag_map:compare_align(source), Sel0,  S),
+	predsort(ag_map:compare_align(source), Disc0, D),
+	predsort(ag_map:compare_align(source), Und0,  U).
 
 ap(Most, SecondMost, align(S,T,P), align(S,T,Pnew)) :-
-	append(P, [[method(most_methods), score([most(Most), second(SecondMost)])]], Pnew).
+	append(P, [[method(most_methods),
+		    score([most(Most),
+			   second(SecondMost)])]], Pnew).
 
 
-partition_([], [], [], []).
-partition_([align(S,T,P)|As], Sel, Dis, Und) :-
+partition_(_, [], [], [], []).
+partition_(source, [align(S,T,P)|As], Sel, Dis, Und) :-
+	same_target(As, T, Same, Rest),
+	(   most_methods([align(S,T,P)|Same], Selected, Discarded)
+	->  Sel = [Selected|SelRest],
+	    append(Discarded, DisRest, Dis),
+	    Und = UndRest
+	;   append([align(S,T,P)|Same], UndRest, Und),
+	    Sel = SelRest,
+	    Dis = DisRest
+	),
+	partition_(source, Rest, SelRest, DisRest, UndRest).
+
+partition_(target, [align(S,T,P)|As], Sel, Dis, Und) :-
 	same_source(As, S, Same, Rest),
 	(   most_methods([align(S,T,P)|Same], Selected, Discarded)
 	->  Sel = [Selected|SelRest],
@@ -36,7 +61,7 @@ partition_([align(S,T,P)|As], Sel, Dis, Und) :-
 	    Sel = SelRest,
 	    Dis = DisRest
 	),
-	partition_(Rest, SelRest, DisRest, UndRest).
+	partition_(target, Rest, SelRest, DisRest, UndRest).
 
 most_methods(As, Selected, [A|T]) :-
 	group_method_count(As, Counts0),
@@ -53,3 +78,6 @@ group_method_count([Align|As], [Count-Align|Ts]) :-
 	findall(M, (member(P,Provenance),memberchk(M,P)), Methods),
 	length(Methods, Count),
 	group_method_count(As, Ts).
+
+
+
