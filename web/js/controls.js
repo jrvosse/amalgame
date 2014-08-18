@@ -6,6 +6,7 @@ YUI.add('controls', function(Y) {
 
 	var NODE_CONTROLS = Y.all(".control"),
 		NODE_INPUT_CONTROLS = Y.all("#select .control"),
+		NODE_CONCEPT_INPUTS = Y.all('.vocab input.concept'),
 		NODE_INPUT = Y.one("#input"),
 		NODE_SOURCE = Y.one("#source"),
 		NODE_TARGET = Y.one("#target"),
@@ -18,15 +19,10 @@ YUI.add('controls', function(Y) {
 	}
 	Controls.NAME = "controls";
 	Controls.ATTRS = {
-		srcNode: {
-			value: null
-		},
-		selected: {
-			value: null
-		},
-		nodes: {
-			value: []
-		}
+		srcNode: { value: null },
+		selected: { value: null }, // selected node
+		currentConcept: { value: null }, // selected concept from SKOS browser
+		nodes: { value: [] }
 	};
 
 	Y.extend(Controls, Y.Base, {
@@ -62,9 +58,30 @@ YUI.add('controls', function(Y) {
 			Y.on("click", this._valueSetAndSyncUI, NODE_SOURCE_BTN, this, "source");
 			Y.on("click", this._valueSetAndSyncUI, NODE_TARGET_BTN, this, "target");
 
+			// try to use the currently selected concept in the vocab browser:
+			NODE_CONCEPT_INPUTS.on('focus', this.currentConceptChange, this);
+			this.after('currentConceptChange', this.currentConceptChange, this);
+
 			// toggle the controls when selected is changed
 			this.after('selectedChange', this.syncUI, this);
 			this.syncUI();
+		},
+
+		currentConceptChange : function(ev) {
+			Y.log('currentConceptChange');
+			Y.log(ev);
+			var targets = null;
+			var c = this.get('currentConcept');
+			if (ev.type == "controls:currentConceptChange")
+				targets = NODE_CONCEPT_INPUTS;
+			else
+				targets = new Y.NodeList(ev.currentTarget);
+			if (c)
+				targets.each(function(n) { Y.log(c); n.set("value", c.id); });
+			else
+				targets.each(function(n) { n.set("value",
+					"Enter URI of the parent concept  manually or select the concept in the vocabulary browser");
+				});
 		},
 
 		_onControlSubmit : function(e, node) {
