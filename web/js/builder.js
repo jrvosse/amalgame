@@ -15,30 +15,12 @@ YUI.add('builder', function(Y) {
 	}
 	Builder.NAME = "builder";
 	Builder.ATTRS = {
-		strategy : {
-			value: null
-		},
-		readonly : {
-			value: true
-		},
-		paths:{
-			value: {},
-			validator: function(val) {
-				return Lang.isObject(val)
-			}
-		},
-		selected : {
-			value:{},
-			validator: function(val) {
-				return Lang.isObject(val)
-			}
-		},
-		nodes:{
-			value:{},
-			validator: function(val) {
-				return Lang.isObject(val)
-			}
-		}
+		strategy: { value: null },
+		readonly: { value: true },
+		paths:    { value: {} },
+		selected: { value: {} },
+		nodes:    { value: {} },
+		currentConcept: { value: null } // selected concept from SKOS browser
 	};
 
 	Y.extend(Builder, Y.Base, {
@@ -173,6 +155,7 @@ YUI.add('builder', function(Y) {
 				selected: this.get("selected"),
 				strategy: this.get("strategy")
 			});
+			this.vocabulary.on("conceptChange", this._onConceptChange, this);
 		},
 
 		// helper functions for resizing
@@ -191,6 +174,10 @@ YUI.add('builder', function(Y) {
 		},
 
 		/* handlers */
+		_onConceptChange : function(ev) {
+			this.controls.set('currentConcept', ev.newVal);
+		},
+
 		_onControlSubmit : function(o) {
 			var oSelf = this,
 				paths = this.get("paths"),
