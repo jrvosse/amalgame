@@ -53,6 +53,8 @@ user:file_search_path(img, web(img)).
 serve_static(Alias, Request) :-
 	memberchk(path_info(PathInfo), Request),
 	!,
+	% serve a strategy result directory index or
+	% a file in a strategy result dir:
 	Term =.. [Alias,PathInfo],
 	(   absolute_file_name(Term, _,
 			       [file_type(directory),
@@ -66,6 +68,8 @@ serve_static(Alias, Request) :-
 serve_static(Alias, Request) :-
 	\+ memberchk(path_info(_), Request),
 	!,
+	% no path info, this can only be a request on the
+	% alignment_results directory itself (alignment_results(.)).
 	memberchk(path(Path), Request),
 	sub_atom(Path,  _, _, 1, Alias),
 	Term =.. [Alias, '.' ],
