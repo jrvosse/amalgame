@@ -139,6 +139,8 @@ js_path(mappinginfo, Path) :-
 	http_location_by_id(http_node_info, Path).
 js_path(info, Path) :-
 	http_location_by_id(http_correspondence, Path).
+js_path(autocomplete, Path) :-
+	http_location_by_id(http_autocomplete, Path).
 
 %%	js_module(+Key, +Module_Conf)
 %

@@ -307,6 +307,7 @@ YUI.add('evaluater', function(Y) {
 			NODE_DETAIL.all(".skos_ac_field").on("select", activate_changed);
 		
 			// Activate skos autocompletion on sourceuri, targeturi input nodes:	
+			var paths    = this.get("paths");
 			var mappings = this.get('mappings');
 			var selected = this.get('selected');
 			var svoc = mappings[selected].stats.vocs.source.uri;
@@ -318,7 +319,7 @@ YUI.add('evaluater', function(Y) {
 				context: { target:'sourceuri' },
 				
 				// YUI autocomplete attrs:
-				source: '/api/autocomplete?q={query}&filter=[{\"scheme":\"'+svoc+'\"}]',
+				source: paths.autocomplete + '?q={query}&filter=[{\"scheme":\"'+svoc+'\"}]',
 				resultListLocator: 'results',
 				resultTextLocator: 'label',
 				resultHighlighter: 'phraseMatch'
@@ -330,7 +331,7 @@ YUI.add('evaluater', function(Y) {
 				context: { target:'targeturi' },
 
 				// YUI autocomplete attrs:
-				source: '/api/autocomplete?q={query}&filter=[{\"scheme":\"'+tvoc+'\"}]',
+				source: paths.autocomplete + '?q={query}&filter=[{\"scheme":\"'+tvoc+'\"}]',
 				resultListLocator: 'results',
 				resultTextLocator: 'label',
 				resultHighlighter: 'phraseMatch'
