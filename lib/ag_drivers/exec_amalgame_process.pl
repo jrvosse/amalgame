@@ -3,6 +3,9 @@
 			    select_result_mapping/4
 			   ]).
 
+:- use_module(library(apply)).
+:- use_module(library(lists)).
+
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(amalgame/expand_graph)).
