@@ -32,8 +32,8 @@ http:location(img,		 root(img),                  [ priority(-100) ]).
 :- rdf_load_library(amalgame).
 :- rdf_load_library(dc).
 
-/* Now all namespaces should have been defined, 
-*  we can load the amalgame applications: 
+/* Now all namespaces should have been defined,
+*  we can load the amalgame applications:
 */
 :- use_module(applications(startpage)).
 :- use_module(applications(builder)).
@@ -51,15 +51,9 @@ user:file_search_path(img, web(img)).
 		serve_files_in_directory(img),	 [prefix]).
 
 serve_static(Alias, Request) :-
-	memberchk(path(PathInfo), Request),
-	sub_atom(PathInfo, 1, Len, End, Alias),
-	(   End < 2
-	->  Path='.'
-	;   debug(foo, '~w', [End]),
-	    Start is Len + 2,
-	    sub_atom(PathInfo, Start, _, 0, Path)
-	),
-	Term =.. [Alias,Path],
+	memberchk(path_info(PathInfo), Request),
+	!,
+	Term =.. [Alias,PathInfo],
 	(   absolute_file_name(Term, _,
 			       [file_type(directory),
 				access(read),
@@ -68,3 +62,11 @@ serve_static(Alias, Request) :-
 	->  http_reply_dirindex(Term, [unsafe(true)], Request)
 	;   http_reply_file(Term, [], Request)
 	).
+
+serve_static(Alias, Request) :-
+	\+ memberchk(path_info(_), Request),
+	!,
+	memberchk(path(Path), Request),
+	sub_atom(Path,  _, _, 1, Alias),
+	Term =.. [Alias, '.' ],
+	http_reply_dirindex(Term, [unsafe(true)], Request).
