@@ -45,7 +45,8 @@ mapping_metadata(Strategy, M, _) :-
 
 js_focus_node(Strategy, URI, NodeProps) :-
 	findall(Type-Value, node_prop(Strategy, URI, Type, Value), Pairs),
-	group_pairs_by_key_if_needed(Pairs, Grouped),
+	keysort(Pairs, Sorted),
+	group_pairs_by_key_if_needed(Sorted, Grouped),
 	dict_pairs(NodeProps, node, Grouped).
 
 group_pairs_by_key_if_needed([], []).
@@ -60,6 +61,7 @@ group_pairs_by_key_if_needed([M-N|T0], [M-Result|T]) :-
 same_key(M, [M-N|T0], [N|TN], T) :- !,
 	same_key(M, T0, TN, T).
 same_key(_, L, [], L).
+
 %%	js_strategy_nodes(+Strategy, -Nodes)
 %
 %	Nodes contains all nodes in alignment Strategy with their type
@@ -116,7 +118,8 @@ graph_resource(Graph, R) :-
 
 node_data(Strategy, R, R-Props) :-
 	findall(Type-Value, node_prop(Strategy, R, Type, Value), Pairs),
-	group_pairs_by_key_if_needed(Pairs, Grouped),
+	keysort(Pairs, Sorted),
+	group_pairs_by_key_if_needed(Sorted, Grouped),
 	dict_pairs(Props, node, Grouped).
 
 node_prop(_, R, uri, R).

@@ -294,17 +294,26 @@ YUI.add('evaluater', function(Y) {
 		form_dirty: function() {
 			return (NODE_DETAIL.one(".changed").get('disabled') == false);
 		},
-		init_active_form_elements: function() {
-			function activate_changed(e) { 
+		
+		toggle_active_form_elements: function(Changed) {
+			if (Changed) {
 				NODE_DETAIL.all(".changed").set('disabled', false); 
 				NODE_DETAIL.all(".notchanged").set('disabled', true); 
+			} else {
+				NODE_DETAIL.all(".changed").set('disabled', true);
+				NODE_DETAIL.all(".notchanged").set('disabled', false);
+			}
+		},
+
+		init_active_form_elements: function() {
+			function activate_changed(e) { 
+				this.toggle_active_form_elements(true);
 			};
 			// Disable submit buttons until ...
-			NODE_DETAIL.all(".changed").set('disabled', true);
-			NODE_DETAIL.all(".notchanged").set('disabled', false);
+			this.toggle_active_form_elements(false);
 			// ... we have something to submit
-			NODE_DETAIL.all(".manualfixes .relation").on("change", activate_changed);
-			NODE_DETAIL.all(".skos_ac_field").on("select", activate_changed);
+			NODE_DETAIL.all(".manualfixes .relation").on("change", activate_changed, this);
+			NODE_DETAIL.all(".skos_ac_field").on("select", activate_changed, this);
 		
 			// Activate skos autocompletion on sourceuri, targeturi input nodes:	
 			var paths    = this.get("paths");
