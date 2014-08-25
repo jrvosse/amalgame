@@ -320,6 +320,8 @@ YUI.add('evaluater', function(Y) {
 				
 				// YUI autocomplete attrs:
 				source: paths.autocomplete + '?q={query}&filter=[{\"scheme":\"'+svoc+'\"}]',
+				minQueryLength: 2,
+				queryDelay: 200,
 				resultListLocator: 'results',
 				resultTextLocator: 'label',
 				resultHighlighter: 'phraseMatch'
@@ -332,6 +334,8 @@ YUI.add('evaluater', function(Y) {
 
 				// YUI autocomplete attrs:
 				source: paths.autocomplete + '?q={query}&filter=[{\"scheme":\"'+tvoc+'\"}]',
+				minQueryLength: 2,
+				queryDelay: 200,
 				resultListLocator: 'results',
 				resultTextLocator: 'label',
 				resultHighlighter: 'phraseMatch'
