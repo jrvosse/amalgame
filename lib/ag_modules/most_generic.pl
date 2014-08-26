@@ -29,15 +29,28 @@ selecter(AlignmentGraph, Sel, Disc, Und, Options) :-
 	    predsort(ag_map:compare_align(source), Und0,  Und)
 	).
 
+ap(Type, Result, D, align(S,T,P), align(S,T,Pnew)) :-
+	append([[method(most_generic),
+		 score([ result(Result),
+			 type(Type),
+			 nr_ambiguous_correspondences(D)
+		       ])
+		]],
+	       P,
+	       Pnew).
+
 partition_(_, [], [], [], []).
 partition_(target, [A|As], Sel, Dis, Und) :-
 	A = align(S,_,_),
 	same_source(As, S, Same, Rest),
-	(   hierarchy_related(Same, target, A, Parent, Dis0)
+	length(Same, L), D is L +1,
+	(   hierarchy_related(Same, D, target, A, Parent, Dis0)
 	->  Sel = [Parent|SelRest],
 	    append(Dis0, DisRest, Dis),
 	    Und = UndRest
-	;   append([A|Same], UndRest, Und),
+	;   Undecided = [A|Same],
+	    maplist(ap(target, undecided, D), Undecided, UndecidedP),
+	    append(UndecidedP, UndRest, Und),
 	    Sel = SelRest,
 	    Dis = DisRest
 	),
@@ -45,20 +58,28 @@ partition_(target, [A|As], Sel, Dis, Und) :-
 partition_(source, [A|As], Sel, Dis, Und) :-
 	A = align(_,T,_),
 	same_target(As, T, Same, Rest),
-	(   hierarchy_related(Same, source, A, Parent, Dis0)
+	length(Same, L), D is L + 1,
+	(   hierarchy_related(Same, D, source, A, Parent, Dis0)
 	->  Sel = [Parent|SelRest],
 	    append(Dis0, DisRest, Dis),
 	    Und = UndRest
-	;   append([A|Same], UndRest, Und),
+	;   Undecided = [A|Same],
+	    maplist(ap(source, undecided, D), Undecided, UndecidedP),
+	    append(UndecidedP, UndRest, Und),
 	    Sel = SelRest,
 	    Dis = DisRest
 	),
 	partition_(source, Rest, SelRest, DisRest, UndRest).
 
-hierarchy_related([], _, align(S,T,P), align(S,T,Pnew), []) :-
-	append(P, [[method(most_generic)]], Pnew).
+hierarchy_related([], Type, L, align(S,T,P), align(S,T,Pnew), []) :-
+	append([[method(most_generic),
+		    score([ result(selected),
+			    type(Type),
+			    nr_ambiguous_correspondences(L)
+			  ])
+		]],P, Pnew).
 
-hierarchy_related([A|As], target, G0, G, [A1|Rest]) :-
+hierarchy_related([A|As], L, target, G0, G, [A2|Rest]) :-
 	A = align(_,T,_),
 	G0 = align(_,T0,_),
 	(   skos_descendant_of(T0, T)
@@ -68,9 +89,10 @@ hierarchy_related([A|As], target, G0, G, [A1|Rest]) :-
 	->  G1 = A,
 	    A1 = G0
 	),
-	hierarchy_related(As, target, G1, G, Rest).
+	ap(target, discarded, L, A1, A2),
+	hierarchy_related(As, L, target, G1, G, Rest).
 
-hierarchy_related([A|As], source, G0, G, [A1|Rest]) :-
+hierarchy_related([A|As], L, source, G0, G, [A2|Rest]) :-
 	A = align(S,_,_),
 	G0 = align(S0,_,_),
 	(   skos_descendant_of(S0, S)
@@ -80,4 +102,5 @@ hierarchy_related([A|As], source, G0, G, [A1|Rest]) :-
 	->  G1 = A,
 	    A1 = G0
 	),
-	hierarchy_related(As, source, G1, G, Rest).
+	ap(target, discarded, L, A1, A2),
+	hierarchy_related(As, L, source, G1, G, Rest).
