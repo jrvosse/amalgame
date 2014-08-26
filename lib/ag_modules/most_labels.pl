@@ -46,7 +46,9 @@ partition_(source, [align(S,T,P)|At], Sel, Dis, Und) :-
 	->  Sel = [Selected|SelRest],
 	    append(Discarded, DisRest, Dis),
 	    Und = UndRest
-	;   append([align(S,T,P)|Same], UndRest, Und),
+	;   Undecided = [align(S,T,P)|Same],
+	    maplist(ap(source, undecided), Undecided, UndecidedP),
+	    append(UndecidedP, UndRest, Und),
 	    Sel = SelRest,
 	    Dis = DisRest
 	),
@@ -58,17 +60,25 @@ partition_(target, [align(S,T,P)|As], Sel, Dis, Und) :-
 	->  Sel = [Selected|SelRest],
 	    append(Discarded, DisRest, Dis),
 	    Und = UndRest
-	;   append([align(S,T,P)|Same], UndRest, Und),
+	;   Undecided = [align(S,T,P)|Same],
+	    maplist(ap(target, undecided), Undecided, UndecidedP),
+	    append(UndecidedP, UndRest, Und),
 	    Sel = SelRest,
 	    Dis = DisRest
 	),
 	partition_(target, Rest, SelRest, DisRest, UndRest).
 
+ap(Type, Result, align(S,T,P), align(S,T,Pnew)) :-
+	append([[method(most_labels),
+		    score([result(Result), type(Type)])
+		]], P, Pnew).
+
 ap(Type, Result, Most, SecondMost, align(S,T,P), align(S,T,Pnew)) :-
-	append(P, [[method(most_labels),
-		    score([result(Result), type(Type),
-			   most(Most),
-			   second(SecondMost)])]], Pnew).
+	append([[method(most_labels),
+		 score([result(Result), type(Type),
+			most(Most),
+			second(SecondMost)])
+		]], P, Pnew).
 
 most_labels(Type, As, Selected, Discarded) :-
 	group_label_count(As, Counts),

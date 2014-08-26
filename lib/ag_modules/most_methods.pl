@@ -34,14 +34,23 @@ selecter(AlignmentGraph, S, D, U, Options) :-
 	predsort(ag_map:compare_align(source), Disc0, D),
 	predsort(ag_map:compare_align(source), Und0,  U).
 
-ap(Type, Result, Most, SecondMost, align(S,T,P), align(S,T,Pnew)) :-
-	append(P, [[method(most_methods),
-		    score([ result(Result),
-			    most(Most),
-			    type(Type),
-			    second(SecondMost)])]],
+ap(Type, Result, align(S,T,P), align(S,T,Pnew)) :-
+	append([[method(most_methods),
+		 score([ result(Result),
+			 type(Type)
+		       ])
+		]],
+	       P,
 	       Pnew).
-
+ap(Type, Result, Most, SecondMost, align(S,T,P), align(S,T,Pnew)) :-
+	append([[method(most_methods),
+		 score([ result(Result),
+			 type(Type),
+			 most(Most),
+			 second(SecondMost)])
+		]],
+	       P,
+	       Pnew).
 
 partition_(_, [], [], [], []).
 partition_(source, [align(S,T,P)|As], Sel, Dis, Und) :-
@@ -50,8 +59,9 @@ partition_(source, [align(S,T,P)|As], Sel, Dis, Und) :-
 	->  Sel = [Selected|SelRest],
 	    append(Discarded, DisRest, Dis),
 	    Und = UndRest
-	;   Pu = [[method(most_methods), score([result(undecided), type(source)])]|P],
-	    append([align(S,T,Pu)|Same], UndRest, Und),
+	;   Undecided = [align(S,T,P)|Same],
+	    maplist(ap(source, undecided), Undecided, UndecidedP),
+	    append(UndecidedP, UndRest, Und),
 	    Sel = SelRest,
 	    Dis = DisRest
 	),
@@ -63,8 +73,9 @@ partition_(target, [align(S,T,P)|As], Sel, Dis, Und) :-
 	->  Sel = [Selected|SelRest],
 	    append(Discarded, DisRest, Dis),
 	    Und = UndRest
-	;   Pu = [[method(most_methods), score([result(undecided), type(target)])]|P],
-	    append([align(S,T,Pu)|Same], UndRest, Und),
+	;   Undecided = [align(S,T,P)|Same],
+	    maplist(ap(target, undecided), Undecided, UndecidedP),
+	    append(UndecidedP, UndRest, Und),
 	    Sel = SelRest,
 	    Dis = DisRest
 	),
