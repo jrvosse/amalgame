@@ -42,7 +42,7 @@ selecter(AlignmentGraph, Sel, Disc, Und, Options) :-
 partition_(_, [], [], [], []).
 partition_(source, [align(S,T,P)|At], Sel, Dis, Und) :-
 	same_target(At, T, Same, Rest),
-	(   most_labels([align(S,T,P)|Same], Selected, Discarded)
+	(   most_labels(source, [align(S,T,P)|Same], Selected, Discarded)
 	->  Sel = [Selected|SelRest],
 	    append(Discarded, DisRest, Dis),
 	    Und = UndRest
@@ -54,7 +54,7 @@ partition_(source, [align(S,T,P)|At], Sel, Dis, Und) :-
 
 partition_(target, [align(S,T,P)|As], Sel, Dis, Und) :-
 	same_source(As, S, Same, Rest),
-	(   most_labels([align(S,T,P)|Same], Selected, Discarded)
+	(   most_labels(target, [align(S,T,P)|Same], Selected, Discarded)
 	->  Sel = [Selected|SelRest],
 	    append(Discarded, DisRest, Dis),
 	    Und = UndRest
@@ -64,13 +64,13 @@ partition_(target, [align(S,T,P)|As], Sel, Dis, Und) :-
 	),
 	partition_(target, Rest, SelRest, DisRest, UndRest).
 
-ap(Result, Most, SecondMost, align(S,T,P), align(S,T,Pnew)) :-
+ap(Type, Result, Most, SecondMost, align(S,T,P), align(S,T,Pnew)) :-
 	append(P, [[method(most_labels),
-		    score([result(Result),
+		    score([result(Result), type(Type),
 			   most(Most),
 			   second(SecondMost)])]], Pnew).
 
-most_labels(As, Selected, Discarded) :-
+most_labels(Type, As, Selected, Discarded) :-
 	group_label_count(As, Counts),
 	!,
 	sort(Counts, Sorted),
@@ -78,8 +78,8 @@ most_labels(As, Selected, Discarded) :-
 	N1 > N2,
 	pairs_values(T0, T),
 	Discarded0 = [DA|T],
-	ap(selected, N1, N2, Selected0,  Selected),
-	maplist(ap(discarded, N1, N2), Discarded0, Discarded).
+	ap(Type, selected, N1, N2, Selected0,  Selected),
+	maplist(ap(Type, discarded, N1, N2), Discarded0, Discarded).
 
 group_label_count([],[]).
 group_label_count([Align|As], [Count-Align|Ts]) :-
