@@ -94,14 +94,20 @@ group_method_count([], []).
 group_method_count([Align|As], [Count-Align|Ts]) :-
 	Align = align(_,_,Provenance),
 	findall(M, (member(P,Provenance),
-		    positive_result(M,P)), Methods),
+		    positive_result(P,M)), Methods),
 	length(Methods, Count),
 	group_method_count(As, Ts).
 
-positive_result(Method, Evidence) :-
-	memberchk(method(Method), Evidence),
-	\+ ( memberchk(score(Score), Evidence),
-	     memberchk(result(Result), Score),
+%%	positive_result(+Ev, -Method) is semidet.
+%
+%	Evidence is a positive result if it has a defined Method and,
+%	if it has a score with a result, the result should be
+%	_selected_, not discarded or undecided.
+
+positive_result(Evidence, Method) :-
+	option(method(Method), Evidence),
+	\+ ( option(score(Score), Evidence),
+	     option(result(Result), Score),
 	     Result \= selected
 	   ).
 
