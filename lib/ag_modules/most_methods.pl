@@ -34,10 +34,11 @@ selecter(AlignmentGraph, S, D, U, Options) :-
 	predsort(ag_map:compare_align(source), Disc0, D),
 	predsort(ag_map:compare_align(source), Und0,  U).
 
-ap(Result, Most, SecondMost, align(S,T,P), align(S,T,Pnew)) :-
+ap(Type, Result, Most, SecondMost, align(S,T,P), align(S,T,Pnew)) :-
 	append(P, [[method(most_methods),
 		    score([ result(Result),
 			    most(Most),
+			    type(Type),
 			    second(SecondMost)])]],
 	       Pnew).
 
@@ -45,11 +46,12 @@ ap(Result, Most, SecondMost, align(S,T,P), align(S,T,Pnew)) :-
 partition_(_, [], [], [], []).
 partition_(source, [align(S,T,P)|As], Sel, Dis, Und) :-
 	same_target(As, T, Same, Rest),
-	(   most_methods([align(S,T,P)|Same], Selected, Discarded)
+	(   most_methods(source, [align(S,T,P)|Same], Selected, Discarded)
 	->  Sel = [Selected|SelRest],
 	    append(Discarded, DisRest, Dis),
 	    Und = UndRest
-	;   append([align(S,T,P)|Same], UndRest, Und),
+	;   Pu = [[method(most_methods), score([result(undecided), type(source)])]|P],
+	    append([align(S,T,Pu)|Same], UndRest, Und),
 	    Sel = SelRest,
 	    Dis = DisRest
 	),
@@ -57,24 +59,25 @@ partition_(source, [align(S,T,P)|As], Sel, Dis, Und) :-
 
 partition_(target, [align(S,T,P)|As], Sel, Dis, Und) :-
 	same_source(As, S, Same, Rest),
-	(   most_methods([align(S,T,P)|Same], Selected, Discarded)
+	(   most_methods(target, [align(S,T,P)|Same], Selected, Discarded)
 	->  Sel = [Selected|SelRest],
 	    append(Discarded, DisRest, Dis),
 	    Und = UndRest
-	;   append([align(S,T,P)|Same], UndRest, Und),
+	;   Pu = [[method(most_methods), score([result(undecided), type(target)])]|P],
+	    append([align(S,T,Pu)|Same], UndRest, Und),
 	    Sel = SelRest,
 	    Dis = DisRest
 	),
 	partition_(target, Rest, SelRest, DisRest, UndRest).
 
-most_methods(As, Selected, Discarded) :-
+most_methods(Type, As, Selected, Discarded) :-
 	group_method_count(As, Counts0),
 	sort(Counts0, Sorted),
 	append(T0, [SecondMost-A,Most-Selected0], Sorted),
 	Most \== SecondMost,
 	pairs_values(T0, T),
-	maplist(ap(selected, Most, SecondMost), [Selected0], [Selected]),
-	maplist(ap(discarded, Most, SecondMost), [A|T], Discarded).
+	maplist(ap(Type, selected, Most, SecondMost), [Selected0], [Selected]),
+	maplist(ap(Type, discarded, Most, SecondMost), [A|T], Discarded).
 
 group_method_count([], []).
 group_method_count([Align|As], [Count-Align|Ts]) :-
