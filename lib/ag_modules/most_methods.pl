@@ -79,9 +79,15 @@ most_methods(As, Selected, Discarded) :-
 group_method_count([], []).
 group_method_count([Align|As], [Count-Align|Ts]) :-
 	Align = align(_,_,Provenance),
-	findall(M, (member(P,Provenance),memberchk(M,P)), Methods),
+	findall(M, (member(P,Provenance),
+		    positive_result(M,P)), Methods),
 	length(Methods, Count),
 	group_method_count(As, Ts).
 
-
+positive_result(Method, Evidence) :-
+	memberchk(method(Method), Evidence),
+	\+ ( memberchk(score(Score), Evidence),
+	     memberchk(result(Result), Score),
+	     Result \= selected
+	   ).
 
