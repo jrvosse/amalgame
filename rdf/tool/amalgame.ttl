@@ -73,8 +73,6 @@ amalgame:secondary_input
 	rdfs:range  amalgame:Entity ;
 	rdfs:subPropertyOf prov:used .
 
-amalgame:wasGeneratedBy rdfs:subPropertyOf prov:wasGeneratedBy.
-
 amalgame:selectedBy
 	rdfs:domain  amalgame:Mapping ;
 	rdfs:range prov:Activity ;
