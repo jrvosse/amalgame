@@ -98,18 +98,11 @@ skos_util:skos_is_vocabulary(Voc) :-
 	rdfs_individual_of(Voc, amalgame:'Alignable').
 
 
-voc_ensure_stats(Voc, virtual(Result), _) :-
-	(   rdf_has(_, skos:inScheme, Voc)
-	->  Virtual = false
-	;   rdfs_individual_of(Voc, amalgame:'Alignable')
-	->  Virtual = false
-	;   Virtual = true
-	),
-	(   voc_stats_cache(Voc, virtual(Virtual))
-	->  true
-	;   assert(voc_stats_cache(Voc, virtual(Virtual)))
-	),
-	Result = Virtual.
+voc_ensure_stats(Id, virtual(Result), _) :-
+	atomic_concat(expand_node, Id, Mutex),
+	debug(mutex, 'voc_ensure_stats is locking mutex: ~w', [Mutex]),
+	with_mutex(Mutex, assert_voc_virtual(Id, Result)),
+	debug(mutex, 'Releasing mutex: ~w', [Mutex]).
 
 voc_ensure_stats(Voc, format(Format),_) :-
 	skos_is_vocabulary(Voc),
@@ -191,6 +184,18 @@ voc_ensure_stats(Voc, nrOfTopConcepts(Count), _) :-
 	voc_property(Voc, depth(_)), % ensure nrOfTopConcepts has been computed
 	(   rdf(Voc, amalgame:nrOfTopConcepts, literal(type(xsd:int, Count))) -> true ; Count = 0 ),
 	assert_voc_prop(Voc, nrOfTopConcepts(Count)).
+
+
+assert_voc_virtual(Voc, Result) :-
+	(   rdf_has(_, skos:inScheme, Voc)
+	->  Virtual = false
+	;   rdfs_individual_of(Voc, amalgame:'Alignable')
+	->  Virtual = false
+	;   Virtual = true
+	),
+	retractall(voc_stats_cache(Voc, virtual(_))),
+	assert(voc_stats_cache(Voc, virtual(Virtual))),
+	Result = Virtual.
 
 
 
