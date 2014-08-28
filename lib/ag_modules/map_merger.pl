@@ -2,6 +2,7 @@
 	      merger/3   % also used by other modules
 	  ]).
 
+:- use_module(library(lists)).
 :- use_module(library(amalgame/map)).
 
 :- public amalgame_module/1.
