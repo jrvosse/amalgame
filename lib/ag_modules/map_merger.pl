@@ -12,7 +12,7 @@ amalgame_module(amalgame:'MapMerger').
 
 %%      merge_mappings(+ListOfGraphs, -Merged)
 %
-%       Merge alignment terms. ListOfGraphs is ordered.
+%       Merge alignment terms. The lists in ListOfGraphs are ordered.
 
 merger([], [], _) :- !.
 merger([L], L, _) :- !.
