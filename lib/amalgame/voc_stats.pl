@@ -61,13 +61,23 @@ voc_property(Voc, Dict, _Options) :-
 	sort(Stats, Unique),
 	dict_create(Dict, voc_stats, Unique).
 
+voc_property(Voc, P, _Options) :-
+	rdf_global_term(P, PG),
+	ground(PG),
+	functor(PG, Name, Arity),
+	functor(P0, Name, Arity),
+	voc_stats_cache(Voc, P0),
+	!, % do not recompute if we have computed a different value for Name!
+	PG = P0.
+
+
 voc_property(Voc, P, Options) :-
 	rdf_global_term(P, PG),
 	(   get_from_cache(Voc, PG, Options)
 	->  true
 	;   (   option(compute(false), Options)
 	    ->  fail
-	    ;   voc_ensure_stats(Voc, PG, Options)
+	    ;	voc_ensure_stats(Voc, PG, Options)
 	    )
 	).
 get_from_cache(Voc, numberOfLabels(D), Options) :-
