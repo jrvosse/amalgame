@@ -129,7 +129,7 @@ voc_ensure_stats(Voc, version(Version),_) :-
 	assert(voc_stats_cache(Voc, version(Version))).
 
 voc_ensure_stats(Voc, revision(Revision),_) :-
-	(   rdf(Voc, amalgame:wasGeneratedBy, _)
+	(   rdf_has(Voc, amalgame:wasGeneratedBy, _)
 	->  Revision = amalgame_generated
 	;   assert_voc_version(Voc, Revision)
 	->  true
