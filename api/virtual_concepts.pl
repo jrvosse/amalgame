@@ -9,6 +9,8 @@
 :- use_module(library(amalgame/voc_stats)).
 :- use_module(library(amalgame/vocabulary)).
 :- use_module(library(amalgame/util)).
+
+:- use_module(library(skos/util)).
 :- use_module(api(skos_concepts)).
 
 
@@ -48,7 +50,24 @@ http_virtual_concepts(Request) :-
 	).
 
 virtual_topconcepts(Scheme, Options) :-
-	virtual_inscheme(Scheme, Options).
+	option(graphs(Graphs), Options),
+	option(limit(Limit), Options),
+	option(offset(Offset), Options),
+	findall(Label-Concept,
+		( vocab_member(Concept, Scheme),
+		  \+ (skos_parent_child(_, Concept)),
+		  rdf_display_label(Concept, Label)
+		), Concepts),
+	sort(Concepts, Sorted),
+	length(Sorted, Total),
+	list_offset(Sorted, Offset, OffsetResults),
+	list_limit(OffsetResults, Limit, LimitResults, _),
+	concept_results(LimitResults, Graphs, JSONResults),
+	reply_json(json([parent=Scheme,
+			 offset=Offset,
+			 limit=Limit,
+			 totalNumberOfResults=Total,
+			 results=JSONResults])).
 
 virtual_inscheme(Scheme, Options) :-
 	option(graphs(Graphs), Options),
