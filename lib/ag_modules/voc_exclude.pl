@@ -10,7 +10,7 @@
 amalgame_module(amalgame:'VocExclude').
 
 parameter(type, oneof([source,target]), source,
-	  'Property to exclude matching sources or targets').
+	  'Exclude matching sources or targets').
 
 exclude(Vocab, Mapping, scheme(NewScheme), Options) :-
 	option(type(Type), Options),
