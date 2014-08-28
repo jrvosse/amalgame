@@ -108,23 +108,22 @@ amalgame:VocExclude
     amalgame:need_secondary_inputs true ;
     rdfs:label "subtract mapped concepts"@en ;
     skos:definition "Subtract from a vocabulary the sources or targets from a given mapping to create a vocabulary with the unmapped concepts."@en ;
-    rdfs:subClassOf amalgame:Subtracter ;
-    rdfs:subClassOf amalgame:VocabSelecter .
+    rdfs:subClassOf amalgame:MaterializedVocabSelecter .
 
 amalgame:TypeSelect
     rdfs:label "select facet on type"@en ;
     skos:definition "Select from a vocabulary the concepts of a specific type."@en ;
-    rdfs:subClassOf amalgame:VocabSelecter .
+    rdfs:subClassOf amalgame:VirtualVocabSelecter .
 
 amalgame:PropertyValueSelect
     rdfs:label "select facet on property/value"@en ;
     skos:definition "Select from a vocabulary the concepts with a specific property/value."@en ;
-    rdfs:subClassOf amalgame:VocabSelecter .
+    rdfs:subClassOf amalgame:VirtualVocabSelecter .
 
 amalgame:SubtreeSelect
     rdfs:label "select facet by subtree"@en ;
     skos:definition "Select from a vocabulary the concepts in the sub-tree below (using BT/NT) a common parent concept."@en ;
-    rdfs:subClassOf amalgame:VocabSelecter .
+    rdfs:subClassOf amalgame:VirtualVocabSelecter .
 
 amalgame:OverlapComponent
     amalgame:need_secondary_inputs true ;

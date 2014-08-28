@@ -176,7 +176,7 @@ amalgame_shape(_R, [shape(box),
 	       fontsize(10)]).
 
 process_color(R, '#FFCC99') :-
-	rdfs_individual_of(R, amalgame:'Subtracter'),
+	rdfs_individual_of(R, amalgame:'VocabSelecter'),
 	!.
 process_color(R, '#99CCFF') :-
 	rdfs_individual_of(R, amalgame:'Selecter'),

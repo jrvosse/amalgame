@@ -51,10 +51,10 @@ amalgame:VocabSelecter
     rdfs:label "selecter"@en ;
     skos:definition "Component that creates a new conceptScheme by selecting a number of concepts from an existing concept scheme"@en ;
     rdfs:subClassOf amalgame:Selecter .
-amalgame:Subtracter
-    rdfs:label "subtracter"@en ;
-    skos:definition "Component that creates a new conceptScheme by subtracting a number of concepts that occur in another source"@en ;
-    rdfs:subClassOf amalgame:Process .
+amalgame:VirtualVocabSelecter
+    rdfs:subClassOf amalgame:VocabSelecter .
+amalgame:MaterializedVocabSelecter
+    rdfs:subClassOf amalgame:VocabSelecter .
 amalgame:Merger
     rdfs:label "merger"@en ;
     skos:definition "Component that creates a mapping by mergin the correspondences from a number of mappings"@en ;
