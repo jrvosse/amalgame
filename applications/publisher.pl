@@ -55,10 +55,10 @@ http_ag_publish(Request) :-
 	expand_file_search_path(alignment_results(.), L),
 	exists_directory(L),
 	absolute_file_name(L,BaseDir),!,
-	file_base_name(Strategy, AlignmentB),
-	atomic_list_concat([BaseDir, AlignmentB], '/', Dir),
+	file_base_name(Strategy, StrategyBase),
+	atomic_list_concat([BaseDir, StrategyBase], '/', Dir),
 	save_mappings(Strategy, Dir, [status(Status), format(Format),default_relation(DefaultRelation)]),
-	http_redirect(moved, alignment_results(AlignmentB), Request).
+	http_redirect(moved, alignment_results(StrategyBase), Request).
 
 
 		 /*******************************

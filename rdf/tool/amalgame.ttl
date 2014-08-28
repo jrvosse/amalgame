@@ -13,6 +13,11 @@ amalgame:AlignmentStrategy
     rdfs:label "alignment strategy"@en ;
     rdfs:comment "RDF representation of an alignment strategy that can be loaded and executed by Amalgame"@en.
 
+amalgame:Entity
+    rdfs:label "entity"@en ;
+    rdfs:comment "Top class for all amalgame data entities, including mappings and vocabularies"@en ;
+    rdfs:subClassOf prov:Entity .
+
 amalgame:Process
     rdfs:label "process"@en ;
     rdfs:comment "Top class for all amalgame processes"@en ;
@@ -58,86 +63,68 @@ amalgame:Merger
 
 amalgame:includes
         rdfs:domain skos:ConceptScheme ;
-        rdfs:range amalgame:Alignment .
+        rdfs:range amalgame:AlignmentStrategy .
 amalgame:input
 	rdfs:domain prov:Activity ;
-	rdfs:range  amalgame:Alignment ;
+	rdfs:range  amalgame:Entity ;
 	rdfs:subPropertyOf prov:used.
-
-amalgame:exclude
-	rdfs:domain prov:Activity ;
-	rdfs:range  amalgame:Alignment ;
-	rdfs:subPropertyOf amalgame:secondary_input .
 amalgame:secondary_input
 	rdfs:domain prov:Activity ;
-	rdfs:range  amalgame:Alignment ;
+	rdfs:range  amalgame:Entity ;
 	rdfs:subPropertyOf prov:used .
 
 amalgame:wasGeneratedBy rdfs:subPropertyOf prov:wasGeneratedBy.
-# prov:wasGeneratedBy rdfs:subPropertyOf amalgame:wasGeneratedBy.
 
 amalgame:selectedBy
-	rdfs:domain  amalgame:Alignment ;
+	rdfs:domain  amalgame:Mapping ;
 	rdfs:range prov:Activity ;
 	rdfs:subPropertyOf amalgame:wasGeneratedBy.
 
 amalgame:discardedBy
-	rdfs:domain  amalgame:Alignment ;
+	rdfs:domain  amalgame:Mapping ;
 	rdfs:range prov:Activity ;
 	rdfs:subPropertyOf amalgame:wasGeneratedBy.
 
 amalgame:undecidedBy
-	rdfs:domain  amalgame:Alignment ;
+	rdfs:domain  amalgame:Mapping ;
 	rdfs:range prov:Activity ;
 	rdfs:subPropertyOf amalgame:wasGeneratedBy.
 
 amalgame:evaluationOf
 	rdfs:subPropertyOf prov:wasDerivedFrom.
 
-amalgame:NoAlignmentGraph a rdfs:Class ;
-	rdfs:label "No Alignment Graph"@en ;
-	rdfs:comment "The class of all Named Graphs in the repository containing no mappings and/or alignments."@en.
-
-amalgame:Alignment a rdfs:Class ;
-    rdfs:subClassOf prov:Entity ;
-	rdfs:label "Alignment Graph"@en ;
-	rdfs:comment "The class of all Named Graphs in the repository containing mappings and/or alignments."@en.
-
 amalgame:Mapping a rdfs:Class ;
-	rdfs:subClassOf amalgame:Alignment .
+	rdfs:subClassOf prov:Entity ;
+	rdfs:label "Mapping Graph"@en ;
+	rdfs:comment "The class of all Named Graphs in the repository containing correspondences."@en.
 
 amalgame:LoadedMapping a rdfs:Class ;
 	rdfs:subClassOf amalgame:Mapping ;
 	rdfs:label "Loaded Mapping Graph"@en ;
 	rdfs:comment "An alignment loaded from file, e.g. not derived from another alignment"@en.
 
-amalgame:AmalgameAlignment a rdfs:Class ;
-	rdfs:subClassOf amalgame:Alignment ;
-	rdfs:label "Amalgame Alignment Graph"@en ;
-	rdfs:comment "An alignment created by Amalgame's matchers, e.g. not derived from another alignment"@en.
+amalgame:DerivedMapping a rdfs:Class ;
+	rdfs:subClassOf amalgame:Mapping ;
+	rdfs:label "Derived Mapping Graph"@en ;
+	rdfs:comment "An mapping derived from another mapping"@en.
 
-amalgame:DerivedAlignment a rdfs:Class ;
-	rdfs:subClassOf amalgame:Alignment ;
-	rdfs:label "Derived Alignment Graph"@en ;
-	rdfs:comment "An alignment derived from another alignment"@en.
-
-amalgame:OverlapAlignment a rdfs:Class;
-	rdfs:subClassOf amalgame:DerivedAlignment ;
+amalgame:OverlapMapping a rdfs:Class;
+	rdfs:subClassOf amalgame:DerivedMapping ;
 	rdfs:label "Amalgame Overlap"@en ;
 	rdfs:comment "A Named Graph that describes the overlap of one or more other named graphs, these constituents are denoted by the amalgame:member property."@en .
 
-amalgame:SampleAlignment a rdfs:Class;
-	rdfs:subClassOf amalgame:DerivedAlignment ;
+amalgame:SampleMapping a rdfs:Class;
+	rdfs:subClassOf amalgame:DerivedMapping ;
 	rdfs:label "Amalgame Sample"@en ;
 	rdfs:comment "A Named Graph that describes a sample of another named graph, denoted by dcterms:source in the amalgame:provenance section."@en .
 
-amalgame:ExportedAlignment a rdfs:Class;
-	rdfs:subClassOf amalgame:DerivedAlignment ;
+amalgame:ExportedMapping a rdfs:Class;
+	rdfs:subClassOf amalgame:DerivedMapping ;
 	rdfs:label "Amalgame Exported"@en ;
 	rdfs:comment "A Named Graph that has been created by exporting another named graph into a new format. The source graph is recorded by dcterms:source in the amalgame:provenance section."@en .
 
-amalgame:PartitionedAlignment a rdfs:Class;
-	rdfs:subClassOf amalgame:DerivedAlignment ;
+amalgame:PartitionedMapping a rdfs:Class;
+	rdfs:subClassOf amalgame:DerivedMapping ;
 	rdfs:label "Amalgame Partitioned"@en ;
 	rdfs:comment "A Named Graph that has been created by partitioning another named graph into one or more new graphs. The source graph is recorded by dcterms:source in the amalgame:provenance section."@en .
 
@@ -146,8 +133,8 @@ amalgame:EvaluatedMapping a rdfs:Class;
 	rdfs:label "Amalgame Evaluation Results"@en ;
 	rdfs:comment "A Named Graph that has been created by manually evaluating another named graph into a new graph. The source graph is recorded by the amalgame:evaluationOf property."@en .
 
-amalgame:SelectionAlignment a rdfs:Class;
-	rdfs:subClassOf amalgame:DerivedAlignment ;
+amalgame:SelectionMapping a rdfs:Class;
+	rdfs:subClassOf amalgame:DerivedMapping ;
 	rdfs:label "Amalgame Selection Results"@en ;
 	rdfs:comment "A Named Graph that has been created by selecting mappings from  another named graph into a new graph. The source graph is recorded by dcterms:source in the amalgame:provenance section."@en .
 
@@ -172,37 +159,37 @@ amalgame:DerivedConceptScheme a rdfs:Class;
 
 amalgame:member a rdf:Property ;
 	rdfs:label "overlap member"@en ;
-	rdfs:comment "Used to define the alignment graphs that define an OverlapAlignment."@en ;
-	rdfs:domain amalgame:OverlapAlignment ;
-	rdfs:range amalgame:Alignment .
+	rdfs:comment "Used to define the alignment graphs that define an OverlapMapping."@en ;
+	rdfs:domain amalgame:OverlapMapping ;
+	rdfs:range amalgame:Mapping .
 
 amalgame:overlap_set
 	a rdf:Property ;
-	rdfs:domain amalgame:Alignment ;
+	rdfs:domain amalgame:Mapping ;
 	rdfs:range rdfs:Literal .
 
 amalgame:totalCount a rdf:Property, owl:FunctionalProperty ;
 	rdfs:label "total map count" ;
 	rdfs:comment "The number of mappings in this Aligment" ;
-	rdfs:domain amalgame:Alignment ;
+	rdfs:domain amalgame:Mapping ;
 	rdfs:range xsd:int .
 
 amalgame:format a rdf:Property , owl:FunctionalProperty ;
 	rdfs:label "mapping format" ;
 	rdfs:comment "The format of the mappings in this Aligment, assuming a graph contains only one format." ;
-	rdfs:domain amalgame:Alignment ;
+	rdfs:domain amalgame:Mapping ;
 	rdfs:range rdfs:Literal .
 
 amalgame:mappedSourceConcepts a rdf:Property, owl:FunctionalProperty ;
-	rdfs:domain amalgame:Alignment ;
+	rdfs:domain amalgame:Mapping ;
 	rdfs:range xsd:int .
 
 amalgame:mappedTargetConcepts a rdf:Property, owl:FunctionalProperty ;
-	rdfs:domain amalgame:Alignment ;
+	rdfs:domain amalgame:Mapping ;
 	rdfs:range xsd:int .
 
 amalgame:nickname a rdf:Property , owl:FunctionalProperty ;
-	rdfs:domain amalgame:Alignment ;
+	rdfs:domain amalgame:Mapping ;
 	rdfs:range rdfs:Literal .
 
 amalgame:source a rdf:Property ;
@@ -238,7 +225,7 @@ amalgame:numberOfMappedConcepts a rdf:Property , owl:FunctionalProperty ;
 amalgame:provenance a rdf:Property ;
 	rdfs:label "provenance informaton"@en;
 	rdfs:comment "Could link to any resource describing provenance information about this alignment graph"@en ;
-	rdfs:domain amalgame:Alignment ;
+	rdfs:domain amalgame:Mapping ;
 	rdfs:range amalgame:Provenance .
 
 amalgame:request a rdf:Property, owl:FunctionalProperty ;
@@ -296,7 +283,7 @@ amalgame:publish_ns
 
 amalgame:default_relation
 	a rdf:Property ;
-	rdfs:domain amalgame:Alignment ;
+	rdfs:domain amalgame:Mapping ;
 	rdfs:range rdf:Property .
 
 evaluator:unrelated

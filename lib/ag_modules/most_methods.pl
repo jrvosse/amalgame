@@ -23,13 +23,13 @@ amalgame_module(amalgame:'MostMethods').
 %
 %       Source is a sorted list of alignment terms.
 
-selecter(AlignmentGraph, S, D, U, Options) :-
+selecter(Mapping, S, D, U, Options) :-
 	option(type(target), Options, target),!,
-	partition_(target, AlignmentGraph, S, D, U).
-selecter(AlignmentGraph, S, D, U, Options) :-
+	partition_(target, Mapping, S, D, U).
+selecter(Mapping, S, D, U, Options) :-
 	option(type(source), Options, target),!,
-	predsort(ag_map:compare_align(target), AlignmentGraph, SortedAlignmentGraph),
-	partition_(source, SortedAlignmentGraph, Sel0, Disc0, Und0),
+	predsort(ag_map:compare_align(target), Mapping, TSorted),
+	partition_(source, TSorted, Sel0, Disc0, Und0),
 	predsort(ag_map:compare_align(source), Sel0,  S),
 	predsort(ag_map:compare_align(source), Disc0, D),
 	predsort(ag_map:compare_align(source), Und0,  U).

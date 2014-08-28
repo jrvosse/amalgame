@@ -11,7 +11,6 @@
 
 :- use_module(library(skos/util)).
 
-
 :- use_module(library(amalgame/amalgame_modules)).
 :- use_module(library(amalgame/ag_stats)).
 :- use_module(library(amalgame/voc_stats)).
@@ -346,14 +345,14 @@ label_lang_stat(Scheme, _Strategy, Property, Langs,
 	).
 
 
-%%	amalgame_provenance(+R, +Alignment, -Provenance:[key-value])
+%%	amalgame_provenance(+R, +Strategy, -Provenance:[key-value])
 %
 %	Provenance is a list of key-value pairs with provenance about
-%	node R as defined by strategy Alignment
+%	node R as defined by Strategy.
 
 
-amalgame_provenance(R, Alignment, Provenance) :-
-	findall(Key-Value, ag_prov(R, Alignment, Key, Value), Provenance0),
+amalgame_provenance(R, Strategy, Provenance) :-
+	findall(Key-Value, ag_prov(R, Strategy, Key, Value), Provenance0),
 	sort(Provenance0,Provenance).
 
 ag_prov(R, A, 'defined by', \rdf_link(Agent)) :-

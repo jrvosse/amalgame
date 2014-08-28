@@ -66,7 +66,7 @@ html_new(_) -->
 		      [inactive]
 		     ).
 
-%%	html_open(+Alignments)
+%%	html_open(+StrategySchemePairs)
 %
 %
 html_open([]) -->

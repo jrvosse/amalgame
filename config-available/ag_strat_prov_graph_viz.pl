@@ -17,7 +17,7 @@ cliopatria:context_graph(URI, RDF) :-
 	;   rdfs_individual_of(URI, prov:'Activity')
 	;   rdfs_individual_of(URI, prov:'Agent')
 	;   skos_is_vocabulary(URI)
-	;   rdfs_individual_of(URI, amalgame:'Alignment')
+	;   rdfs_individual_of(URI, amalgame:'Entity')
 	),
 	findall(T, prov_context_triple(URI, T), RDF0),
 	sort(RDF0, RDF1),
@@ -87,20 +87,20 @@ transitive_context(prov:used).
 transitive_context(prov:wasInfluencedBy).
 
 blacklist(Orig, Overlap) :-
-	rdfs_individual_of(Overlap, amalgame:'OverlapAlignment'),
-	\+ rdfs_individual_of(Orig, amalgame:'OverlapAlignment'),
+	rdfs_individual_of(Overlap, amalgame:'OverlapMapping'),
+	\+ rdfs_individual_of(Orig, amalgame:'OverlapMapping'),
 	\+ rdf_has(_Overlap, prov:wasGeneratedBy,Orig).
 
 blacklist(Orig, OverlapProcess) :-
 	rdf_has(Overlap, prov:wasGeneratedBy, OverlapProcess),
-	rdfs_individual_of(Overlap, amalgame:'OverlapAlignment'),
-	\+ rdfs_individual_of(Orig, amalgame:'OverlapAlignment').
+	rdfs_individual_of(Overlap, amalgame:'OverlapMapping'),
+	\+ rdfs_individual_of(Orig, amalgame:'OverlapMapping').
 
 
-% Alignment made with amalgame:
+% Mapping made with amalgame:
 cliopatria:node_shape(URI, Shape, _Options) :-
 	rdf_has(URI, rdf:type, prov:'Entity'),
-	rdfs_individual_of(URI, amalgame:'Alignment'),
+	rdfs_individual_of(URI, amalgame:'Mapping'),
 	rdf_has(URI, prov:wasInfluencedBy, _),
 	Shape = [shape('Mdiamond'),fontize('20.00'), style(filled),fillcolor('#FF8888')].
 % Amalgame process:
@@ -108,12 +108,12 @@ cliopatria:node_shape(URI, Shape, _Options) :-
 	rdfs_individual_of(URI, prov:'Activity'),
 	Shape = [shape('box'), style(filled),fillcolor('#FF8888')].
 
-% Alignment (up)loaded, typically not made with amalgame
+% Mapping (up)loaded, typically not made with amalgame
 cliopatria:node_shape(URI, Shape, _Options) :-
-	rdfs_individual_of(URI, amalgame:'Alignment'),
+	rdfs_individual_of(URI, amalgame:'LoadedMapping'),
 	Shape = [shape('Mdiamond'), style(filled),fillcolor('#AAAAAA')].
 
-% Vocabulary (up)loaded, typically not made with amalgame
+% Vocabulary (up)loaded or made with amalgame
 cliopatria:node_shape(URI, Shape, _Options) :-
 	skos_is_vocabulary(URI),
 	Shape = [shape(box3d),style(filled),fillcolor('#AAAAAA')].
