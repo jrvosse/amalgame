@@ -1,5 +1,5 @@
 :- module(map_merger, [
-	      merger/3   % also used by for other modules
+	      merger/3   % also used by other modules
 	  ]).
 
 :- use_module(library(amalgame/map)).
