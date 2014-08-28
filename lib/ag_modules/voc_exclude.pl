@@ -33,9 +33,6 @@ add_to_scheme(R, Scheme) :-
 add_to_scheme(R, Scheme) :-
 	rdf_assert(R, skos:inScheme, Scheme, Scheme).
 
-%	pairs_keys(Pairs, Rest),
-%	ord_list_to_rbtree(Pairs, RestAssoc).
-
 mapping_concepts(source, Mapping, Concepts) :-
 	maplist(arg(1), Mapping, Concepts).
 mapping_concepts(target, Mapping, Concepts) :-
