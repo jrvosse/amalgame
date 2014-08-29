@@ -57,12 +57,15 @@ select_n_1(Mapping, Sel, Dis) :-
 %	Mapping_1_n contains all correspondences where a target is
 %	mapped to only one source.
 select_1_n(Mapping, Sel, Dis) :-
-	predsort(ag_map:compare_align(target), Mapping, TargetSorted),
-	select_1_n_raw(TargetSorted, Sel0, Dis0),
-	predsort(ag_map:compare_align(source),Sel0, Sel1),
-	predsort(ag_map:compare_align(source),Dis0, Dis1),
+	select_1_n_raw(Mapping, Sel1, Dis1),
 	maplist(ap(selected, target), Sel1, Sel),
 	maplist(ap(discarded,target), Dis1, Dis).
+
+select_1_n_raw(Mapping, Sel, Dis) :-
+	predsort(ag_map:compare_align(target), Mapping, TargetSorted),
+	select_1_n_no_sort(TargetSorted, Sel0, Dis0),
+	predsort(ag_map:compare_align(source),Sel0, Sel),
+	predsort(ag_map:compare_align(source),Dis0, Dis).
 
 select_n_1_raw([], [], []).
 select_n_1_raw([align(S,T,P)|As], A1, A2) :-
@@ -75,8 +78,8 @@ select_n_1_raw([align(S,T,P)|As], A1, A2) :-
 	),
 	select_n_1_raw(Rest, A1Rest, A2Rest).
 
-select_1_n_raw([], [], []).
-select_1_n_raw([align(S,T,P)|As], A1, A2) :-
+select_1_n_no_sort([], [], []).
+select_1_n_no_sort([align(S,T,P)|As], A1, A2) :-
 	same_target(As, T, Same, Rest),
 	(   Same = []
 	->  A1 = [align(S,T,P)|A1Rest],
@@ -84,7 +87,7 @@ select_1_n_raw([align(S,T,P)|As], A1, A2) :-
 	;   append([align(S,T,P)|Same], A2Rest, A2),
 	    A1 = A1Rest
 	),
-	select_1_n_raw(Rest, A1Rest, A2Rest).
+	select_1_n_no_sort(Rest, A1Rest, A2Rest).
 
 
 
