@@ -32,10 +32,11 @@ selecter(AlignmentGraph, SelP, [], Und, Options) :-
 	    predsort(ag_map:compare_align(source), Sel0,  Sel),
 	    predsort(ag_map:compare_align(source), Und0,  Und)
 	),
-	maplist(ap, Sel, SelP).
+	maplist(ap(SourceOrTarget, Depth), Sel, SelP).
 
-ap(align(S,T,P), align(S,T,Pnew)) :-
-	append(P, [[method(sibling_select)]], Pnew).
+ap(Type, Depth, align(S,T,P), align(S,T,Pnew)) :-
+	append(P, [[method(sibling_select),
+		    score([type(Type), maxdepth(Depth)])]], Pnew).
 
 
 
