@@ -136,7 +136,7 @@ prepare_mapping(Id, Strategy, Options) :-
 	->  expand_node(Strategy, Id, Mapping),
 	    (	Mapping = [_|_]
 	    ->	default_mapping_relation(Id, Default, Options),
-		augment_relations(Strategy, Id, Mapping, Augmented, [default_relation(Default)]),
+		augment_relations(Strategy, Mapping, Augmented, [default_relation(Default)]),
 		materialize_mapping_graph(Augmented, [graph(Id) | Options])
 	    ;	true % empty mapping, do nothing
 	    )

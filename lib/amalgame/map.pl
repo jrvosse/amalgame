@@ -9,7 +9,7 @@
 	   map_localname/3,             % +Strategy, +MappingGraph, ?Localname
 	   nickname_clear_cache/0,
 
-	   augment_relations/5,
+	   augment_relations/4,
 
 	   mapping_relation/2,
 	   materialize_mapping_graph/2, % +List, +Options
@@ -39,8 +39,7 @@ align(Source,Target,EvidenceList) terms.
 
 :- use_module(library(amalgame/edoal)).
 :- use_module(library(amalgame/rdf_util)).
-:- use_module(library(amalgame/expand_graph)).
-:- use_module(library(amalgame/ag_evaluation)).
+:- use_module(library(amalgame/ag_reference)).
 
 :- dynamic
 	nickname_cache/3.
@@ -381,12 +380,9 @@ create_nickname(Strategy, Graph, _Postfix, Nickname) :-
 nickname_clear_cache :-
 	retractall(nickname_cache(_,_,_)).
 
-augment_relations(Strategy, Id, Mapping, Augmented, Options) :-
-	(   evaluation_graph_chk(Strategy, Id, Prev)
-	->  expand_node(Strategy, Prev, PreviousEvaluation)
-	;   PreviousEvaluation = []
-	),
-	augment_relation(Mapping, PreviousEvaluation, Augmented, Options).
+augment_relations(Strategy, Mapping, Augmented, Options) :-
+	reference_mappings(Strategy, References),
+	augment_relation(Mapping, References, Augmented, Options).
 
 
 augment_relation([], _, [], _) :- !.
