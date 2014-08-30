@@ -317,9 +317,9 @@ group_provenance(As, S, T, P, [align(S, T, Psorted)|Gs]) :-
         merge_provenance(As, Gs).
 
 
-%%      materialize_alignment_graph(+Alignments, +Options)
+%%      materialize_alignment_graph(+Mappings, +Options)
 %
-%       Assert Alignments as triples in the store.
+%       Assert Mappings as triples in the store.
 
 materialize_mapping_graph(Input, Options) :-
         option(graph(Graph), Options, test),

@@ -61,13 +61,23 @@ voc_property(Voc, Dict, _Options) :-
 	sort(Stats, Unique),
 	dict_create(Dict, voc_stats, Unique).
 
+voc_property(Voc, P, _Options) :-
+	rdf_global_term(P, PG),
+	ground(PG),
+	functor(PG, Name, Arity),
+	functor(P0, Name, Arity),
+	voc_stats_cache(Voc, P0),
+	!, % do not recompute if we have computed a different value for Name!
+	PG = P0.
+
+
 voc_property(Voc, P, Options) :-
 	rdf_global_term(P, PG),
 	(   get_from_cache(Voc, PG, Options)
 	->  true
 	;   (   option(compute(false), Options)
 	    ->  fail
-	    ;   voc_ensure_stats(Voc, PG, Options)
+	    ;	voc_ensure_stats(Voc, PG, Options)
 	    )
 	).
 get_from_cache(Voc, numberOfLabels(D), Options) :-
@@ -98,18 +108,10 @@ skos_util:skos_is_vocabulary(Voc) :-
 	rdfs_individual_of(Voc, amalgame:'Alignable').
 
 
-voc_ensure_stats(Voc, virtual(Result), _) :-
-	(   rdf_has(_, skos:inScheme, Voc)
-	->  Virtual = false
-	;   rdfs_individual_of(Voc, amalgame:'Alignable')
-	->  Virtual = false
-	;   Virtual = true
-	),
-	(   voc_stats_cache(Voc, virtual(Virtual))
-	->  true
-	;   assert(voc_stats_cache(Voc, virtual(Virtual)))
-	),
-	Result = Virtual.
+voc_ensure_stats(Id, virtual(Result), _) :-
+	assert_voc_virtual(Id, Result).
+voc_ensure_stats(Id, materialized(Result), _) :-
+	assert_voc_materialized(Id, Result).
 
 voc_ensure_stats(Voc, format(Format),_) :-
 	skos_is_vocabulary(Voc),
@@ -127,7 +129,7 @@ voc_ensure_stats(Voc, version(Version),_) :-
 	assert(voc_stats_cache(Voc, version(Version))).
 
 voc_ensure_stats(Voc, revision(Revision),_) :-
-	(   rdf(Voc, amalgame:wasGeneratedBy, _)
+	(   rdf_has(Voc, amalgame:wasGeneratedBy, _)
 	->  Revision = amalgame_generated
 	;   assert_voc_version(Voc, Revision)
 	->  true
@@ -193,6 +195,32 @@ voc_ensure_stats(Voc, nrOfTopConcepts(Count), _) :-
 	assert_voc_prop(Voc, nrOfTopConcepts(Count)).
 
 
+assert_voc_virtual(Voc, Result) :-
+	(   rdf_has(_, skos:inScheme, Voc)
+	->  Virtual = false
+	;   rdfs_individual_of(Voc, amalgame:'Alignable')
+	->  Virtual = false
+	;   rdf_has(Voc, amalgame:wasGeneratedBy, Process),
+	    rdfs_individual_of(Process, amalgame:'MaterializedVocabSelecter')
+	->  Virtual = false
+	;   rdf_has(Voc, amalgame:wasGeneratedBy, Process),
+	    rdfs_individual_of(Process, amalgame:'VirtualVocabSelecter')
+	->  Virtual = true
+	;   Virtual = false
+	),
+	retractall(voc_stats_cache(Voc, virtual(_))),
+	assert(voc_stats_cache(Voc, virtual(Virtual))),
+	Result = Virtual.
+
+
+assert_voc_materialized(Voc, Result) :-
+	(   rdf_has(_, skos:inScheme, Voc)
+	->  Materialized = true
+	;   Materialized = false
+	),
+	retractall(voc_stats_cache(Voc, materialized(_))),
+	assert(voc_stats_cache(Voc, materialized(Materialized))),
+	Result = Materialized.
 
 %%	assert_voc_version(+Voc, +TargetGraph) is det.
 %

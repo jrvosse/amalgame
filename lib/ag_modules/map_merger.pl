@@ -1,7 +1,8 @@
 :- module(map_merger, [
-	      merger/3   % also used by for other modules
+	      merger/3   % also used by other modules
 	  ]).
 
+:- use_module(library(lists)).
 :- use_module(library(amalgame/map)).
 
 :- public amalgame_module/1.
@@ -11,7 +12,7 @@ amalgame_module(amalgame:'MapMerger').
 
 %%      merge_mappings(+ListOfGraphs, -Merged)
 %
-%       Merge alignment terms. ListOfGraphs is ordered.
+%       Merge alignment terms. The lists in ListOfGraphs are ordered.
 
 merger([], [], _) :- !.
 merger([L], L, _) :- !.

@@ -95,7 +95,8 @@ YUI.add('vocabulary', function(Y) {
 				},
 				{   request: fetchConceptsURL,
 				    params: {type:'child'},
-				    repeat: true
+				    repeat: true,
+				    options: []
 				}
 				]
 			});

@@ -37,7 +37,7 @@ html_schemes_only -->
 	html_new(ConceptSchemes).
 
 html_main_page(_Request) :-
-	findall(A-S, amalgame_strategy_schemes(A, S), Alignments),
+	findall(A-S, amalgame_strategy_schemes(A, S), StrategySchemePairs),
 	amalgame_alignable_schemes(ConceptSchemes),
 	reply_html_page(cliopatria(main),
 			[ title(['Amalgame - strategies'])
@@ -54,10 +54,10 @@ html_main_page(_Request) :-
 				    [
 					div([id(content), class('yui3-accordion')],
 					    [
-						\html_open(Alignments),
+						\html_open(StrategySchemePairs),
 						\html_reference,
 						\html_import,
-						\html_publish(Alignments),
+						\html_publish(StrategySchemePairs),
 						\html_new(ConceptSchemes)
 					    ])
 				    ]),

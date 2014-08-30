@@ -9,6 +9,8 @@
 :- use_module(library(amalgame/voc_stats)).
 :- use_module(library(amalgame/vocabulary)).
 :- use_module(library(amalgame/util)).
+
+:- use_module(library(skos/util)).
 :- use_module(api(skos_concepts)).
 
 
@@ -36,35 +38,50 @@ http_virtual_concepts(Request) :-
 				 description('Named graph to restrict the concepts by')
 				])
 			]),
-	(   ( voc_property(Parent, virtual(true)),
-	      var(Query),
-	      Type == inscheme)
-	->  virtual_inscheme(Parent, [graphs(Graphs), limit(Limit), offset(Offset)])
-	;   ( voc_property(Parent, virtual(true)),
-	      var(Query),
-	      Type == topconcept)
-	->  virtual_topconcepts(Parent, [graphs(Graphs), limit(Limit), offset(Offset)])
-	;   http_concepts(Request)
-	).
-
-virtual_topconcepts(Scheme, Options) :-
-	virtual_inscheme(Scheme, Options).
-
-virtual_inscheme(Scheme, Options) :-
-	option(graphs(Graphs), Options),
-	option(limit(Limit), Options),
-	option(offset(Offset), Options),
-	findall(Label-C, (
-		    vocab_member(C, Scheme),
-		    rdf_display_label(C, Label)
-		), Concepts),
+	(   voc_property(Parent, virtual(false))
+	->  http_concepts(Request)
+	;   findall(Label-Concept, concept_of(Type, Parent, Query, Concept, Label), Concepts),
 	    sort(Concepts, Sorted),
 	    length(Sorted, Total),
 	    list_offset(Sorted, Offset, OffsetResults),
 	    list_limit(OffsetResults, Limit, LimitResults, _),
 	    concept_results(LimitResults, Graphs, JSONResults),
-	    reply_json(json([parent=Scheme,
+	    reply_json(json([parent=Parent,
 			 offset=Offset,
 			 limit=Limit,
 			 totalNumberOfResults=Total,
-			 results=JSONResults])).
+			 results=JSONResults]))
+	).
+
+concept_of(Type, Parent, Query, Concept, Label) :-
+	var(Query),
+	!,
+	concept(Type, Parent, Concept),
+	rdf_display_label(Concept, Label).
+
+concept_of(Type, Parent, Query, Concept, Label) :-
+	concept(Type, Parent, Concept),
+	once(label_prefix(Query, Concept, Lit)),
+	literal_text(Lit, Label).
+
+concept(inscheme, ConceptScheme, Concept) :- !,
+	vocab_member(Concept, ConceptScheme).
+concept(topconcept, ConceptScheme, Concept) :- !,
+	vocab_member(Concept, ConceptScheme),
+	\+ (skos_parent_child(_, Concept)).
+concept(child, Parent, Concept) :-
+	skos_parent_child(Parent, Concept).
+concept(descendant, Parent, Concept) :-
+	skos_descendant_of(Parent, Concept).
+concept(related, Parent, Concept) :-
+	skos_related_concept(Parent, Concept).
+
+%%	label_prefix(+Query, -R, -Lit)
+%
+%	True if Query matches a literal value of R.
+
+label_prefix(Query, R, Lit) :-
+	rdf_has(R, rdfs:label, literal(prefix(Query), Lit)).
+label_prefix(Query, R, Lit) :-
+	rdf_has(O, rdf:value, literal(prefix(Query), Lit)),
+	rdf_has(R, rdfs:label, O).

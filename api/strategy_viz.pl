@@ -169,14 +169,14 @@ amalgame_shape(R, [shape(ellipse),
 	      style(filled),
               fontsize(10)]) :-
 	atom(R),
-	rdfs_individual_of(R, amalgame:'Alignment'),
+	rdfs_individual_of(R, amalgame:'Mapping'),
 	!,
 	artifact_color(R, Color).
 amalgame_shape(_R, [shape(box),
 	       fontsize(10)]).
 
 process_color(R, '#FFCC99') :-
-	rdfs_individual_of(R, amalgame:'Subtracter'),
+	rdfs_individual_of(R, amalgame:'VocabSelecter'),
 	!.
 process_color(R, '#99CCFF') :-
 	rdfs_individual_of(R, amalgame:'Selecter'),
