@@ -52,8 +52,13 @@ voc_property(Voc, P) :-
 	nonvar(P),
 	voc_property(Voc, P, []).
 
-voc_property(Voc, Dict, _Options) :-
+voc_property(Voc, Dict, Options) :-
 	var(Dict),!,
+	option(compute(Compute), Options, false),
+	(   Compute
+	->  voc_property(Voc, numberOfConcepts(_)) % hack...
+	;   true
+	),
 	findall(P, ( voc_stats_cache(Voc, P),
 		     compound_name_arity(P,_,1)
 		   ),
