@@ -1,7 +1,12 @@
 :- module(sibling_selecter,[]).
 
+:- use_module(library(apply)).
+:- use_module(library(lists)).
+:- use_module(library(option)).
+:- use_module(library(sort)).
 :- use_module(library(skos/util)).
 :- use_module(library(amalgame/map)).
+:- use_module(library(semweb/rdf_label)).
 
 :- public amalgame_module/1.
 :- public selecter/5.
@@ -19,39 +24,57 @@ amalgame_module(amalgame:'SiblingSelecter').
 
 %%      selecter(+Source, -Selected, -Discarded, -Undecided, +Options)
 %
-%
+%       Source should be sorted (e.g. on source).
 
-selecter(SSorted, SelP, [], Und, Options) :-
-	option(depth(Depth), Options, 2),
+selecter(SSorted, Sel, [], Und, Options) :-
+	option(depth(MaxDepth), Options, 2),
 	option(type(SourceOrTarget), Options, source),
 	(   SourceOrTarget = target
-	->  partition_(SourceOrTarget, SSorted, Depth, Sel, Und)
+	->  partition_(SourceOrTarget, SSorted, MaxDepth, Sel, Und)
 	;   predsort(ag_map:compare_align(target), SSorted, TSorted),
-	    partition_(SourceOrTarget, TSorted, Depth, Sel0, Und0),
+	    partition_(SourceOrTarget, TSorted, MaxDepth, Sel0, Und0),
 	    predsort(ag_map:compare_align(source), Sel0,  Sel),
 	    predsort(ag_map:compare_align(source), Und0,  Und)
-	),
-	maplist(ap(SourceOrTarget, Depth), Sel, SelP).
-
-ap(Type, Depth, align(S,T,P), align(S,T,Pnew)) :-
+	).
+ac(Result, Type, Length, align(S,T,P), align(S,T,Pnew)) :-
 	append(P, [[method(sibling_select),
-		    score([type(Type), maxdepth(Depth)])]], Pnew).
-
+		    score([
+			result(Result),
+			type(Type),
+			nr_compared(Length)])]
+		  ], Pnew).
+ac(Result, Type, Length, Depth, Parent, align(S,T,P), align(S,T,Pnew)) :-
+	rdf_display_label(Parent, Label),
+	append(P, [[method(sibling_select),
+		    score([
+			result(Result),
+			type(Type),
+			depth(Depth),
+			nr_compared(Length),
+			parent_label(Label),
+			parent(Parent)])]
+		  ], Pnew).
 
 
 partition_(_, [], _, [], []).
-partition_(target, [A|As], Depth, Sel, Und) :-
+partition_(target, [A|As], MaxDepth, Sel, Und) :-
 	A = align(S,T,_),
 	same_source(As, S, Same, Rest),
 	(   Same \= [],
-	    skos_descendant_of(Parent,T, Depth, _),
-	    siblings(target, Same, Parent, Depth)
-	->  append([A|Same], SelRest, Sel),
+	    skos_descendant_of(Parent,T, MaxDepth,  Depth),
+	    siblings(target, Same, Parent, MaxDepth)
+	->  Selected = [A|Same],
+	    length(Selected, Length),
+	    maplist(ac(selected, target, Length, Depth, Parent), Selected, SelectedE),
+	    append(SelectedE, SelRest, Sel),
 	    Und = UndRest
-	;   append([A|Same], UndRest, Und),
+	;   Undecided = [A|Same],
+	    length(Undecided, Length),
+	    maplist(ac(undecided, target, Length), Undecided, UndecidedE),
+	    append(UndecidedE, UndRest, Und),
 	    Sel = SelRest
 	),
-	partition_(target, Rest, Depth, SelRest, UndRest).
+	partition_(target, Rest, MaxDepth, SelRest, UndRest).
 
 partition_(source, [A|As], Depth, Sel, Und) :-
 	A = align(S,T,_),
@@ -59,9 +82,15 @@ partition_(source, [A|As], Depth, Sel, Und) :-
 	(   Same \= [],
 	    skos_descendant_of(Parent, S, Depth, _),
 	    siblings(source, Same, Parent, Depth)
-	->  append([A|Same], SelRest, Sel),
+	->  Selected = [A|Same],
+	    length(Selected, Length),
+	    maplist(ac(selected, source, Length, Depth, Parent), Selected, SelectedE),
+	    append(SelectedE, SelRest, Sel),
 	    Und = UndRest
-	;   append([A|Same], UndRest, Und),
+	;   Undecided = [A|Same],
+	    length(Undecided, Length),
+	    maplist(ac(undecided, source, Length), Undecided, UndecidedE),
+	    append(UndecidedE, UndRest, Und),
 	    Sel = SelRest
 	),
 	partition_(source, Rest, Depth, SelRest, UndRest).
