@@ -20,6 +20,7 @@
 :- use_module(library(ag_modules/most_labels)).
 :- use_module(library(ag_modules/most_generic)).
 :- use_module(library(ag_modules/ancestor_selecter)).
+:- use_module(library(ag_modules/descendent_selecter)).
 :- use_module(library(ag_modules/related_selecter)).
 :- use_module(library(ag_modules/sibling_selecter)).
 
