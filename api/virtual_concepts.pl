@@ -4,6 +4,7 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_json)).
+:- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_label)).
 
 :- use_module(library(amalgame/voc_stats)).
