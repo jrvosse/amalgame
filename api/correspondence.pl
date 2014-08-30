@@ -44,7 +44,7 @@ http_correspondence(Request) :-
 				  description('Include all target')])
 			]),
 	find_correspondences(Mapping, Strategy, Source, Target, AllSource, AllTarget, Cs),
-	augment_relations(Strategy, Mapping, Cs, CS_augmented, []),
+	augment_relations(Strategy, Cs, CS_augmented, []),
 
 	findall(R-L, mapping_relation(L, R), Relations),
 	phrase(html_correspondences(CS_augmented, [relations(Relations), mode(Mode)]), HTML),
