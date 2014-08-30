@@ -49,7 +49,7 @@ vocab_member(E, vscheme(Scheme)) :-
 	vocab_member(E, VocSpec).
 
 vocab_member(E, rscheme(Scheme)) :-
-	rdf_has(E, skos:inScheme, Scheme).
+	skos_in_scheme(Scheme, E).
 
 vocab_member(E, dscheme(Scheme)) :-
 	materialize(Scheme, _VocSpec),!,
