@@ -196,7 +196,7 @@ voc_ensure_stats(Voc, nrOfTopConcepts(Count), _) :-
 
 
 assert_voc_virtual(Voc, Result) :-
-	(   rdf_has(_, skos:inScheme, Voc)
+	(   skos_in_scheme(Voc, _)
 	->  Virtual = false
 	;   rdfs_individual_of(Voc, amalgame:'Alignable')
 	->  Virtual = false
@@ -214,7 +214,7 @@ assert_voc_virtual(Voc, Result) :-
 
 
 assert_voc_materialized(Voc, Result) :-
-	(   rdf_has(_, skos:inScheme, Voc)
+	(   skos_in_scheme(Voc, _)
 	->  Materialized = true
 	;   Materialized = false
 	),
