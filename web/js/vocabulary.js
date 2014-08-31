@@ -65,6 +65,7 @@ YUI.add('vocabulary', function(Y) {
 
 		_initBrowser : function() {
 			var fetchConceptsURL = this.get("paths").concepts;
+			var strategy = this.get('strategy');
 
 			// We define a datasource to simplify
 			// access to the vocabularys later and add caching support
@@ -89,12 +90,12 @@ YUI.add('vocabulary', function(Y) {
 				searchEnabled: false,
 				columns: [
 				{   request: fetchConceptsURL,
-				    params: {type:'topconcept'},
+					params: { type:'topconcept', strategy:strategy },
 				    options: [{'value':'inscheme', 'label':'all concepts'},
 					      {'value':'topconcept', 'selected':'true', 'label':'top concepts'}]
 				},
 				{   request: fetchConceptsURL,
-				    params: {type:'child'},
+				    params: {type:'child', strategy:strategy },
 				    repeat: true,
 				    options: []
 				}
