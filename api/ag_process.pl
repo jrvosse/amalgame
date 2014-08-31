@@ -2,6 +2,12 @@
 	  [
 	  ]).
 
+:- use_module(library(lists)).
+:- use_module(library(option)).
+:- use_module(library(oset)).
+:- use_module(library(settings)).
+:- use_module(library(uri)).
+
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_json)).
@@ -19,7 +25,7 @@
 :- use_module(library(amalgame/map)).
 
 :- setting(amalgame:precompute, boolean, true,
-	   'When true new mappings and virtual vocabularies are pre-computed in the background').
+	   'When true (default) new mappings and virtual vocabularies are pre-computed in the background').
 
 :- http_handler(amalgame(data/addprocess), http_add_process, []).
 :- http_handler(amalgame(data/updatenode), http_update_node, []).
@@ -158,7 +164,7 @@ new_process(Type, Strategy, Source, Target, Input, SecInputs, Params, Focus) :-
 	rdf_transaction( % this rdf_transaction is to make it MT safe
 	    (	assert_process(URI, Type, Strategy, Params),
 		assert_user_provenance(URI, Strategy),
-		assert_input(URI, Type, Strategy, Source, Target, Input),
+		assert_input(URI, Type, Strategy, Source, Target, Input, Params),
 		assert_secondary_inputs(SecInputs, URI, Type, Strategy),
 		assert_output(URI, Type, Strategy, Input, SecInputs, Focus)
 	    )),
@@ -173,18 +179,30 @@ precompute_process(Strategy, Process) :-
 	rdf(Mapping, RP, Process, Strategy),
 	precompute_node(Strategy, Mapping).
 
-assert_input(_Process, Type, _Graph, _Source, _Target, _Input) :-
+assert_input(_Process, Type, _Graph, _Source, _Target, _Input, _Params) :-
 	rdfs_subclass_of(Type, amalgame:'MultiInputComponent'),
 	!.
-
-assert_input(Process, _Type, Graph, Source, Target, _Input) :-
+assert_input(Process, Type, Graph, Source, Target, _Input, Params) :-
 	nonvar(Source),
 	nonvar(Target),
 	!,
 	rdf_assert(Process, amalgame:source, Source, Graph),
-	rdf_assert(Process, amalgame:target, Target, Graph).
-assert_input(Process, _Type, Graph, _Source, _Target, Input) :-
-	rdf_assert(Process, amalgame:input, Input, Graph).
+	rdf_assert(Process, amalgame:target, Target, Graph),
+	(   rdfs_subclass_of(Type, amalgame:'SelectPreLoaded'),
+	    option(name(Name), Params)
+	->  rdf_assert(Process, amalgame:input, Name, Graph)
+	;   false
+	).
+
+assert_input(Process, Type, Graph, _Source, _Target, Input, Params) :-
+	nonvar(Input),
+	!,
+	rdf_assert(Process, amalgame:input, Input, Graph),
+	(   rdfs_subclass_of(Type, amalgame:'SelectPreLoaded'),
+	    option(name(Name), Params)
+	->  rdf_assert(Process, amalgame:input, Name, Graph)
+	;   false
+	).
 
 assert_secondary_inputs([], _, _, _).
 assert_secondary_inputs([URI|URIs], Process, Type, Strategy) :-

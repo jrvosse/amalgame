@@ -173,21 +173,7 @@ expand_process(Strategy, Process, Result) :-
 		       rdf(URI, OutputType, Process, Strategy)
 		     ),
 		Artifacts),
-	add_amalgame_prov(Strategy, Process, Artifacts),
-	preload_hack(Strategy, Process, Type, Options).
-
-
-preload_hack(Strategy, Process, Type, Options) :-
-	% HACK: this is needed to get preloaded graphs in the strategy graph
-        % because we cannot select a mapping that has not been generated within the
-	% builder as an input mapping...
-	(   rdfs_subclass_of(Type, amalgame:'SelectPreLoaded')
-	->  option(name(PreloadedGraph), Options),
-	    rdf_assert(Process, amalgame:input, PreloadedGraph, Strategy),
-	    rdf_assert(PreloadedGraph, rdf:type, amalgame:'LoadedMapping', Strategy)
-	;   true
-	).
-
+	add_amalgame_prov(Strategy, Process, Artifacts).
 
 materialize_results_if_needed(Strategy, Process, Results) :-
 	findall(Id-RP,
