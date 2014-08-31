@@ -185,7 +185,6 @@ preload_hack(Strategy, Process, Type, Options) :-
 	->  option(name(PreloadedGraph), Options),
 	    rdf_assert(Process, amalgame:input, PreloadedGraph, Strategy),
 	    rdf_assert(PreloadedGraph, rdf:type, amalgame:'LoadedMapping', Strategy)
-	    % rdf_assert(PreloadedGraph, amalgame:status, amalgame:imported, Strategy)
 	;   true
 	).
 
