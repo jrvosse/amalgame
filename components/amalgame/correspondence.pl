@@ -155,13 +155,23 @@ html_evidences([E|Es],Source,Target) -->
 	  ->  By = span([class(who)], [' by: ', \rdf_link(User)])
 	  ;   By = ''
 	  ),
+	  (   option(graph(Graph), E), atom(Graph)
+	  ->  Gr = span([class(graph)], [' from: ', \rdf_link(Graph)])
+	  ;   Gr = ''
+	  ),
+	  (   option(relation(Rel), E), atom(Rel)
+	  ->  Re = span([class(relation)], [' relation: ', \rdf_link(Rel)])
+	  ;   Re = ''
+	  ),
 	  (   option(comment(Comment), E)
 	  ->  Cm = span([class(comment)], [' with comment: ', Comment])
 	  ;   Cm = ''
 	  )
 	},
 	html(div(class(evidence),
-		 [ div(class(method), ['match: ', Method, By, At, Mt, Src, Trg, Ss, Ts, Scs, Cm]),
+		 [ div(class(method),
+		       ['match: ',
+			Method, By, Gr, Re, At, Mt, Src, Trg, Ss, Ts, Scs, Cm]),
 		   div(class('graph yui3-g'),
 		       [ div(class('source yui3-u-1-2'),
 			     \html_evidence_graph(Graph, Source, 'LR')),

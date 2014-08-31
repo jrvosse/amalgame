@@ -187,7 +187,8 @@ has_map([E1, E2], edoal, Properties, Graph) :-
 		Properties).
 
 has_map([E1, E2], Format, [[method(preloaded),
-			    relation(RealProp)]], Graph) :-
+			    relation(RealProp),
+			    graph(Graph)]], Graph) :-
 	mapping_relation(Format,MappingProp),
 	(   ground(E1), ground(E2)
 	->  rdf_has(E1, MappingProp, E2, RealProp),
