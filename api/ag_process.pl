@@ -188,20 +188,18 @@ assert_input(Process, Type, Graph, Source, Target, _Input, Params) :-
 	!,
 	rdf_assert(Process, amalgame:source, Source, Graph),
 	rdf_assert(Process, amalgame:target, Target, Graph),
-	(   rdfs_subclass_of(Type, amalgame:'SelectPreLoaded'),
-	    option(name(Name), Params)
-	->  rdf_assert(Process, amalgame:input, Name, Graph),
-	    flush_refs_cache(Graph)
-	;   true
-	).
-
+	assert_preloaded_input(Process, Type, Graph, Params).
 assert_input(Process, Type, Graph, _Source, _Target, Input, Params) :-
 	nonvar(Input),
 	!,
 	rdf_assert(Process, amalgame:input, Input, Graph),
+	assert_preloaded_input(Process, Type, Graph, Params).
+
+assert_preloaded_input(Process, Type, Graph, Params) :-
 	(   rdfs_subclass_of(Type, amalgame:'SelectPreLoaded'),
 	    option(name(Name), Params)
 	->  rdf_assert(Process, amalgame:input, Name, Graph),
+	    rdf_assert(Name, rdf:type, amalgame:'LoadedMapping', Graph),
 	    flush_refs_cache(Graph)
 	;   true
 	).
