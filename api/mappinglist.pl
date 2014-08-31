@@ -12,24 +12,23 @@
 
 %%	http_mapping_list(+Request)
 %
-%	Return a JSON object with the (finalize) mappings in an
-%	alignment strategy. This is a hack that needs fixing.
+%	Return a JSON object with the (final) mappings in an
+%	alignment strategy.
 
 http_mapping_list(Request) :-
 	http_parameters(Request,
 			[ strategy(Strategy,
 				   [description('URL of strategy')]),
 			  status(Status,
-				 [default(finalized)])
+				 [default(final)])
 			]),
 	Obj = json([uri=URI, label=Label]),
 	findall(Obj, mapping_in_strategy(Strategy, URI, Label, [status(Status)]), Mappings),
 	reply_json(Mappings).
 
 mapping_in_strategy(Strategy, MappingId, Label, Options) :-
+	option(status(StatusRequired), Options),
 	rdf(MappingId, rdf:type, amalgame:'Mapping', Strategy),
-	(   option(status(finalized), Options)
-	->  rdf_graph(MappingId)
-	;   true
-	),
+	rdf(MappingId, amalgame:status, MappingStatus),
+	rdf_global_id(_NS:StatusRequired, MappingStatus),
 	rdf_display_label(MappingId, Label).
