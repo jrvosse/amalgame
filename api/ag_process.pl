@@ -190,7 +190,8 @@ assert_input(Process, Type, Graph, Source, Target, _Input, Params) :-
 	rdf_assert(Process, amalgame:target, Target, Graph),
 	(   rdfs_subclass_of(Type, amalgame:'SelectPreLoaded'),
 	    option(name(Name), Params)
-	->  rdf_assert(Process, amalgame:input, Name, Graph)
+	->  rdf_assert(Process, amalgame:input, Name, Graph),
+	    flush_refs_cache(Graph)
 	;   true
 	).
 
@@ -200,7 +201,8 @@ assert_input(Process, Type, Graph, _Source, _Target, Input, Params) :-
 	rdf_assert(Process, amalgame:input, Input, Graph),
 	(   rdfs_subclass_of(Type, amalgame:'SelectPreLoaded'),
 	    option(name(Name), Params)
-	->  rdf_assert(Process, amalgame:input, Name, Graph)
+	->  rdf_assert(Process, amalgame:input, Name, Graph),
+	    flush_refs_cache(Graph)
 	;   true
 	).
 
