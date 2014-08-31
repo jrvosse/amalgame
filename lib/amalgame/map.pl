@@ -5,6 +5,8 @@
 	   correspondence_source/2,
 	   correspondence_target/2,
 	   correspondence_evidence/2,
+	   correspondence_element/3,
+
 	   map_nickname/3,             % +Strategy, +MappingGraph, ?Nickname
 	   map_localname/3,             % +Strategy, +MappingGraph, ?Localname
 	   nickname_clear_cache/0,
@@ -74,6 +76,10 @@ correspondence_target(align(_,T,_), T).
 
 correspondence_evidence(align(_,_,E), E).
 
+correspondence_element(source,   C, S) :- correspondence_source(C,S).
+correspondence_element(target,   C, T) :- correspondence_target(C,T).
+correspondence_element(evidence, C, E) :- correspondence_evidence(C,E).
+
 %%	same_source(+List, +Source, -Same, -Rest) is det.
 %
 %	Same contains all alignments from List that have Source as a
@@ -98,7 +104,7 @@ same_target(As, _S, [], As).
 
 %%	has_correspondence(?C, +G) is nondet.
 %
-%	Is true if C unifies with a correspondece C in named graph G.
+%	Is true if C unifies with a correspondence C in named graph G.
 
 has_correspondence(align(E1, E2, P), Graph) :-
 	has_map([E1, E2], _, Properties, Graph),
