@@ -37,16 +37,20 @@ http_virtual_concepts(Request) :-
 			  graph(Graphs,
 				[zero_or_more,
 				 description('Named graph to restrict the concepts by')
-				])
+				]),
+			  strategy(Strategy,
+				   [description('Strategy to use to create the concepts')
+				   ])
 			]),
 	(   voc_property(Parent, virtual(false))
 	->  http_concepts(Request)
-	;   findall(Label-Concept, concept_of(Type, Parent, Query, Concept, Label), Concepts),
+	;   findall(Label-Concept,
+		    concept_of(Type, Parent, Query, Concept, Label), Concepts),
 	    sort(Concepts, Sorted),
 	    length(Sorted, Total),
 	    list_offset(Sorted, Offset, OffsetResults),
 	    list_limit(OffsetResults, Limit, LimitResults, _),
-	    concept_results(LimitResults, Graphs, JSONResults),
+	    concept_results(LimitResults, Graphs, JSONResults, [strategy(Strategy)]),
 	    reply_json(json([parent=Parent,
 			 offset=Offset,
 			 limit=Limit,
