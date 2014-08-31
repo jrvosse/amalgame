@@ -13,6 +13,11 @@ amalgame:SelectPreLoaded
     skos:definition "Match mappings from preloaded named graph against concepts in source and target vocabularies"@en ;
     rdfs:subClassOf amalgame:Matcher .
 
+amalgame:SelectPreLoadedSelecter
+    rdfs:label "import/preloaded"@en ;
+    skos:definition "Select mappings with corresponding mappings in the preloaded mapping, discard others with the same source/target."@en ;
+    rdfs:subClassOf amalgame:MappingSelecter .
+
 amalgame:ExactLabelMatcher
     rdfs:label "string/label (exact)"@en ;
     skos:definition "A basic label matcher based on exact matching labels of source and target concepts"@en ;
