@@ -214,8 +214,6 @@ materialize_results_if_needed(Strategy, Process, Results) :-
 	    )
 	).
 
-needs_materialization(Id, _Process, _Strategy) :-
-	rdf_has(Id, amalgame:status, amalgame:final).
 needs_materialization(_Id, Process, _Strategy) :-
 	rdfs_individual_of(Process, ProcessType),
 	rdf(ProcessType, amalgame:materialize, amalgame:always),
