@@ -238,7 +238,7 @@ YUI.add('controls', function(Y) {
 						label = m.label + ' (' + m.local +')'; 
 					}	
 					var status = m.status?m.status:'unspecified';
-					var checked=status.match('final')?'checked':''
+					var checked=status.match('final')||status.match('reference')?'checked':''
 					HTML += '<div><input type="checkbox" name="secondary_input" value="'
 					+uri+'" ' +checked +' class="' + checked +'">'
 					+'<span class="mapping_label">'+m.abbrev+':'+label+'</span></div>';
