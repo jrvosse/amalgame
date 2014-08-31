@@ -188,7 +188,7 @@ materialize_results_if_needed(Strategy, Process, Results) :-
 	    (   select_result_mapping(Id, Results, P, Mapping),
 		materialize(Id, Mapping)
 	    )
-	      ).
+	).
 
 needs_materialization(_Id, Process, _Strategy) :-
 	rdfs_individual_of(Process, ProcessType),
