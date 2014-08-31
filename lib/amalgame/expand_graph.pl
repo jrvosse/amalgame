@@ -1,8 +1,11 @@
 :- module(expand_graph,
 	  [ expand_node/3,
-	    precompute_node/2
+	    precompute_node/2,
+	    is_mapped/4
 	  ]).
 
+:- use_module(library(debug)).
+:- use_module(library(lists)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 
@@ -14,6 +17,10 @@
 :- use_module(library(amalgame/amalgame_modules)).
 
 :- use_module(library(ag_drivers/exec_amalgame_process)).
+
+
+:- dynamic
+	mapped_concepts_cache/1.
 
 %%	expand_node(+StrategyURL, +NodeURL, -Result) is det.
 %
@@ -48,6 +55,23 @@ precompute_node(Strategy, Mapping) :-
 		expand_node(Strategy, Mapping, _)
 	    ),
 	    _,[ detached(true) ]).
+
+%%	is_mapped(+Strategy, +Type, +Concept, +Mapping) is semidet.
+%
+%	True if Concepts is a source/target in a correspondence in
+%	Mapping. Type is either source or target.
+is_mapped(Strategy, Type, Concept, Mapping) :-
+	mapped_concepts(Strategy, Type, Mapping, Concepts),
+	ord_memberchk(Concept, Concepts).
+
+mapped_concepts(Strategy, Type, Mapping, Concepts) :-
+	mapped_concepts_cache(m(Strategy, Type, Mapping, Concepts)),
+	!.
+mapped_concepts(Strategy, Type, Mapping,  Sorted) :-
+	expand_node(Strategy, Mapping, Result),
+	maplist(correspondence_element(Type), Result, Concepts),
+	sort(Concepts, Sorted),
+	assert(mapped_concepts_cache(m(Strategy, Type, Mapping, Sorted))).
 
 expand_node_(Strategy, Id, Result) :-
 	% Try if we get this result from the expand_cache first:
@@ -190,6 +214,8 @@ materialize_results_if_needed(Strategy, Process, Results) :-
 	    )
 	).
 
+needs_materialization(Id, _Process, _Strategy) :-
+	rdf_has(Id, amalgame:status, amalgame:final).
 needs_materialization(_Id, Process, _Strategy) :-
 	rdfs_individual_of(Process, ProcessType),
 	rdf(ProcessType, amalgame:materialize, amalgame:always),
