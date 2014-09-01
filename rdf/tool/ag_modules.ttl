@@ -119,7 +119,7 @@ amalgame:VocExclude
     amalgame:need_secondary_inputs true ;
     rdfs:label "subtract mapped concepts"@en ;
     skos:definition "Subtract from a vocabulary the sources or targets from a given mapping to create a vocabulary with the unmapped concepts."@en ;
-    rdfs:subClassOf amalgame:MaterializedVocabSelecter .
+    rdfs:subClassOf amalgame:VirtualVocabSelecter .
 
 amalgame:TypeSelect
     rdfs:label "select facet on type"@en ;
