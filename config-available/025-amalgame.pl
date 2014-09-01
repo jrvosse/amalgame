@@ -39,6 +39,7 @@ http:location(img,		 root(img),                  [ priority(-100) ]).
 :- use_module(applications(builder)).
 :- use_module(applications(evaluater)).
 :- use_module(applications(publisher)).
+:- use_module(library(amalgame/hooks/load)).
 
 % add local web directories from which static files are served.
 
