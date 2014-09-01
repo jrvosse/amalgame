@@ -364,7 +364,7 @@ mapped_chk([_|T], Graphs, Rest, Options) :-
 
 is_mapped(Concept, Mappings, Options) :-
 	option(strategy(Strategy), Options),
-	memberchk(Mapping, Mappings),
+	member(Mapping, Mappings),
 	(   is_mapped(Strategy, source, Concept, Mapping)
 	->  true
 	;   is_mapped(Strategy, target, Concept, Mapping)
