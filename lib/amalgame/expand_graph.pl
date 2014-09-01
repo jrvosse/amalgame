@@ -4,8 +4,10 @@
 	    is_mapped/4
 	  ]).
 
+:- use_module(library(apply)).
 :- use_module(library(debug)).
 :- use_module(library(lists)).
+:- use_module(library(ordsets)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 
@@ -19,8 +21,7 @@
 :- use_module(library(ag_drivers/exec_amalgame_process)).
 
 
-:- dynamic
-	mapped_concepts_cache/1.
+
 
 %%	expand_node(+StrategyURL, +NodeURL, -Result) is det.
 %
@@ -61,17 +62,14 @@ precompute_node(Strategy, Mapping) :-
 %	True if Concepts is a source/target in a correspondence in
 %	Mapping. Type is either source or target.
 is_mapped(Strategy, Type, Concept, Mapping) :-
-	mapped_concepts(Strategy, Type, Mapping, Concepts),
+	(   mapped_concepts(Strategy, Type, Mapping, Concepts)
+	->  true
+	;   expand_node(Strategy, Mapping, Result),
+	    maplist(correspondence_element(Type), Result, Concepts),
+	    sort(Concepts, Sorted),
+	    cache_mapped_concepts(Strategy, Type, Mapping, Sorted)
+	),
 	ord_memberchk(Concept, Concepts).
-
-mapped_concepts(Strategy, Type, Mapping, Concepts) :-
-	mapped_concepts_cache(m(Strategy, Type, Mapping, Concepts)),
-	!.
-mapped_concepts(Strategy, Type, Mapping,  Sorted) :-
-	expand_node(Strategy, Mapping, Result),
-	maplist(correspondence_element(Type), Result, Concepts),
-	sort(Concepts, Sorted),
-	assert(mapped_concepts_cache(m(Strategy, Type, Mapping, Sorted))).
 
 expand_node_(Strategy, Id, Result) :-
 	% Try if we get this result from the expand_cache first:

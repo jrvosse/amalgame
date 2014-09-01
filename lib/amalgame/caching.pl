@@ -3,6 +3,8 @@
 	      expand_cache/2,
 	      stats_cache/2,
 	      cache_result/4,
+	      cache_mapped_concepts/4,
+	      mapped_concepts/4,
 	      clean_repository/0,
 	      flush_dependent_caches/2,
 	      flush_expand_cache/1,     % ?Strategy
@@ -23,6 +25,7 @@
 
 :- dynamic
 	expand_cache/2,
+	mapped_concepts_cache/1,
 	stats_cache/2.
 
 :- setting(amalgame:cache_time, float, 0.0,
@@ -53,6 +56,7 @@ flush_stats_cache(Strategy) :-
 	flush_stats_cache(_Mapping, Strategy).
 
 flush_stats_cache(Mapping, Strategy) :-
+	retractall(mapped_concepts_cache(m(Strategy, _, Mapping, _))),
 	retractall(stats_cache(Mapping-Strategy,_)).
 
 flush_refs_cache(Strategy) :-
@@ -71,6 +75,11 @@ cache_result(_ExecTime, Id, Strategy, Result) :-
 cache_result(ExecTime, Process, Strategy, Result) :-
 	cache_expand_result(ExecTime, Process, Strategy, Result),
 	cache_result_stats(Process, Strategy, Result).
+
+mapped_concepts(Strategy, Type, Mapping, Concepts) :-
+	mapped_concepts_cache(m(Strategy, Type, Mapping, Concepts)).
+cache_mapped_concepts(Strategy, Type, Mapping,  Sorted) :-
+	assert(mapped_concepts_cache(m(Strategy, Type, Mapping, Sorted))).
 
 clean_repository :-
 	debug(ag_expand, 'Deleting all graphs made by amalgame, including strategies!', []),
