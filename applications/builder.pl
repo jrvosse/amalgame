@@ -1,5 +1,6 @@
 :- module(ag_builder, []).
 
+:- use_module(library(pairs)).
 :- use_module(library(settings)).
 
 :- use_module(library(semweb/rdf_db)).
