@@ -70,6 +70,14 @@ vocab_member(E, propvalue(Property, Value)) :- !,
 vocab_member(E, subtree(Root)) :-
 	!,
 	skos_descendant_of(Root, E).
+vocab_member(E, is_mapped(Options)) :-
+	!,
+	ground(E),
+	option(snd_input(Mappings), Options),
+	option(type(Type), Options),
+	option(strategy(Strategy), Options),
+	member(Mapping, Mappings),
+	is_mapped(Strategy, Type, E, Mapping).
 
 vocab_member(F, 'http://sws.geonames.org/') :-
 	!,
