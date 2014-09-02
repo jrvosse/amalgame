@@ -131,9 +131,9 @@ is_amalgame_property(P) :-
 	!.
 % filter out empty results ...
 
-empty_result(Strategy, M) :-
-	rdfs_individual_of(M, amalgame:'Mapping'),
-	node_stats(Strategy, M, Stats, [compute(false)]),
+empty_result(Strategy, E) :-
+	rdfs_individual_of(E, amalgame:'Entity'),
+	node_stats(Strategy, E, Stats, [compute(false)]),
 	option(totalCount(0), Stats),!.
 
 empty_result(_Strategy,M) :-
@@ -176,7 +176,7 @@ amalgame_shape(_R, [shape(box),
 	       fontsize(10)]).
 
 process_color(R, '#FFCC99') :-
-	rdfs_individual_of(R, amalgame:'VocabSelecter'),
+	rdfs_individual_of(R, amalgame:'VocabPartitioner'),
 	!.
 process_color(R, '#99CCFF') :-
 	rdfs_individual_of(R, amalgame:'Selecter'),
