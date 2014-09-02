@@ -104,6 +104,7 @@ vocab_member(E, Class) :-
 
 
 expand_vocab(Scheme, VocSpec) :-
-	rdf(Scheme, amalgame:wasGeneratedBy, _, Strategy),
+	rdf_has(Scheme, amalgame:wasGeneratedBy, Process, OutputType),
+	rdf(Scheme, OutputType, Process, Strategy),
 	rdfs_individual_of(Strategy, amalgame:'AlignmentStrategy'),
 	expand_node(Strategy, Scheme, VocSpec).
