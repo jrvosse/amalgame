@@ -121,6 +121,11 @@ amalgame:VocExclude
     skos:definition "Subtract from a vocabulary the sources or targets from a given mapping to create a vocabulary with the unmapped concepts."@en ;
     rdfs:subClassOf amalgame:VirtualVocabSelecter .
 
+amalgame:TypePartition
+    rdfs:label "partition facet on type"@en ;
+    skos:definition "Partition from a vocabulary based on the concepts being of a specific type or not."@en ;
+    rdfs:subClassOf amalgame:VirtualVocabPartitioner .
+
 amalgame:TypeSelect
     rdfs:label "select facet on type"@en ;
     skos:definition "Select from a vocabulary the concepts of a specific type."@en ;
