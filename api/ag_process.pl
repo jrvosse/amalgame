@@ -33,6 +33,7 @@
 
 :- rdf_meta
 	new_output(r,r,r,r,r,r),
+	assert_output(r,r,r,r,r,r),
 	output_type(r,r).
 
 %%	http_add_process(+Request)
