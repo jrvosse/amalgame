@@ -205,6 +205,8 @@ assert_voc_virtual(Voc, Result) :-
 	->  Virtual = false
 	;   rdfs_individual_of(Voc, amalgame:'Alignable')
 	->  Virtual = false
+	;   rdfs_individual_of(Voc, amalgame:'VirtualConceptScheme')
+	->  Virtual = true
 	;   rdf_has(Voc, amalgame:wasGeneratedBy, Process),
 	    rdfs_individual_of(Process, amalgame:'MaterializedVocabSelecter')
 	->  Virtual = false
