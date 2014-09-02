@@ -57,6 +57,22 @@ select_result_mapping(Id, mapspec(overlap(List)), P, Mapping) :-
 	;   Mapping=[]
 	).
 
+select_result_scheme(_Id, vocspec(select(Selected, Discarded, Undecided)),
+		      OutputType, Mapping) :-
+	\+ rdf_equal(amalgame:wasGeneratedBy, OutputType),
+	!,
+	(   rdf_equal(amalgame:selectedBy, OutputType)
+	->  Mapping = Selected
+	;   rdf_equal(amalgame:discardedBy, OutputType)
+	->  Mapping = Discarded
+	;   rdf_equal(amalgame:undecidedBy, OutputType)
+	->  Mapping = Undecided
+	;   throw(error(existence_error(vocab_selector, OutputType), _))
+	),
+	(   var(Selected)  -> Selected  = [] ; true),
+	(   var(Discarded) -> Discarded = [] ; true),
+	(   var(Undecided) -> Undecided = [] ; true).
+
 select_result_scheme(_Id, vocspec(Scheme), OutputType, vocspec(Scheme)) :-
 	rdf_equal(amalgame:wasGeneratedBy, OutputType).
 
@@ -130,6 +146,15 @@ exec_amalgame_process(Class, Process, Strategy, Module, VocSpec, Time, Options) 
 	timed_call(Module:selecter(Vocab, Result,
 				   [snd_input(Ss), strategy(Strategy)|Options]), Time),
 	VocSpec=vocspec(Result). % vocspec(and(_,_))
+exec_amalgame_process(Class, Process, Strategy, Module, VocSpec, Time, Options) :-
+	rdfs_subclass_of(Class, amalgame:'VocabPartitioner'),
+	!,
+	once(rdf(Process, amalgame:input, Input, Strategy)),
+	findall(S, rdf_has(Process, amalgame:secondary_input, S), Ss),
+	VocSpec = vocspec(select(Selected, Discarded, Undecided)),
+	expand_node(Strategy, Input, InputVocspec),
+	timed_call(Module:partition(InputVocspec, Selected, Discarded, Undecided,
+				   [snd_input(Ss), strategy(Strategy)|Options]), Time).
 exec_amalgame_process(Class, Process,_,_, _, _, _) :-
 	throw(error(existence_error(mapping_process, [Class, Process]), _)).
 
