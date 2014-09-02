@@ -181,6 +181,20 @@ cache_result_stats(Process, Strategy, mapspec(select(Sel, Disc, Undec))) :-
 	    assert(stats_cache(U-Strategy, Ustats))
 	;   true
 	).
+cache_result_stats(Process, Strategy, vocspec(select(_Sel, _Disc, _Undec))) :-
+	!,
+	rdf(S, amalgame:selectedBy, Process, Strategy),
+	voc_clear_stats(S),
+	voc_property(S, numberOfConcepts(_)),
+
+	rdf(D, amalgame:discardedBy, Process, Strategy),
+	voc_clear_stats(D),
+	voc_property(D, numberOfConcepts(_)),
+
+	rdf(U, amalgame:undecidedBy, Process, Strategy),
+	voc_clear_stats(U),
+	voc_property(U, numberOfConcepts(_)).
+
 cache_result_stats(Process, Strategy, mapspec(mapping(Result))) :-
 	rdf_has(D, amalgame:wasGeneratedBy, Process, RP),
 	rdf(D, RP, Process, Strategy),
@@ -200,6 +214,7 @@ cache_result_stats(Process, Strategy, vocspec(VocSpec)) :-
 	;   fail
 	),
 	!,
+	voc_clear_stats(Id),
 	voc_property(Id, numberOfConcepts(_)).
 
 cache_result_stats(Process, _Strategy, _Result) :-
