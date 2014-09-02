@@ -185,15 +185,15 @@ cache_result_stats(Process, Strategy, vocspec(select(_Sel, _Disc, _Undec))) :-
 	!,
 	rdf(S, amalgame:selectedBy, Process, Strategy),
 	voc_clear_stats(S),
-	voc_property(S, numberOfConcepts(_)),
+	voc_property(S, totalCount(_)),
 
 	rdf(D, amalgame:discardedBy, Process, Strategy),
 	voc_clear_stats(D),
-	voc_property(D, numberOfConcepts(_)),
+	voc_property(D, totalCount(_)),
 
 	rdf(U, amalgame:undecidedBy, Process, Strategy),
 	voc_clear_stats(U),
-	voc_property(U, numberOfConcepts(_)).
+	voc_property(U, totalCount(_)).
 
 cache_result_stats(Process, Strategy, mapspec(mapping(Result))) :-
 	rdf_has(D, amalgame:wasGeneratedBy, Process, RP),
@@ -215,7 +215,7 @@ cache_result_stats(Process, Strategy, vocspec(VocSpec)) :-
 	),
 	!,
 	voc_clear_stats(Id),
-	voc_property(Id, numberOfConcepts(_)).
+	voc_property(Id, totalCount(_)).
 
 cache_result_stats(Process, _Strategy, _Result) :-
 	debug(ag_caching, 'Error: do not know how to cache stats of ~p', [Process]),

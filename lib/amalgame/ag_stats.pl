@@ -91,8 +91,8 @@ mapping_stats(URL, Mapping, Strategy, Stats) :-
 		    inputPercentage:IP
 		},
 	(   mapping_vocab_sources(URL, Strategy, InputS, InputT)
-	->  voc_property(InputS, numberOfConcepts(SourceN)),
-	    voc_property(InputT, numberOfConcepts(TargetN)),
+	->  voc_property(InputS, totalCount(SourceN)),
+	    voc_property(InputT, totalCount(TargetN)),
 	    save_perc(SN, SourceN, SPerc),
 	    save_perc(TN, TargetN, TPerc),
 	    js_focus_node(Strategy, InputS, SvocDict),

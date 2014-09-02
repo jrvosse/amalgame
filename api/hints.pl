@@ -63,8 +63,8 @@ find_hint(Strategy, Context, Hint) :-
 	rdf(Strategy, amalgame:includes, Voc1, Strategy),
 	rdf(Strategy, amalgame:includes, Voc2, Strategy),
 	Voc1 \== Voc2,
-	voc_property(Voc1, numberOfConcepts(Count1)),
-	voc_property(Voc2, numberOfConcepts(Count2)),
+	voc_property(Voc1, totalCount(Count1)),
+	voc_property(Voc2, totalCount(Count2)),
 	(   Count1 < Count2
 	->  Source = Voc1, Target = Voc2
 	;   Source = Voc2, Target = Voc1

@@ -80,7 +80,7 @@ precalc_voc_stats(Strategy) :-
 	% handy to know how many concepts etc are in each vocab,
 	% both for the user as for the hints system etc.
 	forall(rdf(Strategy, amalgame:includes, Vocab),
-	       (   voc_property(Vocab, numberOfConcepts(_))
+	       (   voc_property(Vocab, totalCount(_))
 	       ->  ( setting(amalgame:precompute, true)
 		   ->  precompute_node(Strategy, Vocab)
 		   ;   true

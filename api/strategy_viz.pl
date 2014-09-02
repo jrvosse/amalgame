@@ -217,7 +217,7 @@ amalgame_label(Strategy, Resource, Lang, MaxLen, Label) :-
 
 stats_label_list(_Strategy, Resource, [Count]) :-
 	skos_is_vocabulary(Resource),
-	voc_property(Resource, numberOfConcepts(Count), [compute(false)]),
+	voc_property(Resource, totalCount(Count), [compute(false)]),
 	!.
 stats_label_list(Strategy, Resource, [ConceptStats]) :-
 	node_stats(Strategy, Resource, Stats, [compute(false)]),

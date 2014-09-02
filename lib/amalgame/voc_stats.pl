@@ -23,7 +23,7 @@ Currently supported statistical properties include:
 * version(Literal)
 * revision (Literal)
 * format(oneof([skos,skosxl,null]))
-* numberOfConcepts(xsd:int)
+* totalCount(xsd:int)
 * numberOfPrefLabels(xsd:int)
 * numberOfAltLabels(xsd:int)
 * numberOfMappedConcepts(xsd:int)
@@ -56,7 +56,7 @@ voc_property(Voc, Dict, Options) :-
 	var(Dict),!,
 	option(compute(Compute), Options, false),
 	(   Compute
-	->  voc_property(Voc, numberOfConcepts(_)) % hack...
+	->  voc_property(Voc, totalCount(_)) % hack...
 	;   true
 	),
 	findall(P, ( voc_stats_cache(Voc, P),
@@ -143,9 +143,9 @@ voc_ensure_stats(Voc, revision(Revision),_) :-
 	),
 	assert(voc_stats_cache(Voc, revision(Revision))).
 
-voc_ensure_stats(Voc, numberOfConcepts(Count),_) :-
+voc_ensure_stats(Voc, totalCount(Count),_) :-
 	(   count_concepts(Voc, Count) -> true ; Count = 0),
-	assert_voc_prop(Voc, numberOfConcepts(Count)).
+	assert_voc_prop(Voc, totalCount(Count)).
 
 voc_ensure_stats(Voc, numberOfLabels(NewDict), Options) :-
 	option(lang(Lang), Options),

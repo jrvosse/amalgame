@@ -181,9 +181,9 @@ amalgame:overlap_set
 	rdfs:range rdfs:Literal .
 
 amalgame:totalCount a rdf:Property, owl:FunctionalProperty ;
-	rdfs:label "total map count" ;
-	rdfs:comment "The number of mappings in this Aligment" ;
-	rdfs:domain amalgame:Mapping ;
+	rdfs:label "total count" ;
+	rdfs:comment "The number of items in this dataset" ;
+	rdfs:domain amalgame:Entity ;
 	rdfs:range xsd:int .
 
 amalgame:format a rdf:Property , owl:FunctionalProperty ;
@@ -213,11 +213,6 @@ amalgame:target a rdf:Property ;
 	rdfs:subPropertyOf prov:used ;
 	rdfs:range align:Ontology ;
 	rdfs:range skos:ConceptScheme .
-
-amalgame:numberOfConcepts a rdf:Property , owl:FunctionalProperty ;
-	rdfs:label "# Concepts"@en;
-	rdfs:domain skos:ConceptScheme ;
-	rdfs:range xsd:int .
 
 amalgame:numberOfPrefLabels a rdf:Property , owl:FunctionalProperty ;
 	rdfs:label "# pref. labels"@en;

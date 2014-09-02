@@ -197,7 +197,7 @@ amalgame_info(Scheme, Strategy, Stats) :-
 	    'Total concepts: '-Total
 	],
 
-	voc_property(Scheme, numberOfConcepts(Total)),
+	voc_property(Scheme, totalCount(Total)),
 	voc_property(Scheme, format(Format)),
 
 	(   Format = skosxl
@@ -300,7 +300,7 @@ label_lang_stat(Scheme, _Strategy, Property, Langs,
 	format(atom(A), '~d', [D.label]),
 	NrLabels = '# labels' - span([A]),
 
-	voc_property(Scheme, numberOfConcepts(Total)),
+	voc_property(Scheme, totalCount(Total)),
 	voc_property(Scheme, numberOfHomonyms(Property, Lang, HomsL, HomsC)),
 
 	(   D.concept \= Total

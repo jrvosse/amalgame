@@ -395,7 +395,7 @@ assert_counts([URI|Tail], Strategy, ProvGraph) :-
 assert_count(VocUri, _Strategy, ProvGraph) :-
 	skos_is_vocabulary(VocUri),
 	rdf_retractall(VocUri, amalgame:totalCount, _, ProvGraph),
-	voc_property(VocUri, numberOfConcepts(Count), []),
+	voc_property(VocUri, totalCount(Count), []),
 	rdf_assert(VocUri, amalgame:totalCount, literal(type(xsd:int, Count)), ProvGraph).
 
 assert_count(MapUri, Strategy, ProvGraph) :-
