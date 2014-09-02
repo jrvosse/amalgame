@@ -83,7 +83,7 @@ expand_node_(Strategy, Id, Result) :-
 	(   rdfs_individual_of(Id, amalgame:'Mapping')
 	->  select_result_mapping(Id, ProcessResult, OutputType, Result)
 	;   skos_is_vocabulary(Id)
-	->  Result = ProcessResult
+	->  select_result_scheme(Id, ProcessResult, OutputType, Result)
 	;   Result = error(Id)
 	).
 
@@ -127,7 +127,7 @@ expand_mapping(Strategy, Id, Mapping) :-
 		   expand_process(Strategy, Process, Result)),
 	debug(mutex, 'Releasing mutex: ~w', [Mutex]),
 
-	materialize_results_if_needed(Strategy, Process, Result),
+	materialize_results_if_needed(Strategy, Process, Result), % only for sampler ...
 	select_result_mapping(Id, Result, OutputType, Mapping).
 
 % we should not exploit materialized graphs
@@ -139,20 +139,22 @@ exploit_materialized_graph(Strategy, Id) :-
 	;   rdf_has(Id, amalgame:wasGeneratedBy, Process),
 	    rdf(Process, rdf:type, amalgame:'SelectPreloaded').
 
-%%	expand_vocab(+Strategy, +Id, -Concepts) is det.
+%%	expand_vocab(+Strategy, +Id, -Vocspec) is det.
 %
-%	Generate the Vocab according to Strategy.
+%	Generate the Vocsped according to Strategy.
 %	@param Id is URI of a conceptscheme or an identifier for a set
 %	of concepts derived by a vocabulary process,
+%	@param VocSpec is a specification of the concept scheme.
 
-expand_vocab(Strategy, Id, Vocab) :-
+expand_vocab(Strategy, Id, Vocspec) :-
 	rdf_has(Id, amalgame:wasGeneratedBy, Process, OutputType),
 	rdf(Id, OutputType, Process, Strategy),
 	!,
 	atomic_concat(expand_process, Process, Mutex),
 	debug(mutex, 'Locking mutex: ~w', [Mutex]),
 	with_mutex(Mutex,
-		   expand_process(Strategy, Process, Vocab)),
+		   expand_process(Strategy, Process, Result)),
+	select_result_scheme(Id, Result, OutputType, Vocspec),
 	debug(mutex, 'Releasing mutex: ~w', [Mutex]).
 
 expand_vocab(Strategy, Vocab, vocspec(alignable(Vocab))) :-

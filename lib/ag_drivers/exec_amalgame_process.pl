@@ -1,6 +1,7 @@
 :- module(ag_exec_process, [
 			    exec_amalgame_process/7,
-			    select_result_mapping/4
+			    select_result_mapping/4,
+			    select_result_scheme/4
 			   ]).
 
 :- use_module(library(apply)).
@@ -15,7 +16,8 @@
 
 :- multifile
 	exec_amalgame_process/7,
-	select_result_mapping/4.
+	select_result_mapping/4,
+	select_result_scheme/4.
 
 %%	select_result_mapping(+Id, +MapSpec, +Type, -Mapping) is det.
 %%	select_result_mapping(+Id, -MapSpec, +Type, +Mapping) is det.
@@ -23,7 +25,7 @@
 %	Mapping is part of (process) result MapSpec as defined by
 %	Type.
 %
-%	@param ype is an RDF property
+%	@param OutputType is an RDF property
 %	@error existence_error(mapping_select)
 
 select_result_mapping(_Id, mapspec(select(Selected, Discarded, Undecided)),
@@ -54,6 +56,9 @@ select_result_mapping(Id, mapspec(overlap(List)), P, Mapping) :-
 	->  true
 	;   Mapping=[]
 	).
+
+select_result_scheme(_Id, vocspec(Scheme), OutputType, vocspec(Scheme)) :-
+	rdf_equal(amalgame:wasGeneratedBy, OutputType).
 
 collect_snd_input(Process, Strategy, SecInput):-
 	findall(S, rdf(Process, amalgame:secondary_input, S), SecInputs),
