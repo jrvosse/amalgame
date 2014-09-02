@@ -11,6 +11,7 @@
 
 html_controls  -->
 	{ amalgame_modules_of_type(amalgame:'Selecter', Selecters),
+	  amalgame_modules_of_type(amalgame:'Partitioner', Partitioners),
 	  amalgame_modules_of_type(amalgame:'Matcher', Matchers),
 	  amalgame_modules_of_type(amalgame:'SetOperator', Analyzers)
 	},
@@ -25,6 +26,9 @@ html_controls  -->
 	    \html_control_set(match_control_set, false,
 			      'Matchers',
 			      \html_match_control(Matchers)),
+	    \html_control_set(select_control_set, false,
+			      'Partitioners',
+			      \html_select_control(Partitioners)),
 	    \html_control_set(select_control_set, false,
 			      'Selectors',
 			      \html_select_control(Selecters)),
@@ -117,8 +121,8 @@ html_node_props -->
 html_select_control(Modules) -->
 	html(div(id(select),
 		 [ div(class(c),
-		       ul([li('select a set of correspondences from a mapping'),
-			   li('select a set of concepts from a vocabulary')
+		       ul([li('partition a set according to some criterium'),
+			   li('typically resulting in selected and discarded subsets')
 			  ])),
 		   \html_modules(Modules)
 		 ])).
@@ -238,6 +242,9 @@ module_input_type(M, mapping) :-
 	!.
 module_input_type(M, vocab) :-
 	rdfs_subclass_of(M, amalgame:'VocabSelecter'),
+	!.
+module_input_type(M, vocab) :-
+	rdfs_subclass_of(M, amalgame:'VocabPartitioner'),
 	!.
 module_input_type(_, '').
 
