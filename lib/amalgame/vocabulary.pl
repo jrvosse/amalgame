@@ -37,23 +37,18 @@ vocab_member(E, alignable(Alignable)) :-
 vocab_member(E, scheme(Scheme)) :-
 	(   voc_property(Scheme, virtual(true))
 	->  vocab_member(E, vscheme(Scheme))
-	;   voc_property(Scheme, materialized(false))
-	->  vocab_member(E, dscheme(Scheme))
+	;   voc_property(Scheme, materialized(false)) % no longer necessary
+	->  vocab_member(E, vscheme(Scheme))
 	;   vocab_member(E, rscheme(Scheme))
 	).
 
-
 vocab_member(E, vscheme(Scheme)) :-
-	materialize(Scheme, VocSpec),
+	expand_vocab(Scheme, VocSpec),
 	!,
 	vocab_member(E, VocSpec).
 
 vocab_member(E, rscheme(Scheme)) :-
 	skos_in_scheme(Scheme, E).
-
-vocab_member(E, dscheme(Scheme)) :-
-	materialize(Scheme, _VocSpec),!,
-	vocab_member(E, rscheme(Scheme)).
 
 vocab_member(E, type(Class)) :-
 	!,
@@ -108,7 +103,7 @@ vocab_member(E, Class) :-
 	rdfs_individual_of(E, Class).
 
 
-materialize(Scheme, VocSpec) :-
+expand_vocab(Scheme, VocSpec) :-
 	rdf(Scheme, amalgame:wasGeneratedBy, _, Strategy),
 	rdfs_individual_of(Strategy, amalgame:'AlignmentStrategy'),
 	expand_node(Strategy, Scheme, VocSpec).
