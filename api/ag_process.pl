@@ -225,6 +225,14 @@ assert_process(Process, Type, Graph, Params) :-
 	rdf_assert(Process, amalgame:parameters, literal(Search), Graph).
 
 assert_output(Process, Type, Graph, Input, _, MainOutput) :-
+	rdfs_subclass_of(Type, amalgame:'VocabPartitioner'),
+	!,
+	rdf_equal(amalgame:'VirtualConceptScheme', OutputClass),
+	new_output(OutputClass, Process, amalgame:selectedBy,  Input, Graph, MainOutput),
+	new_output(OutputClass, Process, amalgame:discardedBy, Input, Graph, _),
+	new_output(OutputClass, Process, amalgame:undecidedBy, Input, Graph, _).
+
+assert_output(Process, Type, Graph, Input, _, MainOutput) :-
 	rdfs_subclass_of(Type, amalgame:'MappingSelecter'),
 	!,
 	rdf_equal(amalgame:'Mapping', OutputClass),
