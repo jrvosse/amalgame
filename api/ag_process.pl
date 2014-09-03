@@ -226,17 +226,9 @@ assert_process(Process, Type, Graph, Params) :-
 	rdf_assert(Process, amalgame:parameters, literal(Search), Graph).
 
 assert_output(Process, Type, Graph, Input, _, MainOutput) :-
-	rdfs_subclass_of(Type, amalgame:'VocabPartitioner'),
+	rdfs_subclass_of(Type, amalgame:'Partitioner'),
 	!,
-	rdf_equal(amalgame:'VirtualConceptScheme', OutputClass),
-	new_output(OutputClass, Process, amalgame:selectedBy,  Input, Graph, MainOutput),
-	new_output(OutputClass, Process, amalgame:discardedBy, Input, Graph, _),
-	new_output(OutputClass, Process, amalgame:undecidedBy, Input, Graph, _).
-
-assert_output(Process, Type, Graph, Input, _, MainOutput) :-
-	rdfs_subclass_of(Type, amalgame:'MappingSelecter'),
-	!,
-	rdf_equal(amalgame:'Mapping', OutputClass),
+	output_type(Type, OutputClass),
 	new_output(OutputClass, Process, amalgame:selectedBy,  Input, Graph, MainOutput),
 	new_output(OutputClass, Process, amalgame:discardedBy, Input, Graph, _),
 	new_output(OutputClass, Process, amalgame:undecidedBy, Input, Graph, _).
@@ -244,7 +236,7 @@ assert_output(Process, Type, Graph, Input, _, MainOutput) :-
 assert_output(Process, Type, Strategy, Input, SecInputs, Strategy) :-
 	rdfs_subclass_of(Type, amalgame:'OverlapComponent'),
 	!,
-	rdf_equal(amalgame:'Mapping', OutputClass),
+	output_type(Type, OutputClass),
 	oset_power(SecInputs, [[]|PowSet]),
 	forall(member(InSet0, PowSet),
 	       (   sort(InSet0, InSet),
@@ -263,7 +255,6 @@ assert_output(Process, Type, Strategy, Input, SecInputs, Strategy) :-
 		   rdf_assert(OutputUri, rdfs:label, literal(Label), Strategy)
 	       )
 	      ).
-
 
 assert_output(Process, Type, Graph, Input, _, MainOutput) :-
 	output_type(Type, OutputClass),
@@ -292,11 +283,10 @@ assert_relation(Output, Input, Strategy) :-
 
 assert_relation(_,_,_).
 
-output_type(ProcessType, skos:'ConceptScheme') :-
-	rdfs_subclass_of(ProcessType, amalgame:'VocabSelecter'),
+output_type(ProcessType, amalgame:'VirtualConceptScheme') :-
+	rdfs_subclass_of(ProcessType, amalgame:'VocabPartitioner'),
 	!.
 output_type(_ProcessType, amalgame:'Mapping').
-
 
 process_label(P, Lit) :-
 	(   rdf_display_label(P, L)

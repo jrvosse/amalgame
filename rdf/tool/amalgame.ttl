@@ -29,42 +29,33 @@ amalgame:parameters
     rdfs:range rdfs:Literal .
 
 amalgame:Matcher
-    rdfs:label "matcher"@en ;
+    rdfs:label "Matcher"@en ;
     skos:definition "Component that creates a mapping given a source and target vocabulary"@en ;
     rdfs:subClassOf amalgame:Process .
 amalgame:Partitioner
-    rdfs:label "partitioner"@en ;
+    rdfs:label "Partitioner"@en ;
     rdfs:subClassOf amalgame:Process .
 amalgame:Selecter
-    rdfs:label "selecter"@en ;
+    rdfs:label "Selecter"@en ;
     rdfs:subClassOf amalgame:Process .
 amalgame:MultiInputComponent
-    rdfs:label "multi-input operator"@en ;
+    rdfs:label "Multi-input operator"@en ;
     skos:definition "Component with multiple first-class inputs"@en ;
     rdfs:subClassOf amalgame:Process .
 amalgame:SetOperator
-    rdfs:label "set operator"@en ;
+    rdfs:label "Set operator"@en ;
     skos:definition "Component that creates a mapping by combining the correspondences from a number of mappings"@en ;
     rdfs:subClassOf amalgame:MultiInputComponent .
 amalgame:MappingPartitioner
-    rdfs:label "partitioner"@en ;
+    rdfs:label "Mapping Partitioner"@en ;
     skos:definition "Component that creates subsets from an existing mapping"@en ;
     rdfs:subClassOf amalgame:Partitioner .
-amalgame:MappingSelecter
-    rdfs:label "selecter"@en ;
-    skos:definition "Component that creates a new mapping by selecting a number of correspondences from an existing mapping"@en ;
-    rdfs:subClassOf amalgame:Selecter .
 amalgame:VocabPartitioner
-    rdfs:label "partitioner"@en ;
+    rdfs:label "Vocabulary Partitioner"@en ;
     skos:definition "Component that creates subsets from an existing concept scheme"@en ;
     rdfs:subClassOf amalgame:Partitioner .
-amalgame:VocabSelecter
-    rdfs:label "selecter"@en ;
-    skos:definition "Component that creates a new conceptScheme by selecting a number of concepts from an existing concept scheme"@en ;
-    rdfs:subClassOf amalgame:Selecter .
-amalgame:VirtualVocabSelecter rdfs:subClassOf amalgame:VocabSelecter .
-amalgame:VirtualVocabPartitioner rdfs:subClassOf amalgame:VocabPartitioner .
-amalgame:MaterializedVocabSelecter rdfs:subClassOf amalgame:VocabSelecter . # deprecated
+amalgame:VirtualVocabPartitioner 
+    rdfs:subClassOf amalgame:VocabPartitioner .
 amalgame:Merger
     rdfs:label "merger"@en ;
     skos:definition "Component that creates a mapping by mergin the correspondences from a number of mappings"@en ;

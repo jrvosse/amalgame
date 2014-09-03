@@ -114,7 +114,7 @@ exec_amalgame_process(Type, Process, Strategy, Module, MapSpec, Time, Options) :
 	merge_provenance(Mapping0, Mapping),
 	MapSpec = mapspec(mapping(Mapping)).
 exec_amalgame_process(Class, Process, Strategy, Module, MapSpec, Time, Options) :-
-	rdfs_subclass_of(Class, amalgame:'MappingSelecter'),
+	rdfs_subclass_of(Class, amalgame:'MappingPartitioner'),
 	!,
 	collect_snd_input(Process, Strategy, SecInput),
 	MapSpec = mapspec(select(Selected, Discarded, Undecided)),

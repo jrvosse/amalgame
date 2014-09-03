@@ -208,10 +208,7 @@ assert_voc_virtual(Voc, Result) :-
 	;   rdfs_individual_of(Voc, amalgame:'VirtualConceptScheme')
 	->  Virtual = true
 	;   rdf_has(Voc, amalgame:wasGeneratedBy, Process),
-	    rdfs_individual_of(Process, amalgame:'MaterializedVocabSelecter')
-	->  Virtual = false
-	;   rdf_has(Voc, amalgame:wasGeneratedBy, Process),
-	    rdfs_individual_of(Process, amalgame:'VirtualVocabSelecter')
+	    rdfs_individual_of(Process, amalgame:'VirtualVocabPartitioner') % backward compat
 	->  Virtual = true
 	;   Virtual = false
 	),

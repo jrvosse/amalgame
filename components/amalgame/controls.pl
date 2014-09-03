@@ -10,8 +10,7 @@
 :- use_module(components(amalgame/util)).
 
 html_controls  -->
-	{ amalgame_modules_of_type(amalgame:'Selecter', Selecters),
-	  amalgame_modules_of_type(amalgame:'Partitioner', Partitioners),
+	{ amalgame_modules_of_type(amalgame:'Partitioner', Partitioners),
 	  amalgame_modules_of_type(amalgame:'Matcher', Matchers),
 	  amalgame_modules_of_type(amalgame:'SetOperator', Analyzers)
 	},
@@ -29,9 +28,6 @@ html_controls  -->
 	    \html_control_set(select_control_set, false,
 			      'Partitioners',
 			      \html_select_control(Partitioners)),
-	    \html_control_set(select_control_set, false,
-			      'Selectors',
-			      \html_select_control(Selecters)),
 	    \html_control_set(analyze_control_set, false,
 			      'Combine & compare',
 			      \html_analyzers_control(Analyzers))
@@ -238,10 +234,7 @@ html_accordion_item(Class, Header, Body) -->
 %	used.
 
 module_input_type(M, mapping) :-
-	rdfs_subclass_of(M, amalgame:'MappingSelecter'),
-	!.
-module_input_type(M, vocab) :-
-	rdfs_subclass_of(M, amalgame:'VocabSelecter'),
+	rdfs_subclass_of(M, amalgame:'MappingPartitioner'),
 	!.
 module_input_type(M, vocab) :-
 	rdfs_subclass_of(M, amalgame:'VocabPartitioner'),
@@ -256,15 +249,14 @@ module_input_type(_, '').
 module_special_type(M, secinput) :-
 	rdf_has(M, amalgame:need_secondary_inputs, literal(type(xsd:boolean, true))),
 	!.
-module_special_type(M,preloaded) :-
+module_special_type(M, preloaded) :-
 	rdfs_subclass_of(M, amalgame:'SelectPreLoaded'),
 	!.
-
 
 module_special_type(M, match) :-
 	rdfs_subclass_of(M, amalgame:'Matcher'),
 	!.
 module_special_type(M, select) :-
-	rdfs_subclass_of(M, amalgame:'MappingSelecter'),
+	rdfs_subclass_of(M, amalgame:'MappingPartitioner'),
 	!.
 module_special_type(_, '').
