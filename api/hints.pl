@@ -79,7 +79,7 @@ find_hint(Strategy, Context, Hint) :-
 	),
 	rdf_display_label(Source, L1),
 	rdf_display_label(Target, L2),
-	format(atom(Text), 'Step 1: analyze. Vocabulary ~w is smaller than vocabulary ~w.  Maybe you should click on the first to set it as the source of your next matching process.', [L1, L2]),
+	format(atom(Text), 'Step 1: analyze. Vocabulary ~w is smaller than vocabulary ~w.  Maybe you should click on the first to set it as the source of your next step: generating new correspondences.', [L1, L2]),
 	Hint = json([
 		   event(nodeSelect),
 		   data(json([
@@ -88,10 +88,10 @@ find_hint(Strategy, Context, Hint) :-
 			    lastAction(current),
 			    newVal(json([uri(Source), type(vocab), label(L1)])),
 			    strategy(Strategy)
-			     ])
+			])
 		       ),
 		   text(Text)
-		    ]
+	       ]
 		   ).
 
 find_hint(Strategy, Context, Hint) :-
@@ -107,7 +107,7 @@ find_hint(Strategy, Context, Hint) :-
 	rdf_display_label(Match, Label),
 	rdf_display_label(Focus, L1),
 	rdf_display_label(Target, L2),
-	format(atom(Text), 'Step 2a: match.  Hint: maybe you\'d like to try a simple label Matcher like ~w to create your first mapping from ~w to ~w', [Label, L1, L2]),
+	format(atom(Text), 'Step 2a: Generate correspondences.  Hint: maybe you\'d like to try a simple label Matcher like ~w to generate your first mapping from ~w to ~w', [Label, L1, L2]),
 	Hint =	json([
 		    event(submit),
 		    data(json([
@@ -124,9 +124,7 @@ find_hint(Strategy, Context, Hint) :-
 	option(focus(Focus), Context),
 	Focus == Strategy,
 	\+ hints_mapping_counts(_,_,_),
-	!,
-	% this is typically the case for a reloaded strategy,
-	% when no mappings have been expanded yet. Let's expand a random endpoint mapping.
+	!, % this is typically the case for a reloaded strategy, when no mappings have been expanded yet. We expand a random endpoint mapping.
 	is_endpoint(Strategy, Mapping),
 	map_nickname(Strategy, Mapping, Nickname),
 	map_localname(Strategy, Mapping, Localname),
@@ -170,7 +168,7 @@ find_hint(Strategy, Context, Hint) :-
 	rdf_equal(Process, amalgame:'AritySelect'),
 	rdf_display_label(Process, PLabel),
 	rdf_display_label(Mapping, MLabel),
-	format(atom(Text), 'Step 2b: select. Maybe you\'d like to select the non-ambiguous results from node "~w" by running an ~w', [MLabel, PLabel]),
+	format(atom(Text), 'Step 2b: Partition. Maybe you\'d like to select the non-ambiguous results from node "~w" by running an ~w', [MLabel, PLabel]),
 	Hint =	json([
 		    event(submit),
 		    data(json([
@@ -203,7 +201,7 @@ find_hint(Strategy, Context, Hint) :-
 			     ])),
 		   text(Text),
 		   focus(Focus)
-		    ]).
+	       ]).
 
 find_hint(Strategy, Context, Hint) :-
 	% if focus node is unambigious, small and not yet evaluated,
@@ -241,7 +239,7 @@ find_hint(Strategy, Context, Hint) :-
 	N > 50,
 	!,
 	rdf_equal(Process, amalgame:'Sampler'),
-	format(atom(Text), 'Step 2b: select. This dataset contains ~w unambigious mappings, that is good!  You might want to take a random sample to look at in more detail', [N]),
+	format(atom(Text), 'Step 2b: Partition. This dataset contains ~w unambigious mappings, that is good!  You might want to take a random sample to look at in more detail', [N]),
 	Hint =	json([
 		    event(submit),
 		    data(json([
