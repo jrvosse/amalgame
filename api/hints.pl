@@ -37,6 +37,14 @@ http_json_hint(Request) :-
 				 optional(true)
 			       ])
 			]),
+
+	% cannot give proper hints if the focus node has not yet been computed:
+	(   ground(Focus)
+	->  node_stats(Strategy, Focus, _, [compute(true)])
+	;   true
+	),
+
+	% first try a hint based on the focus node, if that fails, try without focus:
 	(   find_hint(Strategy, [focus(Focus), lastAction(LastAction)], Hint)
 	->  true
 	;   find_hint(Strategy, [focus(_), lastAction(LastAction)], Hint)
