@@ -35,9 +35,6 @@ amalgame:Matcher
 amalgame:Partitioner
     rdfs:label "Partitioner"@en ;
     rdfs:subClassOf amalgame:Process .
-amalgame:Selecter
-    rdfs:label "Selecter"@en ;
-    rdfs:subClassOf amalgame:Process .
 amalgame:MultiInputComponent
     rdfs:label "Multi-input operator"@en ;
     skos:definition "Component with multiple first-class inputs"@en ;

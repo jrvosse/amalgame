@@ -179,7 +179,7 @@ process_color(R, '#FFCC99') :-
 	rdfs_individual_of(R, amalgame:'VocabPartitioner'),
 	!.
 process_color(R, '#99CCFF') :-
-	rdfs_individual_of(R, amalgame:'Selecter'),
+	rdfs_individual_of(R, amalgame:'MappingPartitioner'),
 	!.
 process_color(R, '#CC99FF') :-
 	rdfs_individual_of(R, amalgame:'Matcher'),
