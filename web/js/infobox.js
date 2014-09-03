@@ -268,6 +268,7 @@ YUI.add('infobox', function(Y) {
 		_createHint : function() {
 				var oSelf = this;
 				var focus = this.get("selected").uri
+				NODE_HINT.setContent('Loading next hint, please wait...');
 				Y.io(this.get("paths").hint,
 				     {
 				     data: {
