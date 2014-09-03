@@ -117,29 +117,24 @@ amalgame:MapMerger
 
 amalgame:VocExclude
     amalgame:need_secondary_inputs true ;
-    rdfs:label "subtract mapped concepts"@en ;
-    skos:definition "Subtract from a vocabulary the sources or targets from a given mapping to create a vocabulary with the unmapped concepts."@en ;
-    rdfs:subClassOf amalgame:VirtualVocabSelecter .
-
-amalgame:TypePartition
-    rdfs:label "partition facet on type"@en ;
-    skos:definition "Partition from a vocabulary based on the concepts being of a specific type or not."@en ;
+    rdfs:label "partition mapped/unmapped"@en ;
+    skos:definition "Partition a vocabulary based on the concepts having already been mapped, or not."@en ;
     rdfs:subClassOf amalgame:VirtualVocabPartitioner .
 
 amalgame:TypeSelect
-    rdfs:label "select facet on type"@en ;
-    skos:definition "Select from a vocabulary the concepts of a specific type."@en ;
-    rdfs:subClassOf amalgame:VirtualVocabSelecter .
+    rdfs:label "partition facet on type"@en ;
+    skos:definition "Partition a vocabulary based on the concepts being of a specific type, or not."@en ;
+    rdfs:subClassOf amalgame:VirtualVocabPartitioner .
 
 amalgame:PropertyValueSelect
     rdfs:label "select facet on property/value"@en ;
-    skos:definition "Select from a vocabulary the concepts with a specific property/value."@en ;
-    rdfs:subClassOf amalgame:VirtualVocabSelecter .
+    skos:definition "Partition a vocabulary based on the concepts having a specific property/value, or not."@en ;
+    rdfs:subClassOf amalgame:VirtualVocabPartitioner .
 
 amalgame:SubtreeSelect
     rdfs:label "select facet by subtree"@en ;
-    skos:definition "Select from a vocabulary the concepts in the sub-tree below (using BT/NT) a common parent concept."@en ;
-    rdfs:subClassOf amalgame:VirtualVocabSelecter .
+    skos:definition "Partition a vocabulary based on the concepts being in the sub-tree below (using BT/NT) a common parent concept, or not."@en ;
+    rdfs:subClassOf amalgame:VirtualVocabPartitioner .
 
 amalgame:OverlapComponent
     amalgame:need_secondary_inputs true ;

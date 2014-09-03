@@ -137,23 +137,13 @@ exec_amalgame_process(Class, Process, Strategy, Module, MapSpec, Time, Options) 
 	timed_call(Module:analyzer(Inputs, Process, Strategy, Result, Options), Time),
 	MapSpec = mapspec(Result). % Result = overlap([..]).
 exec_amalgame_process(Class, Process, Strategy, Module, VocSpec, Time, Options) :-
-	rdfs_subclass_of(Class, amalgame:'VocabSelecter'),
-	!,
-	once(rdf(Process, amalgame:input, Input, Strategy)),
-	findall(S, rdf_has(Process, amalgame:secondary_input, S), Ss),
-
-	expand_node(Strategy, Input, vocspec(Vocab)),
-	timed_call(Module:selecter(Vocab, Result,
-				   [snd_input(Ss), strategy(Strategy)|Options]), Time),
-	VocSpec=vocspec(Result). % vocspec(and(_,_))
-exec_amalgame_process(Class, Process, Strategy, Module, VocSpec, Time, Options) :-
 	rdfs_subclass_of(Class, amalgame:'VocabPartitioner'),
 	!,
 	once(rdf(Process, amalgame:input, Input, Strategy)),
 	findall(S, rdf_has(Process, amalgame:secondary_input, S), Ss),
 	VocSpec = vocspec(select(Selected, Discarded, Undecided)),
 	expand_node(Strategy, Input, InputVocspec),
-	timed_call(Module:partition(InputVocspec, Selected, Discarded, Undecided,
+	timed_call(Module:selecter(InputVocspec, Selected, Discarded, Undecided,
 				   [snd_input(Ss), strategy(Strategy)|Options]), Time).
 exec_amalgame_process(Class, Process,_,_, _, _, _) :-
 	throw(error(existence_error(mapping_process, [Class, Process]), _)).

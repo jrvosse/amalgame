@@ -29,6 +29,9 @@
 %	URI is a new URI in the publish_ns namespace of Strategy, with a
 %	Local part that is equal to gensym(Type, Local),
 %	such that URI is not already a RDF subject or RDF named graph.
+
+mint_node_uri(_Strategy, _Type, URI) :-
+	ground(URI),!.
 mint_node_uri(Strategy, Type, URI) :-
 	ground(Type),
 	ground(Strategy),

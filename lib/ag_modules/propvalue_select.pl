@@ -2,7 +2,7 @@
 
 :- public amalgame_module/1.
 :- public parameter/4.
-:- public selecter/3.
+:- public selecter/5.
 
 amalgame_module(amalgame:'PropertyValueSelect').
 
@@ -13,15 +13,12 @@ parameter(value, uri, any,
 parameter(mode, oneof([select, remove]), select,
 	  'select or remove concepts with this property/value pair').
 
-% a bit naive at the moment: we simply change the query that should be
-% done.
-
-selecter(Scheme, and((Scheme), propvalue(Property, Value)), Options) :-
-	option(mode(select), Options),
+selecter(VocSpec, Sel, Dis, [], Options) :-
 	option(property(Property), Options),
-	option(value(Value),       Options).
-
-selecter(Scheme, and((Scheme), not(propvalue(Property, Value))), Options) :-
-	option(mode(remove), Options),
-	option(property(Property), Options),
-	option(value(Value),       Options).
+	option(value(Value),       Options),
+	S =  and((VocSpec),	propvalue(Property, Value)),
+	D =  and((VocSpec), not(propvalue(Property, Value))),
+	(   option(mode(select), Options, select)
+	->  Sel = S, Dis = D
+	;   Sel = D, Dis = S
+	).

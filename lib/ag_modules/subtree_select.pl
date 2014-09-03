@@ -6,27 +6,27 @@
 
 :- public amalgame_module/1.
 :- public parameter/4.
-:- public selecter/3.
+:- public selecter/5.
 
 amalgame_module(amalgame:'SubtreeSelect').
 
 parameter(parent, uri, '',
-'Concept that is the top concept of the subtree').
-parameter(mode, oneof([select, remove]), select, 'select or remove concepts from this subtree').
+	  'Concept that is the top concept of the subtree').
+parameter(mode, oneof([select, remove]), select,
+	  'select or remove concepts from this subtree').
 
-% a bit naive at the moment: we simply change the query that should be
-% done.
+selecter(VocSpec, Sel, Dis, [], Options) :-
+	option(parent(Parent), Options),
+	S =  and((VocSpec),	subtree(Parent)),
+	D =  and((VocSpec), not(subtree(Parent))),
+	(   option(mode(select), Options, select)
+	->  Sel = S, Dis = D
+	;   Sel = D, Dis = S
+	).
 
-selecter(Scheme, and((Scheme), subtree(Parent)), Options) :-
-	option(mode(select), Options),
-	option(parent(Parent), Options).
-
-selecter(Scheme, and((Scheme), not(subtree(Parent))), Options) :-
-	option(mode(remove), Options),
-	option(parent(Parent), Options).
-
-% Add class 'concept' to the input form so we can use the values from
-% the concept browser to assist the user in filling in the form:
+% Add class 'concept' to the input form in components(amalgame/util) so
+% we can use the values from the concept browser to assist the user in
+% filling in the parent parameter in the html form:
 
 amalgame:input_item(uri, Value, parent) -->
 	html(input([name(parent), class(concept), value(Value)])).
