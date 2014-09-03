@@ -23,13 +23,13 @@ html_controls  -->
 			      'About the selected node',
 			      \html_info_control),
 	    \html_control_set(match_control_set, false,
-			      'Matchers',
+			      'Generate',
 			      \html_match_control(Matchers)),
 	    \html_control_set(select_control_set, false,
-			      'Partitioners',
+			      'Partition',
 			      \html_select_control(Partitioners)),
 	    \html_control_set(analyze_control_set, false,
-			      'Combine & compare',
+			      'Combine',
 			      \html_analyzers_control(Analyzers))
 	     ]).
 
