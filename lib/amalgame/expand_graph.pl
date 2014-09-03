@@ -157,16 +157,11 @@ expand_vocab(Strategy, Id, Vocspec) :-
 	select_result_scheme(Id, Result, OutputType, Vocspec),
 	debug(mutex, 'Releasing mutex: ~w', [Mutex]).
 
-expand_vocab(Strategy, Vocab, vocspec(alignable(Vocab))) :-
+expand_vocab(_Strategy, Vocab, vocspec(alignable(Vocab))) :-
 	rdfs_individual_of(Vocab, amalgame:'Alignable'),
-	!,
-	rdf_equal(amalgame:preloaded, Preloaded),
-	cache_result(0, Preloaded, Strategy, vocspec(alignable(Vocab))).
+	!.
 
-expand_vocab(Strategy, Vocab, vocspec(scheme(Vocab))) :-
-	rdf_equal(amalgame:preloaded, Preloaded),
-	cache_result(0, Preloaded, Strategy, vocspec(scheme(Vocab))).
-
+expand_vocab(_Strategy, Vocab, vocspec(scheme(Vocab))).
 
 %%	expand_process(+Strategy, +Process, -Result, -Time)
 %
