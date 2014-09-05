@@ -4,6 +4,7 @@
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
+:- use_module(library(semweb/rdf_label)).
 :- use_module(library(semweb/rdf_turtle_write)).
 :- use_module(library(amalgame/ag_provenance)).
 :- use_module(library(amalgame/ag_evaluation)).
@@ -82,11 +83,12 @@ find_relation(Mapping, Cell, Default, Relation) :-
 	Relation \= none.
 
 assert_master_void(Strategy, URI, Graph) :-
-	(   rdf_has(Strategy, rdfs:label, literal(Label)) -> true ; Label = 'Strategy'),
-	rdf_has(Strategy, amalgame:publish_ns, NS),
+	rdf_display_label(Strategy, Label),
 	format(atom(Title), '~w full link set', [Label]),
-	variant_sha1(term(Strategy, Title), Hash),
-	atom_concat(NS, Hash, URI),
+	rdf_has(Strategy, amalgame:publish_ns, NS),
+	rdf_graph_property(Strategy, hash(GraphHash)),
+	variant_sha1(term(Strategy, Title, GraphHash), VoidHash),
+	atom_concat(NS, VoidHash, URI),
 	rdf_assert(URI, rdf:type, void:'Linkset', Graph),
 	rdf_assert(URI, amalgame:hasPlan,  Strategy, Graph),
 	rdf_assert(URI, dcterms:title, literal(Title), Graph),
