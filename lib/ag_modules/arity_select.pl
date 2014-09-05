@@ -45,7 +45,7 @@ select_1_1(Mapping, Sel, Dis) :-
 
 %%	select_n_1(+Mapping, -Mapping_n_1, -Rest)
 %
-%	Selected contains all correspondance where a source is mapped to
+%	Selected contains all correspondences where a source is mapped to
 %	only one target.
 select_n_1(Mapping, Sel, Dis) :-
 	select_n_1_raw(Mapping, Sel0, Dis0),
@@ -88,6 +88,3 @@ select_1_n_no_sort([align(S,T,P)|As], A1, A2) :-
 	    A1 = A1Rest
 	),
 	select_1_n_no_sort(Rest, A1Rest, A2Rest).
-
-
-
