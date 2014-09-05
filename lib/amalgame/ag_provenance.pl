@@ -1,7 +1,6 @@
 :- module(ag_provenance,
 	[
 	 provenance_graph/2,
-	 process_entity/2,
 	 add_amalgame_prov/3,
 	 update_amalgame_prov/2,                      % -Strategy, +Mapping
 	 flush_prov_cache/0,
@@ -29,7 +28,6 @@
 
 :- rdf_meta
 	provenance_graph(r,r),
-	process_entity(r,r),
 	add_amalgame_prov(r,r,+),
 	update_amalgame_prov(r,r),
 	remove_old_prov(r,r),
@@ -58,9 +56,6 @@ provenance_graph(Strategy, Graph) :-
 	    mint_node_uri(Strategy, provBundle, Graph),
 	    create_prov_graph(Strategy, Graph)
 	).
-
-process_entity(P,E) :-
-	rdf_has(E, prov:wasGeneratedBy, P).
 
 create_prov_graph(Strategy, Graph) :-
 	format(atom(Label), 'Provenance graph for strategy ~p', [Strategy]),

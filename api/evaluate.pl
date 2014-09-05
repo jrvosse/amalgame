@@ -16,8 +16,8 @@
 :- use_module(library(skos/util)).
 
 :- use_module(library(amalgame/caching)).
+:- use_module(library(amalgame/ag_strategy)).
 :- use_module(library(amalgame/ag_evaluation)).
-:- use_module(library(amalgame/ag_provenance)).
 :- use_module(library(amalgame/ag_stats)).
 :- use_module(library(amalgame/edoal)).
 :- use_module(library(amalgame/map)).
@@ -67,7 +67,7 @@ http_data_evaluate(Request) :-
 	->  evaluation_graph(Strategy, Mapping, Graph)
 	;   Graph = Mapping
 	),
-	process_entity(EvalProcess,  Graph),
+	process_entity(Strategy, EvalProcess,  Graph),
 	flush_expand_cache(EvalProcess, Strategy),  % graph cache is now outdated
 	flush_refs_cache(Strategy),                 % to recompute all reference stats
 	flush_stats_cache(Graph, Strategy),         % to recompute G's basic stats
