@@ -47,7 +47,7 @@ amalgame:AncestorMatcher
 amalgame:AncestorSelecter
     amalgame:need_secondary_inputs true ;
     rdfs:label "structure/ancestor"@en ;
-    skos:definition "Select mappings with already mapped ancestors, discard others with the same source/target."@en ;
+    skos:definition "Select mappings with the most mapped ancestors, discard others for the same source/target. If type=all, all correspondences with one or more ancestors are selected."@en ;
     rdfs:subClassOf amalgame:MappingPartitioner .
 
 amalgame:DescendentMatcher
@@ -59,7 +59,7 @@ amalgame:DescendentMatcher
 amalgame:DescendentSelecter
     amalgame:need_secondary_inputs true ;
     rdfs:label "structure/descendent"@en ;
-    skos:definition "Select mappings with already mapped descendents, discard others with the same source/target."@en ;
+    skos:definition "Select mappings with the most mapped descendents, discard others for the same source/target. If type=all, all correspondences with one or more descendents are selected."@en ;
     rdfs:subClassOf amalgame:MappingPartitioner .
 
 amalgame:RelatedMatcher
@@ -71,7 +71,7 @@ amalgame:RelatedMatcher
 amalgame:RelatedSelecter
     amalgame:need_secondary_inputs true ;
     rdfs:label "structure/related"@en ;
-    skos:definition "Select mappings with already mapped related concepts, discard others with the same source/target."@en ;
+    skos:definition "Select mappings with the most mapped related concepts, discard others for the same source/target. If type=all, all correspondences with one or more related concepts are selected."@en ;
     rdfs:subClassOf amalgame:MappingPartitioner .
 
 amalgame:AritySelect
