@@ -5,7 +5,8 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(skos/util)).
 
-ancestor_match(align(S, T, Prov0), BackgroundMatches, align(S, T, [Prov|Prov0]), Options) :-
+ancestor_match(align(S, T, Prov0), BackgroundMatches,
+	       align(S, T, [Prov|Prov0]), Options) :-
 	option(steps(MaxSteps), Options),
 	ancestor(S, MaxSteps, AncS, R1, Steps1),
 	ancestor(T, MaxSteps, AncT, R2, Steps2),
@@ -19,4 +20,4 @@ ancestor_match(align(S, T, Prov0), BackgroundMatches, align(S, T, [Prov|Prov0]),
 
 ancestor(R, MaxSteps, Parent, rdf(R, Prop, Parent), Steps) :-
 	skos_descendant_of(Parent, R, MaxSteps, Steps),
-	rdf_equal(amalgame:descendant, Prop).
+	rdf_equal(amalgame:ancestor, Prop).
