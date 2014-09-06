@@ -96,14 +96,10 @@ YUI.add('controls', function(Y) {
 
 			// The input is selected based on the type of the control
 			// which is stored as a CSS class
-			if(node.hasClass("match") || node.hasClass("preloaded") ) {
-				if(input) {
-					data.input = input;
-				}
-				else if(source&&target) {
-					data.source = source;
-					data.target = target;
-				}
+			if( node.hasClass("vocab") ||
+			    node.hasClass("preloaded") ) {
+				data.source = source;
+				data.target = target;
 			} else if(selected) {
 				data.input = selected.uri;
 			}

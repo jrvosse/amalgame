@@ -22,9 +22,9 @@ html_controls  -->
 	    \html_control_set(current_control_set, true,
 			      'About the selected node',
 			      \html_info_control),
-	    \html_control_set(match_control_set, false,
+	    \html_control_set(generate_control_set, false,
 			      'Generate',
-			      \html_match_control(Matchers)),
+			      \html_generate_control(Matchers)),
 	    \html_control_set(select_control_set, false,
 			      'Partition',
 			      \html_select_control(Partitioners)),
@@ -118,27 +118,22 @@ html_select_control(Modules) -->
 	html(div(id(select),
 		 [ div(class(c),
 		       ul([li('partition a set according to some criterium'),
-			   li('typically resulting in selected and discarded subsets')
+			   li('typically resulting in selected and discarded subsets'),
+			   \html_mapping_input_select
 			  ])),
 		   \html_modules(Modules)
 		 ])).
 
-html_match_control(Modules) -->
+html_generate_control(Modules) -->
 	html(div(id(match),
 		 [ div(class(c),
-		       \html_align_input),
+		       [ h4('Choose input'),
+			 \html_source_target_input_select]
+		      ),
 		   \html_modules(Modules)
 		 ])).
 
-html_align_input -->
-	html([h4('Choose input'),
-	      div(class(i),
-		  \html_mapping_select),
-	      div(class(i),
-		  \html_source_target_select)
-	     ]).
-
-html_mapping_select -->
+html_mapping_input_select -->
 	html(table([tr([td(button(id(inputbtn), 'set as input')),
 			td([input([type(text), id(inputLabel), autocomplete(off)]),
 			    input([type(hidden), id(input), name(input)])
@@ -146,7 +141,7 @@ html_mapping_select -->
 		       ])
 		   ])).
 
-html_source_target_select -->
+html_source_target_input_select -->
 	html(table([tr([td(button(id(sourcebtn), 'set as source')),
 			td([input([type(text), id(sourceLabel), autocomplete(off)]),
 			    input([type(hidden), id(source), name(source)])
