@@ -22,6 +22,11 @@ amalgame:ExactLabelMatcher
     skos:definition "Generate new candidates based on exact matching labels of source and target concepts."@en ;
     rdfs:subClassOf amalgame:CandidateGenerator .
 
+amalgame:IsubMatcher
+    rdfs:label "generate/label/similarity"@en ;
+    skos:definition "Generate new candidates based on similar labels. The matcher is based on the 'isub' metric introduced in 'A string metric for ontology alignment' by Giorgos Stoilos, 2005."@en ;
+    rdfs:subClassOf amalgame:CandidateGenerator .
+
 amalgame:RelatedMatcher
     amalgame:need_secondary_inputs true ;
     rdfs:label "generate/structure/related"@en ;
@@ -45,6 +50,11 @@ amalgame:DescendentSelecter
 amalgame:ExactLabelSelecter
     rdfs:label "partition/label/exact"@en ;
     skos:definition "Select mappings with the most matching labels, discard others for the same source/target. If type=all, all candidates with matching labels are selected."@en ;
+    rdfs:subClassOf amalgame:MappingPartitioner .
+
+amalgame:IsubSelecter
+    rdfs:label "partition/label/similarity"@en ;
+    skos:definition "Select mappings with the most similar labels, discard others for the same source/target.  If type=all, all candidates with sufficiently similar labels are selected. The matcher is based on the 'isub' metric introduced in 'A string metric for ontology alignment' by Giorgos Stoilos, 2005."@en ;
     rdfs:subClassOf amalgame:MappingPartitioner .
 
 amalgame:RelatedSelecter
@@ -101,11 +111,6 @@ amalgame:CompoundMatcher
 amalgame:SnowballMatcher
     rdfs:label "string/label (stemmed)"@en ;
     skos:definition "A label matcher with similarity based on (snowball) stemming."@en ;
-    rdfs:subClassOf amalgame:Matcher .
-
-amalgame:IsubMatcher
-    rdfs:label "string/similarity"@en ;
-    skos:definition "A string similarity matcher based on the 'isub' metric introduced in 'A string metric for ontology alignment' by Giorgos Stoilos, 2005."@en ;
     rdfs:subClassOf amalgame:Matcher .
 
 amalgame:AritySelect

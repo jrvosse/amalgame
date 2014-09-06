@@ -1,4 +1,4 @@
-:- module(exact_label_selecter,
+:- module(isub_selecter,
 	  []).
 
 :- public amalgame_module/1.
@@ -6,8 +6,10 @@
 :- public parameter/4.
 
 :- use_module(label_selecter).
-:- use_module(exact_label_match).
 :- use_module(string_match_util).
+:- use_module(isub_match).
+
+amalgame_module(amalgame:'IsubSelecter').
 
 parameter(type,
 	  oneof([source,target, all]), all,
@@ -21,19 +23,16 @@ parameter(targetlabel, oneof(LabelProps), Default,
 	  '(Super)Property to get the label of the target by') :-
 	rdf_equal(Default, rdfs:label),
 	label_list(LabelProps).
-parameter(source_language, oneof(['any'|L]), 'any',
-	  'Language of source label') :-
-	strategy_languages(_S,L).
-parameter(matchacross_lang, boolean, true,
+parameter(threshold, float, 0.7,
+	  'threshold edit distance').
+parameter(language, oneof(['any'|L]), 'any', 'Language of source label') :-
+	strategy_languages(_,L).
+parameter(matchacross_lang,
+	  boolean, true,
 	  'Allow labels from different language to be matched').
-parameter(matchacross_type, boolean, true,
-	  'Allow labels from different types to be matched').
-parameter(case_sensitive, boolean, false,
-	  'When true the case of labels must be equal').
-parameter(match_qualified_only, boolean, false,
-	  'Match only on the fully qualified label').
-
-amalgame_module(amalgame:'ExactLabelSelecter').
+parameter(normalize,
+	  boolean, false,
+	  '(Case) normalize strings as described in the isub article').
 
 selecter(In, Sel, Dis, Und, Options) :-
-	label_selecter(exact_label_match, In, Sel, Dis, Und, Options).
+	label_selecter(isub_match, In, Sel, Dis, Und, Options).
