@@ -1,7 +1,7 @@
 :- module(ancestor_selecter,
 	  []).
 
-:- use_module(ancestor).
+:- use_module(ancestor_match).
 :- use_module(structure_selecter).
 
 :- public amalgame_module/1.

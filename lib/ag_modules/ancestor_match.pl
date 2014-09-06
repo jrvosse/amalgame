@@ -1,35 +1,23 @@
-:- module(ancestor_generator,
-	  []).
+:- module(ancestor_match,
+	  [ ancestor_match/4
+	  ]).
 
-:- use_module(library(assoc)).
-:- use_module(library(lists)).
-:- use_module(library(option)).
-:- use_module(library(amalgame/vocabulary)).
-:- use_module(ancestor).
+:- use_module(library(semweb/rdf_db)).
+:- use_module(library(skos/util)).
 
-:- public amalgame_module/1.
-:- public matcher/4.
-:- public parameter/4.
+ancestor_match(align(S, T, Prov0), BackgroundMatches,
+	       align(S, T, [Prov|Prov0]), Options) :-
+	option(steps(MaxSteps), Options),
+	ancestor(S, MaxSteps, AncS, R1, Steps1),
+	ancestor(T, MaxSteps, AncT, R2, Steps2),
+	get_assoc(AncS-AncT, BackgroundMatches, _),
+	Prov = [method(ancestor_match),
+		source(AncS),
+		target(AncT),
+		steps(Steps1/Steps2),
+		graph([R1,R2])
+	       ].
 
-amalgame_module(amalgame:'AncestorMatcher').
-
-parameter(steps, integer, 1,
-	  'depth of search, defaults to 1, e.g. direct parents only').
-
-%%	matcher(+Source, +Target, -Mappings, +Options)
-%
-%	Mappings is a list of matches between instances of Source and
-%	Target.
-
-matcher(Source, Target, Mappings, Options) :-
-	option(snd_input(SecList), Options),
-	findall(S-T-P, member(align(S,T,P), SecList), KeyValueList),
-	keysort(KeyValueList, Deduped),
-	ord_list_to_assoc(Deduped, BackgroundMatches),
-	findall(M, align(Source, Target, BackgroundMatches, M, Options), Mappings0),
-	sort(Mappings0, Mappings).
-
-align(Source, Target, BackgroundMatches, Match, Options) :-
-	vocab_member(S, Source),
-	vocab_member(T, Target),
-	ancestor_match(align(S,T,[]), BackgroundMatches, Match, Options).
+ancestor(R, MaxSteps, Parent, rdf(R, Prop, Parent), Steps) :-
+	skos_descendant_of(Parent, R, MaxSteps, Steps),
+	rdf_equal(amalgame:ancestor, Prop).
