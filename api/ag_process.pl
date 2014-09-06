@@ -128,6 +128,31 @@ http_update_node(Request) :-
 	->  precompute_node(Strategy, URI)
 	;   true).
 
+%%	http_delete_node(+Request)
+%
+%	delete URI in Strategy and all that are connected to it and
+%	return the new nodes in Strategy.
+
+http_delete_node(Request) :-
+	authorized(write(default, _)),
+	http_parameters(Request,
+			[ strategy(Strategy,
+				    [uri,
+				     description('URI of strategy')
+				    ]),
+			  uri(URI,
+				[uri,
+				 description('URI of input resource')])
+			]),
+	rdf_transaction((process_retract(URI, Strategy),
+			 node_retract(URI, Strategy)
+			)),
+	js_strategy_nodes(Strategy, Nodes),
+	js_focus_node(Strategy, Strategy, FocusNode),
+	reply_json(json{nodes:Nodes,
+			focus:FocusNode
+		       }).
+
 %%	update_process(+Process, +Strategy, +SecInputs, +Params)
 %
 %	Update the parameters of Process.
@@ -174,11 +199,6 @@ new_process(Type, Strategy, Source, Target, Input, SecInputs, Params, Focus) :-
 	(   setting(amalgame:precompute, true)
 	->  precompute_process(Strategy, URI)
 	;   true).
-
-precompute_process(Strategy, Process) :-
-	rdf_has(Mapping, amalgame:wasGeneratedBy, Process, RP),
-	rdf(Mapping, RP, Process, Strategy),
-	precompute_node(Strategy, Mapping).
 
 assert_input(_Process, Type, _Graph, _Source, _Target, _Input, _Params) :-
 	rdfs_subclass_of(Type, amalgame:'MultiInputComponent'),
@@ -355,31 +375,6 @@ change_ns_if_needed(NS, URI, Strategy, NewStrategy) :-
 	    flush_expand_cache(Strategy),
 	    change_namespace(OldNS, NS, Strategy, NewStrategy)
 	).
-
-%%	http_delete_node(+Request)
-%
-%	delete URI in Strategy and all that are connected to it and
-%	return the new nodes in Strategy.
-
-http_delete_node(Request) :-
-	authorized(write(default, _)),
-	http_parameters(Request,
-			[ strategy(Strategy,
-				    [uri,
-				     description('URI of strategy')
-				    ]),
-			  uri(URI,
-				[uri,
-				 description('URI of input resource')])
-			]),
-	rdf_transaction((process_retract(URI, Strategy),
-			 node_retract(URI, Strategy)
-			)),
-	js_strategy_nodes(Strategy, Nodes),
-	js_focus_node(Strategy, Strategy, FocusNode),
-	reply_json(json{nodes:Nodes,
-			focus:FocusNode
-		       }).
 
 node_retract(URI, Strategy) :-
 	provenance_graph(Strategy, ProvGraph),

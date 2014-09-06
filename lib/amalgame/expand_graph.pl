@@ -1,5 +1,6 @@
 :- module(expand_graph,
 	  [ expand_node/3,
+	    precompute_process/2,
 	    precompute_node/2,
 	    is_mapped/4
 	  ]).
@@ -42,6 +43,15 @@ expand_node(Strategy, Id, Result) :-
 	with_mutex(Mutex, expand_node_(Strategy, Id, Result)),
 	debug(mutex, 'Releasing mutex: ~w', [Mutex]).
 
+%%	precompute_process(+Strategy, +Process) is det.
+%
+%	Process is precomputed in the background in a separate thread.
+%	Subsequent expand_node/3 calls will use the cached results
+%	computed here.
+precompute_process(Strategy, Process) :-
+	rdf_has(Mapping, amalgame:wasGeneratedBy, Process, RP),
+	rdf(Mapping, RP, Process, Strategy),
+	precompute_node(Strategy, Mapping).
 
 %%	precompute_node(+Strategy, +Mapping) is det.
 %
