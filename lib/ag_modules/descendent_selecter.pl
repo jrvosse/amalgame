@@ -2,7 +2,7 @@
 	  []).
 
 :- use_module(structure_selecter).
-:- use_module(descendent).
+:- use_module(descendent_match).
 
 :- public amalgame_module/1.
 :- public selecter/5.
