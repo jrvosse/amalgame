@@ -3,27 +3,51 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix amalgame: <http://purl.org/vocabularies/amalgame#> .
 
-amalgame:ExactLabelMatcher
-    rdfs:label "generate/label (exact)"@en ;
-    skos:definition "Generate new candidates based on exact matching labels of source and target concepts."@en ;
-    rdfs:subClassOf amalgame:CandidateGenerator .
-
-amalgame:ExactLabelSelecter
-    rdfs:label "partition/label (exact)"@en ;
-    skos:definition "Select mappings with the most matching labels, discard others for the same source/target. If type=all, all candidates with matching labels are selected."@en ;
-    rdfs:subClassOf amalgame:MappingPartitioner .
-
+######## Candidate generator classes:
 amalgame:AncestorMatcher
     amalgame:need_secondary_inputs true ;
-    rdfs:label "structure/ancestor"@en ;
+    rdfs:label "generate/structure/ancestor"@en ;
     skos:definition "Generate new candidates by looking for 1 or more ancestors that have already been mapped."@en ;
     rdfs:subClassOf amalgame:CandidateGenerator .
 
+amalgame:ExactLabelMatcher
+    rdfs:label "generate/label/exact"@en ;
+    skos:definition "Generate new candidates based on exact matching labels of source and target concepts."@en ;
+    rdfs:subClassOf amalgame:CandidateGenerator .
+
+######## Mapping partitioner classes:
 amalgame:AncestorSelecter
     amalgame:need_secondary_inputs true ;
-    rdfs:label "structure/ancestor"@en ;
+    rdfs:label "partition/structure/ancestor"@en ;
     skos:definition "Select mappings with the most mapped ancestors, discard others for the same source/target. If type=all, all correspondences with one or more ancestors are selected."@en ;
     rdfs:subClassOf amalgame:MappingPartitioner .
+
+amalgame:ExactLabelSelecter
+    rdfs:label "partition/label/exact"@en ;
+    skos:definition "Select mappings with the most matching labels, discard others for the same source/target. If type=all, all candidates with matching labels are selected."@en ;
+    rdfs:subClassOf amalgame:MappingPartitioner .
+
+######## Vocabulary partitioner classes:
+amalgame:VocExclude
+    amalgame:need_secondary_inputs true ;
+    rdfs:label "partition mapped/unmapped"@en ;
+    skos:definition "Partition a vocabulary based on the concepts having already been mapped, or not."@en ;
+    rdfs:subClassOf amalgame:VirtualVocabPartitioner .
+
+amalgame:TypeSelect
+    rdfs:label "partition facet on type"@en ;
+    skos:definition "Partition a vocabulary based on the concepts being of a specific type, or not."@en ;
+    rdfs:subClassOf amalgame:VirtualVocabPartitioner .
+
+amalgame:PropertyValueSelect
+    rdfs:label "prartion facet on property/value"@en ;
+    skos:definition "Partition a vocabulary based on the concepts having a specific property/value, or not."@en ;
+    rdfs:subClassOf amalgame:VirtualVocabPartitioner .
+
+amalgame:SubtreeSelect
+    rdfs:label "partition facet by subtree"@en ;
+    skos:definition "Partition a vocabulary based on the concepts being in the sub-tree below (using BT/NT) a common parent concept, or not."@en ;
+    rdfs:subClassOf amalgame:VirtualVocabPartitioner .
 
 ####################
 
@@ -121,27 +145,6 @@ amalgame:MapMerger
     rdfs:label "mapping merger"@en ;
     skos:definition "Merge two or more mappings into one new mapping. For example, to collect the good mappings made by different processes."@en ;
     rdfs:subClassOf amalgame:SetOperator .
-
-amalgame:VocExclude
-    amalgame:need_secondary_inputs true ;
-    rdfs:label "partition mapped/unmapped"@en ;
-    skos:definition "Partition a vocabulary based on the concepts having already been mapped, or not."@en ;
-    rdfs:subClassOf amalgame:VirtualVocabPartitioner .
-
-amalgame:TypeSelect
-    rdfs:label "partition facet on type"@en ;
-    skos:definition "Partition a vocabulary based on the concepts being of a specific type, or not."@en ;
-    rdfs:subClassOf amalgame:VirtualVocabPartitioner .
-
-amalgame:PropertyValueSelect
-    rdfs:label "select facet on property/value"@en ;
-    skos:definition "Partition a vocabulary based on the concepts having a specific property/value, or not."@en ;
-    rdfs:subClassOf amalgame:VirtualVocabPartitioner .
-
-amalgame:SubtreeSelect
-    rdfs:label "select facet by subtree"@en ;
-    skos:definition "Partition a vocabulary based on the concepts being in the sub-tree below (using BT/NT) a common parent concept, or not."@en ;
-    rdfs:subClassOf amalgame:VirtualVocabPartitioner .
 
 amalgame:OverlapComponent
     amalgame:need_secondary_inputs true ;
