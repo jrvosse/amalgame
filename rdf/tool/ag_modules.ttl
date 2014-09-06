@@ -3,6 +3,18 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix amalgame: <http://purl.org/vocabularies/amalgame#> .
 
+amalgame:ExactLabelMatcher
+    rdfs:label "generate/label (exact)"@en ;
+    skos:definition "Generate new candidates based on exact matching labels of source and target concepts"@en ;
+    rdfs:subClassOf amalgame:CandidateGenerator .
+
+amalgame:ExactLabelSelecter
+    rdfs:label "partition/label (exact)"@en ;
+    skos:definition "Partition existing candidates based on exact matching labels of source and target concepts"@en ;
+    rdfs:subClassOf amalgame:MappingPartitioner .
+
+####################
+
 amalgame:EvaluationProcess
     rdfs:label "Manual evaluation"@en ;
     skos:definition "A process class representing manual evaluation processes "@en ;
@@ -17,11 +29,6 @@ amalgame:SelectPreLoadedSelecter
     rdfs:label "import/preloaded"@en ;
     skos:definition "Select mappings with corresponding mappings in the preloaded mapping, discard others with the same source/target."@en ;
     rdfs:subClassOf amalgame:MappingPartitioner .
-
-amalgame:ExactLabelMatcher
-    rdfs:label "string/label (exact)"@en ;
-    skos:definition "A basic label matcher based on exact matching labels of source and target concepts"@en ;
-    rdfs:subClassOf amalgame:Matcher .
 
 amalgame:CompoundMatcher
     rdfs:label "string/label (compound)"@en ;

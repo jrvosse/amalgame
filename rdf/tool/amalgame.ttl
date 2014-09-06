@@ -11,7 +11,7 @@
 amalgame:AlignmentStrategy
     a prov:Plan ;
     rdfs:label "Alignment strategy"@en ;
-    rdfs:comment "RDF representation of an alignment strategy that can be loaded and executed by Amalgame"@en.
+    rdfs:comment "RDF representation of an alignment strategy that can be loaded into, and executed by, Amalgame"@en.
 
 amalgame:Entity
     rdfs:label "Entity"@en ;
@@ -23,18 +23,44 @@ amalgame:Process
     rdfs:comment "Top class for all amalgame processes"@en ;
     rdfs:subClassOf prov:Activity .
 
+amalgame:Partitioner
+    rdfs:label "Partitioner"@en ;
+    rdfs:comment "A process that partitions an existing Entity into subsets"@en ;
+    rdfs:subClassOf amalgame:Process .
+
+amalgame:CandidateGenerator
+    rdfs:label "Candidate generator"@en ;
+    rdfs:comment "A process that generates a mapping with candidate correspondences."@en ;
+    rdfs:subClassOf amalgame:Matcher . # fix me, should become amalgame:Process .
+
+amalgame:MappingPartitioner
+    rdfs:label "Mapping partitioner"@en ;
+    skos:definition "Component that creates subsets from an existing mapping"@en ;
+    rdfs:subClassOf amalgame:Partitioner .
+
+amalgame:VocabPartitioner
+    rdfs:label "Vocabulary partitioner"@en ;
+    skos:definition "Component that creates subsets from an existing concept scheme"@en ;
+    rdfs:subClassOf amalgame:Partitioner .
+
+amalgame:VirtualVocabPartitioner 
+    rdfs:label "Virtual vocabulary partitioner"@en ;
+    skos:definition "Component that creates virtual subsets from an existing concept scheme"@en ;
+    skos:note "A virtual scheme is defined intentionally, not materialized in the store. Amalgame can iterate over all its 'inScheme' members and test whether a concept is inScheme or not."@en ;
+    rdfs:subClassOf amalgame:VocabPartitioner .
+
+###############################
+
+amalgame:Matcher
+    rdfs:label "Matcher (deprecated)"@en ;
+    skos:definition "Component that creates a mapping given a source and target vocabulary"@en ;
+    rdfs:subClassOf amalgame:Process .
+
 amalgame:parameters
     a rdf:Property ;
     rdfs:domain amalgame:Process ;
     rdfs:range rdfs:Literal .
 
-amalgame:Matcher
-    rdfs:label "Matcher"@en ;
-    skos:definition "Component that creates a mapping given a source and target vocabulary"@en ;
-    rdfs:subClassOf amalgame:Process .
-amalgame:Partitioner
-    rdfs:label "Partitioner"@en ;
-    rdfs:subClassOf amalgame:Process .
 amalgame:MultiInputComponent
     rdfs:label "Multi-input operator"@en ;
     skos:definition "Component with multiple first-class inputs"@en ;
@@ -43,16 +69,6 @@ amalgame:SetOperator
     rdfs:label "Set operator"@en ;
     skos:definition "Component that creates a mapping by combining the correspondences from a number of mappings"@en ;
     rdfs:subClassOf amalgame:MultiInputComponent .
-amalgame:MappingPartitioner
-    rdfs:label "Mapping Partitioner"@en ;
-    skos:definition "Component that creates subsets from an existing mapping"@en ;
-    rdfs:subClassOf amalgame:Partitioner .
-amalgame:VocabPartitioner
-    rdfs:label "Vocabulary Partitioner"@en ;
-    skos:definition "Component that creates subsets from an existing concept scheme"@en ;
-    rdfs:subClassOf amalgame:Partitioner .
-amalgame:VirtualVocabPartitioner 
-    rdfs:subClassOf amalgame:VocabPartitioner .
 amalgame:Merger
     rdfs:label "merger"@en ;
     skos:definition "Component that creates a mapping by mergin the correspondences from a number of mappings"@en ;
