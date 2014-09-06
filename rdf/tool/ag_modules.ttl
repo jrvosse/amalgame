@@ -4,10 +4,17 @@
 @prefix amalgame: <http://purl.org/vocabularies/amalgame#> .
 
 ######## Candidate generator classes:
+
 amalgame:AncestorMatcher
     amalgame:need_secondary_inputs true ;
     rdfs:label "generate/structure/ancestor"@en ;
     skos:definition "Generate new candidates by looking for 1 or more ancestors that have already been mapped."@en ;
+    rdfs:subClassOf amalgame:CandidateGenerator .
+
+amalgame:DescendentMatcher
+    amalgame:need_secondary_inputs true ;
+    rdfs:label "generate/structure/descendent"@en ;
+    skos:definition "Generate new candidates by looking for 1 or more descendents that have already been mapped."@en ;
     rdfs:subClassOf amalgame:CandidateGenerator .
 
 amalgame:ExactLabelMatcher
@@ -15,11 +22,24 @@ amalgame:ExactLabelMatcher
     skos:definition "Generate new candidates based on exact matching labels of source and target concepts."@en ;
     rdfs:subClassOf amalgame:CandidateGenerator .
 
+amalgame:RelatedMatcher
+    amalgame:need_secondary_inputs true ;
+    rdfs:label "generate/structure/related"@en ;
+    skos:definition "Generate new candidates by looking for 1 or more related concepts that have already been mapped."@en ;
+    rdfs:subClassOf amalgame:CandidateGenerator .
+
 ######## Mapping partitioner classes:
+
 amalgame:AncestorSelecter
     amalgame:need_secondary_inputs true ;
     rdfs:label "partition/structure/ancestor"@en ;
     skos:definition "Select mappings with the most mapped ancestors, discard others for the same source/target. If type=all, all correspondences with one or more ancestors are selected."@en ;
+    rdfs:subClassOf amalgame:MappingPartitioner .
+
+amalgame:DescendentSelecter
+    amalgame:need_secondary_inputs true ;
+    rdfs:label "partition/structure/descendent"@en ;
+    skos:definition "Select mappings with the most mapped descendents, discard others for the same source/target. If type=all, all correspondences with one or more descendents are selected."@en ;
     rdfs:subClassOf amalgame:MappingPartitioner .
 
 amalgame:ExactLabelSelecter
@@ -27,7 +47,14 @@ amalgame:ExactLabelSelecter
     skos:definition "Select mappings with the most matching labels, discard others for the same source/target. If type=all, all candidates with matching labels are selected."@en ;
     rdfs:subClassOf amalgame:MappingPartitioner .
 
+amalgame:RelatedSelecter
+    amalgame:need_secondary_inputs true ;
+    rdfs:label "partition/structure/related"@en ;
+    skos:definition "Select mappings with the most mapped related concepts, discard others for the same source/target. If type=all, all correspondences with one or more related concepts are selected."@en ;
+    rdfs:subClassOf amalgame:MappingPartitioner .
+
 ######## Vocabulary partitioner classes:
+
 amalgame:VocExclude
     amalgame:need_secondary_inputs true ;
     rdfs:label "partition mapped/unmapped"@en ;
@@ -80,30 +107,6 @@ amalgame:IsubMatcher
     rdfs:label "string/similarity"@en ;
     skos:definition "A string similarity matcher based on the 'isub' metric introduced in 'A string metric for ontology alignment' by Giorgos Stoilos, 2005."@en ;
     rdfs:subClassOf amalgame:Matcher .
-
-amalgame:DescendentMatcher
-    amalgame:need_secondary_inputs true ;
-    rdfs:label "structure/descendent"@en ;
-    skos:definition "Matcher looking for 1 or more descendents that have already been mapped."@en ;
-    rdfs:subClassOf amalgame:Matcher .
-
-amalgame:DescendentSelecter
-    amalgame:need_secondary_inputs true ;
-    rdfs:label "structure/descendent"@en ;
-    skos:definition "Select mappings with the most mapped descendents, discard others for the same source/target. If type=all, all correspondences with one or more descendents are selected."@en ;
-    rdfs:subClassOf amalgame:MappingPartitioner .
-
-amalgame:RelatedMatcher
-    amalgame:need_secondary_inputs true ;
-    rdfs:label "structure/related"@en ;
-    skos:definition "Matcher looking for 1 or more related concepts that have already been mapped."@en ;
-    rdfs:subClassOf amalgame:Matcher .
-
-amalgame:RelatedSelecter
-    amalgame:need_secondary_inputs true ;
-    rdfs:label "structure/related"@en ;
-    skos:definition "Select mappings with the most mapped related concepts, discard others for the same source/target. If type=all, all correspondences with one or more related concepts are selected."@en ;
-    rdfs:subClassOf amalgame:MappingPartitioner .
 
 amalgame:AritySelect
     rdfs:label "ambiguity/remove"@en ;
