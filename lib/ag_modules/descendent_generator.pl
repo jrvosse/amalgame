@@ -1,10 +1,7 @@
 :- module(descendent_generator, []).
 
-:- use_module(library(assoc)).
-:- use_module(library(lists)).
-:- use_module(library(option)).
-:- use_module(library(amalgame/vocabulary)).
 :- use_module(descendent_match).
+:- use_module(generator_snd_input).
 
 :- public amalgame_module/1.
 :- public matcher/4.
@@ -21,14 +18,4 @@ parameter(steps, integer, 1,
 %	Target.
 
 matcher(Source, Target, Mappings, Options) :-
-	option(snd_input(SecList), Options),
-	findall(S-T-P, member(align(S,T,P), SecList), KeyValueList),
-	keysort(KeyValueList, Deduped),
-	ord_list_to_assoc(Deduped, BackgroundMatches),
-	findall(M, align(Source, Target, BackgroundMatches, M, Options), Mappings0),
-	sort(Mappings0, Mappings).
-
-align(Source, Target, BackgroundMatches, Match, Options) :-
-	vocab_member(S, Source),
-	vocab_member(T, Target),
-	descendent_match(align(S,T,[]), BackgroundMatches, Match, Options).
+	generator_snd_input(descendent_match, Source, Target, Mappings, Options).

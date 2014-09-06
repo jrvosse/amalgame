@@ -1,17 +1,17 @@
-:- module(ancestor_generator,
+:- module(related_generator,
 	  []).
 
-:- use_module(ancestor_match).
+:- use_module(related_match).
 :- use_module(generator_snd_input).
 
 :- public amalgame_module/1.
 :- public matcher/4.
 :- public parameter/4.
 
-amalgame_module(amalgame:'AncestorMatcher').
+amalgame_module(amalgame:'RelatedMatcher').
 
 parameter(steps, integer, 1,
-	  'depth of search, defaults to 1, e.g. direct parents only').
+	  'depth of search, defaults to 1, e.g. directly related only').
 
 %%	matcher(+Source, +Target, -Mappings, +Options)
 %
@@ -19,5 +19,5 @@ parameter(steps, integer, 1,
 %	Target.
 
 matcher(Source, Target, Mappings, Options) :-
-	generator_snd_input(ancestor_match, Source, Target, Mappings, Options).
+	generator_snd_input(related_match, Source, Target, Mappings, Options).
 
