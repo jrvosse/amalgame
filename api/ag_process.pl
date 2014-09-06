@@ -64,10 +64,7 @@ http_add_process(Request) :-
 				   description('URI of an existing process or type of new process')]),
 			  strategy(Strategy,
 				    [uri,
-				     description('URI of the strategy graph to which the process is added')]),
-			  update(Update,
-				 [boolean, default(false),
-				  descrption('When set to true process is updated with new parameters')])
+				     description('URI of the strategy graph to which the process is added')])
 			],
 			[form_data(Params0)]),
 	sort(SecInputs0, SecInputs),
@@ -75,14 +72,7 @@ http_add_process(Request) :-
 	findall(secondary_input=S,member(secondary_input=S, Params1), SecParams),
 	subtract(Params1, SecParams, Params),
 	fix_not_expanded_options(Params, ExpandedParams),
-	(   Update == true
-	->  rdf_retractall(Process, amalgame:secondary_input, _, Strategy),
-	    update_process(Process, Strategy, SecInputs, ExpandedParams),
-	    Focus = Process
-	;   ((nonvar(Source), nonvar(Target)) ; nonvar(Input))
-	->  new_process(Process, Strategy, Source, Target, Input, SecInputs, ExpandedParams, Focus)
-	;   true
-	),
+	new_process(Process, Strategy, Source, Target, Input, SecInputs, ExpandedParams, Focus),
 	js_focus_node(Strategy, Focus, FocusNode),
 	js_strategy_nodes(Strategy, Nodes),
 	reply_json(json{focus:FocusNode,
@@ -152,18 +142,6 @@ http_delete_node(Request) :-
 	reply_json(json{nodes:Nodes,
 			focus:FocusNode
 		       }).
-
-%%	update_process(+Process, +Strategy, +SecInputs, +Params)
-%
-%	Update the parameters of Process.
-update_process(Process, Strategy, SecInputs, Params) :-
-	flush_dependent_caches(Process, Strategy),
-	uri_query_components(Search, Params),
-	rdf(Process, rdf:type, Type, Strategy),
-	assert_secondary_inputs(SecInputs, Process, Type, Strategy),
-	rdf_transaction((rdf_retractall(Process, amalgame:parameters, _),
-			 rdf_assert(Process, amalgame:parameters, literal(Search), Strategy)
-			)).
 
 is_dependent_chk(Mapping, Process, Strategy) :-
 	rdf_has(Mapping, amalgame:wasGeneratedBy, Process, RP),
