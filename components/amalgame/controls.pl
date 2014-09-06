@@ -237,6 +237,9 @@ module_input_type(M, mapping) :-
 	rdfs_subclass_of(M, amalgame:'MappingPartitioner'),
 	!.
 module_input_type(M, vocab) :-
+	rdfs_subclass_of(M, amalgame:'CandidateGenerator'),
+	!.
+module_input_type(M, vocab) :-
 	rdfs_subclass_of(M, amalgame:'VocabPartitioner'),
 	!.
 module_input_type(_, '').
@@ -252,7 +255,9 @@ module_special_type(M, secinput) :-
 module_special_type(M, preloaded) :-
 	rdfs_subclass_of(M, amalgame:'SelectPreLoaded'),
 	!.
-
+module_special_type(M, generate) :-
+	rdfs_subclass_of(M, amalgame:'CandidateGenerator'),
+	!.
 module_special_type(M, match) :-
 	rdfs_subclass_of(M, amalgame:'Matcher'),
 	!.

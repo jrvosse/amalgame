@@ -210,8 +210,10 @@ YUI.add('controls', function(Y) {
 			if(NODE_INPUT.get("value")||
 				(NODE_SOURCE.get("value")&&NODE_TARGET.get("value"))) {
 				Y.all("#match .control-submit").removeAttribute("disabled");
+				Y.all("#generate .control-submit").removeAttribute("disabled");
 			} else {
 				Y.all("#match .control-submit").setAttribute("disabled", true);
+				Y.all("#generate .control-submit").setAttribute("disabled", true);
 			}
 		},
 
