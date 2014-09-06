@@ -5,12 +5,24 @@
 
 amalgame:ExactLabelMatcher
     rdfs:label "generate/label (exact)"@en ;
-    skos:definition "Generate new candidates based on exact matching labels of source and target concepts"@en ;
+    skos:definition "Generate new candidates based on exact matching labels of source and target concepts."@en ;
     rdfs:subClassOf amalgame:CandidateGenerator .
 
 amalgame:ExactLabelSelecter
     rdfs:label "partition/label (exact)"@en ;
-    skos:definition "Partition existing candidates based on exact matching labels of source and target concepts"@en ;
+    skos:definition "Select mappings with the most matching labels, discard others for the same source/target. If type=all, all candidates with matching labels are selected."@en ;
+    rdfs:subClassOf amalgame:MappingPartitioner .
+
+amalgame:AncestorMatcher
+    amalgame:need_secondary_inputs true ;
+    rdfs:label "structure/ancestor"@en ;
+    skos:definition "Generate new candidates by looking for 1 or more ancestors that have already been mapped."@en ;
+    rdfs:subClassOf amalgame:CandidateGenerator .
+
+amalgame:AncestorSelecter
+    amalgame:need_secondary_inputs true ;
+    rdfs:label "structure/ancestor"@en ;
+    skos:definition "Select mappings with the most mapped ancestors, discard others for the same source/target. If type=all, all correspondences with one or more ancestors are selected."@en ;
     rdfs:subClassOf amalgame:MappingPartitioner .
 
 ####################
@@ -44,18 +56,6 @@ amalgame:IsubMatcher
     rdfs:label "string/similarity"@en ;
     skos:definition "A string similarity matcher based on the 'isub' metric introduced in 'A string metric for ontology alignment' by Giorgos Stoilos, 2005."@en ;
     rdfs:subClassOf amalgame:Matcher .
-
-amalgame:AncestorMatcher
-    amalgame:need_secondary_inputs true ;
-    rdfs:label "structure/ancestor"@en ;
-    skos:definition "Matcher looking for 1 or more ancestors that have already been mapped."@en ;
-    rdfs:subClassOf amalgame:Matcher .
-
-amalgame:AncestorSelecter
-    amalgame:need_secondary_inputs true ;
-    rdfs:label "structure/ancestor"@en ;
-    skos:definition "Select mappings with the most mapped ancestors, discard others for the same source/target. If type=all, all correspondences with one or more ancestors are selected."@en ;
-    rdfs:subClassOf amalgame:MappingPartitioner .
 
 amalgame:DescendentMatcher
     amalgame:need_secondary_inputs true ;
