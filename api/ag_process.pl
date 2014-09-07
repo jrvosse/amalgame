@@ -54,7 +54,10 @@ http_add_process(Request) :-
 				   description('URI of an existing process or type of new process')]),
 			  strategy(Strategy,
 				    [uri,
-				     description('URI of the strategy graph to which the process is added')])
+				     description('URI of the strategy graph to which the process is added')]),
+			  update(Update,
+				 [boolean, default(false),
+				  descrption('When set to true process is updated with new parameters')])
 			],
 			[form_data(Params0)]),
 	sort(SecInputs0, SecInputs),
@@ -63,7 +66,15 @@ http_add_process(Request) :-
 	subtract(Params1, SecParams, Params),
 	fix_not_expanded_options(Params, ExpandedParams),
 	flush_refs_cache_if_needed(Process),
-	strategy_new_process(Strategy, Process, Source, Target, Input, SecInputs, ExpandedParams, Focus, URI),
+	(   Update == true
+	->  rdf_retractall(Process, amalgame:secondary_input, _, Strategy),
+	    flush_dependent_caches(Process, Strategy),
+	    strategy_update_process_parameters(Strategy, Process, SecInputs, ExpandedParams),
+	    Focus = Process, URI = Process
+	;   ((nonvar(Source), nonvar(Target)) ; nonvar(Input))
+	->  strategy_new_process(Strategy, Process, Source, Target, Input, SecInputs, ExpandedParams, Focus, URI)
+	;   true
+	),
 	% precompute results to speed things up
 	(   setting(amalgame:precompute, true)
 	->  precompute_process(Strategy, URI)
@@ -136,7 +147,6 @@ http_delete_node(Request) :-
 	reply_json(json{nodes:Nodes,
 			focus:FocusNode
 		       }).
-
 
 
 change_ns_if_needed(NS, URI, Strategy, NewStrategy) :-

@@ -1,6 +1,7 @@
 :- module(ag_strategy,
 	  [ strategy_process_entity/3,
 	    strategy_new_process/9,
+	    strategy_update_process_parameters/4,
 	    strategy_update_node/3,
 	    strategy_delete_node/2,
 
@@ -21,6 +22,7 @@
 	strategy_process_entity(r,r,r),
 	strategy_delete_node(r,r),
 	strategy_update_node(r,+,r),
+	strategy_update_process_parameters(r,r,+,+),
 	assert_output(r,r,r,r,r,r),
 	new_output(r,r,r,r,r,r),
 	output_type(r,r),
@@ -47,6 +49,18 @@ strategy_new_process(Strategy, Type, Source, Target, Input, SecInputs, Params, F
 		assert_secondary_inputs(SecInputs, URI, Type, Strategy),
 		assert_output(URI, Type, Strategy, Input, SecInputs, Focus)
 	    )).
+%%	update_process(+Process, +Strategy, +SecInputs, +Params) is det.
+%
+%	Update the parameters of Process.
+strategy_update_process_parameters(Strategy, Process, SecInputs, Params) :-
+	uri_query_components(Search, Params),
+	rdf(Process, rdf:type, Type, Strategy),
+	assert_secondary_inputs(SecInputs, Process, Type, Strategy),
+	rdf_transaction((rdf_retractall(Process, amalgame:parameters, _),
+			 rdf_assert(Process, amalgame:parameters, literal(Search), Strategy)
+			)).
+
+
 %%	strategy_update_node(+Strategy, +Properties, +Node) is det.
 %
 %	Update Properties of Node in Strategy named graph.
