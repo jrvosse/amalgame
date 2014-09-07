@@ -11,6 +11,11 @@ amalgame:AncestorMatcher
     skos:definition "Generate new candidates by looking for 1 or more ancestors that have already been mapped."@en ;
     rdfs:subClassOf amalgame:CandidateGenerator .
 
+amalgame:CompoundMatcher
+    rdfs:label "generate/label/compound"@en ;
+    skos:definition "A label matcher matching after compound splitting the label(s) of the source concepts"@en ;
+    rdfs:subClassOf amalgame:CandidateGenerator .
+
 amalgame:DescendentMatcher
     amalgame:need_secondary_inputs true ;
     rdfs:label "generate/structure/descendent"@en ;
@@ -102,11 +107,6 @@ amalgame:SelectPreLoadedSelecter
     rdfs:label "import/preloaded"@en ;
     skos:definition "Select mappings with corresponding mappings in the preloaded mapping, discard others with the same source/target."@en ;
     rdfs:subClassOf amalgame:MappingPartitioner .
-
-amalgame:CompoundMatcher
-    rdfs:label "string/label (compound)"@en ;
-    skos:definition "A label matcher matching after compound splitting the label(s) of the source concepts"@en ;
-    rdfs:subClassOf amalgame:Matcher .
 
 amalgame:SnowballMatcher
     rdfs:label "string/label (stemmed)"@en ;
