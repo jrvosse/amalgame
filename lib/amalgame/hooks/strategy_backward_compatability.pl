@@ -1,14 +1,12 @@
 :- module(strategy_backward_compatability, []).
 
 :- use_module(library(lists)).
-:- use_module(library(apply)).
 :- use_module(library(settings)).
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(skos/util)).
-:- use_module(library(amalgame/rdf_util)).
-:- use_module(api(ag_process)). % hack: we use ag_process:assert_output
+:- use_module(library(amalgame/ag_strategy)).
 
 :- multifile
 	amalgame:prebuilder/1.
@@ -41,7 +39,7 @@ is_old_vocab_selecter_triple(S,amalgame:wasGeneratedBy,O, G) :-
 	skos_is_vocabulary(S).
 
 old_vocab_selecter_to_new(rdf(S,_,Process,Strategy)) :-
-	ag_process:assert_output(Process, amalgame:'VocabPartitioner', Strategy, _, _, S).
+	ag_strategy:assert_output(Process, amalgame:'VocabPartitioner', Strategy, _, _, S).
 
 fix_publish_ns(S) :-
 	(   rdf(S, amalgame:publish_ns, _,S)

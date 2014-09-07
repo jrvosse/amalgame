@@ -67,7 +67,7 @@ http_data_evaluate(Request) :-
 	->  evaluation_graph(Strategy, Mapping, Graph)
 	;   Graph = Mapping
 	),
-	process_entity(Strategy, EvalProcess,  Graph),
+	strategy_process_entity(Strategy, EvalProcess,  Graph),
 	flush_expand_cache(EvalProcess, Strategy),  % graph cache is now outdated
 	flush_refs_cache(Strategy),                 % to recompute all reference stats
 	flush_stats_cache(Graph, Strategy),         % to recompute G's basic stats
