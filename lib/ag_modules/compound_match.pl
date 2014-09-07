@@ -140,7 +140,12 @@ match_label(Source, Label, Targets, Options) :-
 		    ->  true
 		    ;   matching_types(Source, Target)
 		    ),
-		    ProvGraph = [rdf(Target, TargetProp, literal(lang(TargetLang, TargetLabel)))]
+		    (   var(TargetLang)
+		    ->  TargetTerm = literal(TargetLabel)
+		    ;   TargetTerm = literal(lang(TargetLang, TargetLabel))
+		    ),
+		    ProvGraph = [rdf(Target, TargetProp, TargetTerm)]
 		),
 		Targets),
+	(ground(Targets) -> true; gtrace),
 	Targets \= [].
