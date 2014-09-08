@@ -12,8 +12,8 @@ amalgame:AncestorMatcher
     rdfs:subClassOf amalgame:CandidateGenerator .
 
 amalgame:CompoundMatcher
-    rdfs:label "generate/label/compound"@en ;
-    skos:definition "A label matcher matching after compound splitting the label(s) of the source concepts"@en ;
+    rdfs:label "generate/label/compound source"@en ;
+    skos:definition "A label matcher matching after compound splitting the label(s) of the source concepts. Source labels are splitted using rdf_tokenize_literal/2. Warning: source label tokens are matched against complete target labels! "@en ;
     rdfs:subClassOf amalgame:CandidateGenerator .
 
 amalgame:DescendentMatcher
@@ -44,6 +44,11 @@ amalgame:AncestorSelecter
     amalgame:need_secondary_inputs true ;
     rdfs:label "partition/structure/ancestor"@en ;
     skos:definition "Select mappings with the most mapped ancestors, discard others for the same source/target. If type=all, all correspondences with one or more ancestors are selected."@en ;
+    rdfs:subClassOf amalgame:MappingPartitioner .
+
+amalgame:CompoundLabelSelecter
+    rdfs:label "partition/label/compound source"@en ;
+    skos:definition "Select mappings with the most matching labels, discard others for the same source/target. If type=all, all candidates with matching labels are selected.  All matching is done after compound splitting the label(s) of the source concepts. Source labels are splitted using rdf_tokenize_literal/2. Warning: source label tokens are matched against complete target labels!"@en ;
     rdfs:subClassOf amalgame:MappingPartitioner .
 
 amalgame:DescendentSelecter

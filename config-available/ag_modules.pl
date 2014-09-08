@@ -2,6 +2,7 @@
 
 % Candidate correspondence generator components:
 :- use_module(library(ag_modules/ancestor_generator)).
+:- use_module(library(ag_modules/compound_label_generator)).
 :- use_module(library(ag_modules/descendent_generator)).
 :- use_module(library(ag_modules/exact_label_generator)).
 :- use_module(library(ag_modules/isub_generator)).
@@ -9,6 +10,7 @@
 
 % Mapping producing partitioners:
 :- use_module(library(ag_modules/ancestor_selecter)).
+:- use_module(library(ag_modules/compound_label_selecter)).
 :- use_module(library(ag_modules/descendent_selecter)).
 :- use_module(library(ag_modules/exact_label_selecter)).
 :- use_module(library(ag_modules/isub_selecter)).
@@ -21,7 +23,6 @@
 :- use_module(library(ag_modules/propvalue_select)).
 
 % Modules that can be used as matchers
-:- use_module(library(ag_modules/compound_match)).
 :- use_module(library(ag_modules/snowball_match)).
 :- use_module(library(ag_modules/preloaded_mapping)).
 
