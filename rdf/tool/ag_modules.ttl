@@ -132,11 +132,6 @@ amalgame:SiblingSelecter
     skos:definition "Select the siblings (if any) among alternatives for the same source/target. This is used, for example, when a single source with two labels matches on two distinct but very similar targets and both mappings need to be preserved. "@en ;
     rdfs:subClassOf amalgame:MappingPartitioner .
 
-amalgame:TokenAritySelect
-    rdfs:label "ambiguity/remove (token) "@en ;
-    skos:definition "Similar to ambiguity/remove but now on the level of splitted compound labels"@en ;
-    rdfs:subClassOf amalgame:MappingPartitioner .
-
 ######## Vocabulary partitioner classes:
 
 amalgame:VocExclude

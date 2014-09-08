@@ -28,7 +28,6 @@
 :- use_module(library(ag_modules/most_labels)).
 :- use_module(library(ag_modules/most_methods)).
 :- use_module(library(ag_modules/sibling_selecter)).
-:- use_module(library(ag_modules/token_arity_select)).
 
 % Vocabulary partitioners:
 :- use_module(library(ag_modules/voc_exclude)).
