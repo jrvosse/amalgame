@@ -16,6 +16,7 @@
 :- use_module(library(ag_modules/exact_label_selecter)).
 :- use_module(library(ag_modules/isub_selecter)).
 :- use_module(library(ag_modules/related_selecter)).
+:- use_module(library(ag_modules/snowball_label_selecter)).
 
 % Vocabulary filters/selecters
 :- use_module(library(ag_modules/voc_exclude)).

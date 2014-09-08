@@ -78,6 +78,11 @@ amalgame:RelatedSelecter
     skos:definition "Select mappings with the most mapped related concepts, discard others for the same source/target. If type=all, all correspondences with one or more related concepts are selected."@en ;
     rdfs:subClassOf amalgame:MappingPartitioner .
 
+amalgame:SnowballLabelSelecter
+    rdfs:label "partition/label/stemmed"@en ;
+    skos:definition "Select mappings with the most matching labels after (snowball) stemming, discard others for the same source/target. If type=all, all candidates with matching labels are selected."@en ;
+    rdfs:subClassOf amalgame:MappingPartitioner .
+
 ######## Vocabulary partitioner classes:
 
 amalgame:VocExclude
