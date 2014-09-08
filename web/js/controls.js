@@ -6,6 +6,7 @@ YUI.add('controls', function(Y) {
 
 	var NODE_CONTROLS = Y.all(".control"),
 		NODE_INPUT_CONTROLS = Y.all("#select .control"),
+		NODE_CONTROLS_ACTIVE = Y.all(".control.always_active"),
 		NODE_CONCEPT_INPUTS = Y.all('.vocab input.concept'),
 		NODE_INPUT = Y.one("#input"),
 		NODE_SOURCE = Y.one("#source"),
@@ -163,18 +164,21 @@ YUI.add('controls', function(Y) {
 			this._setMappingSelecter();
 			var secSelecter = Y.one(".secinput_selecter");
 
-			// Re-enable all controls by default:
-			NODE_CONTROLS.each(function(node) { node.removeClass("disabled") });
+			// Disable controls incompatible with the active type
+			NODE_CONTROLS.each(function(node) {
+				if( !type || !node.hasClass(type) ) 
+					node.addClass("disabled"); 
+				else
+					node.removeClass("disabled"); 
+			});
+
+			NODE_CONTROLS_ACTIVE.removeClass("disabled");
 
 			// Disable controls requiring secondairy mappings if there are non:
 			if (!secSelecter || !secSelecter.getContent()) {
 				Y.all(".secinput").addClass("disabled");
 			}
 
-			// Disable controls incompatible with the active type
-			NODE_INPUT_CONTROLS.each(function(node) {
-				if(!type || !node.hasClass(type)) node.addClass("disabled");
-			});
 
 			// enable input select when a vocabulary is selected
 			NODE_INPUT_BTN.setAttribute("disabled", true);
