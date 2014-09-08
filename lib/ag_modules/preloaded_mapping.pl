@@ -7,7 +7,6 @@
 
 :- public amalgame_module/1.
 :- public matcher/4.
-:- public filter/3.
 :- public parameter/4.
 
 amalgame_module(amalgame:'SelectPreLoaded').
@@ -27,20 +26,6 @@ matcher(Source, Target, Mapping, Options) :-
 		c_from_graph(Correspondence, Source, Target, Graph),
 		Mapping0),
 	sort(Mapping0, Mapping).
-
-filter(In, Out, Options) :-
-	option(name(Graph), Options),
-	filter_(Graph, In, Out).
-
-filter_(_Graph, [], []).
-filter_(Graph, [Hin|Tin], Out) :-
-	Hin = align(S,T,P),
-	(   has_correspondence(align(S, T, PGraph), Graph)
-	->  append(PGraph, P, Pmerged),
-	    Out = [ align(S, T, Pmerged) | Tout]
-	;   Out = Tout
-	),
-	filter_(Graph, Tin, Tout).
 
 c_from_graph(align(S,T,P), Source, Target, Graph) :-
 	has_correspondence(align(S,T,P), Graph),
