@@ -52,11 +52,12 @@ YUI.add('controls', function(Y) {
 			   }
 			}, this);
 
-			// the match control has two additional buttons
+			// the generate control has two additional buttons
 			// to set the source and target
-			Y.on("click", this._valueSetAndSyncUI, NODE_INPUT_BTN, this, "input");
 			Y.on("click", this._valueSetAndSyncUI, NODE_SOURCE_BTN, this, "source");
 			Y.on("click", this._valueSetAndSyncUI, NODE_TARGET_BTN, this, "target");
+
+			Y.on("click", this._valueSetAndSyncUI, NODE_INPUT_BTN, this, "input");
 
 			// try to use the currently selected concept in the vocab browser:
 			NODE_CONCEPT_INPUTS.on('focus', this.currentConceptChange, this);
@@ -202,14 +203,11 @@ YUI.add('controls', function(Y) {
 			  //Y.log("Disabling components requiring preloaded input mappings");
 			  Y.all(".preloaded").addClass("disabled");
 			}
-			// enable matcher submit when both source and target have a value
-			if(NODE_INPUT.get("value")||
-				(NODE_SOURCE.get("value")&&NODE_TARGET.get("value"))) {
-				Y.all("#match .control-submit").removeAttribute("disabled");
-				Y.all("#generate .control-submit").removeAttribute("disabled");
+			// enable generator submit when both source and target have a value
+			if (NODE_SOURCE.get("value") && NODE_TARGET.get("value")) {
+				Y.all("#vocab .control-submit").removeAttribute("disabled");
 			} else {
-				Y.all("#match .control-submit").setAttribute("disabled", true);
-				Y.all("#generate .control-submit").setAttribute("disabled", true);
+				Y.all("#vocab .control-submit").setAttribute("disabled", true);
 			}
 		},
 

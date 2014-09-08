@@ -31,7 +31,7 @@ amalgame:Partitioner
 amalgame:CandidateGenerator
     rdfs:label "Candidate generator"@en ;
     rdfs:comment "A process that generates a mapping with candidate correspondences."@en ;
-    rdfs:subClassOf amalgame:Matcher . # fix me, should become amalgame:Process .
+    rdfs:subClassOf amalgame:Process . 
 
 amalgame:MappingPartitioner
     rdfs:label "Mapping partitioner"@en ;
@@ -50,11 +50,6 @@ amalgame:VirtualVocabPartitioner
     rdfs:subClassOf amalgame:VocabPartitioner .
 
 ###############################
-
-amalgame:Matcher
-    rdfs:label "Matcher (deprecated)"@en ;
-    skos:definition "Component that creates a mapping given a source and target vocabulary"@en ;
-    rdfs:subClassOf amalgame:Process .
 
 amalgame:parameters
     a rdf:Property ;

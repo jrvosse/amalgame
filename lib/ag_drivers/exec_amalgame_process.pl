@@ -91,28 +91,6 @@ collect_snd_input(Process, Strategy, SecInput):-
 %
 %       @error existence_error(mapping_process)
 
-exec_amalgame_process(Type, Process, Strategy, Module, MapSpec, Time, Options) :-
-	rdfs_subclass_of(Type, amalgame:'Matcher'),
-	!,
-	collect_snd_input(Process, Strategy, SecInput),
-	(   rdf(Process, amalgame:source, SourceId, Strategy),
-	    rdf(Process, amalgame:target, TargetId, Strategy)
-	->  expand_node(Strategy, SourceId, Source),
-	    expand_node(Strategy, TargetId, Target),
-	    voc_property(SourceId, format(SourceFormat)),
-	    voc_property(TargetId, format(TargetFormat)),
-	    timed_call(Module:matcher(Source, Target, Mapping0,
-				      [snd_input(SecInput),
-				       source_format(SourceFormat),
-				       target_format(TargetFormat)
-				      |Options]), Time)
-	;   rdf(Process, amalgame:input, InputId)
-	->  expand_node(Strategy, InputId, MappingIn),
-	    timed_call(Module:filter(MappingIn, Mapping0,
-				     [snd_input(SecInput)|Options]), Time)
-	),
-	merge_provenance(Mapping0, Mapping),
-	MapSpec = mapspec(mapping(Mapping)).
 exec_amalgame_process(Class, Process, Strategy, Module, MapSpec, Time, Options) :-
 	rdfs_subclass_of(Class, amalgame:'MappingPartitioner'),
 	!,
@@ -122,6 +100,32 @@ exec_amalgame_process(Class, Process, Strategy, Module, MapSpec, Time, Options) 
 	expand_node(Strategy, InputId, MappingIn),
 	timed_call(Module:selecter(MappingIn, Selected, Discarded, Undecided,
 				   [snd_input(SecInput)|Options]), Time).
+exec_amalgame_process(Type, Process, Strategy, Module, MapSpec, Time, Options) :-
+	rdfs_subclass_of(Type, amalgame:'CandidateGenerator'),
+	!,
+	collect_snd_input(Process, Strategy, SecInput),
+	rdf(Process, amalgame:source, SourceId, Strategy),
+	rdf(Process, amalgame:target, TargetId, Strategy),
+	expand_node(Strategy, SourceId, Source),
+	expand_node(Strategy, TargetId, Target),
+	voc_property(SourceId, format(SourceFormat)),
+	voc_property(TargetId, format(TargetFormat)),
+	timed_call(Module:matcher(Source, Target, Mapping0,
+				  [snd_input(SecInput),
+				   source_format(SourceFormat),
+				   target_format(TargetFormat)
+				  |Options]), Time),
+	merge_provenance(Mapping0, Mapping),
+	MapSpec = mapspec(mapping(Mapping)).
+exec_amalgame_process(Class, Process, Strategy, Module, VocSpec, Time, Options) :-
+	rdfs_subclass_of(Class, amalgame:'VocabPartitioner'),
+	!,
+	once(rdf(Process, amalgame:input, Input, Strategy)),
+	findall(S, rdf_has(Process, amalgame:secondary_input, S), Ss),
+	VocSpec = vocspec(select(Selected, Discarded, Undecided)),
+	expand_node(Strategy, Input, InputVocspec),
+	timed_call(Module:selecter(InputVocspec, Selected, Discarded, Undecided,
+				   [snd_input(Ss), strategy(Strategy)|Options]), Time).
 exec_amalgame_process(Class, Process, Strategy, Module, MapSpec, Time, Options) :-
 	rdfs_subclass_of(Class, amalgame:'MapMerger'),
 	!,
@@ -136,15 +140,6 @@ exec_amalgame_process(Class, Process, Strategy, Module, MapSpec, Time, Options) 
 	% We need the ids, not the values in most analyzers
 	timed_call(Module:analyzer(Inputs, Process, Strategy, Result, Options), Time),
 	MapSpec = mapspec(Result). % Result = overlap([..]).
-exec_amalgame_process(Class, Process, Strategy, Module, VocSpec, Time, Options) :-
-	rdfs_subclass_of(Class, amalgame:'VocabPartitioner'),
-	!,
-	once(rdf(Process, amalgame:input, Input, Strategy)),
-	findall(S, rdf_has(Process, amalgame:secondary_input, S), Ss),
-	VocSpec = vocspec(select(Selected, Discarded, Undecided)),
-	expand_node(Strategy, Input, InputVocspec),
-	timed_call(Module:selecter(InputVocspec, Selected, Discarded, Undecided,
-				   [snd_input(Ss), strategy(Strategy)|Options]), Time).
 exec_amalgame_process(Class, Process,_,_, _, _, _) :-
 	throw(error(existence_error(mapping_process, [Class, Process]), _)).
 
@@ -154,4 +149,3 @@ timed_call(Goal, Time) :-
 	call(Goal),
 	thread_statistics(Me, cputime, T1),
         Time is T1 - T0.
-

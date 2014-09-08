@@ -279,6 +279,8 @@ YUI.add('infobox', function(Y) {
 				     on: {success: function(e,o)
 						   {
 						     var r = Y.JSON.parse(o.responseText);
+						     Y.log('Create hint:');
+						     Y.log(r);
 						     if (r.text) {
 						       NODE_HINT.setContent(r.text);
 						     } else {
@@ -289,12 +291,14 @@ YUI.add('infobox', function(Y) {
 						       NODE_HINT.appendChild('(<a id="exec_hint">just do it</a>)');
 						       // FixMe! can we put the handler once on initialization?
 						       Y.one('#exec_hint').on("click", oSelf._onExecHint, oSelf, r.data, r.event);
-						       if (r.data.lastAction && (r.data.lastAction == "match")) {
-							 Y.one('#match_control_set').addClass('active');
+						       if (r.data.lastAction && (r.data.lastAction == "generate")) {
+							 Y.one('#generate_control_set').addClass('active');
 							 Y.one('#select_control_set').removeClass('active');
-						       } else if (r.data.lastAction && (r.data.lastAction == "input")) {
+							 Y.log('select -> generate');
+						       } else if (r.data.lastAction && (r.data.lastAction == "select")) {
 							 Y.one('#select_control_set').addClass('active');
-							 Y.one('#match_control_set').removeClass('active');
+							 Y.one('#generate_control_set').removeClass('active');
+							 Y.log('generate -> select');
 						       }
 						     }
 						   }

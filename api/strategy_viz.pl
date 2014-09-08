@@ -182,7 +182,7 @@ process_color(R, '#99CCFF') :-
 	rdfs_individual_of(R, amalgame:'MappingPartitioner'),
 	!.
 process_color(R, '#CC99FF') :-
-	rdfs_individual_of(R, amalgame:'Matcher'),
+	rdfs_individual_of(R, amalgame:'CandidateGenerator'),
 	!.
 process_color(R, '#FF99CC') :-
 	rdfs_individual_of(R, amalgame:'EvaluationProcess'),

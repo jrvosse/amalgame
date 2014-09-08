@@ -10,9 +10,9 @@
 :- use_module(components(amalgame/util)).
 
 html_controls  -->
-	{ amalgame_modules_of_type(amalgame:'Partitioner', Partitioners),
-	  amalgame_modules_of_type(amalgame:'Matcher', Matchers),
-	  amalgame_modules_of_type(amalgame:'SetOperator', Analyzers)
+	{ amalgame_modules_of_type(amalgame:'Partitioner',        Partitioners),
+	  amalgame_modules_of_type(amalgame:'CandidateGenerator', Generators),
+	  amalgame_modules_of_type(amalgame:'SetOperator',        Analyzers)
 	},
 	html([
 	    \html_control_set(hint_control_set, true,
@@ -24,7 +24,7 @@ html_controls  -->
 			      \html_info_control),
 	    \html_control_set(generate_control_set, false,
 			      'Generate',
-			      \html_generate_control(Matchers)),
+			      \html_generate_control(Generators)),
 	    \html_control_set(select_control_set, false,
 			      'Partition',
 			      \html_select_control(Partitioners)),
@@ -249,12 +249,6 @@ module_special_type(M, secinput) :-
 	!.
 module_special_type(M, preloaded) :-
 	rdfs_subclass_of(M, amalgame:'SelectPreLoaded'),
-	!.
-module_special_type(M, generate) :-
-	rdfs_subclass_of(M, amalgame:'CandidateGenerator'),
-	!.
-module_special_type(M, match) :-
-	rdfs_subclass_of(M, amalgame:'Matcher'),
 	!.
 module_special_type(M, select) :-
 	rdfs_subclass_of(M, amalgame:'MappingPartitioner'),

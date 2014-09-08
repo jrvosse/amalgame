@@ -20,13 +20,13 @@
 :- use_module(library(ag_modules/related_selecter)).
 :- use_module(library(ag_modules/snowball_label_selecter)).
 
-% Other mapping producing partitioners
+% Other mapping producing partitioners:
 :- use_module(library(ag_modules/arity_select)).
 :- use_module(library(ag_modules/ag_sample)).
 :- use_module(library(ag_modules/best_numeric)).
-:- use_module(library(ag_modules/most_methods)).
-:- use_module(library(ag_modules/most_labels)).
 :- use_module(library(ag_modules/most_generic)).
+:- use_module(library(ag_modules/most_labels)).
+:- use_module(library(ag_modules/most_methods)).
 :- use_module(library(ag_modules/sibling_selecter)).
 :- use_module(library(ag_modules/token_arity_select)).
 

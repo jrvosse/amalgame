@@ -111,7 +111,7 @@ find_hint(Strategy, Context, Hint) :-
 	Hint =	json([
 		    event(submit),
 		    data(json([
-			     lastAction(match),
+			     lastAction(generate),
 			     focus(Focus),
 			     process(Match),
 			     source(Focus),

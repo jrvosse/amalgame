@@ -3,7 +3,7 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix amalgame: <http://purl.org/vocabularies/amalgame#> .
 
-######## Candidate generator classes:
+######## Candidate correspondence generator components:
 
 amalgame:AncestorMatcher
     amalgame:need_secondary_inputs true ;
@@ -32,6 +32,11 @@ amalgame:IsubMatcher
     skos:definition "Generate new candidates based on similar labels. The matcher is based on the 'isub' metric introduced in 'A string metric for ontology alignment' by Giorgos Stoilos, 2005."@en ;
     rdfs:subClassOf amalgame:CandidateGenerator .
 
+amalgame:SelectPreLoaded
+    rdfs:label "import/preloaded"@en ;
+    skos:definition "Match mappings from preloaded named graph against concepts in source and target vocabularies"@en ;
+    rdfs:subClassOf amalgame:CandidateGenerator .
+
 amalgame:RelatedMatcher
     amalgame:need_secondary_inputs true ;
     rdfs:label "structure/related"@en ;
@@ -43,44 +48,93 @@ amalgame:SnowballMatcher
     skos:definition "Generate new candidates based on label matching after (snowball) stemming."@en ;
     rdfs:subClassOf amalgame:CandidateGenerator .
 
-######## Mapping partitioner classes:
+########  Mapping producing partitioners, based on the generators above:
 
 amalgame:AncestorSelecter
     amalgame:need_secondary_inputs true ;
-    rdfs:label "partition/structure/ancestor"@en ;
+    rdfs:label "structure/ancestor"@en ;
     skos:definition "Select mappings with the most mapped ancestors, discard others for the same source/target. If type=all, all correspondences with one or more ancestors are selected."@en ;
     rdfs:subClassOf amalgame:MappingPartitioner .
 
 amalgame:CompoundLabelSelecter
-    rdfs:label "partition/label/compound source"@en ;
+    rdfs:label "label/compound source"@en ;
     skos:definition "Select mappings with the most matching labels, discard others for the same source/target. If type=all, all candidates with matching labels are selected.  All matching is done after compound splitting the label(s) of the source concepts. Source labels are splitted using rdf_tokenize_literal/2. Warning: source label tokens are matched against complete target labels!"@en ;
     rdfs:subClassOf amalgame:MappingPartitioner .
 
 amalgame:DescendentSelecter
     amalgame:need_secondary_inputs true ;
-    rdfs:label "partition/structure/descendent"@en ;
+    rdfs:label "structure/descendent"@en ;
     skos:definition "Select mappings with the most mapped descendents, discard others for the same source/target. If type=all, all correspondences with one or more descendents are selected."@en ;
     rdfs:subClassOf amalgame:MappingPartitioner .
 
 amalgame:ExactLabelSelecter
-    rdfs:label "partition/label/exact"@en ;
+    rdfs:label "label/exact"@en ;
     skos:definition "Select mappings with the most matching labels, discard others for the same source/target. If type=all, all candidates with matching labels are selected."@en ;
     rdfs:subClassOf amalgame:MappingPartitioner .
 
 amalgame:IsubSelecter
-    rdfs:label "partition/label/similarity"@en ;
+    rdfs:label "label/similarity"@en ;
     skos:definition "Select mappings with the most similar labels, discard others for the same source/target.  If type=all, all candidates with sufficiently similar labels are selected. The matcher is based on the 'isub' metric introduced in 'A string metric for ontology alignment' by Giorgos Stoilos, 2005."@en ;
+    rdfs:subClassOf amalgame:MappingPartitioner .
+
+amalgame:SelectPreLoadedSelecter
+    rdfs:label "import/preloaded"@en ;
+    skos:definition "Select mappings with corresponding mappings in the preloaded mapping, discard others with the same source/target."@en ;
     rdfs:subClassOf amalgame:MappingPartitioner .
 
 amalgame:RelatedSelecter
     amalgame:need_secondary_inputs true ;
-    rdfs:label "partition/structure/related"@en ;
+    rdfs:label "structure/related"@en ;
     skos:definition "Select mappings with the most mapped related concepts, discard others for the same source/target. If type=all, all correspondences with one or more related concepts are selected."@en ;
     rdfs:subClassOf amalgame:MappingPartitioner .
 
 amalgame:SnowballLabelSelecter
-    rdfs:label "partition/label/stemmed"@en ;
+    rdfs:label "label/stemmed"@en ;
     skos:definition "Select mappings with the most matching labels after (snowball) stemming, discard others for the same source/target. If type=all, all candidates with matching labels are selected."@en ;
+    rdfs:subClassOf amalgame:MappingPartitioner .
+
+########  Other mapping producing partitioners:
+
+amalgame:AritySelect
+    rdfs:label "ambiguity/remove"@en ;
+    skos:definition "Select correspondences with a unique source, target or both, discard others"@en;
+    rdfs:subClassOf amalgame:MappingPartitioner .
+
+amalgame:Sampler
+    rdfs:label "sampler"@en ;
+    amalgame:materialize amalgame:always ;
+    skos:definition "Component that randomly samples correspondences to create a new mapping."@en ;
+    rdfs:comment "Samples are always materialized to guarantee replicability of the workflow."@en ;
+    rdfs:subClassOf amalgame:MappingPartitioner .
+
+amalgame:BestNumeric
+    rdfs:label "best numeric"@en ;
+    skos:definition "Select correspondences that have the best score considering some numerical ranking, discard others."@en ;
+    rdfs:subClassOf amalgame:MappingPartitioner .
+
+amalgame:MostGeneric
+    rdfs:label "most generic"@en ;
+    skos:definition "Select the most generic concepts among alternatives for the same source/target, discard others."@en ;
+    rdfs:subClassOf amalgame:MappingPartitioner .
+
+amalgame:MostLabels
+    rdfs:label "most labels"@en ;
+    skos:definition "Select correspondences that already have the most matching labels (according to their evidence data.)"@en ;
+    rdfs:subClassOf amalgame:MappingPartitioner .
+
+amalgame:MostMethods
+    rdfs:label "most methods"@en ;
+    skos:definition "Select correspondences that have been selected by the most other methods (according to their evidence data.)"@en ;
+    rdfs:subClassOf amalgame:MappingPartitioner .
+
+amalgame:SiblingSelecter
+    rdfs:label "sibling selecter"@en ;
+    skos:definition "Select the siblings (if any) among alternatives for the same source/target. This is used, for example, when a single source with two labels matches on two distinct but very similar targets and both mappings need to be preserved. "@en ;
+    rdfs:subClassOf amalgame:MappingPartitioner .
+
+amalgame:TokenAritySelect
+    rdfs:label "ambiguity/remove (token) "@en ;
+    skos:definition "Similar to ambiguity/remove but now on the level of splitted compound labels"@en ;
     rdfs:subClassOf amalgame:MappingPartitioner .
 
 ######## Vocabulary partitioner classes:
@@ -113,51 +167,6 @@ amalgame:EvaluationProcess
     skos:definition "A process class representing manual evaluation processes "@en ;
     rdfs:subClassOf amalgame:Process .
 
-amalgame:SelectPreLoaded
-    rdfs:label "import/preloaded"@en ;
-    skos:definition "Match mappings from preloaded named graph against concepts in source and target vocabularies"@en ;
-    rdfs:subClassOf amalgame:Matcher .
-
-amalgame:SelectPreLoadedSelecter
-    rdfs:label "import/preloaded"@en ;
-    skos:definition "Select mappings with corresponding mappings in the preloaded mapping, discard others with the same source/target."@en ;
-    rdfs:subClassOf amalgame:MappingPartitioner .
-
-amalgame:AritySelect
-    rdfs:label "ambiguity/remove"@en ;
-    skos:definition "Select correspondences with a unique source, target or both, discard others"@en;
-    rdfs:subClassOf amalgame:MappingPartitioner .
-
-amalgame:TokenAritySelect
-    rdfs:label "ambiguity/remove (token) "@en ;
-    skos:definition "Similar to ambiguity/remove but now on the level of splitted compound labels"@en ;
-    rdfs:subClassOf amalgame:MappingPartitioner .
-
-amalgame:BestNumeric
-    rdfs:label "best numeric"@en ;
-    skos:definition "Select correspondences that have the best score considering some numerical ranking, discard others."@en ;
-    rdfs:subClassOf amalgame:MappingPartitioner .
-
-amalgame:MostMethods
-    rdfs:label "most methods"@en ;
-    skos:definition "Select correspondences that have been selected by the most other methods (according to their evidence data.)"@en ;
-    rdfs:subClassOf amalgame:MappingPartitioner .
-
-amalgame:MostLabels
-    rdfs:label "most labels"@en ;
-    skos:definition "Select correspondences that already have the most matching labels (according to their evidence data.)"@en ;
-    rdfs:subClassOf amalgame:MappingPartitioner .
-
-amalgame:MostGeneric
-    rdfs:label "most generic"@en ;
-    skos:definition "Select the most generic concepts among alternatives for the same source/target, discard others."@en ;
-    rdfs:subClassOf amalgame:MappingPartitioner .
-
-amalgame:SiblingSelecter
-    rdfs:label "sibling selecter"@en ;
-    skos:definition "Select the siblings (if any) among alternatives for the same source/target. This is used, for example, when a single source with two labels matches on two distinct but very similar targets and both mappings need to be preserved. "@en ;
-    rdfs:subClassOf amalgame:MappingPartitioner .
-
 amalgame:MapMerger
     amalgame:need_secondary_inputs true ;
     rdfs:label "mapping merger"@en ;
@@ -175,9 +184,3 @@ amalgame:Evaluater
     skos:definition "Component that analyzes correspondences in a mappings by manual evaluation"@en ;
     rdfs:subClassOf amalgame:Analyzer .
 
-amalgame:Sampler
-    rdfs:label "sampler"@en ;
-    amalgame:materialize amalgame:always ;
-    skos:definition "Component that randomly samples correspondences to create a new mapping."@en ;
-    rdfs:comment "Samples are always materialized to guarantee replicability of the workflow."@en ;
-    rdfs:subClassOf amalgame:MappingPartitioner .
