@@ -16,7 +16,8 @@
 reference_mappings(Strategy, References) :-
 	findall(R, is_reference_mapping(Strategy, R), RefGraphs),
 	maplist(expand_node(Strategy), RefGraphs, MappingLists),
-	append(MappingLists, References).
+	append(MappingLists, References0),
+	sort(References0, References).
 
 %%	is_reference(?Strategy, ?Reference) is nondet.
 %%	is_reference(+Strategy, +Reference) is semidet.
