@@ -7,39 +7,39 @@
 
 amalgame:AncestorMatcher
     amalgame:need_secondary_inputs true ;
-    rdfs:label "generate/structure/ancestor"@en ;
+    rdfs:label "structure/ancestor"@en ;
     skos:definition "Generate new candidates by looking for 1 or more ancestors that have already been mapped."@en ;
     rdfs:subClassOf amalgame:CandidateGenerator .
 
 amalgame:CompoundMatcher
-    rdfs:label "generate/label/compound source"@en ;
+    rdfs:label "label/splitted source"@en ;
     skos:definition "A label matcher matching after compound splitting the label(s) of the source concepts. Source labels are splitted using rdf_tokenize_literal/2. Warning: source label tokens are matched against complete target labels! "@en ;
     rdfs:subClassOf amalgame:CandidateGenerator .
 
 amalgame:DescendentMatcher
     amalgame:need_secondary_inputs true ;
-    rdfs:label "generate/structure/descendent"@en ;
+    rdfs:label "structure/descendent"@en ;
     skos:definition "Generate new candidates by looking for 1 or more descendents that have already been mapped."@en ;
     rdfs:subClassOf amalgame:CandidateGenerator .
 
 amalgame:ExactLabelMatcher
-    rdfs:label "generate/label/exact"@en ;
+    rdfs:label "label/exact"@en ;
     skos:definition "Generate new candidates based on exact matching labels of source and target concepts."@en ;
     rdfs:subClassOf amalgame:CandidateGenerator .
 
 amalgame:IsubMatcher
-    rdfs:label "generate/label/similarity"@en ;
+    rdfs:label "label/similarity"@en ;
     skos:definition "Generate new candidates based on similar labels. The matcher is based on the 'isub' metric introduced in 'A string metric for ontology alignment' by Giorgos Stoilos, 2005."@en ;
     rdfs:subClassOf amalgame:CandidateGenerator .
 
 amalgame:RelatedMatcher
     amalgame:need_secondary_inputs true ;
-    rdfs:label "generate/structure/related"@en ;
+    rdfs:label "structure/related"@en ;
     skos:definition "Generate new candidates by looking for 1 or more related concepts that have already been mapped."@en ;
     rdfs:subClassOf amalgame:CandidateGenerator .
 
 amalgame:SnowballMatcher
-    rdfs:label "generate/label/stemmed"@en ;
+    rdfs:label "label/stemmed"@en ;
     skos:definition "Generate new candidates based on label matching after (snowball) stemming."@en ;
     rdfs:subClassOf amalgame:CandidateGenerator .
 
