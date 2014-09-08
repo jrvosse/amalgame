@@ -7,6 +7,7 @@
 :- use_module(library(ag_modules/exact_label_generator)).
 :- use_module(library(ag_modules/isub_generator)).
 :- use_module(library(ag_modules/related_generator)).
+:- use_module(library(ag_modules/snowball_label_generator)).
 
 % Mapping producing partitioners:
 :- use_module(library(ag_modules/ancestor_selecter)).
@@ -23,7 +24,6 @@
 :- use_module(library(ag_modules/propvalue_select)).
 
 % Modules that can be used as matchers
-:- use_module(library(ag_modules/snowball_match)).
 :- use_module(library(ag_modules/preloaded_mapping)).
 
 % Alignment filters/selecters

@@ -38,6 +38,11 @@ amalgame:RelatedMatcher
     skos:definition "Generate new candidates by looking for 1 or more related concepts that have already been mapped."@en ;
     rdfs:subClassOf amalgame:CandidateGenerator .
 
+amalgame:SnowballMatcher
+    rdfs:label "generate/label/stemmed"@en ;
+    skos:definition "Generate new candidates based on label matching after (snowball) stemming."@en ;
+    rdfs:subClassOf amalgame:CandidateGenerator .
+
 ######## Mapping partitioner classes:
 
 amalgame:AncestorSelecter
@@ -112,11 +117,6 @@ amalgame:SelectPreLoadedSelecter
     rdfs:label "import/preloaded"@en ;
     skos:definition "Select mappings with corresponding mappings in the preloaded mapping, discard others with the same source/target."@en ;
     rdfs:subClassOf amalgame:MappingPartitioner .
-
-amalgame:SnowballMatcher
-    rdfs:label "string/label (stemmed)"@en ;
-    skos:definition "A label matcher with similarity based on (snowball) stemming."@en ;
-    rdfs:subClassOf amalgame:Matcher .
 
 amalgame:AritySelect
     rdfs:label "ambiguity/remove"@en ;
