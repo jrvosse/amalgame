@@ -1,7 +1,6 @@
 :- module(compound_label_generator,
 	  []).
 
-:- use_module(library(lists)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(amalgame/vocabulary)).
 :- use_module(string_match_util).
@@ -38,8 +37,7 @@ parameter(match_qualified_only, boolean, false,
 %	and Target.
 
 matcher(Source, Target, Mappings, Options) :-
-	findall(M, align(Source, Target, M, Options), ListOfLists),
-	append(ListOfLists, MappingsUnSorted),
+	findall(M, align(Source, Target, M, Options), MappingsUnSorted),
 	sort(MappingsUnSorted, Mappings).
 
 align(Source, TargetScheme, MatchList, Options) :-

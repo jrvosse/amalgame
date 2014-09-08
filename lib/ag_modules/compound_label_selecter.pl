@@ -5,7 +5,6 @@
 :- public selecter/5.
 :- public parameter/4.
 
-:- use_module(library(lists)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(label_selecter).
 :- use_module(compound_label_match).
@@ -38,5 +37,5 @@ parameter(match_qualified_only, boolean, false,
 amalgame_module(amalgame:'CompoundLabelSelecter').
 
 selecter(In, Sel, Dis, Und, Options) :-
-	label_selecter(compound_label_match, In, SelList, Dis, Und, Options),
-	append(SelList, Sel). % HACK FIX ME
+	label_selecter(compound_label_match, In, Sel, Dis, Und, Options).
+
