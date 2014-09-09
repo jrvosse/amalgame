@@ -15,18 +15,19 @@
 	is_old_vocab_selecter_triple(r,r,r,r).
 
 amalgame:prebuilder(Strategy) :-
-	backward_compatibilty_fixes(Strategy).
+	backward_compatibility_fixes(Strategy).
 
-backward_compatibilty_fixes(Strategy) :-
-	fix_vocab_selecters(Strategy),
+backward_compatibility_fixes(Strategy) :-
 	fix_opmv_ns(Strategy),
+	fix_vocab_selecters(Strategy),
 	fix_sec_inputs(Strategy),
 	fix_arity_params(Strategy),
-	fix_publish_ns(Strategy).
+	fix_publish_ns(Strategy),
+	!. % do not do this again
 
 fix_vocab_selecters(Strategy) :-
 	findall(rdf(S,P,O,Strategy), is_old_vocab_selecter_triple(S,P,O,Strategy), OldTriples),
-	% maplist(old_vocab_selecter_to_new(OldTriples),
+	maplist(old_vocab_selecter_to_new, OldTriples),
 	rdf_retract_list(OldTriples).
 
 rdf_retract_list([]).
