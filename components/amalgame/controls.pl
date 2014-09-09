@@ -67,7 +67,7 @@ html_info_control -->
 
 				 ])
 			    ]),
-			form([id(infocontent), class('control c')],
+			form([id(infocontent), class('control c always_active')],
 			     [div([id(properties)], []),
 			      div(class('control-buttons'),
 				  button(class('control-submit'), 'update'))
