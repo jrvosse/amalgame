@@ -228,13 +228,13 @@ html_accordion_item(Class, Header, Body) -->
 %	InpuType defines for which type of input the module can be
 %	used.
 
-module_input_type(M, mapping) :-
+module_input_type(M, 'mapping input') :-
 	rdfs_subclass_of(M, amalgame:'MappingPartitioner'),
 	!.
-module_input_type(M, vocab) :-
+module_input_type(M, 'vocab source_target') :-
 	rdfs_subclass_of(M, amalgame:'CandidateGenerator'),
 	!.
-module_input_type(M, vocab) :-
+module_input_type(M,  'vocab input') :-
 	rdfs_subclass_of(M, amalgame:'VocabPartitioner'),
 	!.
 module_input_type(_, 'always_active').

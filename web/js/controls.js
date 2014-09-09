@@ -70,8 +70,6 @@ YUI.add('controls', function(Y) {
 		},
 
 		currentConceptChange : function(ev) {
-			Y.log('currentConceptChange');
-			Y.log(ev);
 			var targets = null;
 			var c = this.get('currentConcept');
 			if (ev.type == "controls:currentConceptChange")
@@ -79,7 +77,7 @@ YUI.add('controls', function(Y) {
 			else
 				targets = new Y.NodeList(ev.currentTarget);
 			if (c)
-				targets.each(function(n) { Y.log(c); n.set("value", c.id); });
+				targets.each(function(n) { n.set("value", c.id); });
 			else
 				targets.each(function(n) { n.set("value",
 					"Enter URI of the parent concept  manually or select the concept in the vocabulary browser");
@@ -98,7 +96,7 @@ YUI.add('controls', function(Y) {
 
 			// The input is selected based on the type of the control
 			// which is stored as a CSS class
-			if( node.hasClass("vocab") ||
+			if( node.hasClass("source_target") ||
 			    node.hasClass("preloaded") ) {
 				data.source = source;
 				data.target = target;
@@ -197,14 +195,14 @@ YUI.add('controls', function(Y) {
 				  // auto set target if only one other vocab exists:
 				  this._valueSet(target, "target");
 				}
-			} else if(type=="mapping") {
+			}
+			if(type=="mapping" || type=="vocab" ) { 
 				 NODE_INPUT_BTN.removeAttribute("disabled");
 				 this._valueSet(selected, "input");
 			}
 
 			var preloadedSelecter = Y.one(".preloaded select option")
 			if(!preloadedSelecter) {
-			  //Y.log("Disabling components requiring preloaded input mappings");
 			  Y.all(".preloaded").addClass("disabled");
 			}
 			// enable generator submit when both source and target have a value
@@ -270,15 +268,6 @@ YUI.add('controls', function(Y) {
 			if(selected) {
 				Y.one("#"+which+'Label').set("value", selected.label);
 				Y.one("#"+which).set("value", selected.uri);
-			}
-			if(which=="input") {
-				Y.one("#sourceLabel").set("value", "");
-				Y.one("#source").set("value", "");
-				Y.one("#targetLabel").set("value", "");
-				Y.one("#target").set("value", "");
-			} else {
-				Y.one("#inputLabel").set("value", "");
-				Y.one("#input").set("value", "");
 			}
 		}
 
