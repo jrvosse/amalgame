@@ -2,6 +2,7 @@
 	  [ ancestor_match/4
 	  ]).
 
+:- use_module(library(assoc)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(skos/util)).
 
