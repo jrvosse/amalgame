@@ -12,14 +12,25 @@
 	amalgame:prebuilder/1.
 
 :- rdf_meta
-	is_old_vocab_selecter_triple(r,r,r,r).
+	is_old_vocab_selecter_triple(r,r,r,r),
+	mapping_filter_type_to_partitioner(r,r).
 
 amalgame:prebuilder(Strategy) :-
 	backward_compatibility_fixes(Strategy).
 
+mapping_filter_type_to_partitioner(amalgame:'SelectPreLoaded',	 amalgame:'SelectPreLoadedSelecter').
+mapping_filter_type_to_partitioner(amalgame:'ExactLabelMatcher', amalgame:'ExactLabelSelecter').
+mapping_filter_type_to_partitioner(amalgame:'IsubMatcher',       amalgame:'IsubSelecter').
+mapping_filter_type_to_partitioner(amalgame:'CompoundMatcher',   amalgame:'CompoundLabelSelecter').
+mapping_filter_type_to_partitioner(amalgame:'SnowballMatcher',   amalgame:'SnowballLabelSelecter').
+mapping_filter_type_to_partitioner(amalgame:'AncestorMatcher',   amalgame:'AncestorSelecter').
+mapping_filter_type_to_partitioner(amalgame:'DescendentMatcher', amalgame:'DescendentSelecter').
+mapping_filter_type_to_partitioner(amalgame:'RelatedMatcher',    amalgame:'RelatedSelecter').
+
 backward_compatibility_fixes(Strategy) :-
 	fix_opmv_ns(Strategy),
 	fix_vocab_selecters(Strategy),
+	fix_old_mapping_filters(Strategy),
 	fix_sec_inputs(Strategy),
 	fix_arity_params(Strategy),
 	fix_publish_ns(Strategy),
@@ -30,6 +41,18 @@ fix_vocab_selecters(Strategy) :-
 	maplist(old_vocab_selecter_to_new, OldTriples),
 	rdf_retract_list(OldTriples).
 
+fix_old_mapping_filters(Strategy) :-
+	findall(P-E-T, is_old_mapping_filter(Strategy, P,E,T), Filters),
+	maplist(old_filter_to_new(Strategy), Filters).
+	% rdf_retract_list(OldTriples).
+
+old_filter_to_new(Strategy, Process-Entity-OldType) :-
+	rdf_retractall(Process, rdf:type, OldType, Strategy),
+	rdf_retractall(Entity,  amalgame:wasGeneratedBy, Process, Strategy),
+	mapping_filter_type_to_partitioner(OldType, NewType),
+	rdf_assert(Process, rdf:type, NewType, Strategy),
+	ag_strategy:assert_output(Process, amalgame:'MappingPartitioner', Strategy, _, _, Entity).
+
 rdf_retract_list([]).
 rdf_retract_list([rdf(S,P,O,G)|T]) :-
 	rdf_retractall(S,P,O,G),
@@ -38,6 +61,12 @@ rdf_retract_list([rdf(S,P,O,G)|T]) :-
 is_old_vocab_selecter_triple(S,amalgame:wasGeneratedBy,O, G) :-
 	rdf(S,amalgame:wasGeneratedBy,O, G),
 	skos_is_vocabulary(S).
+
+is_old_mapping_filter(Strategy, Filter, Entity, Type) :-
+	rdfs_individual_of(Filter, amalgame:'CandidateGenerator'),
+	rdf(Filter, rdf:type, Type),
+	rdf(Filter, amalgame:input, _, Strategy),
+	rdf(Entity, amalgame:wasGeneratedBy, Filter).
 
 old_vocab_selecter_to_new(rdf(S,_,Process,Strategy)) :-
 	ag_strategy:assert_output(Process, amalgame:'VocabPartitioner', Strategy, _, _, S).
