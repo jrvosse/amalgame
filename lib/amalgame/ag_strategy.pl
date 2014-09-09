@@ -4,6 +4,7 @@
 	      strategy_vocabulary/2,
 	      strategy_vocabularies/2,
 	      strategy_languages/2,
+	      strategy_entity_status/3,
 
 	    % change strategy
 	      strategy_new_process/9,
@@ -29,7 +30,8 @@
 
 :- rdf_meta
 	strategy_process_entity(r,r,r),
-	strategy_vocabulary(r,r),
+	strategy_vocabulary(r,r,r),
+	strategy_entity_status(r,r),
 	strategy_delete_node(r,r),
 	strategy_update_node(r,+,r),
 	strategy_update_process_parameters(r,r,+,+),
@@ -45,6 +47,14 @@
 strategy_process_entity(Strategy, Process,Entity) :-
 	rdf_has(Entity, amalgame:wasGeneratedBy, Process, RealProperty),
 	rdf(Entity, RealProperty, Process, Strategy).
+
+
+%%	strategy_entity_status(?Strategy, ?Entity, ?Status) is nondet.
+%
+%	True if Status is the current status of Entity in Strategy.
+
+strategy_entity_status(Strategy, Entity, Status) :-
+	rdf(Entity, amalgame:status, Status, Strategy).
 
 %%	strategy_vocabulary(?Strategy, ?Vocabulary) is nondet.
 %

@@ -2,6 +2,10 @@
 	  [
 	  ]).
 
+:- use_module(library(lists)).
+:- use_module(library(option)).
+:- use_module(library(pairs)).
+:- use_module(library(settings)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_json)).
@@ -272,7 +276,12 @@ amalgame_info(URL, Strategy,
 amalgame_info(Strategy, Strategy, Results) :-
 	findall(vocabulary- \(cp_label:rdf_link(V)),
 		strategy_vocabulary(Strategy, V), Vocs),
-	append([Vocs], Results).
+	rdf_equal(amalgame:final, FinalStatus),
+	findall(F, strategy_entity_status(Strategy, F, FinalStatus), Finals),
+	length(Finals, NrFinals),
+	append([ Vocs,
+		 [  '# finalized mappings'-NrFinals ]
+	       ], Results).
 
 
 
