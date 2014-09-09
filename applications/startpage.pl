@@ -10,6 +10,7 @@
 
 :- use_module(library(yui3_beta)).
 :- use_module(library(amalgame/util)).
+:- use_module(library(amalgame/ag_strategy)).
 :- use_module(applications(skos_browser)).
 
 :- use_module(components(amalgame/startpage)).
@@ -37,7 +38,7 @@ html_schemes_only -->
 	html_new(ConceptSchemes).
 
 html_main_page(_Request) :-
-	findall(A-S, amalgame_strategy_schemes(A, S), StrategySchemePairs),
+	findall(A-S, strategy_vocabularies(A, S), StrategySchemePairs),
 	amalgame_alignable_schemes(ConceptSchemes),
 	reply_html_page(cliopatria(main),
 			[ title(['Amalgame - strategies'])

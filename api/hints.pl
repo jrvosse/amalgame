@@ -6,6 +6,7 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_label)).
+:- use_module(library(amalgame/ag_strategy)).
 :- use_module(library(amalgame/ag_stats)).
 :- use_module(library(amalgame/voc_stats)).
 :- use_module(library(amalgame/map)).
@@ -68,8 +69,8 @@ find_hint(Strategy, Context, Hint) :-
 	Focus == Strategy,
 	\+ rdf(_, rdf:type, amalgame:'Mapping',Strategy),
 	!,
-	rdf(Strategy, amalgame:includes, Voc1, Strategy),
-	rdf(Strategy, amalgame:includes, Voc2, Strategy),
+	strategy_vocabulary(Strategy, Voc1),
+	strategy_vocabulary(Strategy, Voc2),
 	Voc1 \== Voc2,
 	voc_property(Voc1, totalCount(Count1)),
 	voc_property(Voc2, totalCount(Count2)),
@@ -99,9 +100,9 @@ find_hint(Strategy, Context, Hint) :-
 	% advise an exact label match using the focus as the source
 	\+ rdf(_, rdf:type, amalgame:'Mapping',Strategy),
 	option(focus(Focus), Context),
-	rdf(Strategy, amalgame:includes, Focus, Strategy),
+	strategy_vocabulary(Strategy, Focus),
 	!,
-	rdf(Strategy, amalgame:includes, Target, Strategy),
+	strategy_vocabulary(Strategy, Target),
 	Focus \== Target,
 	rdf_equal(Match, amalgame:'ExactLabelMatcher'),
 	rdf_display_label(Match, Label),

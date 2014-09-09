@@ -16,6 +16,7 @@
 :- use_module(user(user_db)).
 
 :- use_module(library(amalgame/rdf_util)).
+:- use_module(library(amalgame/ag_strategy)).
 :- use_module(library(amalgame/ag_provenance)).
 :- use_module(library(amalgame/util)).
 
@@ -215,7 +216,7 @@ scheme_label(URI, Key-URI) :-
 
 add_schemes([], _).
 add_schemes([Scheme|Ss], Strategy) :-
-	rdf_assert(Strategy, amalgame:includes, Scheme, Strategy),
+	strategy_add_vocabulary(Strategy, Scheme),
 	add_schemes(Ss, Strategy).
 
 new_strategy_name(Strategy, NS) :-

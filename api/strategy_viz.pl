@@ -12,6 +12,7 @@
 :- use_module(components(graphviz)).
 :- use_module(library(skos/util)).
 :- use_module(library(amalgame/voc_stats)).
+:- use_module(library(amalgame/ag_strategy)).
 :- use_module(library(amalgame/ag_stats)).
 :- use_module(library(amalgame/ag_evaluation)).
 :- use_module(library(amalgame/map)).
@@ -105,7 +106,7 @@ amalgame_triples(Graph, Triples) :-
 % hack, to get a better layout we reverse the arrow :(
 amalgame_graph_triple(Graph,Graph,P,Scheme) :-
 	rdf_equal(amalgame:includedIn, P),
-	rdf(Graph,amalgame:includes,Scheme,Graph).
+	strategy_vocabulary(Graph, Scheme).
 amalgame_graph_triple(Graph,O,P,S) :-
 	rdf(S,P,O,Graph),
 	is_amalgame_property(P),

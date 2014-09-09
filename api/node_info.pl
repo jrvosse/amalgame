@@ -12,6 +12,7 @@
 :- use_module(library(skos/util)).
 
 :- use_module(library(amalgame/amalgame_modules)).
+:- use_module(library(amalgame/ag_strategy)).
 :- use_module(library(amalgame/ag_stats)).
 :- use_module(library(amalgame/voc_stats)).
 :- use_module(library(amalgame/caching)).
@@ -268,7 +269,11 @@ amalgame_info(URL, Strategy,
 	),
 	append([Definition, Input],Optional).
 
-amalgame_info(_URL, _Strategy, []).
+amalgame_info(Strategy, Strategy, Results) :-
+	findall(vocabulary- \(cp_label:rdf_link(V)),
+		strategy_vocabulary(Strategy, V), Vocs),
+	append([Vocs], Results).
+
 
 
 label_stats(Scheme, Strategy, Property, Stats) :-

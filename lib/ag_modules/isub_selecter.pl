@@ -5,6 +5,7 @@
 :- public selecter/5.
 :- public parameter/4.
 
+:- use_module(library(amalgame/ag_strategy)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(label_selecter).
 :- use_module(string_match_util).

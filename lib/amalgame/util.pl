@@ -1,6 +1,5 @@
 :- module(ag_utils,
 	  [   mint_node_uri/3,
-	      amalgame_strategy_schemes/2,
 	      amalgame_alignable_schemes/1,
 
 	      assert_user_provenance/2,
@@ -17,7 +16,6 @@
 
 
 :- use_module(library(semweb/rdf_db)).
-:- use_module(library(semweb/rdfs)).
 :- use_module(user(user_db)).
 :- use_module(library(amalgame/voc_stats)).
 :- use_module(library(amalgame/rdf_util)).
@@ -86,15 +84,7 @@ assert_user_provenance(R, Graph) :-
 	rdf_assert(R, dcterms:date, literal(type(xsd:dateTime, Time)), Graph).
 
 
-%%	amalgame_strategy_schemes(?Strategy, ?Schemes)
-%
-%	Strategy is an amalgame alignment strategy and Schemes are the
-%       conceptSchemes that it includes.
 
-amalgame_strategy_schemes(Strategy, Schemes) :-
-	rdfs_individual_of(Strategy, amalgame:'AlignmentStrategy'),
-	findall(S,  rdf(Strategy, amalgame:includes, S), Schemes),
-	Schemes \== [].
 
 
 

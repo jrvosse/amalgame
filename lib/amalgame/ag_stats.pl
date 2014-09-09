@@ -9,6 +9,7 @@
 
 :- use_module(library(skos/util)).
 
+:- use_module(library(amalgame/ag_strategy)).
 :- use_module(library(amalgame/expand_graph)).
 :- use_module(library(amalgame/caching)).
 :- use_module(library(amalgame/vocabulary)).
@@ -142,7 +143,7 @@ has_mapping_input(URL, Strategy, Input) :-
 	rdfs_individual_of(Input, amalgame:'Mapping').
 
 
-%%	mapping_vocab_sources(+MappingURI, Strategy, -Source, -Target)
+%%	mapping_vocab_sources(+MappingURI, +Strategy, -Source, -Target)
 %
 %	Source and Target are the recursive source and target
 %	vocabularies of Mapping.
@@ -153,9 +154,9 @@ mapping_vocab_sources(Manual, Strategy, SV, TV) :-
 	),
 	!,
 	has_correspondence_chk(align(SC,TC,_), Manual),
-	rdf_has(Strategy, amalgame:includes, SV),
+	strategy_vocabulary(Strategy, SV),
 	vocab_member(SC, scheme(SV)),
-	rdf_has(Strategy, amalgame:includes, TV),
+	strategy_vocabulary(Strategy, TV),
 	vocab_member(TC, scheme(TV)).
 
 mapping_vocab_sources(URL, Strategy, S, T) :-

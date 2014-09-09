@@ -3,7 +3,6 @@
 :- use_module(library(pairs)).
 :- use_module(library(settings)).
 
-:- use_module(library(semweb/rdf_db)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_path)).
@@ -12,6 +11,7 @@
 :- use_module(library(yui3_beta)).
 :- use_module(user(user_db)).
 
+:- use_module(library(amalgame/ag_strategy)).
 :- use_module(library(amalgame/voc_stats)).
 :- use_module(library(amalgame/util)).
 :- use_module(library(amalgame/json_util)).
@@ -79,7 +79,7 @@ amalgame:prebuilder(Strategy) :-
 precalc_voc_stats(Strategy) :-
 	% handy to know how many concepts etc are in each vocab,
 	% both for the user as for the hints system etc.
-	forall(rdf(Strategy, amalgame:includes, Vocab),
+	forall(strategy_vocabulary(Strategy, Vocab),
 	       (   voc_property(Vocab, totalCount(_))
 	       ->  ( setting(amalgame:precompute, true)
 		   ->  precompute_node(Strategy, Vocab)

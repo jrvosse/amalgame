@@ -1,6 +1,7 @@
 :- module(ancestor_generator,
 	  []).
 
+:- use_module(library(amalgame/ag_strategy)).
 :- use_module(ancestor_match).
 :- use_module(generator_snd_input).
 

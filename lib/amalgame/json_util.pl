@@ -4,12 +4,12 @@
 	      js_strategy_nodes/2
 	  ]).
 
-:- use_module(library(http/json)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_label)).
 :- use_module(cliopatria(components/label)).
 
+:- use_module(library(amalgame/ag_strategy)).
 :- use_module(library(amalgame/ag_stats)).
 :- use_module(library(amalgame/map)).
 :- use_module(library(amalgame/ag_stats)).
@@ -73,19 +73,6 @@ js_strategy_nodes(Strategy, Nodes) :-
 	maplist(node_data(Strategy), URIsUnique, Pairs),
 	dict_pairs(Nodes, nodes, Pairs).
 
-atomify_pairs([], []).
-atomify_pairs([K-Vs|Ts], [K-Va|Ta]) :-
-	atom_string(Va,Vs),!,
-	atomify_pairs(Ts, Ta).
-atomify_pairs([K-V|Ts], [K-V|Ta]) :-
-	atomify_pairs(Ts, Ta).
-
-atomify_dict(S,D) :-
-	dict_pairs(S, T, SPairs),
-	atomify_pairs(SPairs, APairs),
-	dict_pairs(D, T, APairs).
-
-
 amalgame_strategy_mappings(Strategy, Mappings, Options) :-
 	rdfs_individual_of(Strategy, amalgame:'AlignmentStrategy'),
 	findall(URI, (rdf(URI, rdf:type, _ ,Strategy),
@@ -114,7 +101,7 @@ graph_resource(Graph, R) :-
 graph_resource(Graph, R) :-
 	rdf(_,amalgame:target,R,Graph).
 graph_resource(Graph, R) :-
-	rdf(Graph, amalgame:includes, R).
+	strategy_vocabulary(Graph, R).
 
 node_data(Strategy, R, R-Props) :-
 	findall(Type-Value, node_prop(Strategy, R, Type, Value), Pairs),

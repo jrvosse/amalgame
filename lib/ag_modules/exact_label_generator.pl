@@ -2,6 +2,8 @@
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(amalgame/vocabulary)).
+:- use_module(library(amalgame/ag_strategy)).
+
 :- use_module(exact_label_match).
 :- use_module(string_match_util).
 
