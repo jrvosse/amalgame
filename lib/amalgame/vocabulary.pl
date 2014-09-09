@@ -19,6 +19,7 @@ vocab_member(C, vocspec(Spec)) :-
 	!,
 	vocab_member(C, Spec).
 vocab_member(C, not(Def)) :-
+	!,
 	ground(C),
 	ground(Def),
 	\+ vocab_member(C, Def).
@@ -28,6 +29,7 @@ vocab_member(E, and(G1,G2)) :-
 	vocab_member(E,G2).
 
 vocab_member(E, alignable(Alignable)) :-
+	!,
 	rdf(Alignable, amalgame:class, Class),
 	rdf(Alignable, amalgame:graph, Graph),
 	!,
@@ -35,6 +37,7 @@ vocab_member(E, alignable(Alignable)) :-
 	vocab_member(E, type(Class)).
 
 vocab_member(E, scheme(Scheme)) :-
+	!,
 	(   voc_property(Scheme, virtual(true))
 	->  vocab_member(E, vscheme(Scheme))
 	;   voc_property(Scheme, materialized(false)) % no longer necessary
@@ -43,11 +46,13 @@ vocab_member(E, scheme(Scheme)) :-
 	).
 
 vocab_member(E, vscheme(Scheme)) :-
+	!,
 	expand_vocab(Scheme, VocSpec),
 	!,
 	vocab_member(E, VocSpec).
 
 vocab_member(E, rscheme(Scheme)) :-
+	!,
 	skos_in_scheme(Scheme, E).
 
 vocab_member(E, type(Class)) :-
@@ -72,7 +77,8 @@ vocab_member(E, is_mapped(Options)) :-
 	option(type(Type), Options),
 	option(strategy(Strategy), Options),
 	member(Mapping, Mappings),
-	is_mapped(Strategy, Type, E, Mapping).
+	is_mapped(Strategy, Type, E, Mapping),
+	!.
 
 vocab_member(F, 'http://sws.geonames.org/') :-
 	!,
