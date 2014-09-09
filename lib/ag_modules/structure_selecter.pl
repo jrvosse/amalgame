@@ -34,8 +34,7 @@ selecter(Matcher, In, Sel, Dis, Und, Options) :-
 
 selecter_(_, _, [], _, [], [], [], _).
 selecter_(all, Matcher, [Head|Tail], BackgroundMatches, Sel, Dis, [], Options) :-
-	structure_count(Matcher, BackgroundMatches, Options, Head, Count-Match),
-	(   Count > 0
+	(   call(Matcher, Head, BackgroundMatches, Match, Options)
 	->  Sel = [Match|TSel],
 	    Dis = TDis
 	;   Sel = TSel,
