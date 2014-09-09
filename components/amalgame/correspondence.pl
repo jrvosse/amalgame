@@ -256,20 +256,21 @@ image_examples(R, Es) :-
 
 resource_tree(R, Tree) :-
 	Node = node(R, [hit], Children),
-	ancestor_tree(Node, Tree, []),
+	ancestor_tree(Node, Tree, [], []),
         children(R, Children).
 
-ancestor_tree(Node, Tree, Options) :-
+
+ancestor_tree(Node, Tree, Options, DoneBefore) :-
         Node = node(URI,_,_),
 	skos_parent_child(Parent, URI),
-        URI \== Parent,
+	\+ member(Parent, DoneBefore),
         (   select_option(sibblings(true), Options, Options1)
-        ->  ancestor_tree(node(Parent, [], [Node|Siblings]), Tree, Options1),
+        ->  ancestor_tree(node(Parent, [], [Node|Siblings]), Tree, Options1, [URI|DoneBefore]),
             children(Parent, Children),
             select(node(URI,_,_), Children, Siblings)
-        ;   ancestor_tree(node(Parent, [], [Node]), Tree, Options)
+        ;   ancestor_tree(node(Parent, [], [Node]), Tree, Options, [URI|DoneBefore])
         ).
-ancestor_tree(Tree, Tree, _).
+ancestor_tree(Tree, Tree, _,_).
 
 children(Concept, List) :-
 	findall(D, skos_descendant_of(Concept, D), Dlist),
