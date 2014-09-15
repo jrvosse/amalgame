@@ -11,7 +11,6 @@
 :- use_module(components(label)).
 :- use_module(components(graphviz)).
 :- use_module(library(skos/util)).
-:- use_module(library(amalgame/voc_stats)).
 :- use_module(library(amalgame/ag_strategy)).
 :- use_module(library(amalgame/ag_stats)).
 :- use_module(library(amalgame/ag_evaluation)).
@@ -216,9 +215,10 @@ amalgame_label(Strategy, Resource, Lang, MaxLen, Label) :-
 	;   atomic_list_concat([Label0, '\n'|Stats], Label)
 	).
 
-stats_label_list(_Strategy, Resource, [Count]) :-
+stats_label_list(Strategy, Resource, [Count]) :-
 	skos_is_vocabulary(Resource),
-	voc_property(Resource, totalCount(Count), [compute(false)]),
+	node_stats(Strategy, Resource, Stats, [compute(false)]),
+	option(totalCount(Count), Stats),
 	!.
 stats_label_list(Strategy, Resource, [ConceptStats]) :-
 	node_stats(Strategy, Resource, Stats, [compute(false)]),
