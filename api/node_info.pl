@@ -199,13 +199,32 @@ amalgame_info(Scheme, Strategy, Stats) :-
 	skos_is_vocabulary(Scheme),
 	!,
 	BasicStats = [
+	    'formats:'   - Formats,
+	    'type:'	       - Virtual,
+	    '# concepts:'      - Total,
+	    '# labels:'        - TotalLabelCount,
+	    '# unique labels:' - UniqueLabelCount,
+	    'Label languages:' - Languages
+	],
+
+	node_stats(Strategy, Scheme, NStats, []),
+	option(totalCount(Total), NStats),
+	option(formats(Formats), NStats),
+	option(virtual(V), NStats), ( V == true -> Virtual = virtual; Virtual = materialized),
+	option(languages(Languages), NStats),
+	option(totalLabelCount(TotalLabelCount), NStats),
+	option(uniqueLabelCount(UniqueLabelCount), NStats),
+	append([[], BasicStats], Stats).
+
+
+amalgame_info(Scheme, Strategy, Stats) :-
+	fail,skos_is_vocabulary(Scheme),
+	!,
+	BasicStats = [
 	    'Total concepts: '-Total
 	],
 
-	voc_property(Scheme, totalCount(Total)),
-	voc_property(Scheme, format(Format)),
-
-	(   Format = skosxl
+	(   _Format = skosxl
 	->  label_stats(Scheme, Strategy, skosxl:prefLabel, PrefLabelStats),
 	    label_stats(Scheme, Strategy, skosxl:altLabel,  AltLabelStats)
 	;   label_stats(Scheme, Strategy, skos:prefLabel, PrefLabelStats),
@@ -403,13 +422,6 @@ ag_prov(R, A, owl:'version', V) :-
 	->  true
 	;   rdf(R, owl:versionInfo, literal(V))
 	).
-ag_prov(R, _, 'format', F) :-
-	voc_property(R, format(Format)),
-	(   voc_property(R, virtual(true))
-	->  format(atom(F), 'virtual ~w', [Format])
-	;   format(atom(F), '~w loaded in store', [Format])
-	).
-
 ag_prov(Graph, Graph, contributors, Vs) :-
 	rdfs_individual_of(Graph, amalgame:'AlignmentStrategy'),
 	findall(\rdf_link(V),
