@@ -4,7 +4,6 @@
 	      stats_cache/2,
 	      cache_result/4,
 	      cache_mapped_concepts/4,
-	      mapped_concepts/4,
 	      clean_repository/0,
 	      flush_dependent_caches/2,
 	      flush_expand_cache/1,     % ?Strategy
@@ -20,8 +19,8 @@
 :- use_module(library(skos/util)).
 :- use_module(library(amalgame/ag_provenance)).
 :- use_module(library(amalgame/map)).
-:- use_module(library(amalgame/voc_stats)).
 :- use_module(ag_stats).
+:- use_module(scheme_stats).
 
 :- dynamic
 	expand_cache/2,
@@ -47,10 +46,6 @@ user:message_hook(make(done(_)), _, _) :-
 	debug(ag_expand, 'Flushing prov cache after running make/0', []),
 	flush_prov_cache,
 	fail.
-user:message_hook(make(done(_)), _, _) :-
-	debug(ag_expand, 'Flushing vocabulary statistics cache after running make/0', []),
-	voc_clear_stats(all),
-	fail.
 
 flush_stats_cache(Strategy) :-
 	flush_stats_cache(_Mapping, Strategy).
@@ -72,13 +67,24 @@ cache_result(_ExecTime, Id, Strategy, Result) :-
 	mapping_stats(Id, Result, Strategy, Stats),
 	assert(stats_cache(Id-Strategy, Stats)).
 
+cache_result(_ExecTime, Id, Strategy, Result) :-
+	skos_is_vocabulary(Id),
+	!,
+	flush_stats_cache(Id, Strategy),
+	flush_expand_cache(Id, Strategy),
+	scheme_stats(Id, Result, Strategy, Stats),
+	assert(expand_cache(Id-Strategy, Result)),
+	assert(stats_cache(Id-Strategy, Stats)).
+
 cache_result(ExecTime, Process, Strategy, Result) :-
 	cache_expand_result(ExecTime, Process, Strategy, Result),
 	cache_result_stats(Process, Strategy, Result).
 
-mapped_concepts(Strategy, Type, Mapping, Concepts) :-
+cache_mapped_concepts(Strategy, Type, Mapping, Concepts) :-
+	var(Concepts),!,
 	mapped_concepts_cache(m(Strategy, Type, Mapping, Concepts)).
 cache_mapped_concepts(Strategy, Type, Mapping,  Sorted) :-
+	ground(Sorted),!,
 	assert(mapped_concepts_cache(m(Strategy, Type, Mapping, Sorted))).
 
 clean_repository :-
@@ -139,7 +145,6 @@ flush_process_dependent_caches(Process, Strategy) :-
 		), Results),
 	forall(member(Result, Results),
 	       (   flush_stats_cache(Result, Strategy),
-		   voc_clear_stats(Result), % assume no harm if Result is not a voc...
 		   catch(rdf_unload_graph(Result), _, true),
 		   debug(ag_expand, 'flush stats cache for ~p and unloading any materialized graphs', [Result])
 	       )
@@ -181,19 +186,24 @@ cache_result_stats(Process, Strategy, mapspec(select(Sel, Disc, Undec))) :-
 	    assert(stats_cache(U-Strategy, Ustats))
 	;   true
 	).
-cache_result_stats(Process, Strategy, vocspec(select(_Sel, _Disc, _Undec))) :-
+cache_result_stats(Process, Strategy, vocspec(select(Sel, Dis, Und))) :-
 	!,
-	rdf(S, amalgame:selectedBy, Process, Strategy),
-	voc_clear_stats(S),
-	voc_property(S, totalCount(_)),
-
+	rdf(S, amalgame:selectedBy,  Process, Strategy),
 	rdf(D, amalgame:discardedBy, Process, Strategy),
-	voc_clear_stats(D),
-	voc_property(D, totalCount(_)),
-
 	rdf(U, amalgame:undecidedBy, Process, Strategy),
-	voc_clear_stats(U),
-	voc_property(U, totalCount(_)).
+
+	scheme_stats(S, Sel, Strategy, Sstats),
+	scheme_stats(D, Dis, Strategy, Dstats),
+	scheme_stats(U, Und, Strategy, Ustats),
+
+	flush_stats_cache(S, Strategy),
+	flush_stats_cache(D, Strategy),
+	flush_stats_cache(U, Strategy),
+
+	assert(stats_cache(S-Strategy, Sstats)),
+	assert(stats_cache(D-Strategy, Dstats)),
+	assert(stats_cache(U-Strategy, Ustats)).
+
 
 cache_result_stats(Process, Strategy, mapspec(mapping(Result))) :-
 	rdf_has(D, amalgame:wasGeneratedBy, Process, RP),
@@ -204,18 +214,13 @@ cache_result_stats(Process, Strategy, mapspec(mapping(Result))) :-
 	assert(stats_cache(D-Strategy, Dstats)).
 
 
-cache_result_stats(Process, Strategy, vocspec(VocSpec)) :-
-	(   VocSpec = scheme(Id)
-	->  true
-	;   VocSpec = and(_,_)
-	->  rdf(Id, amalgame:wasGeneratedBy, Process, Strategy)
-	;   VocSpec = alignable(Id)
-	->  true
-	;   fail
-	),
+cache_result_stats(Process, Strategy, vocspec(Result)) :-
+	rdf_has(D, amalgame:wasGeneratedBy, Process, RP),
+	rdf(D, RP, Process, Strategy),
 	!,
-	voc_clear_stats(Id),
-	voc_property(Id, totalCount(_)).
+	flush_stats_cache(D, Strategy),
+	scheme_stats(D, Result, Strategy, Dstats),
+	assert(stats_cache(D-Strategy, Dstats)).
 
 cache_result_stats(Process, _Strategy, _Result) :-
 	debug(ag_caching, 'Error: do not know how to cache stats of ~p', [Process]),
@@ -284,7 +289,7 @@ del_materialized_vocs(Strategy) :-
 		), Vocs),
 	forall(member(V, Vocs),
 	       (   catch(rdf_unload_graph(V), _, true),
-		   voc_clear_stats(V),
+		   flush_stats_cache(V,Strategy),
 		   debug(ag_expand, 'Deleting materialized vocab graph ~w', [V])
 	       )
 	      ).
