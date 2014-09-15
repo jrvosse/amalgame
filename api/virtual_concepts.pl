@@ -1,13 +1,14 @@
 :- module(virtual_concepts,
 	  []
 	 ).
+:- use_module(library(option)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_json)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_label)).
 
-:- use_module(library(amalgame/voc_stats)).
+:- use_module(library(amalgame/ag_stats)).
 :- use_module(library(amalgame/vocabulary)).
 :- use_module(library(amalgame/util)).
 
@@ -42,7 +43,8 @@ http_virtual_concepts(Request) :-
 				   [description('Strategy to use to create the concepts')
 				   ])
 			]),
-	(   voc_property(Parent, virtual(false))
+	(   node_stats(Strategy, Parent, Stats, []),
+	    option(virtual(false), Stats)
 	->  http_concepts(Request)
 	;   findall(Label-Concept,
 		    concept_of(Type, Parent, Query, Concept, Label), Concepts),
