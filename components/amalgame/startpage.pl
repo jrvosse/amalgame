@@ -18,6 +18,8 @@
 :- use_module(library(amalgame/util)).
 :- use_module(library(amalgame/rdf_util)).
 :- use_module(library(amalgame/voc_stats)).
+:- use_module(library(amalgame/ag_stats)).
+:- use_module(library(amalgame/expand_graph)).
 :- use_module(components(amalgame/util)).
 
 html_new([]) -->
@@ -200,27 +202,33 @@ html_vocab_head -->
 
 html_vocab_rows([]) --> !.
 html_vocab_rows([Scheme|Vs]) --> {
-    (   voc_property(Scheme, totalCount(ConceptCount), [compute(false)])
-    ->  true
-    ;   rdf_estimate_complexity(_, skos:inScheme, Scheme, ConceptCount)
-    ),
-    voc_property(Scheme, languages(skos:prefLabel, PrefLangs)),
-    voc_property(Scheme, languages(skos:altLabel, AltLangs)),
-    voc_property(Scheme, version(Version0)),
-    (	Version0 == ''
-    ->	voc_property(Scheme, revision(Version))
-    ;	Version = Version0
+    (	node_stats(_Strategy, Scheme, Stats, [compute(false)])
+    ->	option(totalCount(ConceptCount), Stats),
+	option(properties(PDict), Stats),
+	rdf_equal(skos:prefLabel, PL),
+	rdf_equal(skos:altLabel, AL),
+	(   get_dict(PL, PDict, PrefLangs)-> true; PrefLangs = []),
+	(   get_dict(AL, PDict, AltLangs)-> true;   AltLangs = []),
+	option(version(Version0), Stats),
+	(   Version0 == ''
+	->  option(revision(Version), Stats)
+	;   Version = Version0
+	)
+    ;   rdf_estimate_complexity(_, skos:inScheme, Scheme, ConceptCount),
+	precompute_node(_Strategy, Scheme),
+	PrefLangs = [?], AltLangs = [?], Version = '?'
     )
 },
-	html(tr([td(input([type(checkbox), autocomplete(off), class(option),
-			   name(scheme), value(Scheme)])),
-		 td(class(name),    \html_scheme_name(Scheme)),
-		 td(class(version), Version),
-		 td(class(count), ConceptCount),
-		 td([span(class(preflangs), \html_showlist(PrefLangs))]),
-		 td([span(class(altlangs),  \html_showlist(AltLangs) )])
-
-		])),
+	html([
+	    tr([td(input([type(checkbox), autocomplete(off), class(option),
+			  name(scheme), value(Scheme)])),
+		td(class(name),    \html_scheme_name(Scheme)),
+		td(class(version), Version),
+		td(class(count), ConceptCount),
+		td([span(class(preflangs), \html_showlist(PrefLangs))]),
+		td([span(class(altlangs),  \html_showlist(AltLangs) )])
+	       ])
+	]),
 	html_vocab_rows(Vs).
 
 
