@@ -1,11 +1,14 @@
 :- module(subtree_select, []).
 
 :- use_module(library(option)).
-:- use_module(library(http/html_write)).
+:- use_module(library(amalgame/vocabulary)).
+
 :- use_module(components(amalgame/util)). % for the amalgame:input_item//3 multifile hook
+:- use_module(library(http/html_write)).
 
 :- public amalgame_module/1.
 :- public parameter/4.
+:- public specifier/5.
 :- public selecter/5.
 
 amalgame_module(amalgame:'SubtreeSelect').
@@ -15,7 +18,7 @@ parameter(parent, uri, '',
 parameter(mode, oneof([select, remove]), select,
 	  'select or remove concepts from this subtree').
 
-selecter(VocSpec, Sel, Dis, [], Options) :-
+specifier(VocSpec, Sel, Dis, none, Options) :-
 	option(parent(Parent), Options),
 	S =  and((VocSpec),	subtree(Parent)),
 	D =  and((VocSpec), not(subtree(Parent))),
@@ -23,6 +26,10 @@ selecter(VocSpec, Sel, Dis, [], Options) :-
 	->  Sel = S, Dis = D
 	;   Sel = D, Dis = S
 	).
+selecter(VocSpec, SelConcepts, DisConcepts, [], Options) :-
+	specifier(VocSpec, Sel, Dis, _, Options),
+	all_vocab_members(Sel, SelConcepts),
+	all_vocab_members(Dis, DisConcepts).
 
 % Add class 'concept' to the input form in components(amalgame/util) so
 % we can use the values from the concept browser to assist the user in

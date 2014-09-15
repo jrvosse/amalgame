@@ -2,7 +2,11 @@
 
 :- public amalgame_module/1.
 :- public parameter/4.
+:- public specifier/5.
 :- public selecter/5.
+
+:- use_module(library(option)).
+:- use_module(library(amalgame/vocabulary)).
 
 amalgame_module(amalgame:'PropertyValueSelect').
 
@@ -13,7 +17,7 @@ parameter(value, uri, any,
 parameter(mode, oneof([select, remove]), select,
 	  'select or remove concepts with this property/value pair').
 
-selecter(VocSpec, Sel, Dis, [], Options) :-
+specifier(VocSpec, Sel, Dis, none, Options) :-
 	option(property(Property), Options),
 	option(value(Value),       Options),
 	S =  and((VocSpec),	propvalue(Property, Value)),
@@ -22,3 +26,7 @@ selecter(VocSpec, Sel, Dis, [], Options) :-
 	->  Sel = S, Dis = D
 	;   Sel = D, Dis = S
 	).
+selecter(VocSpec, SelConcepts, DisConcepts, [], Options) :-
+	specifier(VocSpec, SelSpec, DisSpec, _, Options),
+	all_vocab_members(SelSpec, SelConcepts),
+	all_vocab_members(DisSpec, DisConcepts).
