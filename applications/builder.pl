@@ -1,6 +1,7 @@
 :- module(ag_builder, []).
 
 :- use_module(library(pairs)).
+:- use_module(library(option)).
 :- use_module(library(settings)).
 
 :- use_module(library(http/http_dispatch)).
@@ -12,7 +13,7 @@
 :- use_module(user(user_db)).
 
 :- use_module(library(amalgame/ag_strategy)).
-:- use_module(library(amalgame/voc_stats)).
+:- use_module(library(amalgame/ag_stats)).
 :- use_module(library(amalgame/util)).
 :- use_module(library(amalgame/json_util)).
 :- use_module(library(amalgame/expand_graph)).
@@ -80,7 +81,8 @@ precalc_voc_stats(Strategy) :-
 	% handy to know how many concepts etc are in each vocab,
 	% both for the user as for the hints system etc.
 	forall(strategy_vocabulary(Strategy, Vocab),
-	       (   voc_property(Vocab, totalCount(_))
+	       (   node_stats(Strategy, Vocab, Stats, [compute(false)]),
+		   option(totalCount(_), Stats)
 	       ->  ( setting(amalgame:precompute, true)
 		   ->  precompute_node(Strategy, Vocab)
 		   ;   true
