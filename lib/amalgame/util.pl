@@ -17,7 +17,6 @@
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(user(user_db)).
-:- use_module(library(amalgame/voc_stats)).
 :- use_module(library(amalgame/rdf_util)).
 :- use_module(library(skos/util)).
 
@@ -50,15 +49,16 @@ mint_node_uri(Strategy, Type, URI) :-
 %	Sorting is based on case insensitive scheme labels.
 
 amalgame_alignable_schemes(Schemes) :-
-	findall(C,
-		(   skos_is_vocabulary(C),
-		    voc_property(C, virtual(false))
-		),
-		All),
+	findall(S, alignable_scheme(S), All),
 	maplist(scheme_label, All, Labeled),
 	keysort(Labeled, Sorted),
 	pairs_values(Sorted, Schemes).
 
+alignable_scheme(S) :-
+        skos_is_vocabulary(S),
+	skos_in_scheme_chk(S, _).
+skos_in_scheme_chk(Scheme, Concept) :-
+	skos_in_scheme(Scheme, Concept), !.
 scheme_label(URI, Key-URI) :-
 	rdf_graph_label(URI, CasedKey),
 	downcase_atom(CasedKey, Key).
