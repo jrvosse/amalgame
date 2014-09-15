@@ -1,11 +1,16 @@
 :- module(vocab,
-	  [ vocab_member/2
+	  [ vocab_member/2,
+	    all_vocab_members/2
 	  ]).
 
+:- use_module(library(apply)).
+:- use_module(library(lists)).
+:- use_module(library(ordsets)).
+:- use_module(library(option)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(skos/util)).
-:- use_module(voc_stats).
+:- use_module(ag_stats).
 :- use_module(expand_graph). % for virtual vocab schemes
 
 %%	vocab_member(?C, +VocabDef)
@@ -23,6 +28,7 @@ vocab_member(C, not(Def)) :-
 	ground(C),
 	ground(Def),
 	\+ vocab_member(C, Def).
+
 vocab_member(E, and(G1,G2)) :-
 	!,
 	vocab_member(E,G1),
@@ -38,9 +44,8 @@ vocab_member(E, alignable(Alignable)) :-
 
 vocab_member(E, scheme(Scheme)) :-
 	!,
-	(   voc_property(Scheme, virtual(true))
-	->  vocab_member(E, vscheme(Scheme))
-	;   voc_property(Scheme, materialized(false)) % no longer necessary
+	node_stats(_Strategy, Scheme, Stats, []),
+	(   option(virtual(true), Stats)
 	->  vocab_member(E, vscheme(Scheme))
 	;   vocab_member(E, rscheme(Scheme))
 	).
@@ -49,7 +54,7 @@ vocab_member(E, vscheme(Scheme)) :-
 	!,
 	expand_vocab(Scheme, VocSpec),
 	!,
-	vocab_member(E, VocSpec).
+	member(E, VocSpec).
 
 vocab_member(E, rscheme(Scheme)) :-
 	!,
@@ -114,3 +119,38 @@ expand_vocab(Scheme, VocSpec) :-
 	rdf(Scheme, OutputType, Process, Strategy),
 	rdfs_individual_of(Strategy, amalgame:'AlignmentStrategy'),
 	expand_node(Strategy, Scheme, VocSpec).
+
+all_vocab_members(and(G1,not(G2)), Concepts) :-
+	!,
+	all_vocab_members(G1, G1s),
+	all_vocab_members(G2, G2s),
+	sort(G1s, G1Sorted),
+	sort(G2s, G2Sorted),
+	ord_subtract(G1Sorted, G2Sorted, Concepts),
+	!.
+all_vocab_members(and(G1,G2), Concepts) :-
+	!,
+	all_vocab_members(G1, G1s),
+	all_vocab_members(G2, G2s),
+	sort(G1s, G1Sorted),
+	sort(G2s, G2Sorted),
+	ord_intersection(G1Sorted, G2Sorted, Concepts),
+	!.
+all_vocab_members(is_mapped(Options), Concepts) :-
+	option(snd_input(Mappings), Options),
+	option(type(Type), Options),
+	option(strategy(Strategy), Options),
+	maplist(all_mapped(Strategy, Type), Mappings, Mapped),
+	append(Mapped, Concepts0),
+	sort(Concepts0, Concepts).
+
+all_vocab_members(vscheme(Scheme), Concepts) :-
+	!,
+	expand_vocab(Scheme, VocSpec),
+	!,
+	all_vocab_members(VocSpec, Concepts0),
+	sort(Concepts0, Concepts).
+
+all_vocab_members(VocSpec, Concepts) :-
+	findall(C, vocab_member(C, VocSpec), Concepts0),
+	sort(Concepts0, Concepts).
