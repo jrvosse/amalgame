@@ -237,8 +237,9 @@ assert_voc_version(Voc, Version) :-
 	).
 
 assert_subvoc_version(Voc, SuperVoc, Version) :-
-	rdf_has(SuperVoc, owl:versionInfo, Version),
-	assert(voc_stats_cache(Voc, version(Version))).
+	(   rdf_has(SuperVoc, owl:versionInfo, Version)
+	->  assert(voc_stats_cache(Voc, version(Version)))
+	;   assert_supervoc_version(Voc, Version)).
 
 assert_supervoc_version(Voc, Version) :-
 	rdf(_, skos:inScheme, Voc, SourceGraph:_),!,
@@ -248,9 +249,7 @@ assert_supervoc_version(Voc, Version) :-
 	prov_get_entity_version(Voc, SourceGraph, Version).
 
 count_concepts(Voc, Count) :-
-	findall(Concept,
-		vocab_member(Concept, Voc),
-		Concepts),
+	all_vocab_members(Voc, Concepts),
 	length(Concepts, Count),
 	print_message(informational, map(found, 'Concepts', Voc, Count)).
 
