@@ -12,6 +12,7 @@
 	 prov_get_entity_version/3
 	]).
 
+:- use_module(library(option)).
 :- use_module(library(http/http_host)).
 :- use_module(library(http/http_session)).
 :- use_module(library(semweb/rdf_db)).
@@ -24,7 +25,6 @@
 
 :- use_module(ag_stats).
 :- use_module(util).
-:- use_module(voc_stats).
 
 :- rdf_meta
 	provenance_graph(r,r),
@@ -35,7 +35,7 @@
 	prov_was_generated_by(r,t,r,+),
 	prov_clear_activity(r),
 	prov_get_entity_version(r,r,-),
-	prov_ensure_entity(r, r).
+	prov_ensure_entity(r, r, r).
 
 :- dynamic
 	current_prov_uri/2.
@@ -76,28 +76,29 @@ update_amalgame_prov(Strategy, Mapping) :-
 	       rdf_assert(S,P,O,ProvGraph)
 	      ).
 
-prov_ensure_entity(Entity, Graph) :-
+prov_ensure_entity(_S, Entity, Graph) :-
 	rdf(Entity, 'http://usefulinc.com/ns/doap#revision' , _, Graph),
 	!. % prov already recorded
-prov_ensure_entity(Entity, Graph) :-
+prov_ensure_entity(Strategy, Entity, Graph) :-
 	skos_is_vocabulary(Entity),
+	node_stats(Strategy, Entity, Stats, []),
+	option(revision(Revision), Stats),
 	prov_named_graphs(Repo, Graph),
 	rdf_assert(Entity, prov:wasDerivedFrom, Repo, Graph),
-	voc_property(Entity, revision(Revision)),
 	rdf_assert(Entity, 'http://usefulinc.com/ns/doap#revision',
 		   literal(Revision), Graph),
 	findall(rdf(Entity, P, O), rdf(Entity, P, O), Triples),
 	forall(member(rdf(S,P,O), Triples), rdf_assert(S,P,O,Graph)),
 	!.
-prov_ensure_entity(Entity, _Graph) :-
+prov_ensure_entity(_S, Entity, _Graph) :-
 	rdfs_individual_of(Entity, amalgame:'Mapping'), !. % do nothing, amalgame generated
 
-prov_ensure_entity(Entity, Graph) :-
+prov_ensure_entity(_S, Entity, Graph) :-
 	format(atom(Message),
 	       'Cannot record provenance for ~p in named graph ~p',
 	       [Entity, Graph]),
 	throw(error(evalution_error,
-		    context(prov_ensure_entity/2, Message))).
+		    context(prov_ensure_entity/3, Message))).
 
 add_amalgame_prov(Strategy, Process, Results) :-
 	rdf_equal(prov:used, ProvUsed),
@@ -112,10 +113,10 @@ add_amalgame_prov(Strategy, Process, Results) :-
 	findall(rdf(Process, P, O), rdf(Process,P,O,Strategy), ProcessTriples),
 
 	% Find inputs of Process
-	findall(rdf(Process, ProvUsed, S),
-		(   rdf_has(Process, ProvUsed, S, RealProp),
-		    rdf(Process, RealProp, S, Strategy),
-		    prov_ensure_entity(S, ProvGraph)
+	findall(rdf(Process, ProvUsed, I),
+		(   rdf_has(Process, ProvUsed, I, RealProp),
+		    rdf(Process, RealProp, I, Strategy),
+		    prov_ensure_entity(Strategy, I, ProvGraph)
 		),
 		InputTriples),
 
@@ -387,10 +388,11 @@ assert_counts([URI|Tail], Strategy, ProvGraph) :-
 	assert_count(URI, Strategy, ProvGraph),
 	assert_counts(Tail, Strategy, ProvGraph).
 
-assert_count(VocUri, _Strategy, ProvGraph) :-
+assert_count(VocUri, Strategy, ProvGraph) :-
 	skos_is_vocabulary(VocUri),
+	node_stats(Strategy, VocUri, Stats, []),
+	option(totalCount(Count), Stats),
 	rdf_retractall(VocUri, amalgame:totalCount, _, ProvGraph),
-	voc_property(VocUri, totalCount(Count), []),
 	rdf_assert(VocUri, amalgame:totalCount, literal(type(xsd:int, Count)), ProvGraph).
 
 assert_count(MapUri, Strategy, ProvGraph) :-
