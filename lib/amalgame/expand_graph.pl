@@ -1,7 +1,9 @@
 :- module(expand_graph,
 	  [ expand_node/3,
+	    vocab_spec/3,
 	    precompute_process/2,
 	    precompute_node/2,
+	    all_mapped/4,
 	    is_mapped/4
 	  ]).
 
@@ -22,8 +24,6 @@
 :- use_module(library(ag_drivers/exec_amalgame_process)).
 
 
-
-
 %%	expand_node(+StrategyURL, +NodeURL, -Result) is det.
 %
 %	Compute result of expanding NodeURL as defined by StrategyURL.
@@ -36,7 +36,6 @@
 %          be used as the second argument to vocab_member/2.
 
 expand_node(Strategy, Id, Result) :-
-	ground(Strategy),
 	ground(Id),
 	atomic_concat(expand_node, Id, Mutex),
 	debug(mutex, 'Locking mutex: ~w', [Mutex]),
@@ -67,12 +66,25 @@ precompute_node(Strategy, Mapping) :-
 	    ),
 	    _,[ detached(true) ]).
 
+%%	all_mapped(+Strategy, +Type, +Mapping, -Concepts) is semidet.
+%
+%	True if Concepts are all sources/targets in the correspondences
+%	of Mapping. Type is either source or target.
+all_mapped(Strategy, Type, Mapping, Concepts) :-
+	(   cache_mapped_concepts(Strategy, Type, Mapping, Concepts)
+	->  true
+	;   expand_node(Strategy, Mapping, Result),
+	    maplist(correspondence_element(Type), Result, Concepts),
+	    sort(Concepts, Sorted),
+	    cache_mapped_concepts(Strategy, Type, Mapping, Sorted)
+	).
+
 %%	is_mapped(+Strategy, +Type, +Concept, +Mapping) is semidet.
 %
-%	True if Concepts is a source/target in a correspondence in
+%	True if Concept is a source/target in a correspondence in
 %	Mapping. Type is either source or target.
 is_mapped(Strategy, Type, Concept, Mapping) :-
-	(   mapped_concepts(Strategy, Type, Mapping, Concepts)
+	(   cache_mapped_concepts(Strategy, Type, Mapping, Concepts)
 	->  true
 	;   expand_node(Strategy, Mapping, Result),
 	    maplist(correspondence_element(Type), Result, Concepts),
@@ -80,6 +92,10 @@ is_mapped(Strategy, Type, Concept, Mapping) :-
 	    cache_mapped_concepts(Strategy, Type, Mapping, Sorted)
 	),
 	ord_memberchk(Concept, Concepts).
+
+expand_node_(Strategy, Id, Result) :-
+	% Try if we get this result from the expand_cache first:
+	expand_cache(Id-Strategy, Result),!.
 
 expand_node_(Strategy, Id, Result) :-
 	% Try if we get this result from the expand_cache first:
@@ -156,7 +172,7 @@ exploit_materialized_graph(Strategy, Id) :-
 %	of concepts derived by a vocabulary process,
 %	@param VocSpec is a specification of the concept scheme.
 
-expand_vocab(Strategy, Id, Vocspec) :-
+expand_vocab(Strategy, Id, Concepts) :-
 	rdf_has(Id, amalgame:wasGeneratedBy, Process, OutputType),
 	rdf(Id, OutputType, Process, Strategy),
 	!,
@@ -164,14 +180,39 @@ expand_vocab(Strategy, Id, Vocspec) :-
 	debug(mutex, 'Locking mutex: ~w', [Mutex]),
 	with_mutex(Mutex,
 		   expand_process(Strategy, Process, Result)),
-	select_result_scheme(Id, Result, OutputType, Vocspec),
+	select_result_scheme(Id, Result, OutputType, Concepts),
 	debug(mutex, 'Releasing mutex: ~w', [Mutex]).
 
-expand_vocab(_Strategy, Vocab, vocspec(alignable(Vocab))) :-
-	rdfs_individual_of(Vocab, amalgame:'Alignable'),
-	!.
+%expand_vocab(_Strategy, Vocab, vocspec(alignable(Vocab))) :-
+%	rdfs_individual_of(Vocab, amalgame:'Alignable'),
+%	!.
 
-expand_vocab(_Strategy, Vocab, vocspec(scheme(Vocab))).
+expand_vocab(Strategy, Vocab, List) :-
+	findall(C, skos_in_scheme(Vocab, C), List),
+	cache_result(_, Vocab, Strategy, List).
+
+vocab_spec(Strategy, Id, Spec) :-
+	rdf_has(Id, amalgame:wasGeneratedBy, Process, OutputType),
+		rdf(Id, OutputType, Process, Strategy),
+	!,
+	expand_specification(Strategy, Process, Result),
+	select_result_scheme(Id, Result, OutputType, Spec).
+
+vocab_spec(_Strategy, Id, rscheme(Id)).
+
+expand_specification(Strategy, Process, Specification) :-
+	ground(Process),
+	rdf(Process, rdf:type, Type, Strategy),
+
+	% Do not try multiple types if something fails below...
+	!,
+
+	% Collect options and run:
+	amalgame_module_id(Type, Module),
+	process_options(Process, Module, Options),
+	specification(Type, Process, Strategy, Module,
+			      Specification, _Time, Options).
+
 
 %%	expand_process(+Strategy, +Process, -Result, -Time)
 %
