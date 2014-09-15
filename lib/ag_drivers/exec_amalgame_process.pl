@@ -1,8 +1,9 @@
 :- module(ag_exec_process, [
-			    exec_amalgame_process/7,
-			    select_result_mapping/4,
-			    select_result_scheme/4
-			   ]).
+	      exec_amalgame_process/7,
+	      select_result_mapping/4,
+	      select_result_scheme/4,
+	      specification/7
+	  ]).
 
 :- use_module(library(apply)).
 :- use_module(library(lists)).
@@ -12,12 +13,14 @@
 :- use_module(library(amalgame/expand_graph)).
 :- use_module(library(amalgame/map)).
 :- use_module(library(ag_modules/map_merger)).
-:- use_module(library(amalgame/voc_stats)).
 
 :- multifile
 	exec_amalgame_process/7,
 	select_result_mapping/4,
 	select_result_scheme/4.
+
+:- meta_predicate
+	timed_call(5, -).
 
 %%	select_result_mapping(+Id, +MapSpec, +Type, -Mapping) is det.
 %%	select_result_mapping(+Id, -MapSpec, +Type, +Mapping) is det.
@@ -104,17 +107,12 @@ exec_amalgame_process(Type, Process, Strategy, Module, MapSpec, Time, Options) :
 	rdfs_subclass_of(Type, amalgame:'CandidateGenerator'),
 	!,
 	collect_snd_input(Process, Strategy, SecInput),
-	rdf(Process, amalgame:source, SourceId, Strategy),
-	rdf(Process, amalgame:target, TargetId, Strategy),
-	expand_node(Strategy, SourceId, Source),
-	expand_node(Strategy, TargetId, Target),
-	voc_property(SourceId, format(SourceFormat)),
-	voc_property(TargetId, format(TargetFormat)),
-	timed_call(Module:matcher(Source, Target, Mapping0,
-				  [snd_input(SecInput),
-				   source_format(SourceFormat),
-				   target_format(TargetFormat)
-				  |Options]), Time),
+	rdf(Process, amalgame:source, Source, Strategy),
+	rdf(Process, amalgame:target, Target, Strategy),
+	vocab_spec(Strategy, Source, SourceSpec),
+	vocab_spec(Strategy, Target, TargetSpec),
+	timed_call(Module:matcher(SourceSpec, TargetSpec, Mapping0,
+				  [snd_input(SecInput)|Options]), Time),
 	merge_provenance(Mapping0, Mapping),
 	MapSpec = mapspec(mapping(Mapping)).
 exec_amalgame_process(Class, Process, Strategy, Module, VocSpec, Time, Options) :-
@@ -123,7 +121,7 @@ exec_amalgame_process(Class, Process, Strategy, Module, VocSpec, Time, Options) 
 	once(rdf(Process, amalgame:input, Input, Strategy)),
 	findall(S, rdf_has(Process, amalgame:secondary_input, S), Ss),
 	VocSpec = vocspec(select(Selected, Discarded, Undecided)),
-	expand_node(Strategy, Input, InputVocspec),
+	vocab_spec(Strategy, Input, InputVocspec),
 	timed_call(Module:selecter(InputVocspec, Selected, Discarded, Undecided,
 				   [snd_input(Ss), strategy(Strategy)|Options]), Time).
 exec_amalgame_process(Class, Process, Strategy, Module, MapSpec, Time, Options) :-
@@ -143,6 +141,15 @@ exec_amalgame_process(Class, Process, Strategy, Module, MapSpec, Time, Options) 
 exec_amalgame_process(Class, Process,_,_, _, _, _) :-
 	throw(error(existence_error(mapping_process, [Class, Process]), _)).
 
+specification(Class, Process, Strategy, Module, VocSpec, Time, Options) :-
+	rdfs_subclass_of(Class, amalgame:'VocabPartitioner'),
+	!,
+	once(rdf(Process, amalgame:input, Input, Strategy)),
+	findall(S, rdf_has(Process, amalgame:secondary_input, S), Ss),
+	VocSpec = vocspec(select(Selected, Discarded, Undecided)),
+	vocab_spec(Strategy, Input, InputVocspec),
+	timed_call(Module:specifier(InputVocspec, Selected, Discarded, Undecided,
+				   [snd_input(Ss), strategy(Strategy)|Options]), Time).
 timed_call(Goal, Time) :-
 	thread_self(Me),
         thread_statistics(Me, cputime, T0),
