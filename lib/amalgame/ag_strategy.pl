@@ -25,7 +25,7 @@
 :- use_module(library(amalgame/util)).
 :- use_module(library(amalgame/map)).
 :- use_module(library(amalgame/ag_provenance)).
-:- use_module(library(amalgame/voc_stats)).
+:- use_module(library(amalgame/ag_stats)).
 
 
 :- rdf_meta
@@ -81,12 +81,13 @@ strategy_vocabularies(Strategy, Schemes) :-
 
 strategy_languages(Strategy, Languages) :-
 	strategy_vocabularies(Strategy, Vocs),
-	maplist(lang_used, Vocs, Langs),
+	maplist(lang_used(Strategy), Vocs, Langs),
 	append(Langs, Languages0),
 	sort(Languages0, Languages).
 
-lang_used(Voc, Langs) :-
-	voc_property(Voc, languages(Langs)).
+lang_used(Strategy, Voc, Langs) :-
+	node_stats(Strategy, Voc, Stats, []),
+	option(languages(Langs), Stats).
 
 %%	strategy_add_vocabulary(+Strategy, +Vocabulary) is det.
 %
