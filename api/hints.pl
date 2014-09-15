@@ -1,5 +1,6 @@
 :- module(ag_hints, []).
 
+:- use_module(library(option)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_json)).
@@ -8,7 +9,6 @@
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(amalgame/ag_strategy)).
 :- use_module(library(amalgame/ag_stats)).
-:- use_module(library(amalgame/voc_stats)).
 :- use_module(library(amalgame/map)).
 
 :- http_handler(amalgame(data/hint), http_json_hint, []).
@@ -72,8 +72,10 @@ find_hint(Strategy, Context, Hint) :-
 	strategy_vocabulary(Strategy, Voc1),
 	strategy_vocabulary(Strategy, Voc2),
 	Voc1 \== Voc2,
-	voc_property(Voc1, totalCount(Count1)),
-	voc_property(Voc2, totalCount(Count2)),
+	node_stats(Strategy, Voc1, Voc1Stats, []),
+	node_stats(Strategy, Voc2, Voc2Stats, []),
+	option(totalCount(Count1), Voc1Stats),
+	option(totalCount(Count2), Voc2Stats),
 	(   Count1 < Count2
 	->  Source = Voc1, Target = Voc2
 	;   Source = Voc2, Target = Voc1
