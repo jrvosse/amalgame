@@ -1,9 +1,11 @@
 :- module(ag_stats,[
 	      node_stats/4,
 	      reference_counts/3,
-	      mapping_stats/4
+	      mapping_stats/4,
+	      scheme_stats/4
 	  ]).
 
+:- use_module(library(option)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 
@@ -21,35 +23,35 @@
 
 node_stats(Strategy, Node, Stats, Options) :-
 	(   rdfs_individual_of(Node, amalgame:'Mapping')
-	->  mapping_counts(Node, Strategy, Stats, Options)
+	->  node_counts(Node, Strategy, Stats, Options)
 	;   skos_is_vocabulary(Node)
-	->  voc_property(Node, Stats, Options)
+	->  node_counts(Node, Strategy, Stats, Options)
 	;   Stats = []
 	).
 
-%%	mapping_counts(+MappingURI,+Strategy, Stats, +Options)
+%%	node_counts(+URI,+Strategy, -Stats, +Options)
 %	is det.
 %
-%	Counts for the mappings in MappingURI.
+%	Counts for the items in the set denoted by URI.
 
-mapping_counts(URL, Strategy, Stats, Options) :-
+node_counts(URL, Strategy, Stats, Options) :-
 	option(compute(false), Options, true),
 	!,
 	stats_cache(URL-Strategy, Stats),
-	is_dict(Stats, mapping_stats_dict).
+	is_dict(Stats).
 
-mapping_counts(URL, Strategy, Stats, Options) :-
+node_counts(URL, Strategy, Stats, Options) :-
 	option(compute(true), Options, true),
 	!,
-	atomic_concat(mapping_counts, URL, Mutex),
-	debug(mutex, 'xLocking mutex: ~w', [Mutex]),
-	with_mutex(Mutex, mapping_counts_(URL, Strategy, Stats)),
-	debug(mutex, 'xReleasing mutex: ~w', [Mutex]).
+	atomic_concat(node_counts, URL, Mutex),
+	debug(mutex, 'Locking mutex: ~w', [Mutex]),
+	with_mutex(Mutex, node_counts_(URL, Strategy, Stats)),
+	debug(mutex, 'Releasing mutex: ~w', [Mutex]).
 
-mapping_counts_(URL, Strategy, Stats) :-
-	expand_node(Strategy, URL, _Mapping),
+node_counts_(URL, Strategy, Stats) :-
+	expand_node(Strategy, URL, _Result), % this fills the cache
 	stats_cache(URL-Strategy, Stats),
-	is_dict(Stats, mapping_stats_dict).
+	is_dict(Stats).
 
 reference_counts(Id, Strategy, Stats) :-
 	atom_concat(reference_counts, Id, Mutex),
@@ -61,7 +63,8 @@ reference_counts_(Id, Strategy, Stats) :-
 	;   compute_reference_counts(Id, Strategy, Stats)
 	).
 
-%%	mapping_stats(+URL, +Mapping, +Strategy, -Stats)
+
+%%	mapping_stats(+URL, +Mapping, +Strategy, -Stats) is det.
 %
 %	Stats are statistics for mapping.
 
@@ -92,8 +95,10 @@ mapping_stats(URL, Mapping, Strategy, Stats) :-
 		    inputPercentage:IP
 		},
 	(   mapping_vocab_sources(URL, Strategy, InputS, InputT)
-	->  voc_property(InputS, totalCount(SourceN)),
-	    voc_property(InputT, totalCount(TargetN)),
+	->  node_stats(Strategy, InputS, StatsSin, []),
+	    node_stats(Strategy, InputT, StatsTin, []),
+	    option(totalCount(SourceN), StatsSin),
+	    option(totalCount(TargetN), StatsTin),
 	    save_perc(SN, SourceN, SPerc),
 	    save_perc(TN, TargetN, TPerc),
 	    js_focus_node(Strategy, InputS, SvocDict),
