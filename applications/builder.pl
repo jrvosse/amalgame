@@ -81,14 +81,14 @@ precalc_voc_stats(Strategy) :-
 	% handy to know how many concepts etc are in each vocab,
 	% both for the user as for the hints system etc.
 	forall(strategy_vocabulary(Strategy, Vocab),
-	       (   node_stats(Strategy, Vocab, Stats, [compute(false)]),
-		   option(totalCount(_), Stats)
-	       ->  ( setting(amalgame:precompute, true)
+	       (   node_stats(Strategy, Vocab, Stats, [compute(false)])
+	       ->  option(totalCount(N), Stats),
+		   print_message(informational,
+				 map(found, 'SKOS Concepts for ', Vocab, N))
+	       ;   ( setting(amalgame:precompute, true)
 		   ->  precompute_node(Strategy, Vocab)
 		   ;   true
 		   )
-	       ;   print_message(informational,
-			     map(found, 'No SKOS Concepts for ', Vocab, 0))
 	       )
 	      ).
 

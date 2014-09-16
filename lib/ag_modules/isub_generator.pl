@@ -3,7 +3,6 @@
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(amalgame/vocabulary)).
-:- use_module(library(amalgame/ag_strategy)).
 
 :- use_module(isub_match).
 :- use_module(string_match_util).
@@ -25,7 +24,7 @@ parameter(targetlabel, oneof(LabelProps), Default,
 parameter(threshold, float, 0.7,
 	  'threshold edit distance').
 parameter(language, oneof(['any'|L]), 'any', 'Language of source label') :-
-	strategy_languages(_,L).
+	amalgame_vocabulary_languages(L).
 parameter(matchacross_lang,
 	  boolean, true,
 	  'Allow labels from different language to be matched').

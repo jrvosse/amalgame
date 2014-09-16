@@ -1,8 +1,8 @@
 :- module(exact_label_generator, []).
 
+:- use_module(library(lists)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(amalgame/vocabulary)).
-:- use_module(library(amalgame/ag_strategy)).
 
 :- use_module(exact_label_match).
 :- use_module(string_match_util).
@@ -23,7 +23,7 @@ parameter(targetlabel, oneof(LabelProps), Default,
 	label_list(LabelProps).
 parameter(source_language, oneof(['any'|L]), 'any',
 	  'Language of source label') :-
-	strategy_languages(_S,L).
+	amalgame_vocabulary_languages(L).
 parameter(matchacross_lang, boolean, true,
 	  'Allow labels from different language to be matched').
 parameter(matchacross_type, boolean, true,
@@ -39,9 +39,9 @@ parameter(match_qualified_only, boolean, false,
 %	and Target.
 
 matcher(Source, Target, Mappings, Options) :-
-	findall(M, align(Source, Target, M, Options), Mappings0),
+	profile(findall(M, align(Source, Target, M, Options), Mappings0)),
 	sort(Mappings0, Mappings).
 
 align(Source, Target, Match, Options) :-
-	vocab_member(S, Source),
+	member(S, Source),
 	exact_label_match(align(S,_,[]), Match, [target_scheme(Target)|Options]).

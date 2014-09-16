@@ -33,6 +33,7 @@ scheme_stats(Scheme, Concepts, Strategy, Stats) :-
 		    totalLabelCount: TotalLabelCount,
 		    uniqueLabelCount: UniqueLabelCount
 		},
+	debug(scheme_stats, 'Computing stats for ~p', [Scheme]),
 	(   skos_in_scheme(Scheme, _)
 	->  Virtual = false
 	;   strategy_process_entity(Strategy, _ ,Scheme)

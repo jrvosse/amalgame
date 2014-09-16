@@ -9,7 +9,7 @@
 :- use_module(library(http/html_write)).
 
 :- use_module(library(yui3_beta)).
-:- use_module(library(amalgame/util)).
+:- use_module(library(amalgame/vocabulary)).
 :- use_module(library(amalgame/ag_strategy)).
 :- use_module(applications(skos_browser)).
 

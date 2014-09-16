@@ -1,4 +1,4 @@
-:- module(skos_broser_hooks, []).
+:- module(skos_browser_hooks, []).
 
 :- use_module(library(option)).
 :- use_module(library(semweb/rdf_db)).
@@ -42,11 +42,7 @@ mapped_chk([C|T], Graphs, [C|Rest], Options) :-
 mapped_chk([_|T], Graphs, Rest, Options) :-
 	mapped_chk(T, Graphs, Rest, Options).
 
-is_mapped(Concept, Mappings, Options) :-
-	option(strategy(Strategy), Options),
-	member(Mapping, Mappings),
-	(   is_mapped(Strategy, source, Concept, Mapping)
-	->  true
-	;   is_mapped(Strategy, target, Concept, Mapping)
-	).
+is_mapped(_Concept, _Mappings, Options) :-
+	option(strategy(_Strategy), Options),
+	fail.
 

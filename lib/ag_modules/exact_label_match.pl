@@ -47,6 +47,7 @@ exact_label_match(align(Source, Target, Prov0),
 	SourceLabel \= '',
 	skos_match(Target, MatchPropT, SearchTarget,
 		TargetProp, Options),
+	Source \= Target,
 
 	(   option(target_scheme(TargetScheme), Options)
 	->  vocab_member(Target, TargetScheme)

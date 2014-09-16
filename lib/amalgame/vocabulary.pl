@@ -1,6 +1,8 @@
 :- module(vocab,
 	  [ vocab_member/2,
-	    all_vocab_members/2
+	    all_vocab_members/2,
+	    amalgame_alignable_schemes/1,
+	    amalgame_vocabulary_languages/1
 	  ]).
 
 :- use_module(library(apply)).
@@ -12,6 +14,7 @@
 :- use_module(library(skos/util)).
 :- use_module(ag_stats).
 :- use_module(expand_graph). % for virtual vocab schemes
+:- use_module(rdf_util).
 
 %%	vocab_member(?C, +VocabDef)
 %
@@ -81,9 +84,9 @@ vocab_member(E, is_mapped(Options)) :-
 	option(snd_input(Mappings), Options),
 	option(type(Type), Options),
 	option(strategy(Strategy), Options),
-	member(Mapping, Mappings),
-	is_mapped(Strategy, Type, E, Mapping),
-	!.
+	all_mapped(Strategy, Type, Mappings, Concepts),
+	!,
+	rb_in(E, _, Concepts).
 
 vocab_member(F, 'http://sws.geonames.org/') :-
 	!,
@@ -154,3 +157,37 @@ all_vocab_members(vscheme(Scheme), Concepts) :-
 all_vocab_members(VocSpec, Concepts) :-
 	findall(C, vocab_member(C, VocSpec), Concepts0),
 	sort(Concepts0, Concepts).
+
+%%	amalgame_alignable_schemes(-Schemes) is det.
+%
+%	Schemes is unified with a sorted list of urls of
+%	skos:ConceptSchemes or other alignable objects.
+%
+%	Sorting is based on case insensitive scheme labels.
+
+amalgame_alignable_schemes(Schemes) :-
+	findall(S, alignable_scheme(S), All),
+	maplist(scheme_label, All, Labeled),
+	keysort(Labeled, Sorted),
+	pairs_values(Sorted, Schemes).
+
+alignable_scheme(S) :-
+        skos_is_vocabulary(S),
+	skos_in_scheme_chk(S, _).
+skos_in_scheme_chk(Scheme, Concept) :-
+	skos_in_scheme(Scheme, Concept), !.
+scheme_label(URI, Key-URI) :-
+	rdf_graph_label(URI, CasedKey),
+	downcase_atom(CasedKey, Key).
+
+amalgame_vocabulary_languages(Languages) :-
+	amalgame_alignable_schemes(Schemes),
+	maplist(lang_used(_Strategy), Schemes, Langs),
+	append(Langs, Languages0),
+	sort(Languages0, Languages).
+
+lang_used(Strategy, Voc, Langs) :-
+	node_stats(Strategy, Voc, Stats, []),
+	option(languages(Langs), Stats).
+
+

@@ -5,7 +5,7 @@
 :- public selecter/5.
 :- public parameter/4.
 
-:- use_module(library(amalgame/ag_strategy)).
+:- use_module(library(amalgame/vocabulary)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(label_selecter).
 :- use_module(exact_label_match).
@@ -25,7 +25,7 @@ parameter(targetlabel, oneof(LabelProps), Default,
 	label_list(LabelProps).
 parameter(source_language, oneof(['any'|L]), 'any',
 	  'Language of source label') :-
-	strategy_languages(_S,L).
+	amalgame_vocabulary_languages(L).
 parameter(matchacross_lang, boolean, true,
 	  'Allow labels from different language to be matched').
 parameter(matchacross_type, boolean, true,

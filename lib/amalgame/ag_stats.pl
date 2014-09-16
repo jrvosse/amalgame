@@ -1,8 +1,7 @@
 :- module(ag_stats,[
 	      node_stats/4,
 	      reference_counts/3,
-	      mapping_stats/4,
-	      scheme_stats/4
+	      mapping_stats/4
 	  ]).
 
 :- use_module(library(option)).
@@ -34,11 +33,13 @@ node_stats(Strategy, Node, Stats, Options) :-
 %
 %	Counts for the items in the set denoted by URI.
 
-node_counts(URL, Strategy, Stats, Options) :-
+node_counts(URL, Strategy, Stats, _Options) :-
+	stats_cache(URL-Strategy, Stats),
+	!.
+node_counts(_URL, _Strategy, _Stats, Options) :-
 	option(compute(false), Options, true),
 	!,
-	stats_cache(URL-Strategy, Stats),
-	is_dict(Stats).
+	fail.
 
 node_counts(URL, Strategy, Stats, Options) :-
 	option(compute(true), Options, true),

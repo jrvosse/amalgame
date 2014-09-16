@@ -109,7 +109,7 @@ exec_amalgame_process(Type, Process, Strategy, Module, MapSpec, Time, Options) :
 	collect_snd_input(Process, Strategy, SecInput),
 	rdf(Process, amalgame:source, Source, Strategy),
 	rdf(Process, amalgame:target, Target, Strategy),
-	vocab_spec(Strategy, Source, SourceSpec),
+	expand_node(Strategy, Source, SourceSpec),
 	vocab_spec(Strategy, Target, TargetSpec),
 	timed_call(Module:matcher(SourceSpec, TargetSpec, Mapping0,
 				  [snd_input(SecInput)|Options]), Time),

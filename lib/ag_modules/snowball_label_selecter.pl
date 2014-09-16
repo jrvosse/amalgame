@@ -1,7 +1,7 @@
 :- module(snowball_label_selecter,
 	  []).
 
-:- use_module(library(amalgame/ag_strategy)).
+:- use_module(library(amalgame/vocabulary)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(snowball)).
 :- use_module(string_match_util).
@@ -27,7 +27,7 @@ parameter(targetlabel, oneof(LabelProps), Default,
 	rdf_equal(Default, rdfs:label),
 	label_list(LabelProps).
 parameter(source_language, oneof(['any'|L]), 'any', 'Language of source label') :-
-	strategy_languages(_,L).
+	amalgame_vocabulary_languages(L).
 parameter(matchacross_lang, boolean, true,
 	  'Allow labels from different language to be matched').
 parameter(snowball_language, oneof(Languages), english,

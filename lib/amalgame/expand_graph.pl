@@ -3,14 +3,12 @@
 	    vocab_spec/3,
 	    precompute_process/2,
 	    precompute_node/2,
-	    all_mapped/4,
-	    is_mapped/4
+	    all_mapped/4
 	  ]).
 
 :- use_module(library(apply)).
 :- use_module(library(debug)).
 :- use_module(library(lists)).
-:- use_module(library(ordsets)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 
@@ -71,6 +69,7 @@ precompute_node(Strategy, Mapping) :-
 %	True if Concepts are all sources/targets in the correspondences
 %	of Mapping. Type is either source or target.
 all_mapped(Strategy, Type, Mapping, Concepts) :-
+	atom(Mapping),
 	(   cache_mapped_concepts(Strategy, Type, Mapping, Concepts)
 	->  true
 	;   expand_node(Strategy, Mapping, Result),
@@ -79,19 +78,19 @@ all_mapped(Strategy, Type, Mapping, Concepts) :-
 	    cache_mapped_concepts(Strategy, Type, Mapping, Sorted)
 	).
 
-%%	is_mapped(+Strategy, +Type, +Concept, +Mapping) is semidet.
-%
-%	True if Concept is a source/target in a correspondence in
-%	Mapping. Type is either source or target.
-is_mapped(Strategy, Type, Concept, Mapping) :-
-	(   cache_mapped_concepts(Strategy, Type, Mapping, Concepts)
+all_mapped(Strategy, Type, Mappings, Concepts) :-
+	is_list(Mappings),
+	(   cache_mapped_concepts(Strategy, Type, Mappings, Concepts)
 	->  true
-	;   expand_node(Strategy, Mapping, Result),
-	    maplist(correspondence_element(Type), Result, Concepts),
-	    sort(Concepts, Sorted),
-	    cache_mapped_concepts(Strategy, Type, Mapping, Sorted)
-	),
-	ord_memberchk(Concept, Concepts).
+	;   maplist(expand_node(Strategy), Mappings, Results),
+	    append(Results, Result),
+	    maplist(my_correspondence_element(Type), Result, Concepts0),
+	    ord_list_to_rbtree(Concepts0, Concepts),
+	    cache_mapped_concepts(Strategy, Type, Mappings, Concepts)
+	).
+
+my_correspondence_element(Type, Align3, E-t) :-
+	correspondence_element(Type, Align3, E).
 
 expand_node_(Strategy, Id, Result) :-
 	% Try if we get this result from the expand_cache first:
@@ -189,6 +188,7 @@ expand_vocab(Strategy, Id, Concepts) :-
 
 expand_vocab(Strategy, Vocab, List) :-
 	findall(C, skos_in_scheme(Vocab, C), List),
+	debug(ag_expand, 'Concepts of ~p computed and cached', [Vocab]),
 	cache_result(_, Vocab, Strategy, List).
 
 vocab_spec(Strategy, Id, Spec) :-
