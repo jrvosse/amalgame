@@ -39,9 +39,9 @@ parameter(match_qualified_only, boolean, false,
 %	and Target.
 
 matcher(Source, Target, Mappings, Options) :-
-	profile(findall(M, align(Source, Target, M, Options), Mappings0)),
+	findall(M, align(Source, Target, M, Options), Mappings0),
 	sort(Mappings0, Mappings).
 
 align(Source, Target, Match, Options) :-
-	member(S, Source),
+	vocab_member(S, Source),
 	exact_label_match(align(S,_,[]), Match, [target_scheme(Target)|Options]).

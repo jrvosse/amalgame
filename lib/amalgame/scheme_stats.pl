@@ -19,7 +19,7 @@
 %	Stats are statistics for Concepts in Scheme.
 %
 
-scheme_stats(Scheme, Concepts, Strategy, Stats) :-
+scheme_stats(Scheme, ConceptAssoc, Strategy, Stats) :-
 	Stats = scheme_stats_dict{
 		    '@id': Scheme,
 		    strategy: Strategy,
@@ -42,6 +42,7 @@ scheme_stats(Scheme, Concepts, Strategy, Stats) :-
 	),
 	find_voc_revision(Scheme, Revision),
 	find_voc_version(Scheme, Version),
+	assoc_to_keys(ConceptAssoc, Concepts),
 	length(Concepts, TotalCount),
 	concepts_stats(Concepts, Skos, XLP, XLA),
 	length(Skos, SkosNr),

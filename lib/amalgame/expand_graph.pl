@@ -7,6 +7,7 @@
 	  ]).
 
 :- use_module(library(apply)).
+:- use_module(library(assoc)).
 :- use_module(library(debug)).
 :- use_module(library(lists)).
 :- use_module(library(semweb/rdf_db)).
@@ -85,7 +86,7 @@ all_mapped(Strategy, Type, Mappings, Concepts) :-
 	;   maplist(expand_node(Strategy), Mappings, Results),
 	    append(Results, Result),
 	    maplist(my_correspondence_element(Type), Result, Concepts0),
-	    ord_list_to_rbtree(Concepts0, Concepts),
+	    ord_list_to_assoc(Concepts0, Concepts),
 	    cache_mapped_concepts(Strategy, Type, Mappings, Concepts)
 	).
 
@@ -186,10 +187,12 @@ expand_vocab(Strategy, Id, Concepts) :-
 %	rdfs_individual_of(Vocab, amalgame:'Alignable'),
 %	!.
 
-expand_vocab(Strategy, Vocab, List) :-
-	findall(C, skos_in_scheme(Vocab, C), List),
+expand_vocab(Strategy, Vocab, Assoc) :-
+	findall(C-t, skos_in_scheme(Vocab, C), Pairs),
 	debug(ag_expand, 'Concepts of ~p computed and cached', [Vocab]),
-	cache_result(_, Vocab, Strategy, List).
+	sort(Pairs, Sorted),
+	ord_list_to_assoc(Sorted,Assoc),
+	cache_result(_, Vocab, Strategy, Assoc).
 
 vocab_spec(Strategy, Id, Spec) :-
 	rdf_has(Id, amalgame:wasGeneratedBy, Process, OutputType),

@@ -6,6 +6,7 @@
 	  ]).
 
 :- use_module(library(apply)).
+:- use_module(library(assoc)).
 :- use_module(library(lists)).
 :- use_module(library(ordsets)).
 :- use_module(library(option)).
@@ -86,7 +87,7 @@ vocab_member(E, is_mapped(Options)) :-
 	option(strategy(Strategy), Options),
 	all_mapped(Strategy, Type, Mappings, Concepts),
 	!,
-	rb_in(E, _, Concepts).
+	get_assoc(E, Concepts, _).
 
 vocab_member(F, 'http://sws.geonames.org/') :-
 	!,
@@ -97,6 +98,12 @@ vocab_member(E, Scheme) :-
 	!,
 	vocab_member(E, scheme(Scheme)).
 
+vocab_member(E, Assoc) :-
+	Assoc = t(_,_,_,_,_),
+	(   ground(E)
+	->  get_assoc(E, Assoc, _)
+	;   gen_assoc(E, Assoc, _)
+	).
 vocab_member(E, Scheme) :-
 	atom(Scheme),
 	rdfs_individual_of(Scheme, amalgame:'Alignable'),
