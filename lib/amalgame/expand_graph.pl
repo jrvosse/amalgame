@@ -3,7 +3,7 @@
 	    vocab_spec/3,
 	    precompute_process/2,
 	    precompute_node/2,
-	    all_mapped/4
+	    all_mapped/5
 	  ]).
 
 :- use_module(library(apply)).
@@ -69,24 +69,26 @@ precompute_node(Strategy, Mapping) :-
 %
 %	True if Concepts are all sources/targets in the correspondences
 %	of Mapping. Type is either source or target.
-all_mapped(Strategy, Type, Mapping, Concepts) :-
+all_mapped(Strategy, Type, Mapping, Concepts, Sorted) :-
 	atom(Mapping),
 	(   cache_mapped_concepts(Strategy, Type, Mapping, Concepts)
-	->  true
+	->  assoc_to_keys(Concepts, Sorted)
 	;   expand_node(Strategy, Mapping, Result),
-	    maplist(correspondence_element(Type), Result, Concepts),
-	    sort(Concepts, Sorted),
-	    cache_mapped_concepts(Strategy, Type, Mapping, Sorted)
+	    maplist(my_correspondence_element(Type), Result, Concepts0),
+	    sort(Concepts0, Sorted),
+	    ord_list_to_assoc(Sorted, Concepts),
+	    cache_mapped_concepts(Strategy, Type, Mapping, Concepts)
 	).
 
-all_mapped(Strategy, Type, Mappings, Concepts) :-
+all_mapped(Strategy, Type, Mappings, Concepts, Sorted) :-
 	is_list(Mappings),
 	(   cache_mapped_concepts(Strategy, Type, Mappings, Concepts)
-	->  true
+	->  assoc_to_keys(Concepts, Sorted)
 	;   maplist(expand_node(Strategy), Mappings, Results),
 	    append(Results, Result),
 	    maplist(my_correspondence_element(Type), Result, Concepts0),
-	    ord_list_to_assoc(Concepts0, Concepts),
+	    sort(Concepts0, Sorted),
+	    ord_list_to_assoc(Sorted, Concepts),
 	    cache_mapped_concepts(Strategy, Type, Mappings, Concepts)
 	).
 

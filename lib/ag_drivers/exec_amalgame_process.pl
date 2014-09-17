@@ -6,6 +6,7 @@
 	  ]).
 
 :- use_module(library(apply)).
+:- use_module(library(assoc)).
 :- use_module(library(lists)).
 
 :- use_module(library(semweb/rdf_db)).
@@ -17,7 +18,8 @@
 :- multifile
 	exec_amalgame_process/7,
 	select_result_mapping/4,
-	select_result_scheme/4.
+	select_result_scheme/4,
+	specification/7.
 
 :- meta_predicate
 	timed_call(5, -).
@@ -120,10 +122,13 @@ exec_amalgame_process(Class, Process, Strategy, Module, VocSpec, Time, Options) 
 	!,
 	once(rdf(Process, amalgame:input, Input, Strategy)),
 	findall(S, rdf_has(Process, amalgame:secondary_input, S), Ss),
-	VocSpec = vocspec(select(Selected, Discarded, Undecided)),
+	VocSpec = vocspec(select(SelectedA, DiscardedA, UndecidedA)),
 	vocab_spec(Strategy, Input, InputVocspec),
 	timed_call(Module:selecter(InputVocspec, Selected, Discarded, Undecided,
-				   [snd_input(Ss), strategy(Strategy)|Options]), Time).
+				   [snd_input(Ss), strategy(Strategy)|Options]), Time),
+	plain_ord_list_to_assoc(Selected, SelectedA),
+	plain_ord_list_to_assoc(Discarded, DiscardedA),
+	plain_ord_list_to_assoc(Undecided, UndecidedA).
 exec_amalgame_process(Class, Process, Strategy, Module, MapSpec, Time, Options) :-
 	rdfs_subclass_of(Class, amalgame:'MapMerger'),
 	!,
@@ -156,3 +161,9 @@ timed_call(Goal, Time) :-
 	call(Goal),
 	thread_statistics(Me, cputime, T1),
         Time is T1 - T0.
+
+dummy_value(K, K-null).
+
+plain_ord_list_to_assoc(List, Assoc) :-
+	maplist(dummy_value, List, Pairs),
+	ord_list_to_assoc(Pairs, Assoc).

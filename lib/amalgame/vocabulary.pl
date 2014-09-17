@@ -85,7 +85,7 @@ vocab_member(E, is_mapped(Options)) :-
 	option(snd_input(Mappings), Options),
 	option(type(Type), Options),
 	option(strategy(Strategy), Options),
-	all_mapped(Strategy, Type, Mappings, Concepts),
+	all_mapped(Strategy, Type, Mappings, Concepts, _L),
 	!,
 	get_assoc(E, Concepts, _).
 
@@ -150,7 +150,7 @@ all_vocab_members(is_mapped(Options), Concepts) :-
 	option(snd_input(Mappings), Options),
 	option(type(Type), Options),
 	option(strategy(Strategy), Options),
-	maplist(all_mapped(Strategy, Type), Mappings, Mapped),
+	maplist(all_mapped(Strategy, Type), Mappings, _Assocs, Mapped),
 	append(Mapped, Concepts0),
 	sort(Concepts0, Concepts).
 
