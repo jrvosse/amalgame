@@ -3,7 +3,7 @@
 	      js_focus_node/3,
 	      js_strategy_nodes/2
 	  ]).
-
+:- use_module(library(apply)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_label)).
