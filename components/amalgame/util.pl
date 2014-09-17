@@ -101,7 +101,7 @@ builtin_input_item(between(L,U), Value, Name) --> !,
 		     min(L), max(U), value(Value)
 		   ])).
 builtin_input_item(oneof(List), Value, Name) --> !,
-	html(select([name(Name)], \oneof(List, Value))).
+	html(select([class(Name), name(Name)], \oneof(List, Value))).
 builtin_input_item(uri, Value, Name) -->
 	{ rdf_global_id(NS:Local, Value),!
 	},
