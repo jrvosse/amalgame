@@ -103,14 +103,14 @@ fcplp(Format, Concept, Prop, RealProp, Lang, Label) :-
 find_voc_version(Voc, Version) :-
 	(   rdf(Voc, amalgame:subSchemeOf, SuperVoc)
 	->  find_subvoc_version(Voc, SuperVoc, Version)
-	;   rdf_has(Voc, owl:versionInfo, Version)
-	->  true
+	;   rdf_has(Voc, owl:versionInfo, VersionL)
+	->  literal_text(VersionL, Version)
 	;   Version = ''
 	).
 
 find_subvoc_version(Voc, SuperVoc, Version) :-
-	(   rdf_has(Voc, owl:versionInfo, Version)
-	->  true
+	(   rdf_has(Voc, owl:versionInfo, VersionL)
+	->  literal_text(VersionL, Version)
 	;   find_voc_version(SuperVoc, Version)
 	).
 
@@ -121,3 +121,4 @@ find_voc_revision(Voc, Version) :-
 	rdf(Voc, amalgame:graph, SourceGraph), !,
 	prov_get_entity_version(Voc, SourceGraph, Version).
 find_voc_revision(_Voc, amalgame).
+
