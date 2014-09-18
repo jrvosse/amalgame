@@ -27,7 +27,7 @@ parameter(targetlabel, oneof(LabelProps), Default,
 	label_list(LabelProps).
 parameter(threshold, float, 0.7,
 	  'threshold edit distance').
-parameter(language, oneof(['any'|L]), 'any', 'Language of source label') :-
+parameter(source_language, oneof(['any'|L]), 'any', 'Language of source label') :-
 	amalgame_vocabulary_languages(L).
 parameter(matchacross_lang,
 	  boolean, true,

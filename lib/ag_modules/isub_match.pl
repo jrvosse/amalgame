@@ -13,7 +13,7 @@ isub_match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Op
 	option(targetlabel(MatchProp2), Options, DefaultProp),
 	option(matchacross_lang(MatchAcross), Options, true),
 	option(normalize(Normalize), Options, false),
-	option(language(Lang), Options, 'any'),
+	option(source_language(Lang), Options, 'any'),
 
 	(   Lang == 'any'
 	->  SourceLang = _
