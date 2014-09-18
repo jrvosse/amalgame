@@ -198,6 +198,8 @@ js_path(deletenode, Path) :-
 	http_location_by_id(http_delete_node, Path).
 js_path(info, Path) :-
 	http_location_by_id(http_node_info, Path).
+js_path(nodelist, Path) :-
+	http_location_by_id(http_node_list, Path).
 js_path(hint, Path) :-
 	http_location_by_id(http_json_hint, Path).
 js_path(ag_evaluate, Path) :-
