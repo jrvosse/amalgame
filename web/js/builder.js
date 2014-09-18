@@ -57,6 +57,7 @@ YUI.add('builder', function(Y) {
 			// federate them to the components
 			this.on('nodesChange', function(o) {
 				var nodes = o.newVal;
+				Y.log('nodesChange detected in builder');
 				this.infobox.set("nodes", nodes);
 				this.controls.set("nodes", nodes);
 			}, this);
@@ -116,8 +117,7 @@ YUI.add('builder', function(Y) {
 			this.strategy_viz = new Y.StratViz({
 				paths:this.get("paths"),
 				strategy: this.get("strategy"),
-				selected: this.get("selected"),
-				nodes: this.get("nodes")
+				selected: this.get("selected")
 			}).render(NODE_GRAPH);
 		},
 
@@ -247,8 +247,24 @@ YUI.add('builder', function(Y) {
 		},
 
 		_onNodeSelect : function(e) {
-			var selected = this.get("nodes")[e.uri];
-			this.set("selected", selected);
+			this.updateNodeList(e.uri);
+			// var selected = this.get("nodes")[e.uri];
+			// this.set("selected", selected);
+		},
+
+		updateNodeList : function(nodeURI) {
+			var oSelf = this;
+			Y.io(this.get('paths').nodelist, {
+				data: {
+					strategy: this.get('strategy'),
+					selected: nodeURI,
+				},
+				on:{success:function(e,o) {
+					   var nodes = Y.JSON.parse(o.responseText);
+					   oSelf.set("nodes", nodes);
+					   oSelf.set("selected", nodes[nodeURI]);
+			 	}}
+			})
 		},
 
 		_onEvaluate : function(e) {
