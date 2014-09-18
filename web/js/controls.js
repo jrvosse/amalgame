@@ -66,6 +66,9 @@ YUI.add('controls', function(Y) {
 
 			// toggle the controls when selected is changed
 			this.after('selectedChange', this.syncUI, this);
+			this.after('nodesChange', this.syncUI, this);
+			this.after('nodesChange', function(e) { Y.log('nodesChange in controls'); Y.log(e);});
+
 			this.syncUI();
 		},
 
@@ -157,6 +160,8 @@ YUI.add('controls', function(Y) {
 		syncUI : function() {
 			var selected = this.get("selected");
 			type = selected ? selected.type : "";
+			Y.log('syncUI controls');
+			Y.log(selected);
 
 			// add mapping selection radio buttons with available mappings to components that need them
 			this._setMappingSelecter();
@@ -172,11 +177,10 @@ YUI.add('controls', function(Y) {
 
 			NODE_CONTROLS_ACTIVE.removeClass("disabled");
 
-			// Disable controls requiring secondairy mappings if there are non:
+			// Disable controls requiring secondairy mappings if there are none:
 			if (!secSelecter || !secSelecter.getContent()) {
 				Y.all(".secinput").addClass("disabled");
 			}
-
 
 			// enable input select when a vocabulary is selected
 			NODE_INPUT_BTN.setAttribute("disabled", true);
@@ -266,9 +270,25 @@ YUI.add('controls', function(Y) {
 
 		_valueSet : function(selected, which) {
 			if(selected) {
+				if (which == 'source') this._setLanguageOptions(selected);
 				Y.one("#"+which+'Label').set("value", selected.label);
 				Y.one("#"+which).set("value", selected.uri);
 			}
+		},
+
+		_setLanguageOptions : function(node) {
+			Y.log('_setLanguageOptions');
+			Y.log(node);	
+			if (!node || !node.stats || !node.stats.languages) return;
+			var langs = node.stats.languages;
+			Y.all('select.source_language').each(function(n) {
+				Y.log(n);
+				n.get('childNodes').remove();
+				for(var i in langs) {
+					var l = langs[i];
+					n.append('<option value="' + l +'">'+l+'</option>');
+				}
+			});
 		}
 
 	});
