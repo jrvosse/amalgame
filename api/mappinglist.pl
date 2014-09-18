@@ -8,6 +8,7 @@
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_json)).
 :- use_module(library(amalgame/json_util)).
+:- use_module(library(amalgame/ag_stats)).
 
 :- http_handler(amalgame(data/mappinglist), http_mapping_list, []).
 :- http_handler(amalgame(data/nodelist), http_node_list, []).
@@ -41,8 +42,11 @@ mapping_in_strategy(Strategy, MappingId, Label, Options) :-
 http_node_list(Request) :-
 	http_parameters(Request,
 			[ strategy(Strategy,
-				   [description('URL of strategy')])
+				   [description('URL of strategy')]),
+			  selected(Selected,
+				   [description('URL of selected node')])
 			]),
+	node_stats(Strategy, Selected, _Stats, [compute(true)]),
 	js_strategy_nodes(Strategy, Nodes),
 	reply_json(Nodes).
 
