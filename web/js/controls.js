@@ -270,18 +270,27 @@ YUI.add('controls', function(Y) {
 
 		_valueSet : function(selected, which) {
 			if(selected) {
-				if (which == 'source') this._setLanguageOptions(selected);
+				if (which != 'target') this._setLanguageOptions(selected, which);
 				Y.one("#"+which+'Label').set("value", selected.label);
 				Y.one("#"+which).set("value", selected.uri);
 			}
 		},
 
-		_setLanguageOptions : function(node) {
+		_setLanguageOptions : function(node, which) {
 			Y.log('_setLanguageOptions');
 			Y.log(node);	
-			if (!node || !node.stats || !node.stats.languages) return;
-			var langs = node.stats.languages;
-			Y.all('select.source_language').each(function(n) {
+			if (!node || !node.stats || !node.type) return;
+			var langs = null, control_set = null;
+			if ( node.type == "vocab" && which == "source" ) {
+				langs = node.stats.languages;
+				control_set = '#generate_control_set';
+			} else if ( node.type == "mapping" && which == "input" ) {
+				langs = node.stats.vocs.source.stats.languages;
+				control_set = '#select_control_set';
+			} else return;
+			Y.log(langs);
+			if (!langs) return;
+			Y.all(control_set + ' select.source_language').each(function(n) {
 				Y.log(n);
 				n.get('childNodes').remove();
 				for(var i in langs) {
