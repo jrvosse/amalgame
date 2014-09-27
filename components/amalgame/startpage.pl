@@ -17,7 +17,6 @@
 
 :- use_module(library(amalgame/util)).
 :- use_module(library(amalgame/rdf_util)).
-:- use_module(library(amalgame/voc_stats)).
 :- use_module(library(amalgame/ag_stats)).
 :- use_module(library(amalgame/expand_graph)).
 :- use_module(components(amalgame/util)).
