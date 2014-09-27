@@ -203,18 +203,18 @@ amalgame_info(Scheme, Strategy, Stats) :-
 	    'type:'	       - Virtual,
 	    '# concepts:'      - Total,
 	    '# labels:'        - TotalLabelCount,
-	    '# unique labels:' - UniqueLabelCount,
-	    'Label languages:' - Languages
+	    '# unique labels:' - UniqueLabelCount
 	],
 
 	node_stats(Strategy, Scheme, NStats, []),
 	option(totalCount(Total), NStats),
 	option(formats(Formats), NStats),
 	option(virtual(V), NStats), ( V == true -> Virtual = virtual; Virtual = materialized),
-	option(languages(Languages), NStats),
 	option(totalLabelCount(TotalLabelCount), NStats),
 	option(uniqueLabelCount(UniqueLabelCount), NStats),
-	append([[], BasicStats], Stats).
+	option(properties(PDict), NStats),
+	label_property_stats(PDict, PStats),
+	append([BasicStats, PStats], Stats).
 
 
 amalgame_info(Scheme, Strategy, Stats) :-
@@ -303,6 +303,12 @@ amalgame_info(Strategy, Strategy, Results) :-
 	       ], Results).
 
 
+label_property_stats(Dict, Stats) :-
+	findall(\rdf_link(Property)-set(Pairs),
+		( get_dict(Property, Dict, LCounts),
+		  dict_pairs(LCounts, _, Pairs)
+		),
+		Stats).
 
 label_stats(Scheme, Strategy, Property, Stats) :-
 	voc_property(Scheme, languages(Property, Langs0)),

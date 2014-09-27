@@ -52,10 +52,11 @@ scheme_stats(Scheme, ConceptAssoc, Strategy, Stats) :-
 	append([Skos, XLP, XLA], AllLabels),
 	length(AllLabels, TotalLabelCount),
 	sort(AllLabels, UniqueLabels),
+	msort(AllLabels, SortedLabels),
+	group_pairs_by_key(SortedLabels, Grouped),
+	group_lengths(Grouped, GroupLengths),
 	length(UniqueLabels, UniqueLabelCount),
-	pairs_keys(AllLabels, Keys),
-	sort(Keys, UniquePLs),
-	dictifyColonList(UniquePLs, LanguagesDict, Languages).
+	dictifyColonList(GroupLengths, LanguagesDict, Languages).
 
 label_formats(0,0,0, [none]) :- !.
 label_formats(0,_,_, [skosxl]):-!.
@@ -63,15 +64,26 @@ label_formats(_,0,0, [skos]):-!.
 label_formats(_,_,_, [skos, skosxl]):-!.
 
 cl_pairs([], [], []).
-cl_pairs([P:L|T], [P-L|TO], [L|L0]) :-
+cl_pairs([(Property:Lang)-Count|T], [Property-(Lang-Count)|TO], [Lang|L0]) :-
 	cl_pairs(T, TO, L0).
+
+group_lengths([], []).
+group_lengths([K-List|T], [K-Length|TLength]) :-
+	length(List, Length),
+	group_lengths(T, TLength).
 
 dictifyColonList(CL, Dict, Langs):-
 	cl_pairs(CL, Pairs, Langs0),
 	sort(Langs0, Langs),
-	keysort(Pairs,SortedPairs),
-	group_pairs_by_key(SortedPairs, Grouped),
-	dict_pairs(Dict, lang, Grouped).
+	group_pairs_by_key(Pairs, Grouped),
+	dictify_grouped(Grouped, DictPairs),
+	dict_pairs(Dict, property, DictPairs).
+
+dictify_grouped([], []).
+dictify_grouped([Key-Value|Tail], [Key-DValue|DTail]) :-
+	dict_pairs(DValue, language, Value),
+	dictify_grouped(Tail, DTail).
+
 concepts_stats([], [], [], []).
 concepts_stats([H|T], S, XLP, XLA) :-
 	concepts_stats(T, ST, XLPT, XLAT),
