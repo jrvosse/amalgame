@@ -58,7 +58,10 @@ vocab_member(E, vscheme(Scheme)) :-
 	!,
 	expand_vocab(Scheme, VocSpec),
 	!,
-	member(E, VocSpec).
+	(   var(E)
+	->  gen_assoc(E, VocSpec, _)
+	;   get_assoc(E, VocSpec, _)
+	).
 
 vocab_member(E, rscheme(Scheme)) :-
 	!,
