@@ -4,17 +4,19 @@
 	      mapping_stats/4
 	  ]).
 
+:- use_module(library(apply)).
+:- use_module(library(assoc)).
 :- use_module(library(option)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 
 :- use_module(library(skos/util)).
+:- use_module(library(stat_lists)).
 
 :- use_module(library(amalgame/ag_strategy)).
 :- use_module(library(amalgame/expand_graph)).
 :- use_module(library(amalgame/caching)).
 :- use_module(library(amalgame/vocabulary)).
-:- use_module(library(amalgame/voc_stats)).
 :- use_module(library(amalgame/ag_reference)).
 :- use_module(library(amalgame/map)).
 :- use_module(library(amalgame/util)).
@@ -104,16 +106,10 @@ mapping_stats(URL, Mapping, Strategy, Stats) :-
 	    save_perc(TN, TargetN, TPerc),
 	    js_focus_node(Strategy, InputS, SvocDict),
 	    js_focus_node(Strategy, InputT, TvocDict),
-	    (	concept_list_depth_stats(Ss, InputS, depth(DSstats)),
-		concept_list_branch_stats(Ss, InputS, branch(BSstats))
-	    ->	true
-	    ;   DSstats = [], BSstats = []
-	    ),
-	    (	concept_list_depth_stats(Ts, InputT, depth(DTstats)),
-		concept_list_branch_stats(Ts, InputT, branch(BTstats))
-	    ->	true
-	    ;	DTstats = [], BTstats = []
-	    )
+	    structure_stats(depth,    Ss, StatsSin.'@private'.depthMap, DSstats),
+	    structure_stats(children, Ss, StatsSin.'@private'.depthMap, BSstats),
+	    structure_stats(depth,    Ts, StatsTin.'@private'.depthMap, DTstats),
+	    structure_stats(children, Ts, StatsTin.'@private'.depthMap, BTstats)
 	;   SourceN  = 0,	TargetN = 0,
 	    SvocDict = voc{},   TvocDict=voc{},
 	    SPerc    = 0,	TPerc = 0,
@@ -141,6 +137,19 @@ mapping_stats(URL, Mapping, Strategy, Stats) :-
 	    SiPerc = SPerc,
 	    TiPerc = TPerc
 	).
+
+structure_stats(_,[],_,[]).
+structure_stats(_,[_],_,[]).
+structure_stats(Type, Concepts, Map, Stats) :-
+	maplist(concept_depth(Type,Map), Concepts, Depths),
+	sort(Depths, DepthsSorted),
+	list_five_number_summary(DepthsSorted, OptionFormat),
+	dict_create(Stats, stats, OptionFormat).
+
+concept_depth(depth, Map, Concept, Depth) :-
+	get_assoc(Concept, Map, Depth-_Children).
+concept_depth(children, Map, Concept, Children) :-
+	get_assoc(Concept, Map, _Depth-Children).
 
 has_mapping_input(URL, Strategy, Input) :-
 	rdf_has(URL, amalgame:wasGeneratedBy, Process, RP),
