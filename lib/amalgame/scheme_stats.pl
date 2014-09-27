@@ -190,7 +190,8 @@ compute_concept_depth(Concept, Assoc, Depth) :-
 		   compute_concept_depth(Child, Assoc, Depth1)
 		  )
 	).
-
+list_five_number_summary_dict([], []).
+list_five_number_summary_dict([_], []).
 list_five_number_summary_dict(List, Stats) :-
 	list_five_number_summary(List, OptionFormat),
 	dict_create(Stats, stats, OptionFormat).
