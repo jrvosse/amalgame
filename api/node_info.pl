@@ -4,11 +4,9 @@
 
 :- use_module(library(lists)).
 :- use_module(library(option)).
-:- use_module(library(pairs)).
 :- use_module(library(settings)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
-:- use_module(library(http/http_json)).
 :- use_module(library(http/html_write)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
@@ -18,8 +16,6 @@
 :- use_module(library(amalgame/amalgame_modules)).
 :- use_module(library(amalgame/ag_strategy)).
 :- use_module(library(amalgame/ag_stats)).
-:- use_module(library(amalgame/voc_stats)).
-:- use_module(library(amalgame/caching)).
 :- use_module(library(amalgame/util)).
 :- use_module(components(label)). % we need rdf_link//1 from this module
 
@@ -28,7 +24,6 @@
 % http handlers for this applications
 
 :- http_handler(amalgame(api/node_info), http_node_info, []).
-:- http_handler(amalgame(data/deep_voc_stats), http_deep_voc_stats, []).
 
 :- setting(amalgame:vocabulary_statistics, oneof([all,fast]), fast,
 	   'Compute all (takes long) or only the cheap (fast) vocabulary statistics').
@@ -59,26 +54,18 @@ http_node_info(Request) :-
 	format('Content-type: ~w~n~n', [Type]),
 	print_html(HTML).
 
-http_deep_voc_stats(Request) :-
-	http_parameters(Request,
-			[ url(Voc,
-			      [description('URL of a vocabulary or concept scheme')]),
-			  strategy(Strategy,
-				   [description('URL of the alignment strategy')])
-		       ]),
-	flush_dependent_caches(Voc, Strategy),
-	voc_property(Voc, depth(D), [compute(true)]),
-	voc_property(Voc, branch(B), [compute(true)]),
-	reply_json(json{url:Voc, depth:D, branch:B}).
-
 %%	html_prop_table(Class, +Pairs)
 %
 %	Emit an HTML table with key-value pairs.
 
 html_prop_table(Class, Pairs) -->
-	html(table([class(Class)], tbody(\html_rows('', Pairs)))).
+	html(table([class(Class)],
+		   tbody(\html_rows('', Pairs)))
+	    ).
 
 html_rows(_,[]) --> !.
+html_rows(Prefix,[[]|Tail]) --> !,
+	html_rows(Prefix,Tail).
 html_rows(Prefix,[_Key-[]|Tail]) -->
 	html_rows(Prefix, Tail).
 html_rows(Prefix, [Key-Value|Tail]) -->
@@ -176,7 +163,7 @@ amalgame_info(URL, Strategy, Stats) :-
 	    option(nrOfTopConcepts(TTop), ChildT, 0),
 	    save_perc(TTop, TN0, TTopP),
 	    format(atom(TopTatom), '~d (~2f%)', [TTop, TTopP]),
-	    ChildTStats = ['# top concepts'-TopTatom | ChildTStats0 ]
+	    ChildTStats = ['# top concepts'-TopTatom, ChildTStats0 ]
 	;   ChildTStats = []
 	),
 
@@ -191,8 +178,8 @@ amalgame_info(URL, Strategy, Stats) :-
 	;   ReferenceStats = []
 	),
 	append([IpStats, BasicStats, ReferenceStats,
-		DepthSStats, ChildSStats,
-		DepthTStats, ChildTStats
+		[DepthSStats], [ChildSStats],
+		[DepthTStats], ChildTStats
 	       ], Stats).
 
 amalgame_info(Scheme, Strategy, Stats) :-
@@ -203,80 +190,31 @@ amalgame_info(Scheme, Strategy, Stats) :-
 	    'type:'	       - Virtual,
 	    '# concepts:'      - Total,
 	    '# labels:'        - TotalLabelCount,
-	    '# unique labels:' - UniqueLabelCount
+	    '# unique labels:' - UniqueLabelCount,
+	    '# counted top concepts:'  - NrTopConcepts | DTops
 	],
 
 	node_stats(Strategy, Scheme, NStats, []),
-	option(totalCount(Total), NStats),
-	option(formats(Formats), NStats),
-	option(virtual(V), NStats), ( V == true -> Virtual = virtual; Virtual = materialized),
-	option(totalLabelCount(TotalLabelCount), NStats),
-	option(uniqueLabelCount(UniqueLabelCount), NStats),
-	option(properties(PDict), NStats),
+	option(totalCount(Total), NStats, 0),
+	option(formats(Formats), NStats, [null]),
+	option(virtual(V), NStats),
+	option(totalLabelCount(TotalLabelCount), NStats, 0),
+	option(uniqueLabelCount(UniqueLabelCount), NStats, 0),
+	option(structure(DDict), NStats, _{}),
+	option(properties(PDict), NStats, _{}),
+	option(topConcepts(TopConcepts), DDict, []),
+	length(TopConcepts, NrTopConcepts),
 	label_property_stats(PDict, PStats),
-	append([BasicStats, PStats], Stats).
-
-
-amalgame_info(Scheme, Strategy, Stats) :-
-	fail,skos_is_vocabulary(Scheme),
-	!,
-	BasicStats = [
-	    'Total concepts: '-Total
-	],
-
-	(   _Format = skosxl
-	->  label_stats(Scheme, Strategy, skosxl:prefLabel, PrefLabelStats),
-	    label_stats(Scheme, Strategy, skosxl:altLabel,  AltLabelStats)
-	;   label_stats(Scheme, Strategy, skos:prefLabel, PrefLabelStats),
-	    label_stats(Scheme, Strategy, skos:altLabel,  AltLabelStats)
+	depth_stats(DDict, DStats),
+	(   V == true
+	->  Virtual = virtual,
+	    DTops = []
+	;   Virtual = materialized,
+	    findall(Top, skos_top_concept(Scheme, Top), Tops),
+	    length(Tops, NrDeclaredTops),
+	    DTops = ['# declared top concepts:'  - NrDeclaredTops]
 	),
-
-	(   setting(amalgame:vocabulary_statistics, fast) ->  C = false; C = true),
-	(   voc_property(Scheme, depth(DepthStats0), [compute(C)])
-	->  option(median(DepthM), DepthStats0, 0),
-	    option(q1(Q1), DepthStats0, 0),
-	    option(q3(Q3), DepthStats0, 0),
-	    option(max(DepthMax), DepthStats0, 0),
-	    option(min(DepthMin), DepthStats0, 0),
-	    DepthStats = [
-		'depth' - set([
-			      'minimum:'	- span([DepthMin]),
-			      'first quartile:'	- span('~1f'-[Q1]),
-			      'median:'	        - span([DepthM]),
-			      'third quartile:'	- span('~1f'-[Q3]),
-			      'maximum:'	- span([DepthMax])
-			  ])
-	    ]
-	;   DepthStats = [ a([href('#'), class(compute_deep_stats)],
-			     ['compute additional statistics'])
-			   -
-			   a([href('#'), class(compute_deep_stats)], ['?'])
-			 ]
-	),
-
-	(   voc_property(Scheme, branch(BranchStats0), [compute(C)])
-	->  option(median(BranchM), BranchStats0, 0),
-	    option(q1(Q1B), BranchStats0, 0),
-	    option(q3(Q3B), BranchStats0, 0),
-	    option(max(BranchMax), BranchStats0, 0),
-	    option(nrOfTopConcepts(TopConcepts), BranchStats0, 0),
-	    save_perc(TopConcepts, Total, TopConceptsP),
-	    format(atom(TopConA),    '~d (~2f%)', [TopConcepts, TopConceptsP]),
-	    BranchStats = [
-		'# top concepts:' - span([TopConA]),
-		'# children: '	  - set([
-					'first quartile:'     - span('~1f'-[Q1B]),
-					'median:'	      - span([BranchM]),
-					'third quartile:'     - span('~1f'-[Q3B]),
-					'maximum # children:' - span([BranchMax])
-				    ])
-	    ]
-	;   BranchStats = []
-	),
-	append([DepthStats, BranchStats],       StructureStats),
-	append([PrefLabelStats, AltLabelStats], LabelStats),
-	append([BasicStats, StructureStats, LabelStats], Stats).
-
+	append([BasicStats, DStats, PStats], Stats).
 
 amalgame_info(URL, Strategy,
 	       ['type'   - \(cp_label:rdf_link(Type)) | Optional ]) :-
@@ -310,78 +248,14 @@ label_property_stats(Dict, Stats) :-
 		),
 		Stats).
 
-label_stats(Scheme, Strategy, Property, Stats) :-
-	voc_property(Scheme, languages(Property, Langs0)),
-	(   Langs0 == []
-	->  Langs = [_UnknownLang]
-	;   Langs = Langs0
-	),
-	findall(CCount-[PropertyLangLabel-Stats],
-		label_lang_stat(Scheme, Strategy, Property, Langs,
-			       CCount, PropertyLangLabel, Stats)
-		, PrefLabelStatsLoL0),
-	keysort(PrefLabelStatsLoL0, PrefLabelStatsLoL),
-	pairs_values(PrefLabelStatsLoL, Values),
-	reverse(Values, ValuesR),
-	append(ValuesR, Stats).
+depth_stats(Dict, Stats) :-
+	findall(Set,
+		(    get_dict(Property, Dict, S),
+		     is_dict(S, stats),
+		     format_5numsum(Property, S, Set)
+		),
+		Stats).
 
-label_lang_stat(Scheme, _Strategy, Property, Langs,
-		CCount, PlangLabel, Stats) :-
-	Stats = set([NrLabels, LabeledConcepts, LabelsPerConcept,
-		     HomLabels, HomConcepts, EmptyLabels, CompoundLabels]),
-	member(Lang, Langs),
-	voc_property(Scheme, numberOfLabels(L), [lang(Lang), label_prop(Property)]),
-	D = L.Property.Lang,
-	D.concept > 0,
-	CCount = D.concept,
-
-	format(atom(PlangLabel), '~p @~w', [Property, Lang]),
-	format(atom(A), '~d', [D.label]),
-	NrLabels = '# labels' - span([A]),
-
-	voc_property(Scheme, totalCount(Total)),
-	voc_property(Scheme, numberOfHomonyms(Property, Lang, HomsL, HomsC)),
-
-	(   D.concept \= Total
-	->  save_perc(D.concept, Total, CCountP),
-	    format(atom(CCountA), '~d (~2f%)', [D.concept, CCountP]),
-	    LabeledConcepts =  '# labeled concepts'    - span([CCountA])
-	;   LabeledConcepts = labeled-[]
-	),
-
-	(   D.compound > 0
-	->  save_perc(D.compound, D.label, CompoundP),
-	    format(atom(CL), '~d (~2f%)', [D.compound, CompoundP]),
-	    CompoundLabels = '# compound labels' - span([class(warn)],[CL])
-	;   CompoundLabels = compound-[]
-	),
-
-	(   D.empty > 0
-	->  save_perc(D.empty, D.label, ECountP),
-	    format(atom(EL), '~d (~2f%)', [D.empty, ECountP]),
-	    EmptyLabels = '# empty labels' - span([class(warn)],[EL])
-	;   EmptyLabels = empty-[]
-	),
-
-	(   D.label \=  D.concept
-	->  LP is D.label/D.concept,
-	    format(atom(LPA), '~2f', [LP]),
-	    LabelsPerConcept = '# labels/labeled concept' - span([LPA])
-	;   LabelsPerConcept = lpa-[]
-	),
-
-	(   HomsC > 0
-	->  save_perc(HomsC, D.concept, HomsCP),
-	    format(atom(HomsCA), '~d (~2f%)', [HomsC, HomsCP]),
-	    HomConcepts = '# amb. labeled concepts' - span([class(warn)],[HomsCA])
-	;   HomConcepts = hom-[]
-	),
-	(   HomsL > 0
-	->  save_perc(HomsL, D.label, HomsLP),
-	    format(atom(HomsLA), '~d (~2f%)', [HomsL, HomsLP]),
-	    HomLabels = '# ambiguous labels' - span([class(warn)],[HomsLA])
-	;   HomLabels = hom-[]
-	).
 
 
 %%	amalgame_provenance(+R, +Strategy, -Provenance:[key-value])
@@ -469,12 +343,10 @@ format_5numsum(Key, Stats, Formatted) :-
 	option(q1(Q1), Stats, 0),
 	option(q3(Q3), Stats, 0),
 
-	Formatted = [
-	    Key - set([
-		      'minimum:'	- span([Min]),
-		      'first quartile:'	- span('~1f'-[Q1]),
-		      'median:'		- span([Median]),
-		      'third quartile:'	- span('~1f'-[Q3]),
-		      'maximum:'	- span([Max])
-		  ])
-	].
+	Formatted = Key-set([
+			    'minimum:'	- span([Min]),
+			    'first quartile:'	- span('~1f'-[Q1]),
+			    'median:'		- span([Median]),
+			    'third quartile:'	- span('~1f'-[Q3]),
+			    'maximum:'	- span([Max])
+			]).

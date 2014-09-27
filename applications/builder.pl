@@ -214,8 +214,6 @@ js_path(concepts, Path) :-
 	http_location_by_id(http_virtual_concepts, Path).
 js_path(mappinglist, Path) :-
 	http_location_by_id(http_mapping_list, Path).
-js_path(deep_voc_stats, Path) :-
-	http_location_by_id(http_deep_voc_stats, Path).
 
 %%	js_module(+Key, +Module_Conf)
 %
