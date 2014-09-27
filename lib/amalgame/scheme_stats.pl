@@ -3,11 +3,13 @@
 	      scheme_stats/4
 	  ]).
 
+:- use_module(library(assoc)).
 :- use_module(library(lists)).
 :- use_module(library(pairs)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(skos/util)).
+:- use_module(library(stat_lists)).
 :- use_module(library(amalgame/ag_strategy)).
 :- use_module(library(amalgame/ag_provenance)).
 
@@ -22,8 +24,10 @@
 scheme_stats(Scheme, ConceptAssoc, Strategy, Stats) :-
 	Stats = scheme_stats_dict{
 		    '@id': Scheme,
+		    '@private': Private,
 		    strategy: Strategy,
 		    totalCount: TotalCount,
+		    structure: DStatsPub,
 		    formats: Formats,
 		    virtual: Virtual,
 		    version: Version,
@@ -56,7 +60,8 @@ scheme_stats(Scheme, ConceptAssoc, Strategy, Stats) :-
 	group_pairs_by_key(SortedLabels, Grouped),
 	group_lengths(Grouped, GroupLengths),
 	length(UniqueLabels, UniqueLabelCount),
-	dictifyColonList(GroupLengths, LanguagesDict, Languages).
+	dictifyColonList(GroupLengths, LanguagesDict, Languages),
+	compute_depth_stats(ConceptAssoc, DStatsPub, Private).
 
 label_formats(0,0,0, [none]) :- !.
 label_formats(0,_,_, [skosxl]):-!.
@@ -134,3 +139,58 @@ find_voc_revision(Voc, Version) :-
 	prov_get_entity_version(Voc, SourceGraph, Version).
 find_voc_revision(_Voc, amalgame).
 
+parent_child_chk(P,C) :-
+	skos_parent_child(P,C),!.
+
+compute_depth_stats(Assoc, Public, Private) :-
+	Public = structure{ depths: DC5,
+			    children: CC5
+			  },
+	Private = structure{topConcepts: TopConcepts,
+			    depthMap: Depths},
+	findall(TopConcept,
+		(   gen_assoc(TopConcept, Assoc, _),
+		    \+ (parent_child_chk(Child, TopConcept),
+			get_assoc(Child, Assoc,_)
+		       )
+		),
+		TopConcepts),
+	compute_depths(TopConcepts,Assoc,Depths),
+	assoc_to_values(Depths, Pairs),
+	pairs_keys(Pairs,   DepthCounts0), sort(DepthCounts0, DepthCounts),
+	pairs_values(Pairs, ChildCounts0), sort(ChildCounts0, ChildCounts),
+	list_five_number_summary_dict(DepthCounts, DC5),
+	list_five_number_summary_dict(ChildCounts, CC5).
+
+
+compute_depths(TopConcepts, Assoc, Depths) :-
+	empty_assoc(Visited),
+	nb_setval(v, Visited),
+	forall(member(C, TopConcepts),
+	       compute_concept_depth(C, Assoc, 1)
+	      ),
+	nb_getval(v, Depths),
+	nb_delete(v).
+
+compute_concept_depth(Concept, Assoc, Depth) :-
+	nb_getval(v, Visited),
+	(   get_assoc(Concept, Visited, _Stats)
+	->  true
+	;   findall(Child,
+		    (   skos_parent_child(Concept, Child),
+			get_assoc(Child, Assoc, _)
+		    ),
+		    Children),
+	    length(Children, ChildrenCount),
+	    put_assoc(Concept, Visited, Depth-ChildrenCount, Visited1),
+	    nb_setval(v, Visited1),
+	    Depth1 is Depth + 1,
+
+	    forall(member(Child, Children),
+		   compute_concept_depth(Child, Assoc, Depth1)
+		  )
+	).
+
+list_five_number_summary_dict(List, Stats) :-
+	list_five_number_summary(List, OptionFormat),
+	dict_create(Stats, stats, OptionFormat).
