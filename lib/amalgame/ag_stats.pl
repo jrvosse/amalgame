@@ -153,6 +153,8 @@ concept_depth(depth, Map, Concept, Depth) :-
 	get_assoc(Concept, Map, Depth-_Children).
 concept_depth(children, Map, Concept, Children) :-
 	get_assoc(Concept, Map, _Depth-Children).
+concept_depth(Type, _Map, Concept, -1) :-
+	debug(stats, 'ERROR: cannot find ~w for ~p in assoc', [Type, Concept]).
 
 has_mapping_input(URL, Strategy, Input) :-
 	rdf_has(URL, amalgame:wasGeneratedBy, Process, RP),
