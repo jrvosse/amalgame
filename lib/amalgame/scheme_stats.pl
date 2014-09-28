@@ -156,7 +156,8 @@ parent_child_chk(P,C) :-
 
 compute_depth_stats(Voc, Assoc, Public, Private) :-
 	Public = structure{ depths: DC5,
-			    children: CC5
+			    children: CC5,
+			    topConceptCount: TC
 			  },
 	Private = structure{topConcepts: TopConcepts,
 			    depthMap: Depths},
@@ -167,6 +168,7 @@ compute_depth_stats(Voc, Assoc, Public, Private) :-
 		       )
 		),
 		TopConcepts),
+	length(TopConcepts, TC),
 	atomic_list_concat([depth_stats_, Voc], Mutex),
 	with_mutex(Mutex, compute_depths(Mutex,TopConcepts,Assoc,Depths)),
 	assoc_to_values(Depths, Pairs),
