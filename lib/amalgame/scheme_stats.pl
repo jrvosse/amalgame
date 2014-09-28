@@ -89,13 +89,17 @@ dictify_grouped([Key-Value|Tail], [Key-DValue|DTail]) :-
 	dict_pairs(DValue, language, Value),
 	dictify_grouped(Tail, DTail).
 
-concepts_stats([], [], [], []).
-concepts_stats([H|T], S, XLP, XLA) :-
-	concepts_stats(T, ST, XLPT, XLAT),
+concepts_stats(L, S, P, A) :-
+	concepts_stats_(L, S0, P0, A0),
+	append(S0, S),
+	append(P0, P),
+	append(A0, A).
+
+concepts_stats_([], [], [], []).
+concepts_stats_([H|T], [SH|ST], [XLPH|XLPT], [XLAH|XLAT]) :-
 	concept_stat(H, SH, XLPH, XLAH),
-	append(SH, ST, S),
-	append(XLPH, XLPT, XLP),
-	append(XLAH, XLAT, XLA).
+	concepts_stats_(T, ST, XLPT, XLAT).
+
 
 concept_stat(C, Skos, SkosXLa, SkosXLp) :-
 	findall((Prop:Lang)-Label,   fcplp(skos,   C, rdfs:label, Prop, Lang, Label), Skos),
