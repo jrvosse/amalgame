@@ -111,8 +111,8 @@ mapping_stats(URL, Mapping, Strategy, Stats) :-
 	    SPerc    = 0,	TPerc = 0,
 	    SiPerc   = 0,	TiPerc = 0
 	),
-	(   Smap = StatsSin.'@private'.get(depthMap),
-	    Tmap = StatsTin.'@private'.get(depthMap)
+	(   Smap = StatsSin.get('@private').get(depthMap),
+	    Tmap = StatsTin.get('@private').get(depthMap)
 	->  structure_stats(depth,    Ss, Smap, DSstats),
 	    structure_stats(children, Ss, Smap, BSstats),
 	    structure_stats(depth,    Ts, Tmap, DTstats),
