@@ -30,6 +30,8 @@
 #info th {
 	vertical-align: top;
 	white-space: nowrap;
+	max-width: 11em;
+	overflow: hidden;
 	padding-right: 10px;
 }
 
