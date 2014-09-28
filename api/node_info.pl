@@ -185,27 +185,29 @@ amalgame_info(URL, Strategy, Stats) :-
 amalgame_info(Scheme, Strategy, Stats) :-
 	skos_is_vocabulary(Scheme),
 	!,
-	BasicStats = [
-	    'formats:'   - Formats,
-	    'type:'	       - Virtual,
-	    '# concepts:'      - Total,
-	    '# labels:'        - TotalLabelCount,
-	    '# unique labels:' - UniqueLabelCount,
-	    '# counted top concepts:'  - NrTopConcepts | DTops
-	],
-
 	node_stats(Strategy, Scheme, NStats, []),
-	option(totalCount(Total), NStats, 0),
-	option(formats(Formats), NStats, [null]),
-	option(virtual(V), NStats),
-	option(totalLabelCount(TotalLabelCount), NStats, 0),
-	option(uniqueLabelCount(UniqueLabelCount), NStats, 0),
 	option(structure(DDict), NStats, _{}),
 	option(properties(PDict), NStats, _{}),
-	option(topConcepts(TopConcepts), DDict, []),
-	length(TopConcepts, NrTopConcepts),
-	label_property_stats(PDict, PStats),
-	depth_stats(DDict, DStats),
+
+	BasicStats = [
+	    'type:'	       - Virtual,
+	    '# concepts:'      - Total
+	],
+	option(totalCount(Total), NStats, 0),
+	option(virtual(V), NStats),
+
+	(   option(formats(Formats), NStats),
+	    option(totalLabelCount(TotalLabelCount), NStats, 0),
+	    option(uniqueLabelCount(UniqueLabelCount), NStats, 0)
+	->  ExtraStats = [
+		'formats:'   - Formats,
+		'# labels:'        - TotalLabelCount,
+		'# unique labels:' - UniqueLabelCount,
+		'# counted top concepts:'  - NrTopConcepts | DTops
+	    ],
+	    option(topConceptCount(NrTopConcepts), DDict, [])
+	;   ExtraStats = []
+	),
 	(   V == true
 	->  Virtual = virtual,
 	    DTops = []
@@ -214,7 +216,9 @@ amalgame_info(Scheme, Strategy, Stats) :-
 	    length(Tops, NrDeclaredTops),
 	    DTops = ['# declared top concepts:'  - NrDeclaredTops]
 	),
-	append([BasicStats, DStats, PStats], Stats).
+	label_property_stats(PDict, PStats),
+	depth_stats(DDict, DStats),
+	append([BasicStats, ExtraStats, DStats, PStats], Stats).
 
 amalgame_info(URL, Strategy,
 	       ['type'   - \(cp_label:rdf_link(Type)) | Optional ]) :-
