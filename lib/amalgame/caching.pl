@@ -86,7 +86,7 @@ cache_result(ExecTime, Process, Strategy, Result) :-
 	cache_result_stats(Process, Strategy, Result).
 
 handle_scheme_stats(Strategy, Process, Scheme, Result) :-
-	atomic_list_concat([mutex,Strategy,Scheme], Mutex),
+	atomic_list_concat([scheme_stats,Strategy,Scheme], Mutex),
 	debug(mutex, 'starting ~w', [Mutex]),
 	with_mutex(Mutex,
 		   handle_scheme_stats_(Strategy, Process, Scheme, Result)),
@@ -103,11 +103,20 @@ handle_scheme_stats_(Strategy, Process, Scheme, Result) :-
             ),
 	    _,[ detached(true) ]).
 
+
 handle_deep_scheme_stats(Strategy, Process, Scheme, Result) :-
+	atomic_list_concat([scheme_stats,Strategy,Scheme], Mutex),
+	debug(mutex, 'starting deep ~w', [Mutex]),
+	with_mutex(Mutex,
+		   handle_deep_scheme_stats_(Strategy, Process, Scheme, Result)),
+	debug(mutex, 'finished deep ~w', [Mutex]).
+handle_deep_scheme_stats_(Strategy, Process, Scheme, Result) :-
 	scheme_stats_deep(Strategy, Scheme, Result, DeepStats),
-	stats_cache(Scheme-Strategy, Stats),
-	retractall(stats_cache(Scheme-Strategy, Stats)),
-	(   ground(Process)
+	(   stats_cache(Scheme-Strategy, Stats)
+	->  retractall(stats_cache(Scheme-Strategy, Stats))
+	;   scheme_stats(Strategy, Scheme, Result, Stats)
+	),
+	(   fail, ground(Process)
 	->  flush_process_dependent_caches(Process, Strategy, [flush(stats)])
 	;   true
 	),
