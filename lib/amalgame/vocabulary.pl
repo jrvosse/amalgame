@@ -14,6 +14,7 @@
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(skos/util)).
 :- use_module(ag_stats).
+:- use_module(ag_strategy).
 :- use_module(expand_graph). % for virtual vocab schemes
 :- use_module(rdf_util).
 
@@ -191,13 +192,20 @@ scheme_label(URI, Key-URI) :-
 	downcase_atom(CasedKey, Key).
 
 amalgame_vocabulary_languages(Languages) :-
-	amalgame_alignable_schemes(Schemes),
-	maplist(lang_used(_Strategy), Schemes, Langs),
+	findall(Strategy-Schemes,
+		strategy_vocabularies(Strategy, Schemes),
+		Pairs),
+	maplist(lang_used, Pairs, Langs),
 	append(Langs, Languages0),
 	sort(Languages0, Languages).
 
-lang_used(Strategy, Voc, Langs) :-
+lang_used(Strategy-Vocs, Languages) :-
+	maplist(lang_used(Strategy), Vocs, Langs),
+	append(Langs, Languages0),
+	sort(Languages0, Languages).
+
+lang_used(Strategy, Voc, Languages) :-
 	node_stats(Strategy, Voc, Stats, []),
-	option(languages(Langs), Stats).
+	option(languages(Languages), Stats).
 
 
