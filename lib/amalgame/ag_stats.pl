@@ -97,24 +97,27 @@ mapping_stats(URL, Mapping, Strategy, Stats) :-
 		    targetPercentageInput:TiPerc,
 		    inputPercentage:IP
 		},
-	(   mapping_vocab_sources(URL, Strategy, InputS, InputT)
-	->  node_stats(Strategy, InputS, StatsSin, []),
-	    node_stats(Strategy, InputT, StatsTin, []),
-	    option(totalCount(SourceN), StatsSin),
+	(   mapping_vocab_sources(URL, Strategy, InputS, InputT),
+	    node_stats(Strategy, InputS, StatsSin, []),
+	    node_stats(Strategy, InputT, StatsTin, [])
+	->  option(totalCount(SourceN), StatsSin),
 	    option(totalCount(TargetN), StatsTin),
 	    save_perc(SN, SourceN, SPerc),
 	    save_perc(TN, TargetN, TPerc),
 	    js_focus_node(Strategy, InputS, SvocDict),
-	    js_focus_node(Strategy, InputT, TvocDict),
-	    structure_stats(depth,    Ss, StatsSin.'@private'.depthMap, DSstats),
-	    structure_stats(children, Ss, StatsSin.'@private'.depthMap, BSstats),
-	    structure_stats(depth,    Ts, StatsTin.'@private'.depthMap, DTstats),
-	    structure_stats(children, Ts, StatsTin.'@private'.depthMap, BTstats)
+	    js_focus_node(Strategy, InputT, TvocDict)
 	;   SourceN  = 0,	TargetN = 0,
 	    SvocDict = voc{},   TvocDict=voc{},
 	    SPerc    = 0,	TPerc = 0,
-	    SiPerc   = 0,	TiPerc = 0,
-	    DSstats  = [],      DTstats = [],
+	    SiPerc   = 0,	TiPerc = 0
+	),
+	(   Smap = StatsSin.'@private'.get(depthMap),
+	    Tmap = StatsTin.'@private'.get(depthMap)
+	->  structure_stats(depth,    Ss, Smap, DSstats),
+	    structure_stats(children, Ss, Smap, BSstats),
+	    structure_stats(depth,    Ts, Tmap, DTstats),
+	    structure_stats(children, Ts, Tmap, BTstats)
+	;   DSstats  = [],      DTstats = [],
 	    BSstats  = [],      BTstats = []
 	),
 	findall(Input, has_mapping_input(URL, Strategy, Input), Inputs),
