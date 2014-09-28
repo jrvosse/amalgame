@@ -74,9 +74,10 @@ all_mapped(Strategy, Type, Mapping, Concepts, Sorted) :-
 	(   cache_mapped_concepts(Strategy, Type, Mapping, Concepts)
 	->  assoc_to_keys(Concepts, Sorted)
 	;   expand_node(Strategy, Mapping, Result),
-	    maplist(my_correspondence_element(Type), Result, Concepts0),
-	    sort(Concepts0, Sorted),
-	    ord_list_to_assoc(Sorted, Concepts),
+	    maplist(my_correspondence_element(Type), Result, ConceptsPairs),
+	    sort(ConceptsPairs, SortedPairs),
+	    ord_list_to_assoc(SortedPairs, Concepts),
+	    assoc_to_keys(Concepts, Sorted),
 	    cache_mapped_concepts(Strategy, Type, Mapping, Concepts)
 	).
 
@@ -86,9 +87,10 @@ all_mapped(Strategy, Type, Mappings, Concepts, Sorted) :-
 	->  assoc_to_keys(Concepts, Sorted)
 	;   maplist(expand_node(Strategy), Mappings, Results),
 	    append(Results, Result),
-	    maplist(my_correspondence_element(Type), Result, Concepts0),
-	    sort(Concepts0, Sorted),
-	    ord_list_to_assoc(Sorted, Concepts),
+	    maplist(my_correspondence_element(Type), Result, ConceptPairs),
+	    sort(ConceptPairs, SortedPairs),
+	    ord_list_to_assoc(SortedPairs, Concepts),
+	    assoc_to_keys(Concepts, Sorted),
 	    cache_mapped_concepts(Strategy, Type, Mappings, Concepts)
 	).
 
