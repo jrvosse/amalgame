@@ -1,6 +1,7 @@
 :- module(ag_scheme_stats,
 	  [
-	      scheme_stats/4
+	      scheme_stats/4,
+	      scheme_stats_deep/4
 	  ]).
 
 :- use_module(library(assoc)).
@@ -21,21 +22,14 @@
 %	Stats are statistics for Concepts in Scheme.
 %
 
-scheme_stats(Scheme, ConceptAssoc, Strategy, Stats) :-
+scheme_stats(Strategy, Scheme, ConceptAssoc, Stats) :-
 	Stats = scheme_stats_dict{
 		    '@id': Scheme,
-		    '@private': Private,
 		    strategy: Strategy,
 		    totalCount: TotalCount,
-		    structure: DStatsPub,
-		    formats: Formats,
 		    virtual: Virtual,
 		    version: Version,
-		    revision: Revision,
-		    languages: Languages,
-		    properties: LanguagesDict,
-		    totalLabelCount: TotalLabelCount,
-		    uniqueLabelCount: UniqueLabelCount
+		    revision: Revision
 		},
 	debug(scheme_stats, 'Computing stats for ~p', [Scheme]),
 	(   skos_in_scheme(Scheme, _)
@@ -47,7 +41,19 @@ scheme_stats(Scheme, ConceptAssoc, Strategy, Stats) :-
 	find_voc_revision(Scheme, Revision),
 	find_voc_version(Scheme, Version),
 	assoc_to_keys(ConceptAssoc, Concepts),
-	length(Concepts, TotalCount),
+	length(Concepts, TotalCount).
+
+scheme_stats_deep(_Strategy, Scheme, ConceptAssoc, Stats) :-
+	Stats = scheme_stats_dict{
+		    '@private': Private,
+		    formats: Formats,
+		    structure: DStatsPub,
+		    languages: Languages,
+		    properties: LanguagesDict,
+		    totalLabelCount: TotalLabelCount,
+		    uniqueLabelCount: UniqueLabelCount
+		},
+	assoc_to_keys(ConceptAssoc, Concepts),
 	concepts_stats(Concepts, Skos, XLP, XLA),
 	length(Skos, SkosNr),
 	length(XLP, XLPNr),
@@ -61,7 +67,7 @@ scheme_stats(Scheme, ConceptAssoc, Strategy, Stats) :-
 	group_lengths(Grouped, GroupLengths),
 	length(UniqueLabels, UniqueLabelCount),
 	dictifyColonList(GroupLengths, LanguagesDict, Languages),
-	compute_depth_stats(ConceptAssoc, DStatsPub, Private).
+	compute_depth_stats(Scheme, ConceptAssoc, DStatsPub, Private).
 
 label_formats(0,0,0, [none]) :- !.
 label_formats(0,_,_, [skosxl]):-!.
@@ -146,7 +152,9 @@ find_voc_revision(_Voc, amalgame).
 parent_child_chk(P,C) :-
 	skos_parent_child(P,C),!.
 
-compute_depth_stats(Assoc, Public, Private) :-
+% compute_depth_stats(_Assoc, _{}, _{}) :- !.
+
+compute_depth_stats(Voc, Assoc, Public, Private) :-
 	Public = structure{ depths: DC5,
 			    children: CC5
 			  },
@@ -159,7 +167,8 @@ compute_depth_stats(Assoc, Public, Private) :-
 		       )
 		),
 		TopConcepts),
-	compute_depths(TopConcepts,Assoc,Depths),
+	atomic_list_concat([depth_stats_, Voc], Mutex),
+	with_mutex(Mutex, compute_depths(Mutex,TopConcepts,Assoc,Depths)),
 	assoc_to_values(Depths, Pairs),
 	pairs_keys(Pairs,   DepthCounts0), sort(DepthCounts0, DepthCounts),
 	pairs_values(Pairs, ChildCounts0), sort(ChildCounts0, ChildCounts),
@@ -167,17 +176,17 @@ compute_depth_stats(Assoc, Public, Private) :-
 	list_five_number_summary_dict(ChildCounts, CC5).
 
 
-compute_depths(TopConcepts, Assoc, Depths) :-
+compute_depths(Mutex, TopConcepts, Assoc, Depths) :-
 	empty_assoc(Visited),
-	nb_setval(v, Visited),
+	nb_setval(Mutex, Visited),
 	forall(member(C, TopConcepts),
-	       compute_concept_depth(C, Assoc, 1)
+		   compute_concept_depth(Mutex, C, Assoc, 1)
 	      ),
-	nb_getval(v, Depths),
-	nb_delete(v).
+	nb_getval(Mutex, Depths),
+	nb_delete(Mutex).
 
-compute_concept_depth(Concept, Assoc, Depth) :-
-	nb_getval(v, Visited),
+compute_concept_depth(Mutex, Concept, Assoc, Depth) :-
+	nb_getval(Mutex, Visited),
 	(   get_assoc(Concept, Visited, _Stats)
 	->  true
 	;   findall(Child,
@@ -187,13 +196,14 @@ compute_concept_depth(Concept, Assoc, Depth) :-
 		    Children),
 	    length(Children, ChildrenCount),
 	    put_assoc(Concept, Visited, Depth-ChildrenCount, Visited1),
-	    nb_setval(v, Visited1),
+	    nb_linkval(Mutex, Visited1),
 	    Depth1 is Depth + 1,
 
 	    forall(member(Child, Children),
-		   compute_concept_depth(Child, Assoc, Depth1)
+		   compute_concept_depth(Mutex, Child, Assoc, Depth1)
 		  )
 	).
+
 list_five_number_summary_dict([], []).
 list_five_number_summary_dict([_], []).
 list_five_number_summary_dict(List, Stats) :-
