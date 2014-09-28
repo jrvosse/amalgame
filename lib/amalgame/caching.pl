@@ -14,11 +14,18 @@
 	      flush_stats_cache/2  % +Mapping, +Strategy
 	  ]).
 
+:- use_module(library(debug)).
+:- use_module(library(lists)).
+:- use_module(library(option)).
+:- use_module(library(settings)).
+
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
+
 :- use_module(library(skos/util)).
-:- use_module(library(amalgame/ag_provenance)).
-:- use_module(library(amalgame/map)).
+
+:- use_module(ag_provenance).
+:- use_module(map).
 :- use_module(ag_stats).
 :- use_module(scheme_stats).
 
@@ -70,15 +77,42 @@ cache_result(_ExecTime, Id, Strategy, Result) :-
 cache_result(_ExecTime, Id, Strategy, Result) :-
 	skos_is_vocabulary(Id),
 	!,
-	flush_stats_cache(Id, Strategy),
 	flush_expand_cache(Id, Strategy),
-	scheme_stats(Id, Result, Strategy, Stats),
 	assert(expand_cache(Id-Strategy, Result)),
-	assert(stats_cache(Id-Strategy, Stats)).
+	handle_scheme_stats(Strategy, _Process, Id, Result).
 
 cache_result(ExecTime, Process, Strategy, Result) :-
 	cache_expand_result(ExecTime, Process, Strategy, Result),
 	cache_result_stats(Process, Strategy, Result).
+
+handle_scheme_stats(Strategy, Process, Scheme, Result) :-
+	atomic_list_concat([mutex,Strategy,Scheme], Mutex),
+	debug(mutex, 'starting ~w', [Mutex]),
+	with_mutex(Mutex,
+		   handle_scheme_stats_(Strategy, Process, Scheme, Result)),
+	debug(mutex, 'finished ~w', [Mutex]).
+
+handle_scheme_stats_(Strategy, Process, Scheme, Result) :-
+	flush_stats_cache(Scheme, Strategy),
+	scheme_stats(Strategy, Scheme, Result, Stats),
+	assert(stats_cache(Scheme-Strategy, Stats)),
+
+	thread_create(
+            (   set_stream(user_output, alias(current_output)),
+		handle_deep_scheme_stats(Strategy, Process, Scheme, Result)
+            ),
+	    _,[ detached(true) ]).
+
+handle_deep_scheme_stats(Strategy, Process, Scheme, Result) :-
+	scheme_stats_deep(Strategy, Scheme, Result, DeepStats),
+	stats_cache(Scheme-Strategy, Stats),
+	retractall(stats_cache(Scheme-Strategy, Stats)),
+	(   ground(Process)
+	->  flush_process_dependent_caches(Process, Strategy, [flush(stats)])
+	;   true
+	),
+	put_dict(Stats, DeepStats, NewStats),
+	assert(stats_cache(Scheme-Strategy, NewStats)).
 
 cache_mapped_concepts(Strategy, Type, Mapping, Concepts) :-
 	var(Concepts),!,
@@ -128,24 +162,35 @@ flush_dependent_caches(Id, Strategy) :-
 	;   true
 	),
 	(   ground(Process)
-	->  flush_process_dependent_caches(Process, Strategy)
+	->  flush_process_dependent_caches(Process, Strategy,
+					   [flush(expand), flush(stats)])
 	;   true
 	).
 
 
-flush_process_dependent_caches(Process, Strategy) :-
-	flush_expand_cache(Process, Strategy),
-	provenance_graph(Strategy, ProvGraph),
-	remove_old_prov(Process, ProvGraph),
+flush_process_dependent_caches(Process, Strategy, Options) :-
+	(   option(flush(expand), Options)
+	->  flush_expand_cache(Process, Strategy),
+	    provenance_graph(Strategy, ProvGraph),
+	    remove_old_prov(Process, ProvGraph)
+	;   true
+	),
 
 	findall(Result,
 		(   rdf_has(Result, amalgame:wasGeneratedBy, Process, RP3),
 		    rdf(Result, RP3, Process, Strategy)
 		), Results),
 	forall(member(Result, Results),
-	       (   flush_stats_cache(Result, Strategy),
-		   catch(rdf_unload_graph(Result), _, true),
-		   debug(ag_expand, 'flush stats cache for ~p and unloading any materialized graphs', [Result])
+	       (   (   option(flush(stats), Options)
+		   ->  flush_stats_cache(Result, Strategy),
+		       debug(ag_expand, 'flush stats cache for ~p', [Result])
+		   ;   true
+		   ),
+		   (   option(flush(expand), Options)
+		   ->  catch(rdf_unload_graph(Result), _, true),
+		       debug(ag_expand, 'unloading any materialized graphs for ~p', [Result])
+		   ;   true
+		   )
 	       )
 	      ),
 	findall(DepProcess,
@@ -155,7 +200,7 @@ flush_process_dependent_caches(Process, Strategy) :-
 		),
 		Deps),
 	forall(member(Dep, Deps),
-	       flush_process_dependent_caches(Dep, Strategy)).
+	       flush_process_dependent_caches(Dep, Strategy, Options)).
 
 cache_result_stats(_Process, Strategy, mapspec(overlap(List))) :-
 	forall(member(Id-Mapping, List),
@@ -191,18 +236,9 @@ cache_result_stats(Process, Strategy, vocspec(select(Sel, Dis, Und))) :-
 	rdf(D, amalgame:discardedBy, Process, Strategy),
 	rdf(U, amalgame:undecidedBy, Process, Strategy),
 
-	scheme_stats(S, Sel, Strategy, Sstats),
-	scheme_stats(D, Dis, Strategy, Dstats),
-	scheme_stats(U, Und, Strategy, Ustats),
-
-	flush_stats_cache(S, Strategy),
-	flush_stats_cache(D, Strategy),
-	flush_stats_cache(U, Strategy),
-
-	assert(stats_cache(S-Strategy, Sstats)),
-	assert(stats_cache(D-Strategy, Dstats)),
-	assert(stats_cache(U-Strategy, Ustats)).
-
+	handle_scheme_stats(Strategy, Process, S, Sel),
+	handle_scheme_stats(Strategy, Process, D, Dis),
+	handle_scheme_stats(Strategy, Process, U, Und).
 
 cache_result_stats(Process, Strategy, mapspec(mapping(Result))) :-
 	rdf_has(D, amalgame:wasGeneratedBy, Process, RP),
@@ -214,12 +250,10 @@ cache_result_stats(Process, Strategy, mapspec(mapping(Result))) :-
 
 
 cache_result_stats(Process, Strategy, vocspec(Result)) :-
-	rdf_has(D, amalgame:wasGeneratedBy, Process, RP),
-	rdf(D, RP, Process, Strategy),
+	rdf_has(Vocab, amalgame:wasGeneratedBy, Process, RP),
+	rdf(Vocab, RP, Process, Strategy),
 	!,
-	flush_stats_cache(D, Strategy),
-	scheme_stats(D, Result, Strategy, Dstats),
-	assert(stats_cache(D-Strategy, Dstats)).
+	handle_scheme_stats(Strategy, Process, Vocab, Result).
 
 cache_result_stats(Process, _Strategy, _Result) :-
 	debug(ag_caching, 'Error: do not know how to cache stats of ~p', [Process]),
