@@ -126,13 +126,12 @@ find_hint(Strategy, Context, Hint) :-
 find_hint(Strategy, Context, Hint) :-
 	option(focus(Focus), Context),
 	Focus == Strategy,
-	\+ hints_mapping_counts(_,_,_),
 	!, % this is typically the case for a reloaded strategy, when no mappings have been expanded yet. We expand a random endpoint mapping.
 	is_endpoint(Strategy, Mapping),
 	map_nickname(Strategy, Mapping, Nickname),
 	map_localname(Strategy, Mapping, Localname),
 	format(atom(Text),
-	       'Step 1: analyze. No mappings have been computed to analyze.  You can click on a mapping like \'~w.~w\' to compute its results.',
+	       'Step 1: analyze. You can click on a mapping like \'~w.~w\' to compute its results.',
 	       [Nickname, Localname]),
 	Hint = json([event(nodeSelect),
 		     data(json([focus(Mapping),
