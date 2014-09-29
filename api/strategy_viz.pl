@@ -223,22 +223,26 @@ stats_label_list(Strategy, Resource, [Count]) :-
 stats_label_list(Strategy, Resource, [ConceptStats]) :-
 	node_stats(Strategy, Resource, Stats, [compute(false)]),
 	option(inputPercentage(IPerc), Stats), IPerc > 0.5, % is too confusing when rounded to 0%
-	option(sourcePercentageInput(SPerc), Stats),
-	option(targetPercentageInput(TPerc), Stats),
+	option(sourcePercentageInput(SPerc), Stats), SPerc > 0.5,
+	option(targetPercentageInput(TPerc), Stats), TPerc > 0.5,
 	format(atom(ConceptStats), '~0f% (~0f% ~0f%)', [IPerc, SPerc, TPerc]),
 	!.
 stats_label_list(Strategy, Resource, [ConceptStats]) :-
 	node_stats(Strategy, Resource, Stats, [compute(false)]),
-	option(sourcePercentageInput(SPerc), Stats),
-	option(targetPercentageInput(TPerc), Stats),
+	option(sourcePercentageInput(SPerc), Stats), SPerc > 0.5,
+	option(targetPercentageInput(TPerc), Stats), TPerc > 0.5,
 	format(atom(ConceptStats), '~0f% ~0f%', [SPerc, TPerc]),
 	!.
 stats_label_list(Strategy, Resource, [IPercA]) :-
 	node_stats(Strategy, Resource, Stats, [compute(false)]),
-	option(inputPercentage(IPerc), Stats),
+	option(inputPercentage(IPerc), Stats), IPerc > 0.5,
 	format(atom(IPercA), '~0f%', [IPerc]),
 	!.
+stats_label_list(Strategy, Resource, [Count]) :-
+	node_stats(Strategy, Resource, Stats, [compute(false)]),
+	option(totalCount(Count), Stats),
 
+	!.
 stats_label_list(_, _, []).
 
 
