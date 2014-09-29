@@ -98,14 +98,14 @@ my_correspondence_element(Type, Align3, E-t) :-
 	correspondence_element(Type, Align3, E).
 
 expand_node_(Strategy, Id, Result) :-
-	% Try if we get this result from the expand_cache first:
-	expand_cache(Id-Strategy, Result),!.
+	% Try if we get this result from the expand_cache (on node id) first:
+	get_expand_cache(Strategy, Id, Result),!.
 
 expand_node_(Strategy, Id, Result) :-
-	% Try if we get this result from the expand_cache first:
+	% Try if we get this result from the expand_cache (on process id):
 	rdf_has(Id, amalgame:wasGeneratedBy, Process, OutputType),
 	rdf(Id, OutputType, Process, Strategy),
-	expand_cache(Process-Strategy, ProcessResult),
+	get_expand_cache(Strategy, Process, ProcessResult),
 	!,
 	debug(ag_expand, 'Output ~p of process ~p taken from cache',
 	      [Id, Process]),

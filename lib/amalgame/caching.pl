@@ -2,7 +2,7 @@
 	  [
 	      get_stats_cache/3,
 	      set_stats_cache/3,
-	      expand_cache/2,
+	      get_expand_cache/3,
 	      cache_result/4,
 	      cache_mapped_concepts/4,
 	      clean_repository/0,
@@ -64,6 +64,8 @@ get_stats_cache(Strategy, Node, Value) :-
 set_stats_cache(Strategy, Node, Value) :-
 	retractall(stats_cache(Node-Strategy,_)),
 	assert(stats_cache(Node-Strategy, Value)).
+get_expand_cache(Strategy, Node, Value) :-
+	expand_cache(Node-Strategy, Value).
 
 flush_stats_cache(Mapping, Strategy) :-
 	retractall(mapped_concepts_cache(Strategy, _, Mapping, _)),
