@@ -131,8 +131,8 @@ amalgame_info(URL, Strategy, Stats) :-
 
 	option(mappedSourceConcepts(SN0), MStats),
 	option(mappedTargetConcepts(TN0), MStats),
-	option(sourcePercentage(SPerc), MStats),
-	option(targetPercentage(TPerc), MStats),
+	option(sourcePercentage(SPerc), MStats, 0),
+	option(targetPercentage(TPerc), MStats, 0),
 	option(sourcePercentageInput(SiPerc), MStats, 0),
 	option(targetPercentageInput(TiPerc), MStats, 0),
 	format(atom(SN), '~d (i ~2f%, v ~2f%)', [SN0, SiPerc, SPerc]),
@@ -141,24 +141,20 @@ amalgame_info(URL, Strategy, Stats) :-
 	    'matched source concepts'-SN,
 	    'matched target concepts'-TN
 	],
-	option(source_depth(DepthS), MStats),
-	(   DepthS \= []
+	(   option(source_depth(DepthS), MStats)
 	->  format_5numsum('Depth of source concepts', DepthS, DepthSStats)
 	;   DepthSStats = []
 	),
-	option(target_depth(DepthT), MStats),
-	(   DepthT \= []
+	(   option(target_depth(DepthT), MStats)
 	->  format_5numsum('Depth of target concepts', DepthT, DepthTStats)
 	;   DepthTStats = []
 	),
 
-	option(source_child_stats(ChildS), MStats),
-	(   ChildS \= []
+	(   option(source_child_stats(ChildS), MStats)
 	->  format_5numsum('# of children (of source concepts)', ChildS, ChildSStats)
 	;   ChildSStats = []
 	),
-	option(target_child_stats(ChildT), MStats),
-	(   ChildT \= []
+	(   option(target_child_stats(ChildT), MStats)
 	->  format_5numsum('# of children (of target concepts)', ChildT, ChildTStats0),
 	    option(nrOfTopConcepts(TTop), ChildT, 0),
 	    save_perc(TTop, TN0, TTopP),

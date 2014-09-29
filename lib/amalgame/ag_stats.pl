@@ -7,6 +7,7 @@
 :- use_module(library(apply)).
 :- use_module(library(assoc)).
 :- use_module(library(option)).
+:- use_module(library(lists)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 
@@ -74,6 +75,11 @@ reference_counts_(Id, Strategy, Stats) :-
 %	Stats are statistics for mapping.
 
 mapping_stats(URL, Mapping, Strategy, Stats) :-
+	BasicStats = [
+	    totalCount-MN,
+	    mappedSourceConcepts-SN,
+	    mappedTargetConcepts-TN
+	],
 	maplist(align_source, Mapping, Ss0),
 	maplist(align_target, Mapping, Ts0),
 	sort(Ss0, Ss),
@@ -81,24 +87,7 @@ mapping_stats(URL, Mapping, Strategy, Stats) :-
 	length(Mapping, MN),
 	length(Ss, SN),
 	length(Ts, TN),
-	Stats = mapping_stats_dict{
-		    totalCount:MN,
-		    vocs:vocs{
-			     source:SvocDict,
-			     target:TvocDict
-			 },
-		    mappedSourceConcepts:SN,
-		    mappedTargetConcepts:TN,
-		    sourcePercentage:SPerc,
-		    targetPercentage:TPerc,
-		    source_depth:DSstats,
-		    target_depth:DTstats,
-		    source_child_stats:BSstats,
-		    target_child_stats:BTstats,
-		    sourcePercentageInput:SiPerc,
-		    targetPercentageInput:TiPerc,
-		    inputPercentage:IP
-		},
+
 	(   mapping_vocab_sources(URL, Strategy, InputS, InputT),
 	    node_stats(Strategy, InputS, StatsSin, []),
 	    node_stats(Strategy, InputT, StatsTin, [])
@@ -107,21 +96,40 @@ mapping_stats(URL, Mapping, Strategy, Stats) :-
 	    save_perc(SN, SourceN, SPerc),
 	    save_perc(TN, TargetN, TPerc),
 	    js_focus_node(Strategy, InputS, SvocDict),
-	    js_focus_node(Strategy, InputT, TvocDict)
-	;   SourceN  = 0,	TargetN = 0,
-	    SvocDict = voc{},   TvocDict=voc{},
-	    SPerc    = 0,	TPerc = 0,
-	    SiPerc   = 0,	TiPerc = 0
+	    js_focus_node(Strategy, InputT, TvocDict),
+	    CarthesianProductSize is SourceN * TargetN,
+	    VocStats = [
+		vocs-vocs{
+			 source:SvocDict,
+			 target:TvocDict
+		     },
+		sourcePercentage-SPerc,
+		targetPercentage-TPerc
+	    ]
+	;   VocStats = [], CarthesianProductSize = 0
 	),
-	(   Smap = StatsSin.get('@private').get(depthMap),
-	    Tmap = StatsTin.get('@private').get(depthMap)
+
+	(   ground(StatsSin), Smap = StatsSin.get('@private').get(depthMap),
+	    ground(StatsTin), Tmap = StatsTin.get('@private').get(depthMap)
 	->  structure_stats(depth,    Ss, Smap, DSstats),
 	    structure_stats(children, Ss, Smap, BSstats),
 	    structure_stats(depth,    Ts, Tmap, DTstats),
-	    structure_stats(children, Ts, Tmap, BTstats)
-	;   DSstats  = [],      DTstats = [],
-	    BSstats  = [],      BTstats = []
+	    structure_stats(children, Ts, Tmap, BTstats),
+	    StrucStats = [
+		source_depth-DSstats,
+		target_depth-DTstats,
+		source_child_stats-BSstats,
+		target_child_stats-BTstats
+	    ]
+	;   StrucStats = []
 	),
+
+	InputStats = [
+	    sourcePercentageInput-SiPerc,
+	    targetPercentageInput-TiPerc,
+	    inputPercentage-IP
+	],
+
 	findall(Input, has_mapping_input(URL, Strategy, Input), Inputs),
 	(   Inputs \= []
 	->  maplist(expand_node(Strategy), Inputs, InputMappings),
@@ -137,11 +145,13 @@ mapping_stats(URL, Mapping, Strategy, Stats) :-
 	    save_perc(MN, IML, IP),
 	    save_perc(SN, SiN, SiPerc),
 	    save_perc(TN, TiN, TiPerc)
-	;   CarthesianProductSize is SourceN * TargetN,
+	;
 	    save_perc(MN,CarthesianProductSize, IP),
-	    SiPerc = SPerc,
-	    TiPerc = TPerc
-	).
+	    SiPerc = 0,
+	    TiPerc = 0
+	),
+	append([BasicStats, VocStats, StrucStats, InputStats], StatsPairs),
+	dict_pairs(Stats,mapping_stats_dict, StatsPairs).
 
 structure_stats(_,[],_,[]).
 structure_stats(_,[_],_,[]).
