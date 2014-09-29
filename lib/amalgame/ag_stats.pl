@@ -24,7 +24,7 @@
 :- use_module(library(amalgame/json_util)).
 
 node_stats(Strategy, Node, Stats, Options) :-
-	nonvar(Strategy), nonvar(Node), nonvar(Options),
+	nonvar(Node), nonvar(Options),
 	!,
 	(   rdfs_individual_of(Node, amalgame:'Mapping')
 	->  node_counts(Node, Strategy, Stats, Options)
