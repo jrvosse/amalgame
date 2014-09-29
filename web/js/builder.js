@@ -247,6 +247,7 @@ YUI.add('builder', function(Y) {
 		},
 
 		_onNodeSelect : function(e) {
+			this.infobox.set('loading', true);
 			this.updateNodeList(e.uri);
 			// var selected = this.get("nodes")[e.uri];
 			// this.set("selected", selected);
