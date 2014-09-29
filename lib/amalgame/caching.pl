@@ -1,7 +1,8 @@
 :- module(ag_caching,
 	  [
+	      get_stats_cache/3,
+	      set_stats_cache/3,
 	      expand_cache/2,
-	      stats_cache/2,
 	      cache_result/4,
 	      cache_mapped_concepts/4,
 	      clean_repository/0,
@@ -54,12 +55,22 @@ user:message_hook(make(done(_)), _, _) :-
 	flush_prov_cache,
 	fail.
 
-flush_stats_cache(Strategy) :-
-	flush_stats_cache(_Mapping, Strategy).
+get_stats_cache(Strategy, Node, Value) :-
+	nonvar(Strategy), nonvar(Node), !,
+	atomic_list_concat([stats_cache_, Strategy, Node], Mutex),
+	with_mutex(Mutex, stats_cache(Node-Strategy, Value)).
+get_stats_cache(Strategy, Node, Value) :-
+	stats_cache(Node-Strategy, Value).
+set_stats_cache(Strategy, Node, Value) :-
+	retractall(stats_cache(Node-Strategy,_)),
+	assert(stats_cache(Node-Strategy, Value)).
 
 flush_stats_cache(Mapping, Strategy) :-
 	retractall(mapped_concepts_cache(Strategy, _, Mapping, _)),
 	retractall(stats_cache(Mapping-Strategy,_)).
+
+flush_stats_cache(Strategy) :-
+	flush_stats_cache(_Mapping, Strategy).
 
 flush_refs_cache(Strategy) :-
 	flush_refs_cache(_Mapping,Strategy).
@@ -86,7 +97,7 @@ cache_result(ExecTime, Process, Strategy, Result) :-
 	cache_result_stats(Process, Strategy, Result).
 
 handle_scheme_stats(Strategy, Process, Scheme, Result) :-
-	atomic_list_concat([scheme_stats,Strategy,Scheme], Mutex),
+	atomic_list_concat([stats_cache_,Strategy,Scheme], Mutex),
 	debug(mutex, 'starting ~w', [Mutex]),
 	with_mutex(Mutex,
 		   handle_scheme_stats_(Strategy, Process, Scheme, Result)),
@@ -105,7 +116,7 @@ handle_scheme_stats_(Strategy, Process, Scheme, Result) :-
 
 
 handle_deep_scheme_stats(Strategy, Process, Scheme, Result) :-
-	atomic_list_concat([scheme_stats,Strategy,Scheme], Mutex),
+	atomic_list_concat([stats_cache,Strategy,Scheme], Mutex),
 	debug(mutex, 'starting deep ~w', [Mutex]),
 	with_mutex(Mutex,
 		   handle_deep_scheme_stats_(Strategy, Process, Scheme, Result)),

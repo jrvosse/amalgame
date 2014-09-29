@@ -23,6 +23,8 @@
 :- use_module(library(amalgame/json_util)).
 
 node_stats(Strategy, Node, Stats, Options) :-
+	nonvar(Strategy), nonvar(Node), nonvar(Options),
+	!,
 	(   rdfs_individual_of(Node, amalgame:'Mapping')
 	->  node_counts(Node, Strategy, Stats, Options)
 	;   skos_is_vocabulary(Node)
@@ -36,7 +38,7 @@ node_stats(Strategy, Node, Stats, Options) :-
 %	Counts for the items in the set denoted by URI.
 
 node_counts(URL, Strategy, Stats, _Options) :-
-	stats_cache(URL-Strategy, Stats),
+	get_stats_cache(Strategy, URL, Stats),
 	!.
 node_counts(_URL, _Strategy, _Stats, Options) :-
 	option(compute(false), Options, true),
@@ -53,7 +55,7 @@ node_counts(URL, Strategy, Stats, Options) :-
 
 node_counts_(URL, Strategy, Stats) :-
 	expand_node(Strategy, URL, _Result), % this fills the cache
-	stats_cache(URL-Strategy, Stats),
+	get_stats_cache(Strategy, URL, Stats),
 	is_dict(Stats).
 
 reference_counts(Id, Strategy, Stats) :-
@@ -61,7 +63,7 @@ reference_counts(Id, Strategy, Stats) :-
 	with_mutex(Mutex, reference_counts_(Id, Strategy, Stats)).
 
 reference_counts_(Id, Strategy, Stats) :-
-	(   stats_cache(Id-Strategy, refs(Stats))
+	(   get_stats_cache(Strategy, Id, refs(Stats))
 	->  true
 	;   compute_reference_counts(Id, Strategy, Stats)
 	).
@@ -209,7 +211,7 @@ compute_reference_counts(Id, Strategy, Stats) :-
 	rdf(Id, amalgame:default_relation, Relation),
 	compare_against_ref(Mappings, References, Relation,
 			    partition([],[],[],[]), Stats),
-	assert(stats_cache(Id-Strategy, Stats)).
+	set_stats_cache(Strategy, Id, Stats).
 
 part_ref_stats(partition(Matches,Conflicts,Unknown, Missing), Stats) :-
 	Stats = refs_stats_dict{matching:MLengthS,
