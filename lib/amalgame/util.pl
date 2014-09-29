@@ -160,7 +160,7 @@ args([A|As], Term, [Key|Ks]) :-
 	args(As, Term, Ks).
 
 
-
+save_perc(_ ,0, 0) :- !.
 save_perc(0, _, 0) :- !.
 save_perc(Value, Total, Percentage) :-
 	Percentage is (100 * Value) / Total.
