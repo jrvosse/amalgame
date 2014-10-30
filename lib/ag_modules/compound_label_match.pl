@@ -73,7 +73,7 @@ compound_label_match(align(Source, Target, Prov0),
 	),
 
 	Prov = [method(compound_label),
-		score(nr_of_tokens(TokenLength)),
+		score(score{match:Token, nrOfTokens:TokenLength}),
 		graph([rdf(Source, SourceProp, SourceTerm),
 		       rdf(Target, TargetProp, TargetTerm)])
 	       ].
