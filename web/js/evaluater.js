@@ -319,8 +319,8 @@ YUI.add('evaluater', function(Y) {
 			var paths    = this.get("paths");
 			var mappings = this.get('mappings');
 			var selected = this.get('selected');
-			var svoc = mappings[selected].stats.vocs.source.uri;
-			var tvoc = mappings[selected].stats.vocs.target.uri;
+			var svoc = encodeURIComponent(mappings[selected].stats.vocs.source.uri);
+			var tvoc = encodeURIComponent(mappings[selected].stats.vocs.target.uri);
 			var SourceConfig = { 
 				// our skos-specific ac attrs:
 				caller: this,
