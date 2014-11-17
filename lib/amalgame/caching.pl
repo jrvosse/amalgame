@@ -99,7 +99,7 @@ cache_result(ExecTime, Process, Strategy, Result) :-
 	cache_result_stats(Process, Strategy, Result).
 
 handle_scheme_stats(Strategy, Process, Scheme, Result) :-
-	atomic_list_concat([stats_cache_,Strategy,Scheme], Mutex),
+	atomic_list_concat([stats_cache_,Scheme], Mutex),
 	debug(mutex, 'starting ~w', [Mutex]),
 	with_mutex(Mutex,
 		   handle_scheme_stats_(Strategy, Process, Scheme, Result)),
@@ -118,7 +118,7 @@ handle_scheme_stats_(Strategy, Process, Scheme, Result) :-
 
 
 handle_deep_scheme_stats(Strategy, Process, Scheme, Result) :-
-	atomic_list_concat([stats_cache,Strategy,Scheme], Mutex),
+	atomic_list_concat([stats_cache_,Scheme], Mutex),
 	debug(mutex, 'starting deep ~w', [Mutex]),
 	with_mutex(Mutex,
 		   handle_deep_scheme_stats_(Strategy, Process, Scheme, Result)),
