@@ -293,8 +293,7 @@ needs_disambiguation(Strategy, Focus, Mapping) :-
 	option(totalCount(N), Stats),
 	option(mappedSourceConcepts(SC), Stats),
 	option(mappedTargetConcepts(TC), Stats),
-	N \= SC,
-	N \= TC.
+	(   N \= SC; N \= TC ).
 
 is_known_to_be_disambiguous(Strategy, Focus, Focus) :-
 	rdf_has(Focus, amalgame:discardedBy, Process),
