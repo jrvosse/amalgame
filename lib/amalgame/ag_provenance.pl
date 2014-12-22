@@ -374,8 +374,11 @@ prov_get_entity_version(Entity, SourceGraph, Version) :-
 	rdf_graph_property(SourceGraph, source(SourceFileURL)),
 	uri_file_name(SourceFileURL, Filename),
 	file_directory_name(Filename, Dirname),
-	register_git_module(Entity, [directory(Dirname), home_url(Entity)]),
-	(   git_module_property(Entity, version(GitVersion))
+	(   catch(register_git_module(Entity, [directory(Dirname), home_url(Entity)]),Error,
+              ( print_message(error, Error),
+                fail
+              )),
+	    git_module_property(Entity, version(GitVersion))
 	->  format(atom(Version),  'GIT version: ~w', [GitVersion])
 	;   rdf_graph_property(SourceGraph, hash(Hash)),
 	    rdf_graph_property(SourceGraph, source_last_modified(LastModified)),
