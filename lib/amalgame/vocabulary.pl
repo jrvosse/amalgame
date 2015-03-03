@@ -10,6 +10,7 @@
 :- use_module(library(lists)).
 :- use_module(library(ordsets)).
 :- use_module(library(option)).
+:- use_module(library(settings)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(skos/util)).
@@ -17,6 +18,10 @@
 :- use_module(ag_strategy).
 :- use_module(expand_graph). % for virtual vocab schemes
 :- use_module(rdf_util).
+
+
+:- setting(amalgame:consider_all_labeled_resources, boolean, false,
+	   'Enable if you want to be able to align arbitrary rdfs:labeled concepts in arbitrary named graphs').
 
 %%	vocab_member(?C, +VocabDef)
 %
@@ -208,4 +213,14 @@ lang_used(Strategy, Voc, Languages) :-
 	node_stats(Strategy, Voc, Stats, []),
 	option(languages(Languages), Stats).
 
+skos_util:skos_is_vocabulary(Graph) :-
+	setting(amalgame:consider_all_labeled_resources, true),
+	rdf_graph(Graph),
+	once(rdf_has(Concept, rdfs:label, _, _, Graph)),
+	\+ skos_in_scheme(_ConceptScheme, Concept, Graph).
+skos_util:skos_in_scheme(Graph, Concept) :-
+	setting(amalgame:consider_all_labeled_resources, true),
+	rdf_graph(Graph),
+	rdf_has(Concept, rdfs:label, _, _, Graph),
+	\+ skos_in_scheme(_ConceptScheme, Concept, Graph).
 
