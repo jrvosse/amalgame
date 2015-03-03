@@ -12,8 +12,13 @@
 	      sort_by_arg/3
 	  ]).
 
-
+:- use_module(library(apply)).
+:- use_module(library(gensym)).
+:- use_module(library(pairs)).
+:- use_module(library(sgml)).
+:- use_module(library(uri)).
 :- use_module(library(semweb/rdf_db)).
+
 :- use_module(user(user_db)).
 
 
@@ -77,7 +82,7 @@ http:convert_parameter(uri, In, URI) :-
 	    ->  rdf_global_id(NS:Local, URI)
 	    ;   URI=In
 	    )
-	;   is_absolute_url(In)
+	;   uri_is_global(In)
 	->  URI = In
 	).
 
