@@ -45,6 +45,7 @@ YUI.add('controls', function(Y) {
 
 			// The control all have submit button that we bind here
 			NODE_CONTROLS.each(function(node) {
+			   // Y.log(node.one(".control-submit"));
 			   node.one(".control-submit").on("click", this._onControlSubmit, this, node);
 			   var desc =  node.one("div.desc");
 			   if (desc) {
@@ -57,7 +58,6 @@ YUI.add('controls', function(Y) {
 			// to set the source and target
 			Y.on("click", this._valueSetAndSyncUI, NODE_SOURCE_BTN, this, "source");
 			Y.on("click", this._valueSetAndSyncUI, NODE_TARGET_BTN, this, "target");
-
 			Y.on("click", this._valueSetAndSyncUI, NODE_INPUT_BTN, this, "input");
 
 			// try to use the currently selected concept in the vocab browser:
@@ -88,6 +88,7 @@ YUI.add('controls', function(Y) {
 		},
 
 		_onControlSubmit : function(e, node) {
+			Y.log("add process:");
 			e.preventDefault();
 
 			var content = this.get("srcNode"),
@@ -106,7 +107,6 @@ YUI.add('controls', function(Y) {
 			} else if(selected) {
 				data.input = selected.uri;
 			}
-			Y.log("add process:");
 			Y.log(data);
 			this.fire("submit", {data:data});
 		},
@@ -161,6 +161,7 @@ YUI.add('controls', function(Y) {
 			var selected = this.get("selected");
 			type = selected ? selected.type : "";
 			Y.log('syncUI controls');
+			Y.log(type);
 			Y.log(selected);
 
 			// add mapping selection radio buttons with available mappings to components that need them
@@ -211,9 +212,14 @@ YUI.add('controls', function(Y) {
 			}
 			// enable generator submit when both source and target have a value
 			if (NODE_SOURCE.get("value") && NODE_TARGET.get("value")) {
-				Y.all("#vocab .control-submit").removeAttribute("disabled");
+				Y.all(".vocab .control-submit").removeAttribute("disabled");
 			} else {
-				Y.all("#vocab .control-submit").setAttribute("disabled", true);
+				Y.all(".vocab .control-submit").setAttribute("disabled", true);
+			}
+			if (NODE_INPUT.get("value")) {
+				Y.all(".mapping .control-submit").removeAttribute("disabled");
+			} else {
+				Y.all(".mapping .control-submit").setAttribute("disabled", true);
 			}
 		},
 
