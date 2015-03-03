@@ -17,6 +17,7 @@
 :- use_module(library(amalgame/ag_provenance)).
 :- use_module(library(amalgame/ag_strategy)).
 :- use_module(library(amalgame/json_util)).
+:- use_module(library(amalgame/amalgame_modules)).
 
 
 :- setting(amalgame:precompute, boolean, true,
@@ -64,7 +65,7 @@ http_add_process(Request) :-
 	subtract(Params0, [input=_,source=_,target=_,process=_,strategy=_,update=_,graphic=_], Params1),
 	findall(secondary_input=S,member(secondary_input=S, Params1), SecParams),
 	subtract(Params1, SecParams, Params),
-	fix_not_expanded_options(Params, ExpandedParams),
+	expand_options(Params, ExpandedParams),
 	flush_refs_cache_if_needed(Process),
 	(   Update == true
 	->  rdf_retractall(Process, amalgame:secondary_input, _, Strategy),
@@ -203,17 +204,6 @@ fix_o_ns(rdf(S,P,O), Old, New) :-
 	sub_atom(O,Len,After,0, Local),
 	atom_concat(New,Local,NewO),
 	rdf_update(S,P,O, object(NewO)).
-
-fix_not_expanded_options([''],[]).
-fix_not_expanded_options([],[]).
-fix_not_expanded_options([Key=Value|Tail], [Key=FixedValue|Results]):-
-	(   \+ sub_atom(Value,0,_,_,'http:'),
-	    atomic_list_concat([NS,L], :, Value),
-	    rdf_global_id(NS:L,FixedValue)
-	->  true
-	;   FixedValue = Value
-	),
-	fix_not_expanded_options(Tail, Results).
 
 flush_refs_cache_if_needed(Process) :-
 	(   rdfs_individual_of(Process, amalgame:'SelectPreLoaded')
