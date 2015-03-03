@@ -31,6 +31,11 @@ html_ag_header(Options) -->
 html_showlist([]) --> !.
 html_showlist([H]) -->  html(H),!.
 html_showlist([H1,H2|Tail]) -->  html([H1,', ']), html_showlist([H2|Tail]).
+html_showlist(Dict) -->
+	{ is_dict(Dict),
+	  dict_pairs(Dict, _Tag, Pairs)
+	},
+	html_showlist(Pairs).
 
 html_options([],_) --> !.
 html_options([R|Rs], Default) -->
