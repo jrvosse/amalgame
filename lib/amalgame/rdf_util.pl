@@ -2,7 +2,7 @@
 	      rdf_cp_graphs/2,
 	      rdf_cp_graph/3,
 	      rdf_remove_resource/2,
-
+	      rdf_has/5,
 	      rdf_lang/3,
 	      rdf_lang/4,
 	      rdf_graph_label/2
@@ -14,8 +14,17 @@
 :- use_module(user(preferences)).
 
 :- rdf_meta
+	rdf_has(r,r,o,r,r),
 	rdf_lang(r,r,-),
 	rdf_lang(r,r,+,-).
+
+%%	rdf_has(S,P,O,RP,G) is nondet
+%
+%	Behaves as rdf_has/4 but the underlying triple needs to be in
+%	named graph G.
+rdf_has(S,P,O,RP,G) :-
+	rdf_has(S,P,O,RP),
+	rdf(S,RP,O,G).
 
 %%	rdf_cp_graphs(+GraphList, Target) is det.
 %
