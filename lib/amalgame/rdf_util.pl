@@ -5,7 +5,8 @@
 	      rdf_has/5,
 	      rdf_lang/3,
 	      rdf_lang/4,
-	      rdf_graph_label/2
+	      rdf_graph_label/2,
+	      rdf_literal_predicates/1
 	  ]).
 
 :- use_module(library(lists)).
@@ -25,6 +26,14 @@
 rdf_has(S,P,O,RP,G) :-
 	rdf_has(S,P,O,RP),
 	rdf(S,RP,O,G).
+
+rdf_literal_predicates(L) :-
+	findall(P, rdf_is_literal_predicate(P), Ps),
+	sort(Ps, L).
+
+rdf_is_literal_predicate(P) :-
+	rdf_current_predicate(P),
+	once(rdf(_, P, literal(_))).
 
 %%	rdf_cp_graphs(+GraphList, Target) is det.
 %
