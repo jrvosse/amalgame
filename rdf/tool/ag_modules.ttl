@@ -32,6 +32,11 @@ amalgame:IsubMatcher
     skos:definition "Generate new candidates based on similar labels. The matcher is based on the 'isub' metric introduced in 'A string metric for ontology alignment' by Giorgos Stoilos, 2005."@en ;
     rdfs:subClassOf amalgame:CandidateGenerator .
 
+amalgame:NumericDifferenceMatcher
+    rdfs:label "numeric/difference"@en ;
+    skos:definition "Generate new candidates based on similar numeric literals.	The score is the absolute difference of the two numeric literals compared, or infinite if these are not numbers."@en ;
+    rdfs:subClassOf amalgame:CandidateGenerator .
+
 amalgame:SelectPreLoaded
     rdfs:label "import/preloaded"@en ;
     skos:definition "Match mappings from preloaded named graph against concepts in source and target vocabularies"@en ;
@@ -77,6 +82,10 @@ amalgame:IsubSelecter
     skos:definition "Select mappings with the most similar labels, discard others for the same source/target.  If type=all, all candidates with sufficiently similar labels are selected. The matcher is based on the 'isub' metric introduced in 'A string metric for ontology alignment' by Giorgos Stoilos, 2005."@en ;
     rdfs:subClassOf amalgame:MappingPartitioner .
 
+amalgame:NumericDifferenceSelecter
+    rdfs:label "numeric/difference"@en ;
+    skos:definition "Select mappings with similar numeric literals. If type=all, all candidates with sufficiently similar numbers are selected. The score is the absolute difference of the two numeric literals compared, or infinite if these are not numbers."@en ;
+    rdfs:subClassOf amalgame:MappingPartitioner .
 amalgame:SelectPreLoadedSelecter
     rdfs:label "import/preloaded"@en ;
     skos:definition "Select mappings with corresponding mappings in the preloaded mapping, discard others with the same source/target."@en ;
@@ -108,7 +117,7 @@ amalgame:Sampler
     rdfs:subClassOf amalgame:MappingPartitioner .
 
 amalgame:BestNumeric
-    rdfs:label "best numeric"@en ;
+    rdfs:label "best numeric score"@en ;
     skos:definition "Select correspondences that have the best score considering some numerical ranking, discard others."@en ;
     rdfs:subClassOf amalgame:MappingPartitioner .
 

@@ -6,6 +6,7 @@
 :- use_module(library(ag_modules/descendent_generator)).
 :- use_module(library(ag_modules/exact_label_generator)).
 :- use_module(library(ag_modules/isub_generator)).
+:- use_module(library(ag_modules/numeric_difference_generator)).
 :- use_module(library(ag_modules/preloaded_mapping)).
 :- use_module(library(ag_modules/related_generator)).
 :- use_module(library(ag_modules/snowball_label_generator)).
@@ -16,6 +17,7 @@
 :- use_module(library(ag_modules/descendent_selecter)).
 :- use_module(library(ag_modules/exact_label_selecter)).
 :- use_module(library(ag_modules/isub_selecter)).
+:- use_module(library(ag_modules/numeric_difference_selecter)).
 :- use_module(library(ag_modules/preloaded_selecter)).
 :- use_module(library(ag_modules/related_selecter)).
 :- use_module(library(ag_modules/snowball_label_selecter)).
