@@ -23,11 +23,13 @@
 
 html_new([]) -->
 	html_acc_item(new,
-		      'new alignment strategy: no (SKOS) vocabularies found',
+		      'new alignment strategy: no SKOS ConceptSchemes found',
 		      div([style('padding: 1%')],[
 			  'Please use the Repository drop-down menu to load ',
-			  'the vocabularies you would like to align ',
-			  'into the repository/triple store.'
+			  'the ConceptSchemes you would like to align ',
+			  'into the repository/triple store. ',
+			  'Alternatively, you might want to enable the consider_all_labeled_resources setting to be able to',
+			  'align any rdfs:labeled RDF resource in any named graph (see Admin/Settings menu).'
 		      ]),
 		      [active]
 		     ).
