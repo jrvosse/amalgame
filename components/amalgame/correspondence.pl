@@ -92,14 +92,14 @@ html_correspondence(align(Source, Target, Evidence), Options) -->
                   ]),
 	      div(class([manualfixes, 'yui3-g']),
 		  [ div([class([sourcediv, 'yui3-u-1-5'])],
-			[div([class(sourceuri)], Source),
+			[div([class([concepturi, sourceuri])], Source),
 			 input([type(hidden), class(original), value(Source)]),
 			 input([type(text), class([skos_ac_field]), name(source)])
 			]),
 		    div([class([relations, 'yui3-u-3-5'])],
                         \html_relations(Relations, Relation)),
                     div([class([targetdiv, 'yui3-u-1-5'])],
-                        [div([class(targeturi)], Target),
+                        [div([class([concepturi, targeturi])], Target),
                          input([type(hidden), class(original), value(Target)]),
                          input([type(text), class([skos_ac_field]), name(target)])
                         ]),
