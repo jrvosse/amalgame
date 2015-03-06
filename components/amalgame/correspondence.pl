@@ -207,7 +207,7 @@ html_resource_context(URI, _Prov) -->
 	  image_examples(URI, Examples)
 	},
 	html(div(class('resource-info'),
-		 [div(class(label), a([alt(URI), href(URI)], Label)),
+		 [div(class(label), \html_resource(URI)),
 		  div(class(alt), \html_alt_labels(Alt)),
 		  \html_definition(URI),
 		  \html_scope(URI),
