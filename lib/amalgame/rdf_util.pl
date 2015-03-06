@@ -24,8 +24,12 @@
 %	Behaves as rdf_has/4 but the underlying triple needs to be in
 %	named graph G.
 rdf_has(S,P,O,RP,G) :-
-	rdf_has(S,P,O,RP),
-	rdf(S,RP,O,G).
+	(   ground(G)
+	->  rdf(S,RP,O,G:_),
+	    rdf_has(S,P,O,RP)
+	;   rdf_has(S,P,O,RP),
+	    rdf(S,RP,O,G:_)
+	).
 
 rdf_literal_predicates(L) :-
 	findall(P, rdf_is_literal_predicate(P), Ps),
