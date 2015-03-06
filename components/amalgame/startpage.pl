@@ -203,11 +203,6 @@ html_vocab_head -->
 
 html_vocab_rows([]) --> !.
 html_vocab_rows([Scheme|Vs]) --> {
-    (	Scheme == 'http://purl.org/vocabularies/princeton/wn30/'
-    ->	gtrace
-    ;	true
-    ),
-
     (	node_stats(_Strategy, Scheme, Stats, [compute(false)])
     ->	option(totalCount(ConceptCount), Stats),
 	option(properties(PDict), Stats, pdict{}),
