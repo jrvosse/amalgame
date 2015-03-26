@@ -114,9 +114,19 @@ html_form(Params, URI) -->
 
 
 
-%%	amalgame_info(+MappingId, +Strategy, -Info)
+%%	amalgame_info(_Resource, +Strategy, -Info)
 %
-%	Stats of a resource (mapping)
+%	Stats of a Resource (mapping, process, strategy)
+
+amalgame_info(Strategy, Strategy, Results) :-
+	findall(vocabulary- \(cp_label:rdf_link(V)),
+		strategy_vocabulary(Strategy, V), Vocs),
+	rdf_equal(amalgame:final, FinalStatus),
+	findall(F, strategy_entity_status(Strategy, F, FinalStatus), Finals),
+	length(Finals, NrFinals),
+	append([ Vocs,
+		 [  '# finalized mappings'-NrFinals ]
+	       ], Results).
 
 amalgame_info(URL, Strategy, Stats) :-
 	rdfs_individual_of(URL, amalgame:'Mapping'),
@@ -232,16 +242,6 @@ amalgame_info(URL, Strategy,
 	;   Definition = []
 	),
 	append([Definition, Input],Optional).
-
-amalgame_info(Strategy, Strategy, Results) :-
-	findall(vocabulary- \(cp_label:rdf_link(V)),
-		strategy_vocabulary(Strategy, V), Vocs),
-	rdf_equal(amalgame:final, FinalStatus),
-	findall(F, strategy_entity_status(Strategy, F, FinalStatus), Finals),
-	length(Finals, NrFinals),
-	append([ Vocs,
-		 [  '# finalized mappings'-NrFinals ]
-	       ], Results).
 
 
 label_property_stats(Dict, Stats) :-
