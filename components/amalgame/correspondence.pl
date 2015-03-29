@@ -202,6 +202,7 @@ html_resource_context(URI, _Prov) -->
 	{ rdf_display_label(URI, Label),
 	  skos_all_labels(URI, Alt0),
 	  select(Label, Alt0, Alt),
+	  find_other_literals(URI, Alt0, Others),
 	  resource_tree(URI, Tree),
 	  findall(R, skos_related_concept(URI, R), Related),
 	  image_examples(URI, Examples)
@@ -209,12 +210,20 @@ html_resource_context(URI, _Prov) -->
 	html(div(class('resource-info'),
 		 [div(class(label), \html_resource(URI)),
 		  div(class(alt), \html_alt_labels(Alt)),
+		  div(class(other_literals), \html_alt_labels(Others)),
 		  \html_definition(URI),
 		  \html_scope(URI),
 		  \html_resource_tree(Tree),
 		  \html_related_list(Related),
 		  \html_image_examples(Examples)
 		 ])).
+
+find_other_literals(URI, Taboo, Others):-
+	findall(Other, is_other_literal(URI, Taboo, Other), Others).
+
+is_other_literal(URI, Taboo, Prop:Other) :-
+	rdf(URI, Prop, literal(Other)),
+	\+ member(Other, Taboo).
 
 html_relations([], _) --> !.
 html_relations([Rel-Label|Rs], Active) -->
@@ -292,6 +301,11 @@ html_label_list([L|Ls]) -->
 	html_label(L),
 	html([', ']),
 	html_label_list(Ls).
+
+html_label(R:L) -->
+	html_resource(R),
+	html(':'),
+	html(L).
 
 html_label(L) -->
 	html(L).
