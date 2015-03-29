@@ -221,9 +221,11 @@ html_resource_context(URI, _Prov) -->
 find_other_literals(URI, Taboo, Others):-
 	findall(Other, is_other_literal(URI, Taboo, Other), Others).
 
-is_other_literal(URI, Taboo, Prop:Other) :-
-	rdf(URI, Prop, literal(Other)),
-	\+ member(Other, Taboo).
+is_other_literal(URI, Taboo, Prop:OtherLit) :-
+	rdf(URI, Prop, Other),
+	rdf_is_literal(Other),
+	literal_text(Other, OtherLit),
+	\+ member(OtherLit, Taboo).
 
 html_relations([], _) --> !.
 html_relations([Rel-Label|Rs], Active) -->
