@@ -251,9 +251,14 @@ label_property_stats(Dict, Stats, Options) :-
 		Stats).
 
 portray_label_stats([],[],_) :- !.
-portray_label_stats([L-C|TailIn], [L-Out|TailOut], Options) :-
-	option(totalCount(Total), Options, C),
-	format(atom(Out), '~w  (~1f%)', [C, (100*C)/Total]),
+portray_label_stats([Lang-LDict|TailIn], [span([Lang, '(total)'])-TOut,
+					  span([Lang, '(uniq)'])-UOut
+					 |TailOut], Options) :-
+	UC = LDict.uniqueLabelCount,
+	LC = LDict.totalLabelCount,
+	option(totalCount(Total), Options, LC),
+	format(atom(TOut), '~w  (~1f%)', [LC, (100*LC)/Total]),
+	format(atom(UOut), '~w	(~1f%)', [UC, (100*UC)/Total]),
 	portray_label_stats(TailIn, TailOut, Options).
 
 depth_stats(Dict, Stats) :-

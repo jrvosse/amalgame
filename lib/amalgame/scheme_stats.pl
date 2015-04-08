@@ -79,8 +79,11 @@ cl_pairs([(Property:Lang)-Count|T], [Property-(Lang-Count)|TO], [Lang|L0]) :-
 	cl_pairs(T, TO, L0).
 
 group_lengths([], []).
-group_lengths([K-List|T], [K-Length|TLength]) :-
+group_lengths([K-List|T], [K-LDict|TLength]) :-
 	length(List, Length),
+	sort(List, Unique),
+	length(Unique, ULength),
+	LDict=label{totalLabelCount:Length, uniqueLabelCount:ULength},
 	group_lengths(T, TLength).
 
 dictifyColonList(CL, Dict, Langs):-
