@@ -197,9 +197,10 @@ amalgame_info(Scheme, Strategy, Stats) :-
 	    option(uniqueLabelCount(UniqueLabelCount), NStats, 0)
 	->  ExtraStats = [
 		'formats:'   - Formats,
-		'# labels:'        - TotalLabelCount,
-		'# unique labels:' - UniqueLabelCount,
-		'# counted top concepts:'  - NrTopConcepts | DTops
+		'# labels:'        -  span('~d (~1f%)'-[TotalLabelCount, (100*TotalLabelCount)/Total]),
+		'# unique labels:' - span('~d (~1f%)'-[UniqueLabelCount, (100*UniqueLabelCount)/Total]),
+		'# counted top concepts:'  - span('~d (~1f%)'-[NrTopConcepts, (100*NrTopConcepts)/Total])
+			 | DTops
 	    ],
 	    option(topConceptCount(NrTopConcepts), DDict, [])
 	;   ExtraStats = []
@@ -210,9 +211,9 @@ amalgame_info(Scheme, Strategy, Stats) :-
 	;   Virtual = materialized,
 	    findall(Top, skos_top_concept(Scheme, Top), Tops),
 	    length(Tops, NrDeclaredTops),
-	    DTops = ['# declared top concepts:'  - NrDeclaredTops]
+	    DTops = ['# declared top concepts:'  - span('~d (~1f%)'-[NrDeclaredTops, (100*NrDeclaredTops/NrTopConcepts)])]
 	),
-	label_property_stats(PDict, PStats),
+	label_property_stats(PDict, PStats, [totalCount(Total)]),
 	depth_stats(DDict, DStats),
 	append([BasicStats, ExtraStats, DStats, PStats], Stats).
 
@@ -241,12 +242,19 @@ amalgame_info(Strategy, Strategy, Results) :-
 	       ], Results).
 
 
-label_property_stats(Dict, Stats) :-
+label_property_stats(Dict, Stats, Options) :-
 	findall(\rdf_link(Property)-set(Pairs),
 		( get_dict(Property, Dict, LCounts),
-		  dict_pairs(LCounts, _, Pairs)
+		  dict_pairs(LCounts, _, Pairs0),
+		  portray_label_stats(Pairs0, Pairs, Options)
 		),
 		Stats).
+
+portray_label_stats([],[],_) :- !.
+portray_label_stats([L-C|TailIn], [L-Out|TailOut], Options) :-
+	option(totalCount(Total), Options, C),
+	format(atom(Out), '~w  (~1f%)', [C, (100*C)/Total]),
+	portray_label_stats(TailIn, TailOut, Options).
 
 depth_stats(Dict, Stats) :-
 	findall(Set,
