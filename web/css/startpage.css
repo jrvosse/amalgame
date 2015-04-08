@@ -155,6 +155,10 @@
 	text-align: right;
 }
 
+#main td.version {
+	width: 9em;
+}
+
 /* import */
 #import form,
 #reference form {

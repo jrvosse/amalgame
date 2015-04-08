@@ -92,14 +92,14 @@ html_correspondence(align(Source, Target, Evidence), Options) -->
                   ]),
 	      div(class([manualfixes, 'yui3-g']),
 		  [ div([class([sourcediv, 'yui3-u-1-5'])],
-			[div([class(sourceuri)], Source),
+			[div([class([concepturi, sourceuri])], Source),
 			 input([type(hidden), class(original), value(Source)]),
 			 input([type(text), class([skos_ac_field]), name(source)])
 			]),
 		    div([class([relations, 'yui3-u-3-5'])],
                         \html_relations(Relations, Relation)),
                     div([class([targetdiv, 'yui3-u-1-5'])],
-                        [div([class(targeturi)], Target),
+                        [div([class([concepturi, targeturi])], Target),
                          input([type(hidden), class(original), value(Target)]),
                          input([type(text), class([skos_ac_field]), name(target)])
                         ]),
@@ -202,19 +202,30 @@ html_resource_context(URI, _Prov) -->
 	{ rdf_display_label(URI, Label),
 	  skos_all_labels(URI, Alt0),
 	  select(Label, Alt0, Alt),
+	  find_other_literals(URI, Alt0, Others),
 	  resource_tree(URI, Tree),
 	  findall(R, skos_related_concept(URI, R), Related),
 	  image_examples(URI, Examples)
 	},
 	html(div(class('resource-info'),
-		 [div(class(label), a([alt(URI), href(URI)], Label)),
+		 [div(class(label), \html_resource(URI)),
 		  div(class(alt), \html_alt_labels(Alt)),
+		  div(class(other_literals), \html_alt_labels(Others)),
 		  \html_definition(URI),
 		  \html_scope(URI),
 		  \html_resource_tree(Tree),
 		  \html_related_list(Related),
 		  \html_image_examples(Examples)
 		 ])).
+
+find_other_literals(URI, Taboo, Others):-
+	findall(Other, is_other_literal(URI, Taboo, Other), Others).
+
+is_other_literal(URI, Taboo, Prop:OtherLit) :-
+	rdf(URI, Prop, Other),
+	rdf_is_literal(Other),
+	literal_text(Other, OtherLit),
+	\+ member(OtherLit, Taboo).
 
 html_relations([], _) --> !.
 html_relations([Rel-Label|Rs], Active) -->
@@ -292,6 +303,11 @@ html_label_list([L|Ls]) -->
 	html_label(L),
 	html([', ']),
 	html_label_list(Ls).
+
+html_label(R:L) -->
+	html_resource(R),
+	html(':'),
+	html(L).
 
 html_label(L) -->
 	html(L).

@@ -150,7 +150,21 @@ find_voc_revision(Voc, Version) :-
 find_voc_revision(Voc, Version) :-
 	rdf(Voc, amalgame:graph, SourceGraph), !,
 	prov_get_entity_version(Voc, SourceGraph, Version).
-find_voc_revision(_Voc, amalgame).
+find_voc_revision(Voc, Version) :-
+	atom(Voc),
+	rdf_graph(Voc),
+	rdf_graph_property(G, modified(Modified)),
+	rdf_graph_property(G, source_last_modified(Time)),
+	stamp_date_time(Time, Date, 'UTC'),
+        format_time(atom(Atom),
+                    '%d %b %y %T',
+                    Date),
+	dirty(Modified, Dirty),
+	atomic_list_concat([Dirty, Atom], Version).
+find_voc_revision(_Voc, '?').
+
+dirty(true, 'dirty:').
+dirty(_, '').
 
 parent_child_chk(P,C) :-
 	skos_parent_child(P,C),!.

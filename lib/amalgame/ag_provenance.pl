@@ -84,7 +84,7 @@ prov_ensure_entity(Strategy, Entity, Graph) :-
 	node_stats(Strategy, Entity, Stats, []),
 	option(revision(Revision), Stats),
 	prov_named_graphs(Repo, Graph),
-	rdf_assert(Entity, prov:wasDerivedFrom, Repo, Graph),
+	rdf_assert(Entity, amalgame:loadedInto, Repo, Graph),
 	rdf_assert(Entity, 'http://usefulinc.com/ns/doap#revision',
 		   literal(Revision), Graph),
 	findall(rdf(Entity, P, O), rdf(Entity, P, O), Triples),
@@ -343,8 +343,9 @@ prov_named_graph(NG, Repo, Graph) :-
 	rdf_graph_property(NG, modified(NGModified)),
 	rdf_graph_property(NG, hash(NGHash)),
 	rdf_graph_property(NG, triples(NGCount)),
-	(   rdf_graph_property(NG, source(NGsource))
-	->  true ; NGsource = created_in_store
+	(   rdf_graph_property(NG, source(NGsource)), NG \= NGsource
+	->  rdf_assert(NG, amalgame:localFileName, NGsource, Graph)
+	;   true
 	),
 	(   rdf_graph_property(NG, source_last_modified(NGsource_lm0))
 	->  get_xml_dateTime(NGsource_lm0, NGsource_lm),
@@ -356,9 +357,8 @@ prov_named_graph(NG, Repo, Graph) :-
 
 	rdf_assert(NG, amalgame:hash, literal(NGHash), Graph),
 	rdf_assert(NG, amalgame:modified_after_loading, literal(NGModified), Graph),
-	rdf_assert(NG, amalgame:source, literal(NGsource), Graph),
 	rdf_assert(NG, amalgame:triples, literal(type(xsd:int, NGCount)), Graph),
-	rdf_assert(NG, rdfs:comment, literal(lang(en, 'Named graph loaded into the triple store while creating this alignment. This may or may not have influenced the results.')), Graph).
+	rdf_assert(NG, rdfs:comment, literal(lang(en, 'This named graph was loaded into the triple store during the alignment process. It may or may not have influenced the results.')), Graph).
 
 get_xml_dateTime(T, TimeStamp) :-
 	format_time(atom(TimeStamp), '%Y-%m-%dT%H-%M-%S%Oz', T).

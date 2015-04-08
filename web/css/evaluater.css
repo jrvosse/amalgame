@@ -117,6 +117,12 @@
 	display: inline-block;
 	text-align: center;
 }
+#detail .manualfixes .relations .relation label {
+	background-color: #DDD;
+}
+#detail .manualfixes .concepturi {
+	opacity: 0.3;
+}
 #detail .manualfixes .comment {
 	display: inline-block;
 	text-align: center;

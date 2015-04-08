@@ -155,7 +155,7 @@ amalgame:TypeSelect
     rdfs:subClassOf amalgame:VirtualVocabPartitioner .
 
 amalgame:PropertyValueSelect
-    rdfs:label "prartion facet on property/value"@en ;
+    rdfs:label "partion facet on property/value"@en ;
     skos:definition "Partition a vocabulary based on the concepts having a specific property/value, or not."@en ;
     rdfs:subClassOf amalgame:VirtualVocabPartitioner .
 

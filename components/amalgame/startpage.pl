@@ -205,14 +205,14 @@ html_vocab_rows([]) --> !.
 html_vocab_rows([Scheme|Vs]) --> {
     (	node_stats(_Strategy, Scheme, Stats, [compute(false)])
     ->	option(totalCount(ConceptCount), Stats),
-	option(properties(PDict), Stats),
+	option(properties(PDict), Stats, pdict{}),
 	rdf_equal(skos:prefLabel, PL),
 	rdf_equal(skos:altLabel, AL),
 	(   get_dict(PL, PDict, PrefLangs)-> true; PrefLangs = []),
 	(   get_dict(AL, PDict, AltLangs)-> true;   AltLangs = []),
 	option(version(Version0), Stats),
 	(   Version0 == ''
-	->  option(revision(Version), Stats)
+	->  option(revision(Version), Stats, '')
 	;   Version = Version0
 	)
     ;   rdf_estimate_complexity(_, skos:inScheme, Scheme, ConceptCount),
@@ -232,7 +232,9 @@ html_vocab_rows([Scheme|Vs]) --> {
 	]),
 	html_vocab_rows(Vs).
 
-
+html_vocab_rows([Scheme|Vs]) -->
+	html(tr(td(['error: ', Scheme]))),
+	html_vocab_rows(Vs).
 
 
 %%	html_strategy_table(+Graphs, +Options)

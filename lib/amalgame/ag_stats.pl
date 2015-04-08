@@ -63,10 +63,11 @@ reference_counts(Id, Strategy, Stats) :-
 	atom_concat(reference_counts, Id, Mutex),
 	with_mutex(Mutex, reference_counts_(Id, Strategy, Stats)).
 
-reference_counts_(Id, Strategy, Stats) :-
-	(   get_stats_cache(Strategy, Id, refs(Stats))
+reference_counts_(Id, Strategy, RefStats) :-
+	(   get_stats_cache(Strategy, Id, Stats),
+	    option(refs(RefStats), Stats)
 	->  true
-	;   compute_reference_counts(Id, Strategy, Stats)
+	;   compute_reference_counts(Id, Strategy, RefStats)
 	).
 
 
@@ -215,13 +216,15 @@ vocab_source(V, _S, V).
 align_source(align(S,_,_), S).
 align_target(align(_,T,_), T).
 
-compute_reference_counts(Id, Strategy, Stats) :-
+compute_reference_counts(Id, Strategy, RefStats) :-
 	reference_mappings(Strategy, References),
 	expand_node(Strategy, Id, Mappings),
 	rdf(Id, amalgame:default_relation, Relation),
 	compare_against_ref(Mappings, References, Relation,
-			    partition([],[],[],[]), Stats),
-	set_stats_cache(Strategy, Id, Stats).
+			    partition([],[],[],[]), RefStats),
+	get_stats_cache(Strategy, Id, OldStats),
+	put_dict([refs:RefStats], OldStats, NewStats),
+	set_stats_cache(Strategy, Id, NewStats).
 
 part_ref_stats(partition(Matches,Conflicts,Unknown, Missing), Stats) :-
 	Stats = refs_stats_dict{matching:MLengthS,

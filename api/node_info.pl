@@ -114,9 +114,19 @@ html_form(Params, URI) -->
 
 
 
-%%	amalgame_info(+MappingId, +Strategy, -Info)
+%%	amalgame_info(_Resource, +Strategy, -Info)
 %
-%	Stats of a resource (mapping)
+%	Stats of a Resource (mapping, process, strategy)
+
+amalgame_info(Strategy, Strategy, Results) :-
+	findall(vocabulary- \(cp_label:rdf_link(V)),
+		strategy_vocabulary(Strategy, V), Vocs),
+	rdf_equal(amalgame:final, FinalStatus),
+	findall(F, strategy_entity_status(Strategy, F, FinalStatus), Finals),
+	length(Finals, NrFinals),
+	append([ Vocs,
+		 [  '# finalized mappings'-NrFinals ]
+	       ], Results).
 
 amalgame_info(URL, Strategy, Stats) :-
 	rdfs_individual_of(URL, amalgame:'Mapping'),
@@ -125,8 +135,8 @@ amalgame_info(URL, Strategy, Stats) :-
 	option(totalCount(MN), MStats),
 	(   option(inputPercentage(IP), MStats)
 	->  format(atom(TmA), '~d (~5f%)', [MN, IP]),
-	    IpStats = [ 'total matches'-span([TmA])]
-	;   IpStats = [ 'total matches'-MN ]
+	    IpStats = [ 'rels total'-span([TmA])]
+	;   IpStats = [ 'rels total'-MN ]
 	),
 
 	option(mappedSourceConcepts(SN0), MStats),
@@ -138,8 +148,8 @@ amalgame_info(URL, Strategy, Stats) :-
 	format(atom(SN), '~d (i ~2f%, v ~2f%)', [SN0, SiPerc, SPerc]),
 	format(atom(TN), '~d (i ~2f%, v ~2f%)', [TN0, TiPerc, TPerc]),
 	BasicStats = [
-	    'matched source concepts'-SN,
-	    'matched target concepts'-TN
+	    'src concepts matched'-SN,
+	    'trg concepts matched'-TN
 	],
 	(   option(source_depth(DepthS), MStats)
 	->  format_5numsum('Depth of source concepts', DepthS, DepthSStats)
@@ -165,18 +175,21 @@ amalgame_info(URL, Strategy, Stats) :-
 
 	(   rdf(URL, amalgame:default_relation, _R),
 	    reference_counts(URL, Strategy, D),
-	    ReferenceStats = [ 'matching with ref. relations'    - D.matching,
-			       'conflicting with  ref. relations'- D.conflicting,
-			       'not yet in reference'		 - D.notInRef,
-			       'in ref. but missing here'	 - D.missing
+	    ReferenceStats = [ 'rels match with ref.'    - D.matching,
+			       'rels conflict with ref. '- D.conflicting,
+			       'rels not yet in ref'		 - D.notInRef,
+			       'rels in ref. but missing'	 - D.missing
 			     ]
 	->  true
 	;   ReferenceStats = []
 	),
-	append([IpStats, BasicStats, ReferenceStats,
-		[DepthSStats], [ChildSStats],
-		[DepthTStats], ChildTStats
-	       ], Stats).
+	append([
+	    BasicStats,
+	    IpStats,
+	    ReferenceStats,
+	    [DepthSStats], [ChildSStats],
+	    [DepthTStats], ChildTStats
+	], Stats).
 
 amalgame_info(Scheme, Strategy, Stats) :-
 	skos_is_vocabulary(Scheme),
@@ -230,16 +243,6 @@ amalgame_info(URL, Strategy,
 	;   Definition = []
 	),
 	append([Definition, Input],Optional).
-
-amalgame_info(Strategy, Strategy, Results) :-
-	findall(vocabulary- \(cp_label:rdf_link(V)),
-		strategy_vocabulary(Strategy, V), Vocs),
-	rdf_equal(amalgame:final, FinalStatus),
-	findall(F, strategy_entity_status(Strategy, F, FinalStatus), Finals),
-	length(Finals, NrFinals),
-	append([ Vocs,
-		 [  '# finalized mappings'-NrFinals ]
-	       ], Results).
 
 
 label_property_stats(Dict, Stats, Options) :-
