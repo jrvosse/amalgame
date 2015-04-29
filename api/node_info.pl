@@ -3,6 +3,7 @@
 	  ]).
 
 :- use_module(library(lists)).
+:- use_module(library(pairs)).
 :- use_module(library(option)).
 :- use_module(library(settings)).
 :- use_module(library(http/http_dispatch)).
@@ -246,16 +247,22 @@ amalgame_info(URL, Strategy,
 
 
 label_property_stats(Dict, Stats, Options) :-
-	findall(\rdf_link(Property)-set(Pairs),
-		( get_dict(Property, Dict, LCounts),
-		  dict_pairs(LCounts, _, Pairs0),
-		  portray_label_stats(Pairs0, Pairs, Options)
-		),
+	findall(\rdf_link(Property)-set(Values),
+		label_property_stat(Dict, Property, Values, Options),
 		Stats).
 
+label_property_stat(Dict, Property, Values, Options) :-
+	get_dict(Property, Dict, LCounts),
+	dict_pairs(LCounts, _, Pairs0),
+	portray_label_stats(Pairs0, Pairs1, Options),
+	keysort(Pairs1, Pairs2),
+	reverse(Pairs2, Pairs3),
+	pairs_values(Pairs3, Values0),
+	append(Values0, Values).
+
 portray_label_stats([],[],_) :- !.
-portray_label_stats([Lang-LDict|TailIn], [span([Lang, '(total)'])-TOut,
-					  span([Lang, '(uniq)'])-UOut
+portray_label_stats([Lang-LDict|TailIn], [LC-[span([Lang, '(total)'])-TOut,
+						span([Lang, '(uniq)'])-UOut]
 					 |TailOut], Options) :-
 	UC = LDict.uniqueLabelCount,
 	LC = LDict.totalLabelCount,
