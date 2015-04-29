@@ -207,12 +207,10 @@ amalgame_info(Scheme, Strategy, Stats) :-
 	option(virtual(V), NStats),
 
 	(   option(formats(Formats), NStats),
-	    option(totalLabelCount(TotalLabelCount), NStats, 0),
-	    option(uniqueLabelCount(UniqueLabelCount), NStats, 0)
+	    option(totalLabelCount(TotalLabelCount), NStats, 0)
 	->  ExtraStats = [
 		'formats:'   - Formats,
-		'# labels:'        -  span('~d (~1f%)'-[TotalLabelCount, (100*TotalLabelCount)/Total]),
-		'# unique labels:' - span('~d (~1f%)'-[UniqueLabelCount, (100*UniqueLabelCount)/Total]),
+		'# labels:'        -  span('~d (~1f l/c)'-[TotalLabelCount, (TotalLabelCount)/Total]),
 		'# counted top concepts:'  - span('~d (~1f%)'-[NrTopConcepts, (100*NrTopConcepts)/Total])
 			 | DTops
 	    ],
