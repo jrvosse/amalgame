@@ -210,12 +210,12 @@ amalgame_info(Scheme, Strategy, Stats) :-
 	    option(totalLabelCount(TotalLabelCount), NStats, 0)
 	->  ExtraStats = [
 		'formats:'   - Formats,
-		'# labels:'        -  span('~d (~1f l/c)'-[TotalLabelCount, (TotalLabelCount)/Total]),
+		'# labels (all properties):'        -  span('~d (~1f l/c)'-[TotalLabelCount, (TotalLabelCount)/Total]),
 		'# counted top concepts:'  - span('~d (~1f%)'-[NrTopConcepts, (100*NrTopConcepts)/Total])
 			 | DTops
 	    ],
 	    option(topConceptCount(NrTopConcepts), DDict, [])
-	;   ExtraStats = []
+	;   ExtraStats = [ 'other stats:' - 'still computing, try later ...']
 	),
 	(   V == true
 	->  Virtual = virtual,
