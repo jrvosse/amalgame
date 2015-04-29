@@ -196,9 +196,9 @@ html_vocab_head -->
 	html([th([]),
 	      th(class(name),       name),
 	      th(class(version),    version),
-	      th(class(count),     'estimated #concepts'),
-	      th(class(preflangs), 'prefLabels'),
-	      th(class(altlangs),  'altLabels')
+	      th(class(count),     '(estimated) #concepts'),
+	      th(class(preflangs), 'prefLabel langs'),
+	      th(class(altlangs),  'altLabels langs')
 	     ]).
 
 html_vocab_rows([]) --> !.
