@@ -260,16 +260,22 @@ label_property_stat(Dict, Property, Values, Options) :-
 
 portray_label_stats([],[],_) :- !.
 portray_label_stats([Lang-LDict|TailIn],
-		    [LC-[span([class([label, total])], [Lang, '(total)'])-
+		    [LC-[span([class([key, total])], [Lang, '(total)'])-
 			 span([class([value, total])], [TOut]),
-			 span([class([label, ambig])], [Lang, '(ambig)'])-
-			 span([class([value, ambig])], [AOut])]
+			 span([class([key, ambig])], [Lang, '(ambig label)'])-
+			 span([class([value, ambig])], [AOut]),
+			 span([class([key, ambig])], [Lang, '(ambig cncps)'])-
+			 span([class([value, ambig])], [COut])
+			]
 					 |TailOut], Options) :-
-	AC = LDict.ambiguousLabelCount,
+	AL = LDict.ambiguousLabelCount,
+	AC = LDict.ambiguousConceptCount,
 	LC = LDict.totalLabelCount,
+
 	option(totalCount(Total), Options, LC),
 	format(atom(TOut), '~w  (~2f%)', [LC, (100*LC)/Total]),
-	format(atom(AOut), '~w	(~2f%)', [AC, (100*AC)/Total]),
+	format(atom(AOut), '~w	(~2f%)', [AL, (100*AL)/Total]),
+	format(atom(COut), '~w	(~2f%)', [AC, (100*AC)/Total]),
 	portray_label_stats(TailIn, TailOut, Options).
 
 depth_stats(Dict, Stats) :-

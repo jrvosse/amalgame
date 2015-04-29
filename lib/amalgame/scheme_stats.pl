@@ -50,8 +50,7 @@ scheme_stats_deep(_Strategy, Scheme, ConceptAssoc, Stats) :-
 		    structure: DStatsPub,
 		    languages: Languages,
 		    properties: LanguagesDict,
-		    totalLabelCount: TotalLabelCount,
-		    uniqueLabelCount: UniqueLabelCount
+		    totalLabelCount: TotalLabelCount
 		},
 	assoc_to_keys(ConceptAssoc, Concepts),
 
@@ -70,16 +69,17 @@ scheme_stats_deep(_Strategy, Scheme, ConceptAssoc, Stats) :-
 	group_lengths(Grouped, GroupLengths),
 	dictifyColonList(GroupLengths, LanguagesDict, Languages),
 
-	% compute total nr of unique labels:
-	pairs_values(AllPropLangLabelPairs, AllLabels),
-	sort(AllLabels, UniqueLabels),
-	length(UniqueLabels, UniqueLabelCount),
-
 	compute_depth_stats(Scheme, ConceptAssoc, DStatsPub, Private).
 
 duplicates([], []) :- !.
-duplicates([H, H | T], [H | DT]) :-
-	duplicates([H|T], DT), !.
+duplicates([K-V1, K-V2, K-V3 | T], [K-V1 | DT]) :-
+	duplicates([K-V2, K-V3|T], DT), !.
+duplicates([K-V1, K-V2 | T], [K-V1, K-V2 | DT]) :-
+	duplicates(T, DT), !.
+duplicates([H, H, H | T], [H | DT]) :-
+	duplicates([H, H |T], DT), !.
+duplicates([H, H | T], [H, H | DT]) :-
+	duplicates(T, DT), !.
 duplicates([_H | T], DT) :-
 	duplicates(T, DT), !.
 
@@ -93,19 +93,26 @@ cl_pairs([(Property:Lang)-Count|T], [Property-(Lang-Count)|TO], [Lang|L0]) :-
 	cl_pairs(T, TO, L0).
 
 group_lengths([], []).
-group_lengths([K-List|T], [K-LDict|TLength]) :-
-	length(List, Length),
-	sort(List, Unique),
-	msort(List, Sorted),
-	duplicates(Sorted, Duplicates),
-	sort(Duplicates, DuplicatesUnique),
-	length(Unique, ULength),
-	length(DuplicatesUnique, ALength),
+group_lengths([K-SortedPairs|T], [K-LDict|TLength]) :-
+	length(SortedPairs, TotalLabelCount),
+	pairs_values(SortedPairs, AllConcepts),
+	sort(AllConcepts, UniqConcepts),
+	length(UniqConcepts, UniqConceptsCount),
+
+	duplicates(SortedPairs, DuplicateKeyPairs),
+	pairs_keys(DuplicateKeyPairs, DuplicateLabels),
+	sort(DuplicateLabels, UniqDubLabels),
+	length(UniqDubLabels, UniqDubLabelsCount),
+
+	pairs_values(DuplicateKeyPairs, DuplicateConcepts),
+	sort(DuplicateConcepts, UniqDubConcepts),
+	length(UniqDubConcepts, UniqDubConceptsCount),
 	LDict=label{
-		  duplicates: DuplicatesUnique,
-		  totalLabelCount:Length,
-		  ambiguousLabelCount: ALength,
-		  uniqueLabelCount:ULength},
+		  totalConceptCount:     UniqConceptsCount,
+		  ambiguousConceptCount: UniqDubConceptsCount,
+		  totalLabelCount:       TotalLabelCount,
+		  ambiguousLabelCount:   UniqDubLabelsCount
+	      },
 	group_lengths(T, TLength).
 
 dictifyColonList(CL, Dict, Langs):-
@@ -133,9 +140,9 @@ concepts_stats_([H|T], [SH|ST], [XLPH|XLPT], [XLAH|XLAT]) :-
 
 
 concept_stat(C, Skos, SkosXLa, SkosXLp) :-
-	findall((Prop:Lang)-Label,   fcplp(skos,   C, rdfs:label, Prop, Lang, Label), Skos),
-	findall((Prop:Lang)-Label, fcplp(skosxl, C, skosxl:prefLabel, Prop, Lang, Label), SkosXLp),
-	findall((Prop:Lang)-Label, fcplp(skosxl, C, skosxl:altLabel,  Prop, Lang, Label), SkosXLa).
+	findall((Prop:Lang)-(Label-C), fcplp(skos,   C, rdfs:label,       Prop, Lang, Label), Skos),
+	findall((Prop:Lang)-(Label-C), fcplp(skosxl, C, skosxl:prefLabel, Prop, Lang, Label), SkosXLp),
+	findall((Prop:Lang)-(Label-C), fcplp(skosxl, C, skosxl:altLabel,  Prop, Lang, Label), SkosXLa).
 
 fcplp(Format, Concept, Prop, RealProp, Lang, Label) :-
 	skos_match(Concept, Prop,  Literal, RealProp, [format(Format)]),
