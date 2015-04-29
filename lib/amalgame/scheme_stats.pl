@@ -69,6 +69,12 @@ scheme_stats_deep(_Strategy, Scheme, ConceptAssoc, Stats) :-
 	dictifyColonList(GroupLengths, LanguagesDict, Languages),
 	compute_depth_stats(Scheme, ConceptAssoc, DStatsPub, Private).
 
+duplicates([], []) :- !.
+duplicates([H, H | T], [H | DT]) :-
+	duplicates([H|T], DT), !.
+duplicates([_H | T], DT) :-
+	duplicates(T, DT), !.
+
 label_formats(0,0,0, [none]) :- !.
 label_formats(0,_,_, [skosxl]):-!.
 label_formats(_,0,0, [skos]):-!.
@@ -82,8 +88,16 @@ group_lengths([], []).
 group_lengths([K-List|T], [K-LDict|TLength]) :-
 	length(List, Length),
 	sort(List, Unique),
+	msort(List, Sorted),
+	duplicates(Sorted, Duplicates),
+	sort(Duplicates, DuplicatesUnique),
 	length(Unique, ULength),
-	LDict=label{totalLabelCount:Length, uniqueLabelCount:ULength},
+	length(DuplicatesUnique, ALength),
+	LDict=label{
+		  duplicates: DuplicatesUnique,
+		  totalLabelCount:Length,
+		  ambiguousLabelCount: ALength,
+		  uniqueLabelCount:ULength},
 	group_lengths(T, TLength).
 
 dictifyColonList(CL, Dict, Langs):-

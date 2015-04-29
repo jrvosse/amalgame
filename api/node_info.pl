@@ -267,9 +267,8 @@ portray_label_stats([Lang-LDict|TailIn],
 			 span([class([label, ambig])], [Lang, '(ambig)'])-
 			 span([class([value, ambig])], [AOut])]
 					 |TailOut], Options) :-
-	UC = LDict.uniqueLabelCount, % # unique labels
-	LC = LDict.totalLabelCount,  % # total labels
-	AC is LC - UC,               % # ambiguous labels
+	AC = LDict.ambiguousLabelCount,
+	LC = LDict.totalLabelCount,
 	option(totalCount(Total), Options, LC),
 	format(atom(TOut), '~w  (~2f%)', [LC, (100*LC)/Total]),
 	format(atom(AOut), '~w	(~2f%)', [AC, (100*AC)/Total]),
