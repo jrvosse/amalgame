@@ -271,8 +271,8 @@ portray_label_stats([Lang-LDict|TailIn],
 	LC = LDict.totalLabelCount,  % # total labels
 	AC is LC - UC,               % # ambiguous labels
 	option(totalCount(Total), Options, LC),
-	format(atom(TOut), '~w  (~1f%)', [LC, (100*LC)/Total]),
-	format(atom(AOut), '~w	(~1f%)', [AC, (100*AC)/Total]),
+	format(atom(TOut), '~w  (~2f%)', [LC, (100*LC)/Total]),
+	format(atom(AOut), '~w	(~2f%)', [AC, (100*AC)/Total]),
 	portray_label_stats(TailIn, TailOut, Options).
 
 depth_stats(Dict, Stats) :-
