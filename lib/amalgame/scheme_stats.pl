@@ -54,19 +54,27 @@ scheme_stats_deep(_Strategy, Scheme, ConceptAssoc, Stats) :-
 		    uniqueLabelCount: UniqueLabelCount
 		},
 	assoc_to_keys(ConceptAssoc, Concepts),
+
+	% compute all (prop:lang)-label pairs for skos and skosxl labels:
 	concepts_stats(Concepts, Skos, XLP, XLA),
 	length(Skos, SkosNr),
 	length(XLP, XLPNr),
 	length(XLA, XLANr),
 	label_formats(SkosNr, XLPNr, XLANr, Formats),
-	append([Skos, XLP, XLA], AllLabels),
-	length(AllLabels, TotalLabelCount),
-	sort(AllLabels, UniqueLabels),
-	msort(AllLabels, SortedLabels),
+	append([Skos, XLP, XLA], AllPropLangLabelPairs),
+	length(AllPropLangLabelPairs, TotalLabelCount),
+
+	% compute total and nr of amb. labels per prop:lang:
+	msort(AllPropLangLabelPairs, SortedLabels),
 	group_pairs_by_key(SortedLabels, Grouped),
 	group_lengths(Grouped, GroupLengths),
-	length(UniqueLabels, UniqueLabelCount),
 	dictifyColonList(GroupLengths, LanguagesDict, Languages),
+
+	% compute total nr of unique labels:
+	pairs_values(AllPropLangLabelPairs, AllLabels),
+	sort(AllLabels, UniqueLabels),
+	length(UniqueLabels, UniqueLabelCount),
+
 	compute_depth_stats(Scheme, ConceptAssoc, DStatsPub, Private).
 
 duplicates([], []) :- !.
