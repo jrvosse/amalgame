@@ -261,14 +261,18 @@ label_property_stat(Dict, Property, Values, Options) :-
 	append(Values0, Values).
 
 portray_label_stats([],[],_) :- !.
-portray_label_stats([Lang-LDict|TailIn], [LC-[span([Lang, '(total)'])-TOut,
-						span([Lang, '(uniq)'])-UOut]
+portray_label_stats([Lang-LDict|TailIn],
+		    [LC-[span([class([label, total])], [Lang, '(total)'])-
+			 span([class([value, total])], [TOut]),
+			 span([class([label, ambig])], [Lang, '(ambig)'])-
+			 span([class([value, ambig])], [AOut])]
 					 |TailOut], Options) :-
-	UC = LDict.uniqueLabelCount,
-	LC = LDict.totalLabelCount,
+	UC = LDict.uniqueLabelCount, % # unique labels
+	LC = LDict.totalLabelCount,  % # total labels
+	AC is LC - UC,               % # ambiguous labels
 	option(totalCount(Total), Options, LC),
 	format(atom(TOut), '~w  (~1f%)', [LC, (100*LC)/Total]),
-	format(atom(UOut), '~w	(~1f%)', [UC, (100*UC)/Total]),
+	format(atom(AOut), '~w	(~1f%)', [AC, (100*AC)/Total]),
 	portray_label_stats(TailIn, TailOut, Options).
 
 depth_stats(Dict, Stats) :-
