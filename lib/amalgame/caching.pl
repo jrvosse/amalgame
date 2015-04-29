@@ -181,13 +181,13 @@ flush_dependent_caches(Id, Strategy) :-
 	),
 	(   ground(Process)
 	->  flush_process_dependent_caches(Process, Strategy,
-					   [flush(expand), flush(stats)])
+					   [expand(flush), stats(flush)])
 	;   true
 	).
 
 
 flush_process_dependent_caches(Process, Strategy, Options) :-
-	(   option(flush(expand), Options)
+	(   option(expand(flush), Options)
 	->  flush_expand_cache(Process, Strategy),
 	    provenance_graph(Strategy, ProvGraph),
 	    remove_old_prov(Process, ProvGraph)
@@ -199,12 +199,12 @@ flush_process_dependent_caches(Process, Strategy, Options) :-
 		    rdf(Result, RP3, Process, Strategy)
 		), Results),
 	forall(member(Result, Results),
-	       (   (   option(flush(stats), Options)
+	       (   (   option(stats(flush), Options)
 		   ->  flush_stats_cache(Result, Strategy),
 		       debug(ag_expand, 'flush stats cache for ~p', [Result])
 		   ;   true
 		   ),
-		   (   option(flush(expand), Options)
+		   (   option(expand(flush), Options)
 		   ->  catch(rdf_unload_graph(Result), _, true),
 		       debug(ag_expand, 'unloading any materialized graphs for ~p', [Result])
 		   ;   true
