@@ -43,7 +43,11 @@ scheme_stats(Strategy, Scheme, ConceptAssoc, Stats) :-
 	assoc_to_keys(ConceptAssoc, Concepts),
 	length(Concepts, TotalCount).
 
-scheme_stats_deep(_Strategy, Scheme, ConceptAssoc, Stats) :-
+scheme_stats_deep(Strategy, Scheme, ConceptAssoc, Stats) :-
+	atomic_list_concat([scheme_stats_deep_,Scheme], Mutex),
+	with_mutex(Mutex, scheme_stats_deep_(Strategy, Scheme, ConceptAssoc, Stats)).
+
+scheme_stats_deep_(_Strategy, Scheme, ConceptAssoc, Stats) :-
 	Stats = scheme_stats_dict{
 		    '@private': Private,
 		    formats: Formats,
@@ -109,8 +113,10 @@ group_lengths([K-SortedPairs|T], [K-LDict|TLength]) :-
 	length(UniqDubConcepts, UniqDubConceptsCount),
 	LDict=label{
 		  totalConceptCount:     UniqConceptsCount,
-		  ambiguousConceptCount: UniqDubConceptsCount,
 		  totalLabelCount:       TotalLabelCount,
+		  ambiguousConcepts:	 UniqDubConcepts,
+		  ambiguousConceptCount: UniqDubConceptsCount,
+		  ambiguousLabels:       UniqDubLabels,
 		  ambiguousLabelCount:   UniqDubLabelsCount
 	      },
 	group_lengths(T, TLength).
