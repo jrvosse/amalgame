@@ -62,7 +62,7 @@ strategy_entity_status(Strategy, Entity, Status) :-
 %
 
 strategy_vocabulary(Strategy, Vocabulary) :-
-	rdf_has(Strategy, amalgame:includes, Vocabulary).
+	rdf(Strategy, amalgame:includes, Vocabulary, Strategy).
 
 %%	strategy_vocabularies(?Strategy, ?Schemes) is nondet.
 %
