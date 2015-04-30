@@ -210,7 +210,7 @@ lang_used(Strategy-Vocs, Languages) :-
 	sort(Languages0, Languages).
 
 lang_used(Strategy, Voc, Languages) :-
-	node_stats(Strategy, Voc, Stats, []),
+	node_stats(Strategy, Voc, Stats, [compute(deep)]),
 	option(languages(Languages), Stats).
 
 skos_util:skos_is_vocabulary(Graph) :-
