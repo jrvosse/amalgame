@@ -36,6 +36,7 @@
 :- use_module(library(ag_modules/subtree_select)).
 :- use_module(library(ag_modules/type_select)).
 :- use_module(library(ag_modules/propvalue_select)).
+:- use_module(library(ag_modules/uniq_label_voc_select)).
 
 % MultiInput
 :- use_module(library(ag_modules/map_merger)).

@@ -79,6 +79,7 @@ vocab_member(E, type(Class)) :-
 vocab_member(E, graph(G)) :-
 	!,
 	rdf(E, rdf:type, _, G).
+
 vocab_member(E, propvalue(any, Value)) :- !,
 	rdf(E, _Property, Value).
 vocab_member(E, propvalue(Property, any)) :- !,
@@ -138,6 +139,25 @@ expand_vocab(Scheme, VocSpec) :-
 	rdf(Scheme, OutputType, Process, Strategy),
 	rdfs_individual_of(Strategy, amalgame:'AlignmentStrategy'),
 	expand_node(Strategy, Scheme, VocSpec).
+
+get_amb_concepts(Property, Lang, Stats, Concepts) :-
+	get_dict(properties, Stats, PropsStats),
+	get_dict(Property, PropsStats, PropStats),
+	get_dict(Lang, PropStats, LocalStats),
+	get_dict(ambiguousConcepts, LocalStats, Concepts).
+
+all_vocab_members(label(Type, Scheme, Property, Lang, Stats), Concepts) :-
+	!,
+	get_amb_concepts(Property, Lang, Stats, Ambiguous),
+	(   Type == ambig
+	->  Concepts = Ambiguous
+	;   Type == uniq
+	->  all_vocab_members(Scheme, G1s),
+	    ord_subtract(G1s, Ambiguous, Concepts)
+	;   Type = none
+	->  all_vocab_members(Scheme, G1s),
+	    findall(C, (member(C, G1s), \+ rdf_has(C, Property, _)), Concepts)
+	).
 
 all_vocab_members(and(G1,not(G2)), Concepts) :-
 	!,

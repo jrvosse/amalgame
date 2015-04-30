@@ -164,6 +164,11 @@ amalgame:SubtreeSelect
     skos:definition "Partition a vocabulary based on the concepts being in the sub-tree below (using BT/NT) a common parent concept, or not."@en ;
     rdfs:subClassOf amalgame:VirtualVocabPartitioner .
 
+amalgame:UniqLabelVocSelect
+    rdfs:label "partition on unique labels"@en ;
+    skos:definition "Partition a vocabulary based on the concepts being uniquely labeled, or not."@en ;
+    rdfs:subClassOf amalgame:VirtualVocabPartitioner .
+
 ####################
 
 amalgame:EvaluationProcess
