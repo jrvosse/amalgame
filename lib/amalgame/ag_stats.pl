@@ -16,6 +16,7 @@
 
 :- use_module(library(amalgame/ag_strategy)).
 :- use_module(library(amalgame/expand_graph)).
+:- use_module(library(amalgame/scheme_stats)).
 :- use_module(library(amalgame/caching)).
 :- use_module(library(amalgame/vocabulary)).
 :- use_module(library(amalgame/ag_reference)).
@@ -27,9 +28,9 @@ node_stats(Strategy, Node, Stats, Options) :-
 	nonvar(Node), nonvar(Options),
 	!,
 	(   rdfs_individual_of(Node, amalgame:'Mapping')
-	->  node_counts(Node, Strategy, Stats, Options)
+	->  node_counts(mapping, Node, Strategy, Stats, Options)
 	;   skos_is_vocabulary(Node)
-	->  node_counts(Node, Strategy, Stats, Options)
+	->  node_counts(scheme, Node, Strategy, Stats, Options)
 	;   Stats = []
 	).
 
@@ -38,15 +39,26 @@ node_stats(Strategy, Node, Stats, Options) :-
 %
 %	Counts for the items in the set denoted by URI.
 
-node_counts(URL, Strategy, Stats, _Options) :-
-	get_stats_cache(Strategy, URL, Stats),
-	!.
-node_counts(_URL, _Strategy, _Stats, Options) :-
+node_counts(_, URL, Strategy, Stats, Options) :-
 	option(compute(false), Options, true),
 	!,
-	fail.
+	get_stats_cache(Strategy, URL, Stats).
 
-node_counts(URL, Strategy, Stats, Options) :-
+node_counts(scheme, Scheme, Strategy, Stats, Options) :-
+	select_option(compute(deep), Options, Options1, true),
+	!,
+	node_counts(scheme, Scheme, Strategy, Stats0, [compute(true)|Options1]),
+	(   get_dict(properties, Stats0, _)
+	->  Stats = Stats0
+	;   expand_node(Strategy, Scheme, ConceptAssoc),
+	    scheme_stats_deep(Strategy, Scheme, ConceptAssoc, Stats)
+	).
+
+node_counts(_, URL, Strategy, Stats, _Options) :-
+	get_stats_cache(Strategy, URL, Stats),
+	!.
+
+node_counts(_, URL, Strategy, Stats, Options) :-
 	option(compute(true), Options, true),
 	!,
 	atomic_concat(node_counts, URL, Mutex),
