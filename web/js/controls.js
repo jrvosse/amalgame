@@ -218,8 +218,10 @@ YUI.add('controls', function(Y) {
 			}
 			if (NODE_INPUT.get("value")) {
 				Y.all(".mapping .control-submit").removeAttribute("disabled");
+				Y.all(".vocab.input .control-submit").removeAttribute("disabled");
 			} else {
 				Y.all(".mapping .control-submit").setAttribute("disabled", true);
+				Y.all(".vocab.input .control-submit").setAttribute("disabled", true);
 			}
 		},
 
