@@ -57,7 +57,7 @@ http_ag_publish(Request) :-
 	absolute_file_name(L,BaseDir),!,
 	file_base_name(Strategy, StrategyBase),
 	atomic_list_concat([BaseDir, StrategyBase], '/', Dir),
-	save_mappings(Strategy, Dir, [status(Status), format(Format),default_relation(DefaultRelation)]),
+	save_results(Strategy, Dir, [status(Status), format(Format),default_relation(DefaultRelation)]),
 	http_redirect(moved, alignment_results(StrategyBase), Request).
 
 

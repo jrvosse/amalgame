@@ -1,18 +1,29 @@
 :- module(ag_publish,[
-		     save_mappings/3
+		     save_results/3
 		     ]).
+
+:- use_module(library(assoc)).
+:- use_module(library(debug)).
+:- use_module(library(lists)).
+:- use_module(library(option)).
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(semweb/rdf_turtle_write)).
+
+:- use_module(library(skos/util)).
+
 :- use_module(library(amalgame/ag_provenance)).
 :- use_module(library(amalgame/ag_evaluation)).
+:- use_module(library(amalgame/ag_stats)).
+:- use_module(library(amalgame/vocabulary)).
+
 :- use_module(library(amalgame/expand_graph)).
 :- use_module(library(amalgame/map)).
 :- use_module(library(amalgame/edoal)).
 
-save_mappings(Strategy, Dir, Options) :-
+save_results(Strategy, Dir, Options) :-
 	delete_empty_eval_graphs(Strategy), % good time for some cleanup...
 
 	provenance_graph(Strategy, ProvGraph),
@@ -29,10 +40,24 @@ save_mappings(Strategy, Dir, Options) :-
 	rdf_save_canonical_turtle(StratFile, [graph(Strategy)|Options]),
 
 	assert_master_void(Strategy, AllMappingsURI, VoidGraph),
+
+	rdf_equal(void:'Dataset', VoidDataset),
+	rdf_equal(void:'Linkset', VoidLinkset),
+
+	select_schemes_to_be_saved(Strategy, Schemes, Options),
+	forall(member(Scheme, Schemes),
+	       save_scheme(Scheme, [strategy(Strategy),
+				    all_mappings(AllMappingsURI),
+				    dir(Dir),
+				    type(VoidDataset),
+				    prov(ProvGraph)|Options])
+	      ),
+
 	select_mappings_to_be_saved(Strategy, Mappings, Options),
 	forall(member(Mapping, Mappings),
 	       save_mapping(Mapping, [strategy(Strategy),
 				      all_mappings(AllMappingsURI),
+				      type(VoidLinkset),
 				      dir(Dir),
 				      prov(ProvGraph)|Options])
 	      ),
@@ -102,6 +127,7 @@ assert_void(Id,Options) :-
 	option(strategy(Strategy), Options),
 	option(prov(ProvGraph), Options),
 	option(all_mappings(All), Options),
+	option(type(Type), Options),
 
 	rdf_equal(xsd:int, Int),
 	void_graph(Strategy, Void),
@@ -117,7 +143,7 @@ assert_void(Id,Options) :-
 	    rdf_assert(Id, void:vocabulary,   dcterms:'', Void)
 	;   true
 	),
-	rdf_assert(Id, rdf:type,          void:'Linkset', Void),
+	rdf_assert(Id, rdf:type,          Type,  Void),
 	rdf_assert(Id, void:triples,      literal(type(Int,NrOfTriples)), Void),
 
 	rdf_assert(Id, amalgame:hasPlan,  Strategy, Void),
@@ -140,6 +166,17 @@ prepare_mapping(Id, Strategy, Options) :-
 	    ->	default_mapping_relation(Id, Default, Options),
 		augment_relations(Strategy, Mapping, Augmented, [default_relation(Default)]),
 		materialize_mapping_graph(Augmented, [graph(Id) | Options])
+	    ;	true % empty mapping, do nothing
+	    )
+	;   true % already materialized in a previous run, do nothing
+	).
+
+prepare_scheme(Id, Strategy, Options) :-
+	(   \+ rdf_graph(Id)
+	->  expand_node(Strategy, Id, Scheme),
+	    (	empty_assoc(Scheme)
+	    ->	true % empty scheme, do nothing
+	    ;	materialize_scheme_graph(Scheme, [graph(Id) | Options])
 	    ;	true % empty mapping, do nothing
 	    )
 	;   true % already materialized in a previous run, do nothing
@@ -173,6 +210,15 @@ save_mapping(Id, Options) :-
 	;   true
 	).
 
+save_scheme(Id, Options) :-
+	option(strategy(Strategy), Options),
+	prepare_scheme(Id, Strategy, Options),
+	assert_void(Id, Options),
+
+	file_base_name(Id, Base),
+	option(dir(Dir), Options, tmpdir),
+	absolute_file_name(Base,  Filename, [relative_to(Dir), extensions([ttl])]),
+	rdf_save_canonical_turtle(Filename, [graph(Id)|Options]).
 
 save_flat_triples(Filename, Id, Options) :-
 	option(strategy(Strategy), Options),
@@ -223,16 +269,35 @@ select_mappings_to_be_saved(Strategy, Mappings, Options) :-
 	->  findall(Mapping,
 		    (	rdfs_individual_of(Mapping, amalgame:'Mapping'),
 			rdf(Mapping, rdf:type, _, Strategy),
-			\+ rdf(Mapping, amalgame:format, literal(empty))
+			node_stats(Strategy, Mapping, Stats, [compute(true)]),
+			\+ option(totalCount(0), Stats)
 		    ),
 		    Mappings)
 	;   findall(Mapping,
 		    (	rdfs_individual_of(Mapping, amalgame:'Mapping'),
 			rdf(Mapping, rdf:type, _, Strategy),
 			rdf(Mapping, amalgame:status, Status),
-			\+ rdf(Mapping, amalgame:format, literal(empty))
+			node_stats(Strategy, Mapping, Stats, [compute(true)]),
+			\+ option(totalCount(0), Stats)
 		    ), Mappings)
 	).
 
 
-
+select_schemes_to_be_saved(Strategy, Schemes, Options) :-
+	option(status(Status), Options, all),
+	(   Status == all
+	->  findall(Scheme,
+		    (	skos_is_vocabulary(Scheme),
+			rdf(Scheme, rdf:type, _, Strategy),
+			node_stats(Strategy, Scheme, Stats, [compute(true)]),
+			\+ option(totalCount(0), Stats)
+		    ),
+		    Schemes)
+	;   findall(Scheme,
+		    (	skos_is_vocabulary(Scheme),
+			rdf(Scheme, rdf:type, _, Strategy),
+			rdf(Scheme, amalgame:status, Status),
+			node_stats(Strategy, Scheme, Stats, [compute(true)]),
+			\+ option(totalCount(0), Stats)
+		    ), Schemes)
+	).
