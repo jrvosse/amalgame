@@ -2,7 +2,8 @@
 	  [ vocab_member/2,
 	    all_vocab_members/2,
 	    amalgame_alignable_schemes/1,
-	    amalgame_vocabulary_languages/1
+	    amalgame_vocabulary_languages/1,
+	    materialize_scheme_graph/2
 	  ]).
 
 :- use_module(library(apply)).
@@ -193,6 +194,22 @@ all_vocab_members(vscheme(Scheme), Concepts) :-
 all_vocab_members(VocSpec, Concepts) :-
 	findall(C, vocab_member(C, VocSpec), Concepts0),
 	sort(Concepts0, Concepts).
+
+
+materialize_scheme_graph(Assoc, Options) :-
+	option(graph(Graph), Options, test),
+        (   rdf_graph(Graph)
+        ->  rdf_unload_graph(Graph)
+        ;   true
+        ),
+	assoc_to_keys(Assoc, Concepts),
+	forall(member(C, Concepts),
+	       materialize_concept(C, Graph)
+	      ).
+
+materialize_concept(Concept, Graph) :-
+	rdf_assert(Concept, skos:inScheme, Graph, Graph).
+
 
 %%	amalgame_alignable_schemes(-Schemes) is det.
 %
