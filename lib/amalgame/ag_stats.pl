@@ -216,11 +216,11 @@ mapping_vocab_sources(URL, Strategy, S, T) :-
 	->  mapping_vocab_sources(Input, Strategy, S, T)
 	).
 
-
-
 vocab_source(V, Strategy, S) :-
-	rdf_has(V, amalgame:wasGeneratedBy, Process, Strategy),
-	rdf_has(Process, amalgame:input, Input, Strategy),
+	rdf_has(V, amalgame:wasGeneratedBy, Process, RealProp1),
+	rdf(V, RealProp1, Process, Strategy),
+	rdf_has(Process, amalgame:input, Input, RealProp2),
+	rdf(Process, RealProp2, Input, Strategy),
 	!,
 	vocab_source(Input, Strategy, S).
 vocab_source(V, _S, V).
