@@ -186,12 +186,6 @@ amalgame:totalCount a rdf:Property, owl:FunctionalProperty ;
 	rdfs:domain amalgame:Entity ;
 	rdfs:range xsd:int .
 
-amalgame:format a rdf:Property , owl:FunctionalProperty ;
-	rdfs:label "mapping format" ;
-	rdfs:comment "The format of the mappings in this Aligment, assuming a graph contains only one format." ;
-	rdfs:domain amalgame:Mapping ;
-	rdfs:range rdfs:Literal .
-
 amalgame:mappedSourceConcepts a rdf:Property, owl:FunctionalProperty ;
 	rdfs:domain amalgame:Mapping ;
 	rdfs:range xsd:int .
