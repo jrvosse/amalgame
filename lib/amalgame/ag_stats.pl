@@ -122,8 +122,8 @@ mapping_stats(URL, Mapping, Strategy, Stats) :-
 	;   VocStats = [], CarthesianProductSize = 0
 	),
 
-	(   ground(StatsSin), Smap = StatsSin.get('@private').get(depthMap),
-	    ground(StatsTin), Tmap = StatsTin.get('@private').get(depthMap)
+	(   nonvar(StatsSin), Smap = StatsSin.get('@private').get(depthMap),
+	    nonvar(StatsTin), Tmap = StatsTin.get('@private').get(depthMap)
 	->  structure_stats(depth,    Ss, Smap, DSstats),
 	    structure_stats(children, Ss, Smap, BSstats),
 	    structure_stats(depth,    Ts, Tmap, DTstats),
@@ -170,7 +170,7 @@ structure_stats(_,[],_,[]).
 structure_stats(_,[_],_,[]).
 structure_stats(Type, Concepts, Map, Stats) :-
 	maplist(concept_depth(Type,Map), Concepts, Depths),
-	sort(Depths, DepthsSorted),
+	msort(Depths, DepthsSorted),
 	list_five_number_summary(DepthsSorted, OptionFormat),
 	dict_create(Stats, stats, OptionFormat).
 

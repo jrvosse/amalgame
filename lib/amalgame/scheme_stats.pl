@@ -224,8 +224,8 @@ compute_depth_stats(Voc, Assoc, Public, Private) :-
 	atomic_list_concat([depth_stats_, Voc], Mutex),
 	with_mutex(Mutex, compute_depths(Mutex,TopConcepts,Assoc,Depths)),
 	assoc_to_values(Depths, Pairs),
-	pairs_keys(Pairs,   DepthCounts0), sort(DepthCounts0, DepthCounts),
-	pairs_values(Pairs, ChildCounts0), sort(ChildCounts0, ChildCounts),
+	pairs_keys(Pairs,   DepthCounts0), msort(DepthCounts0, DepthCounts),
+	pairs_values(Pairs, ChildCounts0), msort(ChildCounts0, ChildCounts),
 	list_five_number_summary_dict(DepthCounts, DC5),
 	list_five_number_summary_dict(ChildCounts, CC5).
 
