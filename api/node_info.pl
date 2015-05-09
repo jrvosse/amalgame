@@ -186,10 +186,20 @@ amalgame_info(URL, Strategy, Stats) :-
 	->  true
 	;   ReferenceStats = []
 	),
+
+	(   option(vocs(Vocs), MStats),
+	    option(source(SScheme), Vocs), option(stats(SStats),SScheme),
+	    option(target(TScheme), Vocs), option(stats(TStats),TScheme),
+	    option(properties(SProps), SStats), option(totalCount(STotal), SStats),
+	    option(properties(TProps), TStats), option(totalCount(TTotal), TStats)
+	->  label_property_stats(SProps, PSstats, [totalCount(STotal)]),
+	    label_property_stats(TProps, PTstats, [totalCount(TTotal)])
+	;   PSstats = [], PTstats=[]
+	),
 	append([
 	    BasicStats,
 	    IpStats,
-	    ReferenceStats,
+	    ReferenceStats, PSstats, PTstats,
 	    [DepthSStats], [ChildSStats],
 	    [DepthTStats], ChildTStats
 	], Stats).
