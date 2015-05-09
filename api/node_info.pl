@@ -11,6 +11,7 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
+:- use_module(library(semweb/rdf_persistency)).
 
 :- use_module(library(skos/util)).
 
@@ -30,6 +31,7 @@
 	   'Compute all (takes long) or only the cheap (fast) vocabulary statistics').
 
 :- rdf_meta
+	ag_prov(r,r,+,t),
 	label_stats(r, r, r, -).
 
 %%	http_node_info(+Request)
@@ -298,7 +300,7 @@ amalgame_provenance(R, Strategy, Provenance) :-
 	findall(Key-Value, ag_prov(R, Strategy, Key, Value), Provenance0),
 	sort(Provenance0,Provenance).
 
-ag_prov(R, A, 'defined by', \rdf_link(Agent)) :-
+ag_prov(R, A, 'created by', \rdf_link(Agent)) :-
 	(   rdf_has(R, dc:creator, Agent, RealProp),
 	    rdf(R, RealProp, Agent, A)
 	*->  true
@@ -320,12 +322,17 @@ ag_prov(R, _A, 'generated at', \rdf_link(Time)) :-
 	% literal_text(Time, TS).
 
 
-ag_prov(R, A, 'defined at', \rdf_link(V)) :-
+ag_prov(R, A, 'first created at', \rdf_link(V)) :-
 	(   rdf_has(R, dc:date, V, RealProp),
 	    rdf(R, RealProp, V, A)
 	->  true
 	;   rdf_has(R, dc:date, V)
 	).
+ag_prov(S, S, 'last modified at', \rdf_link(literal(type(xsd:dateTime,Modified)))) :-
+	rdf_graph(S),
+	rdf_journal_file(S,File),
+	time_file(File,Time),
+	xsd_timestamp(Time, Modified).
 ag_prov(R, A, owl:'version', V) :-
 	(   rdf_has(R, owl:versionInfo, literal(V), RealProp),
 	    rdf(R, RealProp, literal(V), A)
