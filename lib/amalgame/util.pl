@@ -101,9 +101,7 @@ now_xsd(Text) :-
 
 xsd_timestamp(Time, Atom) :-
 	stamp_date_time(Time, Date, 'UTC'),
-        format_time(atom(Atom),
-                    '%FT%T%:z',
-                    Date, posix).
+        format_time(atom(Atom), '%FT%T%:z', Date, posix).
 
 %%	list_offset(+List, +N, -SmallerList)
 %
