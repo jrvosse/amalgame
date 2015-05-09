@@ -200,8 +200,7 @@ prov_was_generated_by(Process, Artifacts, Graph, Options) :-
 	rdf_assert(Process, prov:qualifiedAssociation,  ProgramAssociation, Graph),
 	rdf_assert(Process, prov:qualifiedAssociation,  PersonAssociation,  Graph),
 
-	get_time(Now),
-	get_xml_dateTime(Now, NowXML),
+	now_xsd(NowXML),
 	rdf_assert(Process, prov:endedAtTime,   literal(type(xsd:dateTime, NowXML)) , Graph),
 
 	(   memberchk(was_derived_from(Sources), Options)
@@ -348,7 +347,7 @@ prov_named_graph(NG, Repo, Graph) :-
 	;   true
 	),
 	(   rdf_graph_property(NG, source_last_modified(NGsource_lm0))
-	->  get_xml_dateTime(NGsource_lm0, NGsource_lm),
+	->  xsd_timestamp(NGsource_lm0, NGsource_lm),
 	    rdf_assert(NG, amalgame:source_last_modified,
 		       literal(type(xsd:dateTime, NGsource_lm)), Graph)
 	;   true
@@ -360,8 +359,6 @@ prov_named_graph(NG, Repo, Graph) :-
 	rdf_assert(NG, amalgame:triples, literal(type(xsd:int, NGCount)), Graph),
 	rdf_assert(NG, rdfs:comment, literal(lang(en, 'This named graph was loaded into the triple store during the alignment process. It may or may not have influenced the results.')), Graph).
 
-get_xml_dateTime(T, TimeStamp) :-
-	format_time(atom(TimeStamp), '%Y-%m-%dT%H-%M-%S%Oz', T).
 
 %%	prov_get_entity_version(+Entity,+SourceGraph,Version)
 %	is semidet.
@@ -382,7 +379,7 @@ prov_get_entity_version(Entity, SourceGraph, Version) :-
 	->  format(atom(Version),  'GIT version: ~w', [GitVersion])
 	;   rdf_graph_property(SourceGraph, hash(Hash)),
 	    rdf_graph_property(SourceGraph, source_last_modified(LastModified)),
-	    format_time(atom(Time), 'Last-Modified: %Y-%m-%dT%H-%M-%S%Oz', LastModified),
+	    format_time(atom(Time), 'Last-Modified: %Y-%m-%dT%H:%M:%S%Oz', LastModified),
 	    format(atom(Version), '~w hash: ~w', [Time, Hash])
 	).
 
