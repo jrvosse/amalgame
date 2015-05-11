@@ -89,28 +89,27 @@ reference_counts_(Id, Strategy, RefStats) :-
 
 mapping_stats(URL, Mapping, Strategy, Stats) :-
 	BasicStats = [
-	    totalCount-MN,
-	    mappedSourceConcepts-SN,
-	    mappedTargetConcepts-TN
+	    totalCount-MN
 	],
 	length(Mapping, MN),
 	maplist(align_source, Mapping, Ss0),
 	maplist(align_target, Mapping, Ts0),
 	sort(Ss0, Ss),	sort(Ts0, Ts),
-	length(Ss, SN),	length(Ts, TN),
 
-	vocab_stats(URL, Strategy, SN, TN, VocStats, StructStats, CarthesianProductSize),
-	input_stats(URL, Strategy, SN, TN, MN, CarthesianProductSize, InputStats),
+	vocab_stats(URL, Strategy, Ss, Ts, VocStats, StructStats, CarthesianProductSize),
+	input_stats(URL, Strategy, Ss, Ts, MN, CarthesianProductSize, InputStats),
 
 	append([BasicStats, VocStats, StructStats, InputStats], StatsPairs),
 	dict_pairs(Stats,mapping_stats_dict, StatsPairs).
 
-input_stats(URL, Strategy, SN, TN, MN, CarthesianProductSize, InputStats) :-
+input_stats(URL, Strategy, Ss, Ts, MN, CarthesianProductSize, InputStats) :-
 	InputStats = [
 	    sourcePercentageInput-SiPerc,
 	    targetPercentageInput-TiPerc,
 	    inputPercentage-IP
 	],
+
+	length(Ss, SN),	length(Ts, TN),
 
 	findall(Input, has_mapping_input(URL, Strategy, Input), Inputs),
 	(   Inputs \= []
@@ -134,12 +133,13 @@ input_stats(URL, Strategy, SN, TN, MN, CarthesianProductSize, InputStats) :-
 	).
 
 
-vocab_stats(URL, Strategy, SN, TN, VocStats, StructStats, CarthesianProductSize) :-
+vocab_stats(URL, Strategy, Ss, Ts, VocStats, StructStats, CarthesianProductSize) :-
 	mapping_vocab_sources(URL, Strategy, InputS, InputT),
 	node_stats(Strategy, InputS, StatsSin, [compute(deep)]),
 	node_stats(Strategy, InputT, StatsTin, [compute(deep)]),
 	option(totalCount(SourceN), StatsSin),
 	option(totalCount(TargetN), StatsTin),
+	length(Ss, SN),	length(Ts, TN),
 	save_perc(SN, SourceN, SPerc),
 	save_perc(TN, TargetN, TPerc),
 	js_focus_node(Strategy, InputS, SvocDict),
@@ -150,6 +150,8 @@ vocab_stats(URL, Strategy, SN, TN, VocStats, StructStats, CarthesianProductSize)
 		     source:SvocDict,
 		     target:TvocDict
 		 },
+	    mappedSourceConcepts-SN,
+	    mappedTargetConcepts-TN,
 	    sourcePercentage-SPerc,
 	    targetPercentage-TPerc
 	],
