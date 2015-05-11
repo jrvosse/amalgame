@@ -67,7 +67,7 @@ node_counts(_, URL, Strategy, Stats, Options) :-
 	debug(mutex, 'Releasing mutex: ~w', [Mutex]).
 
 node_counts_(URL, Strategy, Stats) :-
-	expand_node(Strategy, URL, _Result), % this fills the cache
+	expand_node(Strategy, URL, _Result), % this should fill the cache
 	get_stats_cache(Strategy, URL, Stats),
 	is_dict(Stats).
 
@@ -100,7 +100,12 @@ mapping_stats(URL, Mapping, Strategy, Stats) :-
 	length(Ss, SN),	length(Ts, TN),
 
 	vocab_stats(URL, Strategy, SN, TN, VocStats, StructStats, CarthesianProductSize),
+	input_stats(URL, Strategy, SN, TN, MN, CarthesianProductSize, InputStats),
 
+	append([BasicStats, VocStats, StructStats, InputStats], StatsPairs),
+	dict_pairs(Stats,mapping_stats_dict, StatsPairs).
+
+input_stats(URL, Strategy, SN, TN, MN, CarthesianProductSize, InputStats) :-
 	InputStats = [
 	    sourcePercentageInput-SiPerc,
 	    targetPercentageInput-TiPerc,
@@ -126,9 +131,8 @@ mapping_stats(URL, Mapping, Strategy, Stats) :-
 	    save_perc(MN,CarthesianProductSize, IP),
 	    SiPerc = 0,
 	    TiPerc = 0
-	),
-	append([BasicStats, VocStats, StructStats, InputStats], StatsPairs),
-	dict_pairs(Stats,mapping_stats_dict, StatsPairs).
+	).
+
 
 vocab_stats(URL, Strategy, SN, TN, VocStats, StructStats, CarthesianProductSize) :-
 	mapping_vocab_sources(URL, Strategy, InputS, InputT),
