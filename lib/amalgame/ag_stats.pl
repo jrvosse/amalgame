@@ -92,14 +92,16 @@ mapping_stats(URL, Mapping, Strategy, Stats) :-
 	    totalCount-MN
 	],
 	length(Mapping, MN),
-	maplist(align_source, Mapping, Ss0),
-	maplist(align_target, Mapping, Ts0),
+	maplist(correspondence_source, Mapping, Ss0),
+	maplist(correspondence_target, Mapping, Ts0),
 	sort(Ss0, Ss),	sort(Ts0, Ts),
 
+	compute_label_stats(Ss, SLabelDict),
+	compute_label_stats(Ts, TLabelDict),
 	vocab_stats(URL, Strategy, Ss, Ts, VocStats, StructStats, CarthesianProductSize),
 	input_stats(URL, Strategy, Ss, Ts, MN, CarthesianProductSize, InputStats),
 
-	append([BasicStats, VocStats, StructStats, InputStats], StatsPairs),
+	append([BasicStats, [ labels - label{source:SLabelDict, target:TLabelDict} ], VocStats, StructStats, InputStats], StatsPairs),
 	dict_pairs(Stats,mapping_stats_dict, StatsPairs).
 
 input_stats(URL, Strategy, Ss, Ts, MN, CarthesianProductSize, InputStats) :-
@@ -116,8 +118,8 @@ input_stats(URL, Strategy, Ss, Ts, MN, CarthesianProductSize, InputStats) :-
 	->  maplist(expand_node(Strategy), Inputs, InputMappings),
 	    append(InputMappings, Merged),
 	    sort(Merged, Unique),
-	    maplist(align_source, Unique, Si0),
-	    maplist(align_target, Unique, Ti0),
+	    maplist(correspondence_source, Unique, Si0),
+	    maplist(correspondence_target, Unique, Ti0),
 	    sort(Si0, Si),
 	    sort(Ti0, Ti),
 	    length(Unique, IML),
@@ -131,7 +133,6 @@ input_stats(URL, Strategy, Ss, Ts, MN, CarthesianProductSize, InputStats) :-
 	    SiPerc = 0,
 	    TiPerc = 0
 	).
-
 
 vocab_stats(URL, Strategy, Ss, Ts, VocStats, StructStats, CarthesianProductSize) :-
 	mapping_vocab_sources(URL, Strategy, InputS, InputT),
@@ -155,6 +156,7 @@ vocab_stats(URL, Strategy, Ss, Ts, VocStats, StructStats, CarthesianProductSize)
 	    sourcePercentage-SPerc,
 	    targetPercentage-TPerc
 	],
+
 	nonvar(StatsSin), Smap = StatsSin.get('@private').get(depthMap),
 	nonvar(StatsTin), Tmap = StatsTin.get('@private').get(depthMap),
 	structure_stats(depth,    Ss, Smap, DSstats),
@@ -169,7 +171,6 @@ vocab_stats(URL, Strategy, Ss, Ts, VocStats, StructStats, CarthesianProductSize)
 	],
 	!.
 
-vocab_stats(_URL, _Strategy, [], [], 0) :-
 
 structure_stats(_,[],_,[]).
 structure_stats(_,[_],_,[]).
@@ -230,8 +231,6 @@ vocab_source(V, Strategy, S) :-
 	vocab_source(Input, Strategy, S).
 vocab_source(V, _S, V).
 
-align_source(align(S,_,_), S).
-align_target(align(_,T,_), T).
 
 compute_reference_counts(Id, Strategy, RefStats) :-
 	reference_mappings(Strategy, References),
