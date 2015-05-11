@@ -8,6 +8,7 @@
 
 :- use_module(library(apply)).
 :- use_module(library(assoc)).
+:- use_module(library(debug)).
 :- use_module(library(lists)).
 :- use_module(library(ordsets)).
 :- use_module(library(option)).
@@ -247,6 +248,7 @@ lang_used(Strategy-Vocs, Languages) :-
 	sort(Languages0, Languages).
 
 lang_used(Strategy, Voc, Languages) :-
+	debug(ag_stats, 'Computing languages used in ~p for ~p', [Voc, Strategy]),
 	node_stats(Strategy, Voc, Stats, [compute(deep)]),
 	option(languages(Languages), Stats).
 
