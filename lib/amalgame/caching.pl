@@ -163,15 +163,16 @@ flush_expand_cache(Strategy) :-
 	del_materialized_vocs(Strategy),
 	del_materialized_mappings(Strategy),
 	forall(amalgame_computed_node(Strategy ,Id),
-	          flush_expand_cache(Id, Strategy)
+	       (   flush_expand_cache(Id, Strategy),
+		   flush_stats_cache(Id, Strategy),
+		   flush_mapped_concepts_cache(Id, Strategy)
+	       )
 	      ).
 
 flush_expand_cache(Id, Strategy) :-
 	(   expand_cache(Id-Strategy, _) % make sure Id is bounded to something in the cache
 	->  retractall(expand_cache(Id-Strategy, _)),
-	    debug(ag_expand, 'Flushed expand mapping cache for results of process ~p', [Id]),
-	    flush_stats_cache(Id, Strategy),
-	    flush_mapped_concepts_cache(Id, Strategy)
+	    debug(ag_expand, 'Flushed expand mapping cache for results of process ~p', [Id])
 	;   true
 	).
 
