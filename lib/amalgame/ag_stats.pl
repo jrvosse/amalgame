@@ -67,7 +67,7 @@ node_counts(_, URL, Strategy, Stats, Options) :-
 	debug(mutex, 'Releasing mutex: ~w', [Mutex]).
 
 node_counts_(URL, Strategy, Stats) :-
-	expand_node(Strategy, URL, _Result), % this fills the cache
+	expand_node(Strategy, URL, _Result), % this should fill the cache
 	get_stats_cache(Strategy, URL, Stats),
 	is_dict(Stats).
 
@@ -89,67 +89,37 @@ reference_counts_(Id, Strategy, RefStats) :-
 
 mapping_stats(URL, Mapping, Strategy, Stats) :-
 	BasicStats = [
-	    totalCount-MN,
-	    mappedSourceConcepts-SN,
-	    mappedTargetConcepts-TN
+	    totalCount-MN
 	],
-	maplist(align_source, Mapping, Ss0),
-	maplist(align_target, Mapping, Ts0),
-	sort(Ss0, Ss),
-	sort(Ts0, Ts),
 	length(Mapping, MN),
-	length(Ss, SN),
-	length(Ts, TN),
+	maplist(correspondence_source, Mapping, Ss0),
+	maplist(correspondence_target, Mapping, Ts0),
+	sort(Ss0, Ss),	sort(Ts0, Ts),
 
-	(   mapping_vocab_sources(URL, Strategy, InputS, InputT),
-	    node_stats(Strategy, InputS, StatsSin, []),
-	    node_stats(Strategy, InputT, StatsTin, [])
-	->  option(totalCount(SourceN), StatsSin),
-	    option(totalCount(TargetN), StatsTin),
-	    save_perc(SN, SourceN, SPerc),
-	    save_perc(TN, TargetN, TPerc),
-	    js_focus_node(Strategy, InputS, SvocDict),
-	    js_focus_node(Strategy, InputT, TvocDict),
-	    CarthesianProductSize is SourceN * TargetN,
-	    VocStats = [
-		vocs-vocs{
-			 source:SvocDict,
-			 target:TvocDict
-		     },
-		sourcePercentage-SPerc,
-		targetPercentage-TPerc
-	    ]
-	;   VocStats = [], CarthesianProductSize = 0
-	),
+	compute_label_stats(Ss, SLabelDict),
+	compute_label_stats(Ts, TLabelDict),
+	vocab_stats(URL, Strategy, Ss, Ts, VocStats, StructStats, CarthesianProductSize),
+	input_stats(URL, Strategy, Ss, Ts, MN, CarthesianProductSize, InputStats),
 
-	(   nonvar(StatsSin), Smap = StatsSin.get('@private').get(depthMap),
-	    nonvar(StatsTin), Tmap = StatsTin.get('@private').get(depthMap)
-	->  structure_stats(depth,    Ss, Smap, DSstats),
-	    structure_stats(children, Ss, Smap, BSstats),
-	    structure_stats(depth,    Ts, Tmap, DTstats),
-	    structure_stats(children, Ts, Tmap, BTstats),
-	    StrucStats = [
-		source_depth-DSstats,
-		target_depth-DTstats,
-		source_child_stats-BSstats,
-		target_child_stats-BTstats
-	    ]
-	;   StrucStats = []
-	),
+	append([BasicStats, [ labels - label{source:SLabelDict, target:TLabelDict} ], VocStats, StructStats, InputStats], StatsPairs),
+	dict_pairs(Stats,mapping_stats_dict, StatsPairs).
 
+input_stats(URL, Strategy, Ss, Ts, MN, CarthesianProductSize, InputStats) :-
 	InputStats = [
 	    sourcePercentageInput-SiPerc,
 	    targetPercentageInput-TiPerc,
 	    inputPercentage-IP
 	],
 
+	length(Ss, SN),	length(Ts, TN),
+
 	findall(Input, has_mapping_input(URL, Strategy, Input), Inputs),
 	(   Inputs \= []
 	->  maplist(expand_node(Strategy), Inputs, InputMappings),
 	    append(InputMappings, Merged),
 	    sort(Merged, Unique),
-	    maplist(align_source, Unique, Si0),
-	    maplist(align_target, Unique, Ti0),
+	    maplist(correspondence_source, Unique, Si0),
+	    maplist(correspondence_target, Unique, Ti0),
 	    sort(Si0, Si),
 	    sort(Ti0, Ti),
 	    length(Unique, IML),
@@ -162,9 +132,45 @@ mapping_stats(URL, Mapping, Strategy, Stats) :-
 	    save_perc(MN,CarthesianProductSize, IP),
 	    SiPerc = 0,
 	    TiPerc = 0
-	),
-	append([BasicStats, VocStats, StrucStats, InputStats], StatsPairs),
-	dict_pairs(Stats,mapping_stats_dict, StatsPairs).
+	).
+
+vocab_stats(URL, Strategy, Ss, Ts, VocStats, StructStats, CarthesianProductSize) :-
+	mapping_vocab_sources(URL, Strategy, InputS, InputT),
+	node_stats(Strategy, InputS, StatsSin, [compute(deep)]),
+	node_stats(Strategy, InputT, StatsTin, [compute(deep)]),
+	option(totalCount(SourceN), StatsSin),
+	option(totalCount(TargetN), StatsTin),
+	length(Ss, SN),	length(Ts, TN),
+	save_perc(SN, SourceN, SPerc),
+	save_perc(TN, TargetN, TPerc),
+	js_focus_node(Strategy, InputS, SvocDict),
+	js_focus_node(Strategy, InputT, TvocDict),
+	CarthesianProductSize is SourceN * TargetN,
+	VocStats = [
+	    vocs-vocs{
+		     source:SvocDict,
+		     target:TvocDict
+		 },
+	    mappedSourceConcepts-SN,
+	    mappedTargetConcepts-TN,
+	    sourcePercentage-SPerc,
+	    targetPercentage-TPerc
+	],
+
+	nonvar(StatsSin), Smap = StatsSin.get('@private').get(depthMap),
+	nonvar(StatsTin), Tmap = StatsTin.get('@private').get(depthMap),
+	structure_stats(depth,    Ss, Smap, DSstats),
+	structure_stats(children, Ss, Smap, BSstats),
+	structure_stats(depth,    Ts, Tmap, DTstats),
+	structure_stats(children, Ts, Tmap, BTstats),
+	StructStats = [
+	    source_depth-DSstats,
+	    target_depth-DTstats,
+	    source_child_stats-BSstats,
+	    target_child_stats-BTstats
+	],
+	!.
+
 
 structure_stats(_,[],_,[]).
 structure_stats(_,[_],_,[]).
@@ -225,8 +231,6 @@ vocab_source(V, Strategy, S) :-
 	vocab_source(Input, Strategy, S).
 vocab_source(V, _S, V).
 
-align_source(align(S,_,_), S).
-align_target(align(_,T,_), T).
 
 compute_reference_counts(Id, Strategy, RefStats) :-
 	reference_mappings(Strategy, References),

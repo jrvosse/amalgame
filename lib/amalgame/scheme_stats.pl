@@ -1,7 +1,8 @@
 :- module(ag_scheme_stats,
 	  [
 	      scheme_stats/4,
-	      scheme_stats_deep/4
+	      scheme_stats_deep/4,
+	      compute_label_stats/2
 	  ]).
 
 :- use_module(library(assoc)).
@@ -48,16 +49,22 @@ scheme_stats_deep(Strategy, Scheme, ConceptAssoc, Stats) :-
 	with_mutex(Mutex, scheme_stats_deep_(Strategy, Scheme, ConceptAssoc, Stats)).
 
 scheme_stats_deep_(_Strategy, Scheme, ConceptAssoc, Stats) :-
+	DepthStats = scheme_stats_dict{
+			 '@private': Private,
+			  structure: DStatsPub
+		     },
+	compute_depth_stats(Scheme, ConceptAssoc, DStatsPub, Private),
+	assoc_to_keys(ConceptAssoc, Concepts),
+	compute_label_stats(Concepts, LabelStats),
+	Stats = DepthStats.put(LabelStats).
+
+compute_label_stats(Concepts, Stats) :-
 	Stats = scheme_stats_dict{
-		    '@private': Private,
 		    formats: Formats,
-		    structure: DStatsPub,
 		    languages: Languages,
 		    properties: LanguagesDict,
 		    totalLabelCount: TotalLabelCount
 		},
-	assoc_to_keys(ConceptAssoc, Concepts),
-
 	% compute all (prop:lang)-label pairs for skos and skosxl labels:
 	concepts_stats(Concepts, Skos, XLP, XLA),
 	length(Skos, SkosNr),
@@ -71,9 +78,9 @@ scheme_stats_deep_(_Strategy, Scheme, ConceptAssoc, Stats) :-
 	msort(AllPropLangLabelPairs, SortedLabels),
 	group_pairs_by_key(SortedLabels, Grouped),
 	group_lengths(Grouped, GroupLengths),
-	dictifyColonList(GroupLengths, LanguagesDict, Languages),
+	dictifyColonList(GroupLengths, LanguagesDict, Languages).
 
-	compute_depth_stats(Scheme, ConceptAssoc, DStatsPub, Private).
+
 
 duplicates([], []) :- !.
 duplicates([K-V1, K-V2, K-V3 | T], [K-V1 | DT]) :-

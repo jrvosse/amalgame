@@ -158,7 +158,6 @@ change_ns_if_needed(NS, URI, Strategy, NewStrategy) :-
 	    rdf_unload_graph(Prov),
 	    rdf_retractall(URI, amalgame:publish_ns, OldNS, Strategy),
 	    rdf_assert(URI, amalgame:publish_ns, NS, Strategy),
-	    flush_stats_cache(Strategy),
 	    flush_expand_cache(Strategy),
 	    change_namespace(OldNS, NS, Strategy, NewStrategy)
 	).

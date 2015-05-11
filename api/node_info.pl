@@ -186,10 +186,17 @@ amalgame_info(URL, Strategy, Stats) :-
 	->  true
 	;   ReferenceStats = []
 	),
+
+	option(labels(Labels), MStats),
+	option(source(SLabels), Labels),     option(target(TLabels), Labels),
+	option(properties(SPDict), SLabels), option(properties(TPDict), TLabels),
+	label_property_stats(SPDict, PSstats, [totalCount(SN0), role(src)]),
+	label_property_stats(TPDict, PTstats, [totalCount(TN0), role(trg)]),
+
 	append([
 	    BasicStats,
 	    IpStats,
-	    ReferenceStats,
+	    ReferenceStats, PSstats, PTstats,
 	    [DepthSStats], [ChildSStats],
 	    [DepthTStats], ChildTStats
 	], Stats).
@@ -212,8 +219,8 @@ amalgame_info(Scheme, Strategy, Stats) :-
 	    option(totalLabelCount(TotalLabelCount), NStats, 0)
 	->  ExtraStats = [
 		'formats:'   - Formats,
-		'# labels (all properties):'        -  span('~d (~1f l/c)'-[TotalLabelCount, (TotalLabelCount)/Total]),
-		'# counted top concepts:'  - span('~d (~1f%)'-[NrTopConcepts, (100*NrTopConcepts)/Total])
+		'# labels (all properties):' - span('~d (~1f l/c)'-[TotalLabelCount, (TotalLabelCount)/Total]),
+		'# counted top concepts:'    - span('~d (~1f%)'-[NrTopConcepts, (100*NrTopConcepts)/Total])
 			 | DTops
 	    ],
 	    option(topConceptCount(NrTopConcepts), DDict, [])
@@ -225,7 +232,8 @@ amalgame_info(Scheme, Strategy, Stats) :-
 	;   Virtual = materialized,
 	    findall(Top, skos_top_concept(Scheme, Top), Tops),
 	    length(Tops, NrDeclaredTops),
-	    DTops = ['# declared top concepts:'  - span('~d (~1f%)'-[NrDeclaredTops, (100*NrDeclaredTops/NrTopConcepts)])]
+	    DTops = ['# declared top concepts:'  -
+		     span('~d (~1f%)'-[NrDeclaredTops, (100*NrDeclaredTops/NrTopConcepts)])]
 	),
 	label_property_stats(PDict, PStats, [totalCount(Total)]),
 	depth_stats(DDict, DStats),
@@ -245,9 +253,9 @@ amalgame_info(URL, Strategy,
 	),
 	append([Definition, Input],Optional).
 
-
 label_property_stats(Dict, Stats, Options) :-
-	findall(\rdf_link(Property)-set(Values),
+	option(role(Role), Options, ''),
+	findall(span([Role, '/', \rdf_link(Property)])-set(Values),
 		label_property_stat(Dict, Property, Values, Options),
 		Stats).
 
@@ -262,8 +270,10 @@ label_property_stat(Dict, Property, Values, Options) :-
 
 portray_label_stats([],[],_) :- !.
 portray_label_stats([Lang-LDict|TailIn],
-		    [LC-[span([class([key, total])], [Lang, '(total)'])-
+		    [LC-[span([class([key, total])], [Lang, '(labeled cncps)'])-
 			 span([class([value, total])], [TOut]),
+			 span([class([key, lpc])], [Lang, '(label/concept)'])-
+			 span([class([value, lpc])], [LCOut]),
 			 span([class([key, ambig])], [Lang, '(ambig label)'])-
 			 span([class([value, ambig])], [AOut]),
 			 span([class([key, ambig])], [Lang, '(ambig cncps)'])-
@@ -273,11 +283,12 @@ portray_label_stats([Lang-LDict|TailIn],
 	AL = LDict.ambiguousLabelCount,
 	AC = LDict.ambiguousConceptCount,
 	LC = LDict.totalLabelCount,
-
+	TC = LDict.totalConceptCount,
 	option(totalCount(Total), Options, LC),
-	format(atom(TOut), '~w  (~2f%)', [LC, (100*LC)/Total]),
+	format(atom(TOut), '~w  (~2f%)', [TC, (100*TC)/Total]),
 	format(atom(AOut), '~w	(~2f%)', [AL, (100*AL)/Total]),
 	format(atom(COut), '~w	(~2f%)', [AC, (100*AC)/Total]),
+	format(atom(LCOut), '~w	(~2f)',  [LC, (LC/TC)]),
 	portray_label_stats(TailIn, TailOut, Options).
 
 depth_stats(Dict, Stats) :-
