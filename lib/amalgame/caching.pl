@@ -10,9 +10,7 @@
 	      flush_expand_cache/1,     % ?Strategy
 	      flush_expand_cache/2,     % +Id, +Strategy
 	      flush_refs_cache/1,       % ?Strategy
-	      flush_refs_cache/2,
-	      flush_stats_cache/1, % ?Strategy
-	      flush_stats_cache/2  % +Mapping, +Strategy
+	      flush_refs_cache/2
 	  ]).
 
 :- use_module(library(debug)).
@@ -39,13 +37,9 @@
 	   'Minimum execution time to cache intermediate \c
 	   results, defaults to 0.0, caching everything').
 
-
-user:message_hook(make(done(_)), _, _) :-
-	flush_stats_cache(_),
-	nickname_clear_cache,
-	fail.
 user:message_hook(make(done(_)), _, _) :-
 	flush_expand_cache(_),
+	nickname_clear_cache,
 	fail.
 user:message_hook(make(done(_)), _, _) :-
 	flush_prov_cache,
@@ -77,21 +71,6 @@ flush_stats_cache(Id, Strategy) :-
 	    retractall(stats_cache(Id-Strategy,_))
 	;   true
 	).
-
-flush_stats_cache(Strategy) :-
-	flush_mapping_stats_cache(Strategy),
-	flush_virtual_scheme_stats_cache(Strategy).
-
-flush_mapping_stats_cache(Strategy) :-
-	forall(rdf(Mapping, rdf:type, amalgame:'Mapping', Strategy),
-	       (   flush_stats_cache(Mapping, Strategy),
-		   flush_mapped_concepts_cache(Mapping, Strategy)
-	      )
-	      ).
-flush_virtual_scheme_stats_cache(Strategy) :-
-	forall(rdf(Mapping, rdf:type, amalgame:'VirtualConceptScheme', Strategy),
-	       flush_stats_cache(Mapping, Strategy)
-	      ).
 
 flush_refs_cache(Strategy) :-
 	flush_refs_cache(_Mapping,Strategy).
@@ -167,6 +146,14 @@ clean_repository :-
 	       )
 	      ).
 
+amalgame_computed_node(Strategy, Id) :-
+	rdf(Id, rdf:type, amalgame:'VirtualConceptScheme', Strategy).
+amalgame_computed_node(Strategy, Id) :-
+	rdf(Id, rdf:type, amalgame:'Mapping', Strategy).
+amalgame_computed_node(Strategy, Id) :-
+	rdfs_individual_of(Id,  amalgame:'Process'),
+	rdf(Id, rdf:type, _, Strategy).
+
 %%	flush_expand_cache(+Strategy)
 %
 %	Retract all cached mappings.
@@ -175,14 +162,16 @@ flush_expand_cache(Strategy) :-
 	del_prov_graphs(Strategy),
 	del_materialized_vocs(Strategy),
 	del_materialized_mappings(Strategy),
-	forall(expand_cache(Id-Strategy, _),
-	       flush_expand_cache(Id, Strategy)
+	forall(amalgame_computed_node(Strategy ,Id),
+	          flush_expand_cache(Id, Strategy)
 	      ).
 
 flush_expand_cache(Id, Strategy) :-
 	(   expand_cache(Id-Strategy, _) % make sure Id is bounded to something in the cache
 	->  retractall(expand_cache(Id-Strategy, _)),
-	    debug(ag_expand, 'Flushed expand mapping cache for results of process ~p', [Id])
+	    debug(ag_expand, 'Flushed expand mapping cache for results of process ~p', [Id]),
+	    flush_stats_cache(Id, Strategy),
+	    flush_mapped_concepts_cache(Id, Strategy)
 	;   true
 	).
 
