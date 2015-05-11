@@ -18,6 +18,7 @@
 :- use_module(library(amalgame/amalgame_modules)).
 :- use_module(library(amalgame/ag_strategy)).
 :- use_module(library(amalgame/ag_stats)).
+:- use_module(library(amalgame/scheme_stats)).
 :- use_module(library(amalgame/util)).
 :- use_module(components(label)). % we need rdf_link//1 from this module
 
@@ -186,16 +187,8 @@ amalgame_info(URL, Strategy, Stats) :-
 	->  true
 	;   ReferenceStats = []
 	),
+	PSstats = [], PTstats = [],
 
-	(   option(vocs(Vocs), MStats),
-	    option(source(SScheme), Vocs), option(stats(SStats),SScheme),
-	    option(target(TScheme), Vocs), option(stats(TStats),TScheme),
-	    option(properties(SProps), SStats), option(totalCount(STotal), SStats),
-	    option(properties(TProps), TStats), option(totalCount(TTotal), TStats)
-	->  label_property_stats(SProps, PSstats, [totalCount(STotal)]),
-	    label_property_stats(TProps, PTstats, [totalCount(TTotal)])
-	;   PSstats = [], PTstats=[]
-	),
 	append([
 	    BasicStats,
 	    IpStats,
@@ -235,7 +228,8 @@ amalgame_info(Scheme, Strategy, Stats) :-
 	;   Virtual = materialized,
 	    findall(Top, skos_top_concept(Scheme, Top), Tops),
 	    length(Tops, NrDeclaredTops),
-	    DTops = ['# declared top concepts:'  - span('~d (~1f%)'-[NrDeclaredTops, (100*NrDeclaredTops/NrTopConcepts)])]
+	    DTops = ['# declared top concepts:'  -
+		     span('~d (~1f%)'-[NrDeclaredTops, (100*NrDeclaredTops/NrTopConcepts)])]
 	),
 	label_property_stats(PDict, PStats, [totalCount(Total)]),
 	depth_stats(DDict, DStats),
@@ -254,7 +248,6 @@ amalgame_info(URL, Strategy,
 	;   Definition = []
 	),
 	append([Definition, Input],Optional).
-
 
 label_property_stats(Dict, Stats, Options) :-
 	findall(\rdf_link(Property)-set(Values),
