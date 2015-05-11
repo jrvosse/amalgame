@@ -41,17 +41,13 @@
 
 
 user:message_hook(make(done(_)), _, _) :-
-	debug(ag_expand, 'Flushing mapping statistics cache after running make/0', []),
 	flush_stats_cache(_),
 	nickname_clear_cache,
 	fail.
-
 user:message_hook(make(done(_)), _, _) :-
-	debug(ag_expand, 'Flushing expand mapping cache after running make/0', []),
 	flush_expand_cache(_),
 	fail.
 user:message_hook(make(done(_)), _, _) :-
-	debug(ag_expand, 'Flushing prov cache after running make/0', []),
 	flush_prov_cache,
 	fail.
 
@@ -67,12 +63,35 @@ set_stats_cache(Strategy, Node, Value) :-
 get_expand_cache(Strategy, Node, Value) :-
 	expand_cache(Node-Strategy, Value).
 
-flush_stats_cache(Mapping, Strategy) :-
-	retractall(mapped_concepts_cache(Strategy, _, Mapping, _)),
-	retractall(stats_cache(Mapping-Strategy,_)).
+
+flush_mapped_concepts_cache(Id, Strategy) :-
+	(   mapped_concepts_cache(Strategy, _, Id, _)
+	->  debug(ag_expand, 'Flushing mapped concepts cache for ~p', [Id]),
+	    retractall(mapped_concepts_cache(Strategy, _, Id, _))
+	;   true
+	).
+
+flush_stats_cache(Id, Strategy) :-
+	(   stats_cache(Id-Strategy,_)
+	->  debug(ag_expand, 'Flushing stats cache for ~p', [Id]),
+	    retractall(stats_cache(Id-Strategy,_))
+	;   true
+	).
 
 flush_stats_cache(Strategy) :-
-	flush_stats_cache(_Mapping, Strategy).
+	flush_mapping_stats_cache(Strategy),
+	flush_virtual_scheme_stats_cache(Strategy).
+
+flush_mapping_stats_cache(Strategy) :-
+	forall(rdf(Mapping, rdf:type, amalgame:'Mapping', Strategy),
+	       (   flush_stats_cache(Mapping, Strategy),
+		   flush_mapped_concepts_cache(Mapping, Strategy)
+	      )
+	      ).
+flush_virtual_scheme_stats_cache(Strategy) :-
+	forall(rdf(Mapping, rdf:type, amalgame:'VirtualConceptScheme', Strategy),
+	       flush_stats_cache(Mapping, Strategy)
+	      ).
 
 flush_refs_cache(Strategy) :-
 	flush_refs_cache(_Mapping,Strategy).
@@ -163,7 +182,7 @@ flush_expand_cache(Strategy) :-
 flush_expand_cache(Id, Strategy) :-
 	(   expand_cache(Id-Strategy, _) % make sure Id is bounded to something in the cache
 	->  retractall(expand_cache(Id-Strategy, _)),
-	    debug(ag_expand, 'flush expand mapping cache for results of process ~p', [Id])
+	    debug(ag_expand, 'Flushed expand mapping cache for results of process ~p', [Id])
 	;   true
 	).
 
@@ -262,8 +281,8 @@ cache_result_stats(Process, Strategy, mapspec(mapping(Result))) :-
 	rdf_has(D, amalgame:wasGeneratedBy, Process, RP),
 	rdf(D, RP, Process, Strategy),
 	!,
-	flush_stats_cache(D, Strategy),
 	mapping_stats(D, Result, Strategy, Dstats),
+	flush_stats_cache(D, Strategy),
 	assert(stats_cache(D-Strategy, Dstats)).
 
 
