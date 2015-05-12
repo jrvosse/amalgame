@@ -97,7 +97,7 @@ prov_ensure_entity(_S, Entity, Graph) :-
 	format(atom(Message),
 	       'Cannot record provenance for ~p in named graph ~p',
 	       [Entity, Graph]),
-	throw(error(evalution_error,
+	throw(error(evaluation_error,
 		    context(prov_ensure_entity/3, Message))).
 
 add_amalgame_prov(Strategy, Process, Results) :-
