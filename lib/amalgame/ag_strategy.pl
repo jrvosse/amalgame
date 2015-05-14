@@ -94,7 +94,9 @@ lang_used(Strategy, Voc, Langs) :-
 %	Adds Vocabulary as an included scheme in Strategy.
 
 strategy_add_vocabulary(Strategy, Vocabulary) :-
-	rdf_assert(Strategy, amalgame:includes, Vocabulary, Strategy).
+	rdf_assert(Strategy, amalgame:includes, Vocabulary, Strategy),
+	rdf_assert(Vocabulary, rdf:type, skos:'ConceptScheme', Strategy).
+
 
 %%	new_process(+Process, +Strategy, +Source, +Target, +Input,
 %%	+SecInputs, +Params, -NewFocus)
