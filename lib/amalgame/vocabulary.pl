@@ -249,8 +249,8 @@ lang_used(Strategy-Vocs, Languages) :-
 
 lang_used(Strategy, Voc, Languages) :-
 	debug(ag_stats, 'Computing languages used in ~p for ~p', [Voc, Strategy]),
-	node_stats(Strategy, Voc, Stats, [compute(deep)]),
-	option(languages(Languages), Stats).
+	node_stats(Strategy, Voc, Stats, [compute(labelprop)]),
+	option(languages(Languages), Stats, []).
 
 skos_util:skos_is_vocabulary(Graph) :-
 	setting(amalgame:consider_all_labeled_resources, true),

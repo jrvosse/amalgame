@@ -104,30 +104,29 @@ handle_scheme_stats(Strategy, Process, Scheme, Result) :-
 	debug(mutex, 'finished ~w', [Mutex]).
 
 handle_scheme_stats_(Strategy, Process, Scheme, Result) :-
-	flush_stats_cache(Scheme, Strategy),
 	scheme_stats(Strategy, Scheme, Result, Stats),
+	flush_stats_cache(Scheme, Strategy),
 	assert(stats_cache(Scheme-Strategy, Stats)),
 
 	thread_create(
             (   set_stream(user_output, alias(current_output)),
-		handle_deep_scheme_stats(Strategy, Process, Scheme, Result)
+		handle_deep_scheme_stats(Strategy, Process, Scheme, Result, labelprop),
+		handle_deep_scheme_stats(Strategy, Process, Scheme, Result, depth)
             ),
 	    _,[ detached(true) ]).
 
 
-handle_deep_scheme_stats(Strategy, Process, Scheme, Result) :-
-	atomic_list_concat([stats_cache_,Scheme], Mutex),
+handle_deep_scheme_stats(Strategy, Process, Scheme, Result, Level) :-
+	atomic_list_concat([Level, '_stats_cache_',Scheme], Mutex),
 	debug(mutex, 'starting deep ~w', [Mutex]),
 	with_mutex(Mutex,
-		   handle_deep_scheme_stats_(Strategy, Process, Scheme, Result)),
+		   handle_deep_scheme_stats_(Strategy, Process, Scheme, Result, Level)),
 	debug(mutex, 'finished deep ~w', [Mutex]).
-handle_deep_scheme_stats_(Strategy, _Process, Scheme, Result) :-
-	scheme_stats_deep(Strategy, Scheme, Result, DeepStats),
-	(   stats_cache(Scheme-Strategy, Stats)
-	->  retractall(stats_cache(Scheme-Strategy, Stats))
-	;   scheme_stats(Strategy, Scheme, Result, Stats)
-	),
+handle_deep_scheme_stats_(Strategy, _Process, Scheme, Result, Level) :-
+	scheme_stats_deep(Strategy, Scheme, Result, DeepStats, Level),
+	stats_cache(Scheme-Strategy, Stats),
 	put_dict(Stats, DeepStats, NewStats),
+	retractall(stats_cache(Scheme-Strategy, Stats)),
 	assert(stats_cache(Scheme-Strategy, NewStats)).
 
 cache_mapped_concepts(Strategy, Type, Mapping, Concepts) :-
@@ -153,6 +152,8 @@ amalgame_computed_node(Strategy, Id) :-
 amalgame_computed_node(Strategy, Id) :-
 	rdfs_individual_of(Id,  amalgame:'Process'),
 	rdf(Id, rdf:type, _, Strategy).
+amalgame_computed_node(Strategy, Id) :-
+	rdf(Id, rdf:type, skos:'ConceptScheme', Strategy), fail. % change to true to flush cache
 
 %%	flush_expand_cache(+Strategy)
 %

@@ -223,7 +223,7 @@ amalgame_info(Scheme, Strategy, Stats) :-
 		'# counted top concepts:'    - span('~d (~1f%)'-[NrTopConcepts, (100*NrTopConcepts)/Total])
 			 | DTops
 	    ],
-	    option(topConceptCount(NrTopConcepts), DDict, [])
+	    option(topConceptCount(NrTopConcepts), DDict, 0)
 	;   ExtraStats = [ 'other stats:' - 'still computing, try later ...']
 	),
 	(   V == true
@@ -232,8 +232,9 @@ amalgame_info(Scheme, Strategy, Stats) :-
 	;   Virtual = materialized,
 	    findall(Top, skos_top_concept(Scheme, Top), Tops),
 	    length(Tops, NrDeclaredTops),
+	    save_perc(NrDeclaredTops,NrTopConcepts,TopPerc),
 	    DTops = ['# declared top concepts:'  -
-		     span('~d (~1f%)'-[NrDeclaredTops, (100*NrDeclaredTops/NrTopConcepts)])]
+		     span('~d (~1f%)'-[NrDeclaredTops, TopPerc])]
 	),
 	label_property_stats(PDict, PStats, [totalCount(Total)]),
 	depth_stats(DDict, DStats),

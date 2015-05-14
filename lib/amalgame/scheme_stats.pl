@@ -1,7 +1,7 @@
 :- module(ag_scheme_stats,
 	  [
 	      scheme_stats/4,
-	      scheme_stats_deep/4,
+	      scheme_stats_deep/5,
 	      compute_label_stats/2
 	  ]).
 
@@ -44,19 +44,21 @@ scheme_stats(Strategy, Scheme, ConceptAssoc, Stats) :-
 	assoc_to_keys(ConceptAssoc, Concepts),
 	length(Concepts, TotalCount).
 
-scheme_stats_deep(Strategy, Scheme, ConceptAssoc, Stats) :-
-	atomic_list_concat([scheme_stats_deep_,Scheme], Mutex),
-	with_mutex(Mutex, scheme_stats_deep_(Strategy, Scheme, ConceptAssoc, Stats)).
+scheme_stats_deep(Strategy, Scheme, ConceptAssoc, Stats, Level) :-
+	atomic_list_concat([scheme_stats_deep_,Scheme, Level], Mutex),
+	with_mutex(Mutex, scheme_stats_deep_(Strategy, Scheme, ConceptAssoc, Stats, Level)).
 
-scheme_stats_deep_(_Strategy, Scheme, ConceptAssoc, Stats) :-
-	DepthStats = scheme_stats_dict{
+scheme_stats_deep_(_Strategy, _Scheme, ConceptAssoc, Stats, labelprop) :-
+	assoc_to_keys(ConceptAssoc, Concepts),
+	compute_label_stats(Concepts, Stats).
+
+scheme_stats_deep_(_Strategy, Scheme, ConceptAssoc, Stats, depth) :-
+	Stats = scheme_stats_dict{
 			 '@private': Private,
 			  structure: DStatsPub
 		     },
-	compute_depth_stats(Scheme, ConceptAssoc, DStatsPub, Private),
-	assoc_to_keys(ConceptAssoc, Concepts),
-	compute_label_stats(Concepts, LabelStats),
-	Stats = DepthStats.put(LabelStats).
+	compute_depth_stats(Scheme, ConceptAssoc, DStatsPub, Private).
+
 
 compute_label_stats(Concepts, Stats) :-
 	Stats = scheme_stats_dict{

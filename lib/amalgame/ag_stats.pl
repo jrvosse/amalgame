@@ -6,6 +6,7 @@
 
 :- use_module(library(apply)).
 :- use_module(library(assoc)).
+:- use_module(library(debug)).
 :- use_module(library(option)).
 :- use_module(library(lists)).
 :- use_module(library(semweb/rdf_db)).
@@ -46,13 +47,17 @@ node_counts(_, URL, Strategy, Stats, Options) :-
 
 node_counts(scheme, Scheme, Strategy, Stats, Options) :-
 	select_option(compute(deep), Options, Options1, true),
+	node_counts(scheme, Scheme, Strategy, _Stats, [compute(labelprop)|Options1]),
+	node_counts(scheme, Scheme, Strategy, Stats, [compute(depth)|Options1]).
+
+node_counts(scheme, Scheme, Strategy, Stats, Options) :-
+	select_option(compute(Level), Options, Options1, true),
+	(   Level == depth; Level == labelprop),
 	!,
-	node_counts(scheme, Scheme, Strategy, Stats0, [compute(true)|Options1]),
-	(   get_dict(properties, Stats0, _)
-	->  Stats = Stats0
-	;   expand_node(Strategy, Scheme, ConceptAssoc),
-	    scheme_stats_deep(Strategy, Scheme, ConceptAssoc, Stats)
-	).
+	expand_node(Scheme, Strategy, _),
+	atomic_list_concat([Level, '_stats_cache_',Scheme], Mutex),
+	debug(mutex, 'waiting for deep stats mutex ~w', [Mutex]),
+	with_mutex(Mutex, node_counts(scheme, Scheme, Strategy, Stats, Options1)).
 
 node_counts(_, URL, Strategy, Stats, _Options) :-
 	get_stats_cache(Strategy, URL, Stats),
