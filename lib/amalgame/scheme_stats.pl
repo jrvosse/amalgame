@@ -62,7 +62,7 @@ compute_label_stats(Concepts, Stats) :-
 	Stats = scheme_stats_dict{
 		    formats: Formats,
 		    languages: Languages,
-		    properties: LanguagesDict,
+		    '@properties': LanguagesDict,
 		    totalLabelCount: TotalLabelCount
 		},
 	% compute all (prop:lang)-label pairs for skos and skosxl labels:

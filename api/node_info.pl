@@ -188,8 +188,8 @@ amalgame_info(URL, Strategy, Stats) :-
 	),
 
 	option(labels(Labels), MStats),
-	option(source(SLabels), Labels),     option(target(TLabels), Labels),
-	option(properties(SPDict), SLabels), option(properties(TPDict), TLabels),
+	option(source(SLabels), Labels),        option(target(TLabels), Labels),
+	option('@properties'(SPDict), SLabels), option('@properties'(TPDict), TLabels),
 	label_property_stats(SPDict, PSstats, [totalCount(SN0), role(src)]),
 	label_property_stats(TPDict, PTstats, [totalCount(TN0), role(trg)]),
 
@@ -206,7 +206,7 @@ amalgame_info(Scheme, Strategy, Stats) :-
 	!,
 	node_stats(Strategy, Scheme, NStats, []),
 	option(structure(DDict), NStats, _{}),
-	option(properties(PDict), NStats, _{}),
+	option('@properties'(PDict), NStats, _{}),
 
 	BasicStats = [
 	    'type:'	       - Virtual,

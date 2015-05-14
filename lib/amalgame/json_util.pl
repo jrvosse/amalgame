@@ -118,7 +118,7 @@ node_prop(S, R, label, Label) :-
 	literal_text(Lit, Label).
 node_prop(S, R, stats, Censored) :-
 	node_stats(S,R,Stats, [compute(false)]),
-	select_dict(_{'@private':_}, Stats, Censored).
+	select_dict(_{'@private':_, '@properties':_}, Stats, Censored).
 
 node_prop(_S, R, type, Type) :-
 	(   rdfs_individual_of(R, amalgame:'AlignmentStrategy')

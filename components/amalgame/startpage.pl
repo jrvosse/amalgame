@@ -205,7 +205,7 @@ html_vocab_rows([]) --> !.
 html_vocab_rows([Scheme|Vs]) --> {
     (	node_stats(_Strategy, Scheme, Stats, [compute(false)])
     ->	option(totalCount(ConceptCount), Stats),
-	option(properties(PDict), Stats, pdict{}),
+	option('@properties'(PDict), Stats, pdict{}),
 	rdf_equal(skos:prefLabel, PL),
 	rdf_equal(skos:altLabel, AL),
 	(   get_dict(PL, PDict, PrefLangs)-> true; PrefLangs = []),

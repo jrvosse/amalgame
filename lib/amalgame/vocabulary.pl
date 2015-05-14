@@ -143,7 +143,7 @@ expand_vocab(Scheme, VocSpec) :-
 	expand_node(Strategy, Scheme, VocSpec).
 
 get_amb_concepts(Property, Lang, Stats, Concepts) :-
-	get_dict(properties, Stats, PropsStats),
+	get_dict('@properties', Stats, PropsStats),
 	get_dict(Property, PropsStats, PropStats),
 	get_dict(Lang, PropStats, LocalStats),
 	get_dict(ambiguousConcepts, LocalStats, Concepts).
