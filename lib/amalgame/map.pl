@@ -36,6 +36,9 @@ align(Source,Target,EvidenceList) terms.
 @license LGPL
 */
 
+:- use_module(library(lists)).
+:- use_module(library(option)).
+
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 
@@ -115,7 +118,9 @@ has_correspondence(align(E1, E2, P), Graph) :-
 	),
 	(   memberchk(method(_), Pflat)
 	->  P = Properties1
-	;   P = [[method(preloaded), graph(Graph)]|Properties1]
+	;   Properties1 = [P1|Rest],
+	    append([method(preloaded), graph(Graph)], P1, P2),
+	    P = [P2|Rest]
 	).
 
 has_correspondence_chk(align(E1,E2,_P), Graph):-
@@ -183,9 +188,12 @@ has_map([E1, E2], edoal, Properties, Graph) :-
 	has_edoal_map_([E1, E2], Cell, Graph),
 	findall(Bnode, rdf(Cell, amalgame:evidence, Bnode, Graph), Bnodes),
 	findall(Prov,
-		(   member(Bnode, Bnodes),
+		(   member(Bnode, [Cell|Bnodes]),
 		    findall(Term,
 			    (	rdf(Bnode, Prop, Value, Graph),
+				\+ rdf_equal(align:entity1, Prop),
+				\+ rdf_equal(align:entity2, Prop),
+				\+ rdf_equal(rdf:type, Prop),
 				prop_to_term(Prop, Value, Term)
 			    ),
 			    Prov)
