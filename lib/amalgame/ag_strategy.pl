@@ -30,8 +30,8 @@
 
 :- rdf_meta
 	strategy_process_entity(r,r,r),
-	strategy_vocabulary(r,r,r),
-	strategy_entity_status(r,r),
+	strategy_vocabulary(r,r),
+	strategy_entity_status(r,r,r),
 	strategy_delete_node(r,r),
 	strategy_update_node(r,+,r),
 	strategy_update_process_parameters(r,r,+,+),
