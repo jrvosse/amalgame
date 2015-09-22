@@ -46,7 +46,8 @@
 
 strategy_process_entity(Strategy, Process,Entity) :-
 	rdf_has(Entity, amalgame:wasGeneratedBy, Process, RealProperty),
-	rdf(Entity, RealProperty, Process, Strategy).
+	rdf(Entity, RealProperty, Process, Strategy),
+	rdfs_individual_of(Strategy, amalgame:'AlignmentStrategy').
 
 
 %%	strategy_entity_status(?Strategy, ?Entity, ?Status) is nondet.
