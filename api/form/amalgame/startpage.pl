@@ -10,6 +10,10 @@
 
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
+:- use_module(library(http/http_header)).
+:- use_module(library(http/http_multipart_plugin)).
+:- use_module(library(http/http_client)).
+
 :- use_module(library(semweb/rdf_db)).
 
 :- use_module(library(semweb/rdf_file_type)).
@@ -110,24 +114,37 @@ http_ag_form_upload_strategy_resource(Request) :-
 %	Handle form to upload an existing strategy
 http_ag_form_upload_reference(Request) :-
 	authorized(write(default, _)),
-	http_parameters(Request,
-			[ data(Data,
-			       [ description('RDF data to be loaded')
-			       ])
-			]),
-	new_reference_name(NamedGraph),
-	atom_to_memory_file(Data, MemFile),
-	setup_call_cleanup(open_memory_file(MemFile, read, Stream),
-			   rdf_guess_format_and_load(Stream, [graph(NamedGraph)]),
-			   ( close(Stream),
-			     free_memory_file(MemFile)
-			   )),
-	rdf_equal(amalgame:'LoadedMapping', LMGraph),
-	rdf_assert(NamedGraph, rdf:type, amalgame:'LoadedMapping', LMGraph),
-
+	is_multipart_post_request(Request), !,
+	http_read_data(Request, Parts,
+                       [ on_filename(load_file_into_named_graph)
+                       ]),
+	memberchk(data=file(_FileName, NamedGraph), Parts),
 	http_link_to_id(list_graph, [graph(NamedGraph)], ListGraph),
 	http_redirect(moved, ListGraph, Request).
 
+http_ag_form_upload_reference(_Request) :-
+        throw(http_reply(bad_request(bad_file_upload))).
+
+:- public load_file_into_named_graph/3.
+
+load_file_into_named_graph(InStream, file(FileName, NamedGraph), Options) :-
+	option(filename(FileName), Options),
+	format(atom(FileURL), 'file://~w', [FileName]),
+	new_reference_name(NamedGraph),
+	% atom_to_memory_file(Data, MemFile),
+	rdf_guess_format_and_load(InStream, [graph(NamedGraph), base_uri(FileURL)]),
+	now_xsd(TS),
+	rdf_equal(amalgame:'LoadedMapping', LMGraph),
+	rdf_assert(NamedGraph, amalgame:uploadedFrom, FileURL,  LMGraph),
+	rdf_assert(NamedGraph, prov:generatedAtTime, literal(type(xsd:dateTime, TS)), LMGraph),
+	rdf_assert(NamedGraph, rdf:type, amalgame:'LoadedMapping', LMGraph).
+
+is_multipart_post_request(Request) :-
+        memberchk(method(post), Request),
+        memberchk(content_type(ContentType), Request),
+        http_parse_header_value(
+            content_type, ContentType,
+            media(multipart/'form-data', _)).
 
 
 cp_strategy_from_tmp(Request, TmpGraph) :-
@@ -227,3 +244,12 @@ new_strategy_name(Strategy, NS) :-
 	atomic_list_concat([NS,Local], Strategy),
 	\+ rdf_graph(Strategy),
 	!.
+
+
+
+:- multifile prolog:message//1.
+
+prolog:message(bad_file_upload) -->
+	[ 'A file upload must be submitted as multipart/form-data using', nl,
+	  'name=file and providing a file-name'
+	].
