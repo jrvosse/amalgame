@@ -54,7 +54,7 @@ node_counts(scheme, Scheme, Strategy, Stats, Options) :-
 	select_option(compute(Level), Options, Options1, true),
 	(   Level == depth; Level == labelprop),
 	!,
-	expand_node(Scheme, Strategy, _),
+	expand_node(Strategy, Scheme, _),
 	atomic_list_concat([Level, '_stats_cache_',Scheme], Mutex),
 	debug(mutex, 'waiting for deep stats mutex ~w', [Mutex]),
 	with_mutex(Mutex, node_counts(scheme, Scheme, Strategy, Stats, Options1)).
