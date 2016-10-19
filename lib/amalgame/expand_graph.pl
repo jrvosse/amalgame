@@ -65,7 +65,8 @@ precompute_node(Strategy, Mapping) :-
 	    ),
 	    _,[ detached(true) ]).
 
-%%	all_mapped(+Strategy, +Type, +Mapping, -Concepts) is semidet.
+%%	all_mapped(+Strategy, +Type, +Mapping, -Concepts, -Sorted) is
+%	semidet.
 %
 %	True if Concepts are all sources/targets in the correspondences
 %	of Mapping. Type is either source or target.

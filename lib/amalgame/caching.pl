@@ -153,7 +153,7 @@ amalgame_computed_node(Strategy, Id) :-
 	rdfs_individual_of(Id,  amalgame:'Process'),
 	rdf(Id, rdf:type, _, Strategy).
 amalgame_computed_node(Strategy, Id) :-
-	rdf(Id, rdf:type, skos:'ConceptScheme', Strategy), fail. % change to true to flush cache
+	rdf(Id, rdf:type, skos:'ConceptScheme', Strategy), true. % change to true to flush cache
 
 %%	flush_expand_cache(+Strategy)
 %
