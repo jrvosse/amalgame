@@ -3,6 +3,7 @@
 	      get_stats_cache/3,
 	      set_stats_cache/3,
 	      get_expand_cache/3,
+	      rdf_literal_predicates_cache/1,
 	      cache_result/4,
 	      cache_mapped_concepts/4,
 	      clean_repository/0,
@@ -29,6 +30,7 @@
 :- use_module(scheme_stats).
 
 :- dynamic
+	rdf_literal_predicates_cache/1,
 	expand_cache/2,
 	mapped_concepts_cache/4,
 	stats_cache/2.
@@ -39,6 +41,7 @@
 
 user:message_hook(make(done(_)), _, _) :-
 	flush_expand_cache(_),
+	retractall(rdf_literal_predicates_cache(_)),
 	nickname_clear_cache,
 	fail.
 user:message_hook(make(done(_)), _, _) :-

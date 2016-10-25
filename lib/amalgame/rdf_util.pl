@@ -13,14 +13,13 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_label)).
 :- use_module(user(preferences)).
+:- use_module(library(amalgame/caching)).
+
 
 :- rdf_meta
 	rdf_has(r,r,o,r,r),
 	rdf_lang(r,r,-),
 	rdf_lang(r,r,+,-).
-
-:- dynamic
-	rdf_literal_predicates_cache/1.
 
 %%	rdf_has(S,P,O,RP,G) is nondet
 %
