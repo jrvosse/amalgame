@@ -19,6 +19,9 @@
 	rdf_lang(r,r,-),
 	rdf_lang(r,r,+,-).
 
+:- dynamic
+	rdf_literal_predicates_cache/1.
+
 %%	rdf_has(S,P,O,RP,G) is nondet
 %
 %	Behaves as rdf_has/4 but the underlying triple needs to be in
@@ -32,8 +35,12 @@ rdf_has(S,P,O,RP,G) :-
 	).
 
 rdf_literal_predicates(L) :-
+	rdf_literal_predicates_cache(L),!.
+
+rdf_literal_predicates(L) :-
 	findall(P, rdf_is_literal_predicate(P), Ps),
-	sort(Ps, L).
+	sort(Ps, L),
+	assert(rdf_literal_predicates_cache(L)).
 
 rdf_is_literal_predicate(P) :-
 	rdf_current_predicate(P),
