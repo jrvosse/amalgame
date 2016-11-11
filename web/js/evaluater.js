@@ -20,7 +20,7 @@ YUI.add('evaluater', function(Y) {
 		strategy:   { value: null  },
 		paths:      { value: {}    },
 		mappings:   { value: {}    },
-		selected:   { value: null  },
+		focus:      { value: null  },
 		editmode:   { value: 'eval'}, // or edit. 
 		allsources: { value: false },
 		alltargets: { value: false }
@@ -50,28 +50,28 @@ YUI.add('evaluater', function(Y) {
 			NODE_SOURCE_ALL.on("click", this._fetchDetail, this);
 			NODE_TARGET_ALL.on("click", this._fetchDetail, this);
 
-			var selected = this.get('selected');
-			if (selected) {
-				var isReference =this.get('mappings')[selected].agStatus == 'reference' 
-				this.mappinglist.fire('mappingSelect', {uri:selected, isReference:isReference});
+			var uri = this.get('focus').uri;
+			if (uri) {
+				var isReference =this.get('mappings')[uri].agStatus == 'reference' 
+				this.mappinglist.fire('mappingSelect', {uri:uri, isReference:isReference});
 			}
 
 		},
 
 		_initInfo : function() {
-			var selected = this.get("selected");
+			var focus = this.get("focus");
 			this.infoDS = new Y.DataSource.IO({
 				source: this.get("paths").mappinginfo
 			});
-			if(selected) {
-				this._fetchInfo(selected);
+			if(focus) {
+				this._fetchInfo(focus);
 			}
 		},
 
 		_initList : function() {
 			this.mappinglist = new Y.MappingList({
 				mappings:this.get("mappings"),
-				selected:this.get("selected")
+				focus:this.get("focus")
 			}).render(NODE_MAPPING_LIST);
 			this.on('mappingsChange', function(e) { 
 				this.mappinglist.set('mappings', e.newVal); 
@@ -95,13 +95,12 @@ YUI.add('evaluater', function(Y) {
 					}
 			}
 			});
-
 			this.mappingtable = new Y.MappingTable({
 				srcNode: NODE_MAPPING_TABLE,
 				datasource:DS,
 				showRelation:true,
 				strategy: this.get("strategy"),
-				focus:this.get("selected")
+				focus:this.get("focus")
 			});
 		},
 
@@ -114,8 +113,9 @@ YUI.add('evaluater', function(Y) {
 		},
 
 		_onMappingSelect : function(e) {
+			focus = this.get("mappings")[e.uri];
 			if (e.isReference) this.set('editmode', "edit"); else this.set('editmode', "eval");
-			this.set("selected", e.uri);
+			this.set("focus", focus);
 			this.detailOverlay.set("visible", false);
 			this._fetchInfo(e.uri);
 			this.mappingtable.set("mapping", e.uri);
@@ -140,8 +140,9 @@ YUI.add('evaluater', function(Y) {
 			this.detailOverlay.set("visible", false);
 			var cs = this._getSelection();
 			var c = cs[0];
-			c.strategy = this.get("strategy");
-			c.mapping   = this.get("selected");
+			c.strategy  = this.get("strategy");
+			c.focus     = this.get("focus");
+			c.mapping   = this.get("focus").uri;
 			c.editmode  = this.get("editmode");
 			c.applyTo   = nav == "setall"?"all":"one";
 			c.remove    = nav == "delete";
@@ -234,7 +235,7 @@ YUI.add('evaluater', function(Y) {
 					} else { // applyTo == setall or !conceptsUnchanged
 			  			oSelf.mappingtable.loadData(); // reload if too much has changed
 					}
-					oSelf._fetchInfo(c.mapping);
+					oSelf._fetchInfo(c.focus);
 					if (r.mapping.uri && r.mapping.stats) {
 						mappings[r.mapping.uri].stats = r.mapping.stats;
 					       	oSelf.set("mappings", mappings);
@@ -243,10 +244,10 @@ YUI.add('evaluater', function(Y) {
 			});
 		},
 
-		_fetchInfo : function(uri) {
-			if(uri) {
+		_fetchInfo : function(focus) {
+			if(focus.uri) {
 				this.infoDS.sendRequest({
-					request:'?url='+uri+'&strategy='+this.get("strategy"),
+					request:'?url='+focus.uri+'&strategy='+this.get("strategy"),
 					callback:{success:function(o) {
 						var HTML = o.response.results[0].responseText;
 						NODE_INFO.setContent(HTML);
@@ -272,7 +273,7 @@ YUI.add('evaluater', function(Y) {
 			// call the server
 			var data = {
 				strategy:  this.get("strategy"),
-				mapping:   this.get("selected"),
+				mapping:   this.get("focus").uri,
 				source:    this._source,
 				target:    this._target,
 				fillmode:  'fill-in',
@@ -318,9 +319,9 @@ YUI.add('evaluater', function(Y) {
 			// Activate skos autocompletion on sourceuri, targeturi input nodes:	
 			var paths    = this.get("paths");
 			var mappings = this.get('mappings');
-			var selected = this.get('selected');
-			var svoc = encodeURIComponent(mappings[selected].stats.vocs.source.uri);
-			var tvoc = encodeURIComponent(mappings[selected].stats.vocs.target.uri);
+			var uri = this.get('focus').uri;
+			var svoc = encodeURIComponent(mappings[uri].stats.vocs.source.uri);
+			var tvoc = encodeURIComponent(mappings[uri].stats.vocs.target.uri);
 			var SourceConfig = { 
 				// our skos-specific ac attrs:
 				caller: this,

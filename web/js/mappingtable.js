@@ -13,7 +13,7 @@ YUI.add('mappingtable', function(Y) {
 	MappingTable.ATTRS = {
 		srcNode: { value: null },
 		strategy: { value: null },
-		mapping: { value: null },
+		focus: { value: null },
 		datasource: { value: null },
 		showRelation: { value: false },
 		vocs: { value: { source: null, target: null }},
@@ -79,14 +79,14 @@ YUI.add('mappingtable', function(Y) {
 			this.on('loadingChange', this._onLoadingChange, this);
 			
 			// get new data if mapping is changed
-			this.after('mappingChange', function() {this.loadData()}, this);
+			this.after('focusChange', function() {this.loadData()}, this);
 			this.table.delegate('click', this._onRowSelect, '.yui3-datatable-data tr', this);
 			this.loadData();
 		},
 
 		loadData : function(conf, recordsOnly) {
 			var oSelf = this,
-				mapping = this.get("mapping"),
+				s = this.get("focus"),
 				datasource = this.get("datasource"),
 				strategy = this.get("strategy"),
 				table = this.table,
@@ -102,8 +102,10 @@ YUI.add('mappingtable', function(Y) {
 					}
 					var vocs = o.response.meta.stats.vocs;
 					if (vocs) {
-						table.head.columns[0][SOURCE_COLUMN].label = 'source: ' + vocs.source.label;
-						table.head.columns[0][TARGET_COLUMN].label = 'target: ' + vocs.target.label;
+						var sL = vocs.source.label + ' (source terms from: ' + s.abbrev + '.' + s.label + ')';
+						var tL = vocs.target.label + ' (target terms from: ' + s.abbrev + '.' + s.label + ')';
+						table.head.columns[0][SOURCE_COLUMN].label = sL;
+						table.head.columns[0][TARGET_COLUMN].label = tL;
 						table.set("data", records);
 						table.syncUI();
 						oSelf.set("vocs", vocs);
@@ -112,9 +114,9 @@ YUI.add('mappingtable', function(Y) {
 				}
 			};
 
-			if(mapping) {
+			if(s) { // selected mapping s
 				conf = conf ? conf : {};
-				conf.url = mapping;
+				conf.url = s.uri;
 				conf.strategy=strategy;
 				conf.limit=this.get('rows');
 				this.set("loading", true);
@@ -146,7 +148,7 @@ YUI.add('mappingtable', function(Y) {
 				
 			var data = {
 					row:row,
-					selected:current,
+					focus:current,
 					sourceConcept: source,
 					targetConcept: target,
 					vocs: this.get("vocs"),

@@ -105,11 +105,12 @@ html_sidebar -->
 %
 %	Emit YUI object.
 
-yui_script(Strategy, Mapping) -->
+yui_script(Strategy, Focus) -->
 	{ findall(K-V, js_path(K, V), Paths),
 	  findall(M-C, js_module(M,C), Modules),
 	  pairs_keys(Modules, Includes),
-	  (   is_reference_mapping(Strategy, Mapping)
+	  js_focus_node(Strategy, Focus, FocusNode),
+	  (   is_reference_mapping(Strategy, Focus)
 	  ->  js_mappings_metadata(Strategy, Mappings, [references(only)])
 	  ;   js_mappings_metadata(Strategy, Mappings, [references(exclude)])
 	  )
@@ -123,7 +124,7 @@ yui_script(Strategy, Mapping) -->
 			 config{strategy:Strategy,
 			       paths:json(Paths),
 			       mappings:Mappings,
-			       selected:Mapping
+			       focus:FocusNode
 			       })
 	     ]).
 

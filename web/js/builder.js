@@ -18,7 +18,7 @@ YUI.add('builder', function(Y) {
 		strategy: { value: null },
 		readonly: { value: true },
 		paths:    { value: {} },
-		selected: { value: {} },
+		focus:    { value: {} },
 		nodes:    { value: {} },
 		currentConcept: { value: null } // selected concept from SKOS browser
 	};
@@ -47,7 +47,7 @@ YUI.add('builder', function(Y) {
 			this.infobox.after("nodeUpdate", this._onNodeUpdate, this);
 			this.infobox.on("evaluate", this._onEvaluate, this);     // used for hints
 			this.infobox.on("submit", this._onControlSubmit, this);  // used for hints
-			this.infobox.on("nodeSelect", this._onSelectedChange, this); // used for hints
+			this.infobox.on("nodeSelect", this._onFocusChange, this); // used for hints
 
 			// handlers for graph and mapping
 			this.strategy_viz.on("nodeSelect", this._onNodeSelect, this);
@@ -62,16 +62,17 @@ YUI.add('builder', function(Y) {
 				this.controls.set("nodes", nodes);
 			}, this);
 
-			this.on("selectedChange", this._onSelectedChange, this);
+			this.on("focusChange", this._onFocusChange, this);
 		},
 
-		_onSelectedChange: function(o) {
-			var selected = o.newVal?o.newVal:o.data.newVal ;
-			this.strategy_viz.set("selected", selected);
-			this.infobox.set("selected", selected);
-			this.controls.set("selected", selected);
-			this.mapping.set("selected", selected);
-			this.vocabulary.set("selected", selected);
+		_onFocusChange: function(o) {
+			Y.log("_onFocusChange"); Y.log(o);
+			var focus = o.newVal?o.newVal:o.data.newVal ;
+			this.strategy_viz.set("focus", focus);
+			this.infobox.set("focus", focus);
+			this.controls.set("focus", focus);
+			this.mapping.set("focus", focus);
+			this.vocabulary.set("focus", focus);
 		},
 
 		onWindowResize : function() {
@@ -117,7 +118,7 @@ YUI.add('builder', function(Y) {
 			this.strategy_viz = new Y.StratViz({
 				paths:this.get("paths"),
 				strategy: this.get("strategy"),
-				selected: this.get("selected")
+				focus: this.get("focus")
 			}).render(NODE_GRAPH);
 		},
 
@@ -126,7 +127,7 @@ YUI.add('builder', function(Y) {
 				srcNode: NODE_INFO,
 				strategy: this.get("strategy"),
 				nodes: this.get("nodes"),
-				selected: this.get("selected"),
+				focus: this.get("focus"),
 				readonly: this.get('readonly'),
 				paths: this.get("paths")
 			});
@@ -135,7 +136,7 @@ YUI.add('builder', function(Y) {
 		_initControls : function() {
 			this.controls = new Y.Controls({
 				srcNode: NODE_CONTROLS,
-				selected: this.get("selected"),
+				focus: this.get("focus"),
 				nodes: this.get("nodes")
 			});
 		},
@@ -145,14 +146,14 @@ YUI.add('builder', function(Y) {
 				builder: this,
 				paths: this.get("paths"),
 				strategy: this.get("strategy"),
-				selected: this.get("selected")
+				focus: this.get("focus")
 			});
 		},
 		
 		_initVocabulary : function() {
 			this.vocabulary = new Y.Vocabulary({
 				paths:this.get("paths"),
-				selected: this.get("selected"),
+				focus: this.get("focus"),
 				strategy: this.get("strategy")
 			});
 			this.vocabulary.on("conceptChange", this._onConceptChange, this);
@@ -197,7 +198,7 @@ YUI.add('builder', function(Y) {
 					// setting the properties will then initiate the components
 					// to fetch the latests stats
 					oSelf.set("nodes", r.nodes);
-					oSelf.set("selected", r.focus);
+					oSelf.set("focus", r.focus);
 				}}
 			});
 		},
@@ -214,7 +215,7 @@ YUI.add('builder', function(Y) {
 				on:{success:function(e,o) {
 					var r = Y.JSON.parse(o.responseText);
 					oSelf.set("nodes", r.nodes);
-					oSelf.set("selected", r.focus);
+					oSelf.set("focus", r.focus);
 					if (!data.strategy == r.strategy) {
 						// strategy changed name, we need to fully reload ...
 						var l = window.location;
@@ -241,7 +242,7 @@ YUI.add('builder', function(Y) {
 				on:{success:function(e,o) {
 					var r = Y.JSON.parse(o.responseText);
 					oSelf.set("nodes", r.nodes);
-					oSelf.set("selected", r.focus);
+					oSelf.set("focus", r.focus);
 				}}
 			})
 		},
@@ -249,8 +250,6 @@ YUI.add('builder', function(Y) {
 		_onNodeSelect : function(e) {
 			this.infobox.set('loading', true);
 			this.updateNodeList(e.uri);
-			// var selected = this.get("nodes")[e.uri];
-			// this.set("selected", selected);
 		},
 
 		updateNodeList : function(nodeURI) {
@@ -263,7 +262,7 @@ YUI.add('builder', function(Y) {
 				on:{success:function(e,o) {
 					   var nodes = Y.JSON.parse(o.responseText);
 					   oSelf.set("nodes", nodes);
-					   oSelf.set("selected", nodes[nodeURI]);
+					   oSelf.set("focus", nodes[nodeURI]);
 			 	}}
 			})
 		},

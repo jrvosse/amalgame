@@ -13,7 +13,7 @@ YUI.add('strategy_viz', function(Y) {
 	StratViz.ATTRS = {
 		strategy: { value: null },
 		paths: { value: null },
-		selected: { value: null }
+		focus: { value: null }
 	};
 
 	Y.extend(StratViz, Y.Widget, {
@@ -26,7 +26,7 @@ YUI.add('strategy_viz', function(Y) {
 		destructor : function() {},
 		renderUI : function() {},
 		bindUI : function() {
-			this.after("selectedChange", this.syncUI, this);
+			this.after("focusChange", this.syncUI, this);
 		},
 		
 		_bindSVG : function () {
@@ -40,7 +40,7 @@ YUI.add('strategy_viz', function(Y) {
 		},
 
 		syncUI : function() {
-			this.updateGraph(this.get("selected").uri);
+			this.updateGraph(this.get("focus").uri);
 		},
 		
 		updateGraph : function(uri) {
@@ -67,9 +67,9 @@ YUI.add('strategy_viz', function(Y) {
 		},
 						
 		_setSelection : function() {
-			var selected = this.get("selected").uri;
+			var focus = this.get("focus").uri;
   			this.get("contentBox").all("a").each(function(svgnode) {
-				if(svgnode.getAttribute("xlink:href") === selected) {
+				if(svgnode.getAttribute("xlink:href") === focus) {
 					svgnode.setAttribute("class", "selected");
 				}
 			});

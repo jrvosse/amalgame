@@ -179,7 +179,7 @@ yui_script(Strategy, Focus) -->
 			 json{strategy:Strategy,
 			       paths:PathD,
 			       nodes:Nodes,
-			       selected:FocusNode,
+			       focus:FocusNode,
 			       readonly:Read_only
 			     })
 	     ]).

@@ -21,7 +21,7 @@ YUI.add('controls', function(Y) {
 	Controls.NAME = "controls";
 	Controls.ATTRS = {
 		srcNode: { value: null },
-		selected: { value: null }, // selected node
+		focus: { value: null }, // focus node
 		currentConcept: { value: null }, // selected concept from SKOS browser
 		nodes: { value: [] }
 	};
@@ -64,8 +64,8 @@ YUI.add('controls', function(Y) {
 			NODE_CONCEPT_INPUTS.on('focus', this.currentConceptChange, this);
 			this.after('currentConceptChange', this.currentConceptChange, this);
 
-			// toggle the controls when selected is changed
-			this.after('selectedChange', this.syncUI, this);
+			// toggle the controls when focus is changed
+			this.after('focusChange', this.syncUI, this);
 			this.after('nodesChange', this.syncUI, this);
 			this.after('nodesChange', function(e) { Y.log('nodesChange in controls'); Y.log(e);});
 
@@ -95,7 +95,7 @@ YUI.add('controls', function(Y) {
 				input = NODE_INPUT.get("value"),
 				source = NODE_SOURCE.get("value"),
 				target = NODE_TARGET.get("value"),
-				selected = this.get("selected"),
+				focus = this.get("focus"),
 				data = this._getFormData(node);
 
 			// The input is selected based on the type of the control
@@ -104,8 +104,8 @@ YUI.add('controls', function(Y) {
 			    node.hasClass("preloaded") ) {
 				data.source = source;
 				data.target = target;
-			} else if(selected) {
-				data.input = selected.uri;
+			} else if(focus) {
+				data.input = focus.uri;
 			}
 			Y.log(data);
 			this.fire("submit", {data:data});
@@ -158,11 +158,11 @@ YUI.add('controls', function(Y) {
 		},
 
 		syncUI : function() {
-			var selected = this.get("selected");
-			type = selected ? selected.type : "";
+			var focus = this.get("focus");
+			type = focus ? focus.type : "";
 			Y.log('syncUI controls');
+			Y.log(focus);
 			Y.log(type);
-			Y.log(selected);
 
 			// add mapping selection radio buttons with available mappings to components that need them
 			this._setMappingSelecter();
@@ -192,10 +192,10 @@ YUI.add('controls', function(Y) {
 				NODE_TARGET_BTN.removeAttribute("disabled");
 				var current =  Y.one("#sourceLabel").get("value");
 				if (!current) {
-				  // auto set source to selected if no source yet:
-				  this._valueSet(selected, "source");
+				  // auto set source to focus if no source yet:
+				  this._valueSet(focus, "source");
 				}
-				var target = this._findOnlyOtherVocab(selected);
+				var target = this._findOnlyOtherVocab(focus);
 				if (target) {
 				  // auto set target if only one other vocab exists:
 				  this._valueSet(target, "target");
@@ -203,7 +203,7 @@ YUI.add('controls', function(Y) {
 			}
 			if(type=="mapping" || type=="vocab" ) { 
 				 NODE_INPUT_BTN.removeAttribute("disabled");
-				 this._valueSet(selected, "input");
+				 this._valueSet(focus, "input");
 			}
 
 			var preloadedSelecter = Y.one(".preloaded select option")
@@ -271,16 +271,16 @@ YUI.add('controls', function(Y) {
 
 
 		_valueSetAndSyncUI: function(e, which) {
-		       var selected =  this.get("selected");
-		       this._valueSet(selected, which);
+		       var focus =  this.get("focus");
+		       this._valueSet(focus, which);
 		       this.syncUI();
 		},
 
-		_valueSet : function(selected, which) {
-			if(selected) {
-				if (which != 'target') this._setLanguageOptions(selected, which);
-				Y.one("#"+which+'Label').set("value", selected.label);
-				Y.one("#"+which).set("value", selected.uri);
+		_valueSet : function(focus, which) {
+			if(focus) {
+				if (which != 'target') this._setLanguageOptions(focus, which);
+				Y.one("#"+which+'Label').set("value", focus.label);
+				Y.one("#"+which).set("value", focus.uri);
 			}
 		},
 

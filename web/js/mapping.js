@@ -16,8 +16,8 @@ YUI.add('mapping', function(Y) {
 	Mapping.NAME = "mapping";
 	Mapping.ATTRS = {
 		strategy : { value: null },
- 		selected : { value: null },
- 		builder : { value: null },
+ 		focus    : { value: null },
+ 		builder  : { value: null },
 		paths:{
 			value:{
 				mapping:"/amalgame/data/mapping",
@@ -41,7 +41,7 @@ YUI.add('mapping', function(Y) {
 			NODE_MAPPING_TABLE.addClass("hidden");
 			
 			// bind the modules
-			this.after("selectedChange", this._onSelectedChange, this);
+			this.after("focusChange", this._onSelectedChange, this);
 			this.mappingtable.on("rowSelect", this._onCorrespondenceSelect, this);
 
 			NODE_DETAIL.all(".next").on("click", this._onSubmit, this, "next");
@@ -54,8 +54,8 @@ YUI.add('mapping', function(Y) {
 		},
 
 		_initTable : function() {
-			var selected = this.get("selected"),
-				mapping = (selected.type=="mapping") ? selected.uri : null;
+			var focus = this.get("focus");
+			if (focus.type != "mapping") focus = null;
 				
 			// We define a datasource to simplify
 			// access to the mappings later and add caching support
@@ -77,7 +77,7 @@ YUI.add('mapping', function(Y) {
 				srcNode: NODE_MAPPING_TABLE,
 				datasource:DS,
 				strategy: this.get("strategy"),
-				mapping:mapping
+				focus: focus
 			});
 		},
 
@@ -94,10 +94,10 @@ YUI.add('mapping', function(Y) {
 		},
 
 		_onSelectedChange : function() {
-			var selected = this.get("selected");
+			var focus = this.get("focus");
 			this.detailOverlay.set("visible", false);
-			if(selected.type=="mapping") {
-				this.mappingtable.set("mapping", selected.uri);
+			if(focus.type=="mapping") {
+				this.mappingtable.set("focus", focus);
 				NODE_MAPPING_TABLE.removeClass("hidden");
 			} else {
 				NODE_MAPPING_TABLE.addClass("hidden");
@@ -105,7 +105,7 @@ YUI.add('mapping', function(Y) {
 		},
 
 		_onCorrespondenceSelect : function(e) {
-			this._selectedRow = e.row;
+			this._focusRow = e.row;
 			this._source = e.sourceConcept.uri;
 			this._target = e.targetConcept.uri;
 			this._fetchDetail();
@@ -118,7 +118,7 @@ YUI.add('mapping', function(Y) {
 			var cs = this._getSelection();
 			var c = cs[0];
 			c.strategy = this.get("strategy");
-			c.mapping   = this.get("selected").uri;
+			c.mapping   = this.get("focus").uri;
 			if (c.relation) {
 			  this._submitCorrespondence(c);
 			}
@@ -185,7 +185,7 @@ YUI.add('mapping', function(Y) {
 
 			var data = {
 				strategy:this.get("strategy"),
-				mapping:this.get("selected").uri,
+				mapping:this.get("focus").uri,
 				source: this._source,
 				target: this._target,
 				allsource: NODE_SOURCE_ALL.get("checked"),

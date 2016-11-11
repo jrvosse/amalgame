@@ -1,4 +1,4 @@
-/* Widget displaying a columnbrowser for skos concepts when the current "selected" node is of type "vocab"
+/* Widget displaying a columnbrowser for skos concepts when the current "focus" node is of type "vocab"
  * Uses the browser from the skos_browser cpack.
  */
 
@@ -12,7 +12,7 @@ YUI.add('vocabulary', function(Y) {
 	Vocabulary.ATTRS = {
 		conceptscheme : { value: null },
 		strategy : { value: null },
-		selected : { value: null },
+		focus : { value: null },
 		concept  : { value: null },
 		paths:{ value:{
 				concepts:"/skosapi/concepts",
@@ -28,7 +28,7 @@ YUI.add('vocabulary', function(Y) {
 
 			this._initHeader();
 			this._initBrowser();
-			this.after("selectedChange", this._onSelectedChange, this);
+			this.after("focusChange", this._onSelectedChange, this);
 
 			this._currentMappings = {};
 		},
@@ -36,7 +36,7 @@ YUI.add('vocabulary', function(Y) {
 		_initHeader : function() {
 			var oSelf = this;
 
-			var selected = this.get("selected");
+			var focus = this.get("focus");
 			var mappingHeader = NODE_BROWSER.appendChild(Y.Node.create('<div class="header"></div>'));
 			var titleBox = mappingHeader.appendChild(Y.Node.create('<div class="title-box" title="click to show options"></div>'));
 			this.title = titleBox.appendChild(Y.Node.create('<span class="title"></span>'));
@@ -113,11 +113,11 @@ YUI.add('vocabulary', function(Y) {
 		},
 
 		_onSelectedChange : function() {
-			var selected = this.get("selected");
-			if(selected.type=="vocab") {
+			var focus = this.get("focus");
+			if(focus.type=="vocab") {
 				NODE_BROWSER.removeClass("hidden");
-				this.browser._updateColumn(0, selected.uri);
-				this.title.setContent(selected.label);
+				this.browser._updateColumn(0, focus.uri);
+				this.title.setContent(focus.label);
 				this.fetchMappings();
 			} else {
 				NODE_BROWSER.addClass("hidden");

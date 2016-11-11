@@ -50,7 +50,7 @@ YUI.add('infobox', function(Y) {
 		nodes : {
 			value: null
 		},
-		selected: {
+		focus: {
 			value: null
 		}
 	};
@@ -59,7 +59,7 @@ YUI.add('infobox', function(Y) {
 
 		initializer : function(config) {
 			var content = this.get("srcNode"),
-				selected = this.get("selected"),
+				focus = this.get("focus"),
 				nodes = this.get("nodes");
 
 			this.bd = content.one('.bd');
@@ -71,7 +71,7 @@ YUI.add('infobox', function(Y) {
 			NODE_UPDATE.on("click", this._onNodeUpdate, this);
 			NODE_EVAL.on("click", this._onNodeEvaluate, this);
 
-			this.after('selectedChange', this.syncUI, this);
+			this.after('focusChange', this.syncUI, this);
 			this.on('loadingChange', this._onLoadingChange, this);
 
 			this.syncUI();
@@ -80,17 +80,17 @@ YUI.add('infobox', function(Y) {
 		syncUI : function() {
 			var oSelf = this,
 				paths = this.get("paths"),
-				selected = this.get("selected"),
+				focus = this.get("focus"),
 				strategy = this.get("strategy");
 
 			// update the node properties that we already have
-			this._setProperties(selected);
+			this._setProperties(focus);
 
 			// fetch new info
 			this.set("loading", true);
 			Y.io(paths.info, {
 				data: {
-					'url':selected.uri,
+					'url':focus.uri,
 					'strategy':strategy
 				},
 				on:{
@@ -120,7 +120,7 @@ YUI.add('infobox', function(Y) {
 		},
 
 		_onNodeUpdate : function() {
-			var sel = this.get("selected"),
+			var sel = this.get("focus"),
 				uri = sel.uri,
 				namespace = NODE_NAMESPACE.get("value"),
 				label = NODE_LABEL.get("value"),
@@ -147,7 +147,7 @@ YUI.add('infobox', function(Y) {
 		},
 
 		_onNodeDelete : function() {
-			var uri = this.get("selected").uri;
+			var uri = this.get("focus").uri;
 			this.set("lastAction", "nodeDelete");
 			Y.log("delete node: "+uri);
 			this.fire("deleteNode", {uri:uri});
@@ -156,7 +156,7 @@ YUI.add('infobox', function(Y) {
 		},
 
 		_onNodeEvaluate : function() {
-			var uri = this.get("selected").uri;
+			var uri = this.get("focus").uri;
 			this.set("lastAction", "nodeEvaluate");
 			Y.log("evaluate node: "+uri);
 			this.fire("evaluate", {data:{focus:uri}});
@@ -170,7 +170,7 @@ YUI.add('infobox', function(Y) {
 
 		_onDeepStats : function(e) {
 				 e.currentTarget.set('innerHTML', 'computing statistics ...');
-				 var voc = this.get("selected").uri;
+				 var voc = this.get("focus").uri;
 				 var paths = this.get("paths");
 				 var strategy = this.get("strategy");
 				 var oSelf = this;
@@ -189,22 +189,22 @@ YUI.add('infobox', function(Y) {
 
 		 },
 
-		_setProperties : function(selected) {
+		_setProperties : function(focus) {
 			var strategy = this.get("strategy"),
 				content = this.get("srcNode");
 
-			if(selected) {
-				var uri = selected.uri,
-					link = selected.link||uri,
-					local = selected.local||uri,
-					label = selected.label||uri,
-					type = selected.type||"",
-					comment = selected.comment||"",
-					abbrev = selected.abbrev||"?",
-					namespace = selected.namespace||"",
-					status = selected.status || "",
-					relation = selected.default_relation || "",
-					sec_inputs = selected.secondary_inputs|| [];
+			if(focus) {
+				var uri = focus.uri,
+					link = focus.link||uri,
+					local = focus.local||uri,
+					label = focus.label||uri,
+					type = focus.type||"",
+					comment = focus.comment||"",
+					abbrev = focus.abbrev||"?",
+					namespace = focus.namespace||"",
+					status = focus.status || "",
+					relation = focus.default_relation || "",
+					sec_inputs = focus.secondary_inputs|| [];
 
 				this.emptyNode.addClass("hidden");
 				NODE_DELETE.removeAttribute("disabled");
@@ -267,7 +267,7 @@ YUI.add('infobox', function(Y) {
 
 		_createHint : function() {
 				var oSelf = this;
-				var focus = this.get("selected").uri
+				var focus = this.get("focus").uri
 				NODE_HINT.setContent('Loading next hint, please wait...');
 				Y.io(this.get("paths").hint,
 				     {
@@ -300,7 +300,7 @@ YUI.add('infobox', function(Y) {
 
 		_updateParameters : function() {
 			var paramnode = this.get("srcNode").one('.parameters'),
-				sec_inputs = this.get("selected").secondary_inputs || [];
+				sec_inputs = this.get("focus").secondary_inputs || [];
 
 			if (paramnode && sec_inputs.length > 0) {
 			  paramnode.prepend(this.formatMappingList(sec_inputs));
@@ -308,7 +308,7 @@ YUI.add('infobox', function(Y) {
 			}
 		},
 
-		formatMappingList : function(selected) {
+		formatMappingList : function(focus) {
 			var HTML = "";
 			var nodes = this.get("nodes");
 			for (var uri in nodes) {
@@ -319,7 +319,7 @@ YUI.add('infobox', function(Y) {
 					label = m.label + ' (' + m.local +')';
 				}
 				if(m.type == "mapping") {
-					var index = selected.indexOf(uri);
+					var index = focus.indexOf(uri);
 					var checked = (index == -1)?'':'checked';
 					HTML += '<div><input type="checkbox" name="secondary_input" value="'
 					+uri+'" ' +checked +' class="' + checked +'">'
