@@ -3,6 +3,7 @@
 	      get_stats_cache/3,
 	      set_stats_cache/3,
 	      get_expand_cache/3,
+	      rdf_literal_predicates_cache/1,
 	      cache_result/4,
 	      cache_mapped_concepts/4,
 	      clean_repository/0,
@@ -29,6 +30,7 @@
 :- use_module(scheme_stats).
 
 :- dynamic
+	rdf_literal_predicates_cache/1,
 	expand_cache/2,
 	mapped_concepts_cache/4,
 	stats_cache/2.
@@ -39,6 +41,7 @@
 
 user:message_hook(make(done(_)), _, _) :-
 	flush_expand_cache(_),
+	retractall(rdf_literal_predicates_cache(_)),
 	nickname_clear_cache,
 	fail.
 user:message_hook(make(done(_)), _, _) :-
@@ -153,7 +156,7 @@ amalgame_computed_node(Strategy, Id) :-
 	rdfs_individual_of(Id,  amalgame:'Process'),
 	rdf(Id, rdf:type, _, Strategy).
 amalgame_computed_node(Strategy, Id) :-
-	rdf(Id, rdf:type, skos:'ConceptScheme', Strategy), fail. % change to true to flush cache
+	rdf(Id, rdf:type, skos:'ConceptScheme', Strategy), true. % change to true to flush cache
 
 %%	flush_expand_cache(+Strategy)
 %

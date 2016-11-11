@@ -13,6 +13,8 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_label)).
 :- use_module(user(preferences)).
+:- use_module(library(amalgame/caching)).
+
 
 :- rdf_meta
 	rdf_has(r,r,o,r,r),
@@ -32,8 +34,12 @@ rdf_has(S,P,O,RP,G) :-
 	).
 
 rdf_literal_predicates(L) :-
+	rdf_literal_predicates_cache(L),!.
+
+rdf_literal_predicates(L) :-
 	findall(P, rdf_is_literal_predicate(P), Ps),
-	sort(Ps, L).
+	sort(Ps, L),
+	assert(rdf_literal_predicates_cache(L)).
 
 rdf_is_literal_predicate(P) :-
 	rdf_current_predicate(P),
