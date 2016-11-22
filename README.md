@@ -9,10 +9,9 @@ amalgame provides a web-based interactive platform for creating, analyzing and e
 ## Installation
 Amalgame is a web application build as a package in the ClioPatria semantic web server. To install, make sure you have:
 
-1. The latest development release of SWI Prolog, at least version 7.1.x. See http://www.swi-prolog.org/Download.html
+1. The latest development release of SWI Prolog, at least version 7.3.30. See http://www.swi-prolog.org/Download.html
 2. ClioPatria itself, see http://cliopatria.swi-prolog.org/help/Download.html
 3. Once you have your ClioPatria server up and running, just install amalgame as a cpack:
-
         :- cpack_install(amalgame).
 4. Done!
 
