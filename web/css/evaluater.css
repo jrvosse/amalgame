@@ -122,6 +122,7 @@
 }
 #detail .manualfixes .concepturi {
 	opacity: 0.3;
+	overflow-wrap: break-word;
 }
 #detail .manualfixes .comment {
 	display: inline-block;
