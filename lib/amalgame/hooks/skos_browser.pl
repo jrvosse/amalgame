@@ -27,7 +27,7 @@ mapped_descendant_count(Concept, Graphs, Count, Options) :-
 	findall(C, skos_descendant_of(Concept, C), Descendants0),
 	sort(Descendants0, Descendants),
 	(   Descendants	= []
-	->  Count = @null
+	->  Count = @(null)
 	;   mapped_chk(Descendants, Graphs, Mapped, Options),
 	    length(Descendants, Descendant_Count),
 	    length(Mapped, Mapped_Count),
