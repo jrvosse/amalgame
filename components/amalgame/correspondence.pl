@@ -79,7 +79,7 @@ html_correspondence(align(Source, Target, Evidence), Options) -->
 	  option(relations(Relations), Options, []),
 	  (   option(mode('fill-in'), Options)
 	  ->  member(Method, Evidence),
-	      option(relation(Relation), Method, undefined),
+	      option(relation(Relation), Method),
 	      option(comment(Comment),   Method, '')
 	  ;   Comment = '', Relation = undefined
 	  )
