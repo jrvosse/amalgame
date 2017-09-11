@@ -4,6 +4,10 @@
 # The default settings run:
 #   - the processes in the countainer under the id and group of the current user
 #   - map host port 3020 on container port 3020
+#
+# It may be convenient to link this script from your $HOME/bin/amalgame
+#
+# ln -s $PWD/run.sh $HOME/bin/amalgame
 
 VERSION=latest
 APP=amalgame
