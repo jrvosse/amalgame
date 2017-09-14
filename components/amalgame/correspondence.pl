@@ -74,13 +74,19 @@ html_correspondences([A|As], Options) -->
         html_correspondence(A, Options),
         html_correspondences(As, Options).
 
+fill_in_correspondence(Evidence, Relation, Comment) :-
+	member(Method, Evidence),
+	option(relation(Relation), Method),
+	option(comment(Comment),   Method, ''),
+	!.
+
+fill_in_correspondence(_Evidence, undefined, '').
+
 html_correspondence(align(Source, Target, Evidence), Options) -->
         { length(Evidence, EvLength),
 	  option(relations(Relations), Options, []),
 	  (   option(mode('fill-in'), Options)
-	  ->  member(Method, Evidence),
-	      option(relation(Relation), Method),
-	      option(comment(Comment),   Method, '')
+	  ->  fill_in_correspondence(Evidence, Relation, Comment)
 	  ;   Comment = '', Relation = undefined
 	  )
         },

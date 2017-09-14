@@ -1,6 +1,7 @@
 :- module(ag_publisher, []).
 
 :- use_module(user(user_db)).
+:- use_module(library(filesex)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/html_head)).
@@ -39,6 +40,16 @@ http_ag_publish_form(Request) :-
 			]),
 	html_page(Strategy, Focus).
 
+publish_base_dir(Dir) :-
+	once(expand_file_search_path(alignment_results(.), Dir)),
+	exists_directory(Dir),
+	!.
+publish_base_dir(Dir) :-
+	expand_file_search_path(alignment_results(.), Dir),
+	\+ exists_directory(Dir),
+	make_directory_path(Dir),
+	!.
+
 http_ag_publish(Request) :-
 	http_parameters(Request,
 			[ strategy(Strategy,
@@ -52,8 +63,7 @@ http_ag_publish(Request) :-
 
 			]),
 
-	expand_file_search_path(alignment_results(.), L),
-	exists_directory(L),
+	publish_base_dir(L),
 	absolute_file_name(L,BaseDir),!,
 	file_base_name(Strategy, StrategyBase),
 	atomic_list_concat([BaseDir, StrategyBase], '/', Dir),
