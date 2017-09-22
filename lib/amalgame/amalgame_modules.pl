@@ -110,10 +110,11 @@ amalgame_module_property(URI, explanation_graph(ExplainURI)) :-
 %	parameters string in Process.
 
 process_options(Process, Module, Options) :-
-	rdf(Process, amalgame:parameters, literal(ParamString)),
+	rdf(Process, amalgame:parameters, ParamLiteral),
+        literal_text(ParamLiteral, ParamText),
 	!,
 	module_options(Module, Options, Parameters),
-	parse_url_search(ParamString, Search0),
+	parse_url_search(ParamText, Search0),
 	expand_options(Search0, Search),
 	Request = [search(Search)] ,
 	http_parameters(Request, Parameters).
