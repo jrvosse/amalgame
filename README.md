@@ -2,6 +2,10 @@
 This is the AMsterdam ALignment GenerAtion MEtatool (amalgame).
 This open source tool has originally been developed as part of the EuropeanaConnect and PrestoPrime projects at VU University Amsterdam.
 
+release tag V1.0.0 has been archived as
+[![DOI](https://zenodo.org/badge/19640566.svg)](https://zenodo.org/badge/latestdoi/19640566)
+
+
 
 ## Objective
 amalgame provides a web-based interactive platform for creating, analyzing and evaluating vocabulary alignments.  It aims to support domain experts to make alignments interactively.  To realize this it focuses on simple alignment techniques which the user understands and knows how to use, and which are sufficiently fast to be used in an interactive session.  amalgame keeps track of all the provenance related information, so that mapping experiments can be replicated later, and other users can explore the context that played a role in creating the mappings.  amalgame is implemented by using common web technology on the client (e.g. HTML,CSS,AJAX and the YUI toolkit) and SWI-Prolog's ClioPatria platform on the server.
