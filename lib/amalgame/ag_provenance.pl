@@ -369,9 +369,9 @@ prov_named_graph(NG, Repo, Graph) :-
 
 prov_get_entity_version(Entity, SourceGraph, Version) :-
 	rdf_graph_property(SourceGraph, source(SourceFileURL)),
-	uri_file_name(SourceFileURL, Filename),
-	file_directory_name(Filename, Dirname),
-	(   catch(register_git_module(Entity, [directory(Dirname), home_url(Entity)]),Error,
+	(   uri_file_name(SourceFileURL, Filename),
+            file_directory_name(Filename, Dirname),
+            catch(register_git_module(Entity, [directory(Dirname), home_url(Entity)]),Error,
               ( print_message(error, Error),
                 fail
               )),
