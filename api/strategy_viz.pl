@@ -145,6 +145,14 @@ empty_result(Strategy,Process) :-
 	rdf(Empty, amalgame:wasGeneratedBy, Process, Strategy),
 	empty_result(Strategy, Empty).
 
+%%	amalgame_shape(+Resource, -Shape, +Options)
+%
+%	Defines graph node shape for different types of resources.
+%	Options are not used at the moment.
+
+amalgame_shape(Resource, Shape, _Options) :-
+	amalgame_shape(Resource, Shape).
+
 
 %%	amalgame_shape(+Resource, -Shape)
 %
