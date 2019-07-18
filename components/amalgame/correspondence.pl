@@ -405,6 +405,9 @@ html_tree_children([C|Cs]) -->
 	html_tree_children(Cs).
 
 
+evidence_shape(Resource, Shape, _Options) :-
+	evidence_shape(Resource, Shape).
+
 %%	evidence_shape(+Resource, -Shape)
 %
 %	Defines graph node shape for different types of evidence
