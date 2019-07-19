@@ -1,6 +1,6 @@
 :- module(ag_string_match_util,
 	  [label_list/1,
-	   skos_match/5,
+	   skos_has/5,
 	   matching_types/2
 	  ]).
 
@@ -22,7 +22,7 @@ label_list(LabelProps) :-
 		LabelProps0),
 	sort(LabelProps0, LabelProps).
 
-%%	skos_match(Concept, Prop, Lit, RealProp) is nondet.
+%%	skos_has(Concept, Prop, Lit, RealProp) is nondet.
 %
 %	Like rdf_has(Concept, Prop, Lit, RealProp), but skosxl-aware.
 %
@@ -32,10 +32,10 @@ label_list(LabelProps) :-
 %	** via amalgame:term if literal objects as amalgame:qualifier
 %	** via skosxl:literalForm if no amalgame:qualifier
 
-skos_match(Concept, MatchProp, Literal, RealProp, _Options) :-
+skos_has(Concept, MatchProp, Literal, RealProp, _Options) :-
 	rdf_has(Concept, MatchProp, Literal, RealProp).
 
-skos_match(Concept, MatchProp, Literal, RealProp, Options) :-
+skos_has(Concept, MatchProp, Literal, RealProp, Options) :-
 	nonvar(Concept),
 	rdf_has(Concept, MatchProp, LiteralObject, RealProp),
 	rdf_subject(LiteralObject),
@@ -46,7 +46,7 @@ skos_match(Concept, MatchProp, Literal, RealProp, Options) :-
 	;   rdf_has(LiteralObject, skosxl:literalForm, Literal)
 	).
 
-skos_match(Concept, MatchProp, Literal, RealProp, Options) :-
+skos_has(Concept, MatchProp, Literal, RealProp, Options) :-
 	var(Concept),
 	(   ( option(match_qualified_only(true), Options, false),
 	      rdf_has(_, amalgame:term, Literal)

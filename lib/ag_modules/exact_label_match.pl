@@ -41,11 +41,11 @@ exact_label_match(align(Source, Target, Prov0),
 	;   true
 	),
 
-	skos_match(Source, MatchPropS,
+	skos_has(Source, MatchPropS,
 		   literal(lang(SourceLang, SourceLabel)),
 		   SourceProp, Options),
 	SourceLabel \= '',
-	skos_match(Target, MatchPropT, SearchTarget,
+	skos_has(Target, MatchPropT, SearchTarget,
 		TargetProp, Options),
 	Source \= Target,
 

@@ -30,7 +30,7 @@ snowball_label_match(align(Source, Target, Prov0),
 	;   true
 	),
 
-	skos_match(Source, MatchProp1, literal(lang(SourceLang, SourceLabel)), SourceProp, Options),
+	skos_has(Source, MatchProp1, literal(lang(SourceLang, SourceLabel)), SourceProp, Options),
 
 	(   sub_atom(SourceLabel, 0, PrefixLength, _, Prefix)
 	->  true
@@ -39,7 +39,7 @@ snowball_label_match(align(Source, Target, Prov0),
 	downcase_atom(SourceLabel, SourceLabel0),
 	snowball(Snowball_Language, SourceLabel0, SourceStem),
 
-	skos_match(Target, MatchProp2, literal(prefix(Prefix), lang(TargetLang, TargetLabel)), TargetProp, Options),
+	skos_has(Target, MatchProp2, literal(prefix(Prefix), lang(TargetLang, TargetLabel)), TargetProp, Options),
 	(   option(target_scheme(TargetScheme), Options)
 	->  vocab_member(Target, TargetScheme)
 	;   true

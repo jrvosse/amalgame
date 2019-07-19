@@ -14,6 +14,7 @@
 :- use_module(library(stat_lists)).
 :- use_module(library(amalgame/ag_strategy)).
 :- use_module(library(amalgame/ag_provenance)).
+:- use_module(library(ag_modules/string_match_util)).
 
 :- rdf_meta
 	fcplp(+, r, r, r, -, -).
@@ -160,7 +161,7 @@ concept_stat(C, Skos, SkosXLa, SkosXLp) :-
 	findall((Prop:Lang)-(Label-C), fcplp(skosxl, C, skosxl:altLabel,  Prop, Lang, Label), SkosXLa).
 
 fcplp(Format, Concept, Prop, RealProp, Lang, Label) :-
-	skos_match(Concept, Prop,  Literal, RealProp, [format(Format)]),
+	skos_has(Concept, Prop,  Literal, RealProp, [format(Format)]),
 	(   var(Label)
 	->  (   Literal = literal(lang(Lang, Label))
 	    ->  true

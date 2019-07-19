@@ -42,14 +42,14 @@ compound_label_match(align(Source, Target, Prov0),
 	;   SearchTarget=literal(exact(Token), lang(TargetLang, TargetLabel))
 	),
 
-	skos_match(Source, MatchPropS,
+	skos_has(Source, MatchPropS,
 		   literal(lang(SourceLang, SourceLabel)),
 		   SourceProp, Options),
 	SourceLabel \= '',
 	rdf_tokenize_literal(SourceLabel, Tokens),
 	length(Tokens, TokenLength), TokenLength > 0,
 	member(Token, Tokens), atom(Token),
-	skos_match(Target, MatchPropT, SearchTarget, TargetProp, Options),
+	skos_has(Target, MatchPropT, SearchTarget, TargetProp, Options),
 
 	(   option(target_scheme(TargetScheme), Options)
 	->  vocab_member(Target, TargetScheme)
