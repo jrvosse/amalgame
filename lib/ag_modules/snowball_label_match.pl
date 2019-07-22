@@ -39,7 +39,15 @@ snowball_label_match(align(Source, Target, Prov0),
 	downcase_atom(SourceLabel, SourceLabel0),
 	snowball(Snowball_Language, SourceLabel0, SourceStem),
 
-	skos_has(Target, MatchProp2, literal(prefix(Prefix), lang(TargetLang, TargetLabel)), TargetProp, Options),
+	% Target candidate generation based on prefixes...
+	% This should be replaced by hash lookup on preprocessed stem table FIXME
+	% Current implementation can miss stemmed matches because the prefix of the unstemmed labes do not match
+
+	% backtrack over all candidates with prefix match:
+	skos_has(Target, MatchProp2, literal(prefix(Prefix), lang(_TargetLang, _TargetLabel)), _TargetProp, Options),
+
+	% backtrack over all labels of the current target candidate:
+	skos_has(Target, MatchProp2, literal(lang(TargetLang, TargetLabel)), TargetProp, Options),
 	(   option(target_scheme(TargetScheme), Options)
 	->  vocab_member(Target, TargetScheme)
 	;   true
