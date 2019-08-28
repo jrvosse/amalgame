@@ -123,11 +123,11 @@ assert_master_void(Strategy, URI, Graph) :-
 	).
 
 assert_void(Id,Options) :-
-	option(format(Format), Options),
+	option(format(Format), Options, simple),
 	option(strategy(Strategy), Options),
-	option(prov(ProvGraph), Options),
-	option(all_mappings(All), Options),
-	option(type(Type), Options),
+	option(prov(ProvGraph), Options, debugprov),
+	option(all_mappings(All), Options, []),
+	option(type(Type), Options, amalgame:'Mapping'),
 
 	rdf_equal(xsd:int, Int),
 	void_graph(Strategy, Void),
@@ -152,7 +152,7 @@ assert_void(Id,Options) :-
 default_mapping_relation(Id, Default, Options) :-
 	(   rdf(Id, amalgame:default_relation, Default)
 	->  true
-	;   option(default_relation(Default), Options)
+	;   option(default_relation(Default), Options, skos:closeMatch)
 	).
 
 %%	prepare_mapping(Id, Strategy, Options)
@@ -197,7 +197,7 @@ save_mapping(Id, Options) :-
 	atomic_concat(edoal_, Base, EdoalBase),
 	absolute_file_name(Base,       Filename, [relative_to(Dir), extensions([ttl])]),
 	absolute_file_name(EdoalBase, EdoalName, [relative_to(Dir), extensions([Ext])]),
-	option(format(Format), Options),
+	option(format(Format), Options, simple),
 	(   (Format == edoal ; Format == both)
 	->  (   Ext = ttl
 	    ->  rdf_save_canonical_turtle(EdoalName, [graph(Id)|Options])
