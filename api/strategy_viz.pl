@@ -15,6 +15,7 @@
 :- use_module(library(amalgame/ag_stats)).
 :- use_module(library(amalgame/ag_evaluation)).
 :- use_module(library(amalgame/map)).
+:- use_module(library(amalgame/vocabulary)).
 
 :- http_handler(amalgame(api/strategy_viz), http_strategy_viz, []).
 
@@ -171,7 +172,7 @@ amalgame_shape(R, [shape(ellipse),
 	      fillcolor('#EEEEEE'),
 	      fontsize(10)]) :-
 	atom(R),
-	skos_is_vocabulary(R).
+	amalgame_alignable_scheme(R).
 amalgame_shape(R, [shape(ellipse),
 	      fillcolor(Color),
 	      style(filled),
@@ -224,7 +225,7 @@ amalgame_label(Strategy, Resource, Lang, MaxLen, Label) :-
 	).
 
 stats_label_list(Strategy, Resource, [Count]) :-
-	skos_is_vocabulary(Resource),
+	amalgame_alignable_scheme(Resource),
 	node_stats(Strategy, Resource, Stats, [compute(false)]),
 	option(totalCount(Count), Stats),
 	!.

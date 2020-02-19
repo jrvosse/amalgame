@@ -18,6 +18,7 @@
 :- use_module(library(amalgame/amalgame_modules)).
 :- use_module(library(amalgame/ag_strategy)).
 :- use_module(library(amalgame/ag_stats)).
+:- use_module(library(amalgame/vocabulary)).
 :- use_module(library(amalgame/util)).
 :- use_module(components(label)). % we need rdf_link//1 from this module
 
@@ -202,7 +203,7 @@ amalgame_info(URL, Strategy, Stats) :-
 	], Stats).
 
 amalgame_info(Scheme, Strategy, Stats) :-
-	skos_is_vocabulary(Scheme),
+	amalgame_alignable_scheme(Scheme),
 	!,
 	node_stats(Strategy, Scheme, NStats, []),
 	option(structure(DDict), NStats, _{}),

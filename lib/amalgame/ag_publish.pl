@@ -12,8 +12,6 @@
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(semweb/rdf_turtle_write)).
 
-:- use_module(library(skos/util)).
-
 :- use_module(library(amalgame/ag_provenance)).
 :- use_module(library(amalgame/ag_evaluation)).
 :- use_module(library(amalgame/ag_stats)).
@@ -287,14 +285,14 @@ select_schemes_to_be_saved(Strategy, Schemes, Options) :-
 	option(status(Status), Options, all),
 	(   Status == all
 	->  findall(Scheme,
-		    (	skos_is_vocabulary(Scheme),
+		    (	amalgame_alignable_scheme(Scheme),
 			rdf(Scheme, rdf:type, _, Strategy),
 			node_stats(Strategy, Scheme, Stats, [compute(true)]),
 			\+ option(totalCount(0), Stats)
 		    ),
 		    Schemes)
 	;   findall(Scheme,
-		    (	skos_is_vocabulary(Scheme),
+		    (	amalgame_alignable_scheme(Scheme),
 			rdf(Scheme, rdf:type, _, Strategy),
 			rdf(Scheme, amalgame:status, Status),
 			node_stats(Strategy, Scheme, Stats, [compute(true)]),

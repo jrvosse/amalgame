@@ -12,7 +12,6 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 
-:- use_module(library(skos/util)).
 :- use_module(library(stat_lists)).
 
 :- use_module(library(amalgame/ag_strategy)).
@@ -30,7 +29,7 @@ node_stats(Strategy, Node, Stats, Options) :-
 	!,
 	(   rdfs_individual_of(Node, amalgame:'Mapping')
 	->  node_counts(mapping, Node, Strategy, Stats, Options)
-	;   skos_is_vocabulary(Node)
+	;   amalgame_alignable_scheme(Node)
 	->  node_counts(scheme, Node, Strategy, Stats, Options)
 	;   Stats = []
 	).
