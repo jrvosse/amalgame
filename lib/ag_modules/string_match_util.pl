@@ -14,6 +14,7 @@
 label_list(LabelProps) :-
 	findall(LP,
 		(   label_property(LP)
+		;   rdf_equal(LP, amalgame:label)
 		;   rdfs_subproperty_of(LP, skos:note)
 		;   rdfs_subproperty_of(LP, skos:notation)
 		;   rdfs_subproperty_of(LP, rdfs:label)

@@ -19,7 +19,7 @@
 %	  matching T.
 compound_label_match(align(Source, Target, Prov0),
 		  align(Source, Target, [Prov|Prov0]), Options) :-
-	rdf_equal(rdfs:label, RdfsLabel),
+	rdf_equal(amalgame:label, RdfsLabel),
 	option(sourcelabel(MatchPropS), Options, RdfsLabel),
 	option(targetlabel(MatchPropT), Options, RdfsLabel),
 	option(matchacross_lang(MatchAcross), Options, true),
