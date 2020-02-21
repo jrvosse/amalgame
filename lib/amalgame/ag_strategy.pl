@@ -213,10 +213,10 @@ assert_secondary_inputs([URI|URIs], Process, Type, Strategy) :-
 	assert_secondary_inputs(URIs, Process, Type, Strategy).
 
 assert_process(Process, Type, Graph, Params) :-
-	process_label(Type, Label),
+	process_label_literal(Type, Label),
 	uri_query_components(Search, Params),
 	rdf_assert(Process, rdf:type, Type, Graph),
-	rdf_assert(Process, rdfs:label, literal(Label), Graph),
+	rdf_assert(Process, rdfs:label, Label, Graph),
 	rdf_assert(Process, amalgame:parameters, literal(Search), Graph).
 
 new_output(Type, Process, P, Input, Strategy, OutputURI) :-
@@ -248,9 +248,9 @@ output_type(ProcessType, amalgame:'VirtualConceptScheme') :-
 	!.
 output_type(_ProcessType, amalgame:'Mapping').
 
-process_label(P, Lit) :-
-	(   rdf_display_label(P, L)
-	->  Lit = L
+process_label_literal(P, Lit) :-
+	(   rdf_label(P, Lit)
+	->  true
 	;   rdf_global_id(_:Local, P),
 	    Lit = literal(Local)
 	).
