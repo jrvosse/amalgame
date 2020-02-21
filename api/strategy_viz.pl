@@ -135,7 +135,9 @@ is_amalgame_property(P) :-
 empty_result(Strategy, E) :-
 	rdfs_individual_of(E, amalgame:'Entity'),
 	node_stats(Strategy, E, Stats, [compute(false)]),
-	option(totalCount(0), Stats),!.
+	option(totalCount(0), Stats),
+	non_empty_sibling(Strategy, E),
+	!.
 
 empty_result(_Strategy,M) :-
 	is_empty_eval_graph(M).
@@ -145,6 +147,15 @@ empty_result(Strategy,Process) :-
 	rdfs_individual_of(Process, amalgame:'EvaluationProcess'),
 	rdf(Empty, amalgame:wasGeneratedBy, Process, Strategy),
 	empty_result(Strategy, Empty).
+
+non_empty_sibling(Strategy, E) :-
+	rdf_has(E, amalgame:wasGeneratedBy, Process, RP),
+	rdf(E, RP, Process, Strategy),
+	rdf_has(Sibling, amalgame:wasGeneratedBy, Process, _RP),
+	Sibling \= E,
+	node_stats(Strategy, Sibling, Stats, [compute(false)]),
+	option(totalCount(Count), Stats),
+	Count > 0.
 
 %%	amalgame_shape(+Resource, -Shape, +Options)
 %
