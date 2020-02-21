@@ -219,11 +219,14 @@ materialize_concept(Concept, Graph) :-
 %	skos:ConceptScheme.
 
 amalgame_alignable_scheme(S) :-
-	explicit_non_empty_scheme(S).
+	explicit_scheme(S).
 
 amalgame_alignable_scheme(S) :-
 	derived_scheme(S).
 
+amalgame_non_empty_scheme(S) :-
+	amalgame_alignable_scheme(S),
+	skos_in_scheme_chk(S,_).
 
 %%	amalgame_alignable_schemes(-Schemes) is det.
 %
@@ -233,7 +236,7 @@ amalgame_alignable_scheme(S) :-
 %	Sorting is based on case insensitive scheme labels.
 
 amalgame_alignable_schemes(Schemes) :-
-	findall(S, amalgame_alignable_scheme(S), All0),
+	findall(S, amalgame_non_empty_scheme(S), All0),
 	sort(All0, All),
 	maplist(scheme_label, All, Labeled),
 	keysort(Labeled, Sorted),
@@ -243,9 +246,8 @@ derived_scheme(Scheme) :-
 	skos_in_scheme(Scheme, _Concept),
 	\+ skos_is_vocabulary(Scheme).
 
-explicit_non_empty_scheme(S) :-
-        skos_is_vocabulary(S),
-	skos_in_scheme_chk(S, _).
+explicit_scheme(S) :-
+        skos_is_vocabulary(S).
 
 skos_in_scheme_chk(Scheme, Concept) :-
 	skos_in_scheme(Scheme, Concept), !.
