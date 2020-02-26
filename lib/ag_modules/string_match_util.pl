@@ -34,7 +34,8 @@ label_list(LabelProps) :-
 %	** via skosxl:literalForm if no amalgame:qualifier
 
 skos_has(Concept, MatchProp, Literal, RealProp, _Options) :-
-	rdf_has(Concept, MatchProp, Literal, RealProp).
+	rdf_has(Concept, MatchProp, Literal, RealProp),
+        rdf_is_literal(Literal).
 
 skos_has(Concept, MatchProp, Literal, RealProp, Options) :-
 	nonvar(Concept),
