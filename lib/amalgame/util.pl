@@ -17,7 +17,7 @@
 :- use_module(library(pairs)).
 :- use_module(library(sgml)).
 :- use_module(library(uri)).
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf11)).
 
 :- use_module(user(user_db)).
 
@@ -56,11 +56,11 @@ assert_user_provenance(R, Graph) :-
 	logged_on(User),
 	user_property(User, url(Agent)),
 	(   user_property(User, realname(Realname))
-	->  rdf_assert(Agent, rdfs:label, literal(Realname), Graph)
+	->  rdf_assert(Agent, rdfs:label, Realname, Graph)
 	),
 	now_xsd(Time),
 	rdf_assert(R, dcterms:creator, Agent, Graph),
-	rdf_assert(R, dcterms:date, literal(type(xsd:dateTime, Time)), Graph).
+	rdf_assert(R, dcterms:date, Time^^xsd:dateTime, Graph).
 
 
 
