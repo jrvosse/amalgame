@@ -142,7 +142,7 @@ node_prop(S, R, status, Status) :-
 node_prop(S, R, default_relation, Relation) :-
 	rdf(R, amalgame:default_relation, Relation, S).
 node_prop(S, R, comment, Comment) :-
-	rdf(R, rdfs:comment, literal(Lit), S),
+	rdf(R, rdfs:comment, Lit, S),
 	literal_text(Lit, Comment).
 node_prop(_, R, link, Link) :-
 	resource_link(R, Link).
