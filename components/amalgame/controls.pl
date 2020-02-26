@@ -2,7 +2,7 @@
 	  [ html_controls//0
 	  ]).
 
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(http/html_write)).
 :- use_module(library(amalgame/amalgame_modules)).
@@ -245,7 +245,7 @@ module_input_type(_, 'always_active').
 %	control in the UI.
 
 module_special_type(M, secinput) :-
-	rdf_has(M, amalgame:need_secondary_inputs, literal(type(xsd:boolean, true))),
+	rdf_has(M, amalgame:need_secondary_inputs, true^^xsd:boolean),
 	!.
 module_special_type(M, preloaded) :-
 	rdfs_subclass_of(M, amalgame:'SelectPreLoaded'),
