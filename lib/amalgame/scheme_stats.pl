@@ -8,7 +8,7 @@
 :- use_module(library(assoc)).
 :- use_module(library(lists)).
 :- use_module(library(pairs)).
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(skos/util)).
 :- use_module(library(stat_lists)).
@@ -190,7 +190,7 @@ find_subvoc_version(Voc, SuperVoc, Version) :-
 	).
 
 find_voc_revision(Voc, Version) :-
-	rdf(_, skos:inScheme, Voc, SourceGraph:_),!,
+	rdf(_, skos:inScheme, Voc, SourceGraph),!,
 	prov_get_entity_version(Voc, SourceGraph, Version).
 find_voc_revision(Voc, Version) :-
 	rdf(Voc, amalgame:graph, SourceGraph), !,
