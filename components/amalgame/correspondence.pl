@@ -207,7 +207,10 @@ html_resource_context('',_) --> !.
 html_resource_context(URI, _Prov) -->
 	{ rdf_display_label(URI, Label),
 	  skos_all_labels(URI, Alt0),
-	  select(Label, Alt0, Alt),
+	  (   select(Label, Alt0, Alt)
+	  ->  true
+	  ;   Alt = []
+	  ),
 	  find_other_literals(URI, Alt0, Others),
 	  resource_tree(URI, Tree),
 	  findall(R, skos_related_concept(URI, R), Related),
