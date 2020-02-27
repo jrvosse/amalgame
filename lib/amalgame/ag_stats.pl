@@ -142,8 +142,8 @@ vocab_stats(URL, Strategy, Ss, Ts, VocStats, StructStats, CarthesianProductSize)
 	mapping_vocab_sources(URL, Strategy, InputS, InputT),
 	node_stats(Strategy, InputS, StatsSin, [compute(deep)]),
 	node_stats(Strategy, InputT, StatsTin, [compute(deep)]),
-	option(totalCount(SourceN), StatsSin),
-	option(totalCount(TargetN), StatsTin),
+	option(totalCount(SourceN), StatsSin, 0),
+	option(totalCount(TargetN), StatsTin, 0),
 	length(Ss, SN),	length(Ts, TN),
 	save_perc(SN, SourceN, SPerc),
 	save_perc(TN, TargetN, TPerc),
@@ -161,18 +161,22 @@ vocab_stats(URL, Strategy, Ss, Ts, VocStats, StructStats, CarthesianProductSize)
 	    targetPercentage-TPerc
 	],
 
-	nonvar(StatsSin), Smap = StatsSin.get('@private').get(depthMap),
-	nonvar(StatsTin), Tmap = StatsTin.get('@private').get(depthMap),
-	structure_stats(depth,    Ss, Smap, DSstats),
-	structure_stats(children, Ss, Smap, BSstats),
-	structure_stats(depth,    Ts, Tmap, DTstats),
-	structure_stats(children, Ts, Tmap, BTstats),
-	StructStats = [
-	    source_depth-DSstats,
-	    target_depth-DTstats,
-	    source_child_stats-BSstats,
-	    target_child_stats-BTstats
-	],
+	(   StatsSin \= [],
+	    StatsTin \= []
+	->  Smap = StatsSin.get('@private').get(depthMap),
+	    nonvar(StatsTin), Tmap = StatsTin.get('@private').get(depthMap),
+	    structure_stats(depth,    Ss, Smap, DSstats),
+	    structure_stats(children, Ss, Smap, BSstats),
+	    structure_stats(depth,    Ts, Tmap, DTstats),
+	    structure_stats(children, Ts, Tmap, BTstats),
+	    StructStats = [
+		source_depth-DSstats,
+		target_depth-DTstats,
+		source_child_stats-BSstats,
+		target_child_stats-BTstats
+	    ]
+	;   StructStats = []
+	),
 	!.
 
 
@@ -209,10 +213,7 @@ mapping_vocab_sources(Manual, Strategy, SV, TV) :-
 	),
 	!,
 	has_correspondence_chk(align(SC,TC,_), Manual),
-	strategy_vocabulary(Strategy, SV),
-	vocab_member(SC, scheme(SV)),
-	strategy_vocabulary(Strategy, TV),
-	vocab_member(TC, scheme(TV)).
+        have_vocab_sources(SC, TC, SV, TV).
 
 mapping_vocab_sources(URL, Strategy, S, T) :-
 	rdf_has(URL, amalgame:wasGeneratedBy, Process, RealProp),
@@ -225,6 +226,17 @@ mapping_vocab_sources(URL, Strategy, S, T) :-
 	;   rdf(Process, amalgame:input, Input, Strategy)
 	->  mapping_vocab_sources(Input, Strategy, S, T)
 	).
+
+have_vocab_sources(SourceConcept, TargetConcept, SVoc, TVoc) :-
+	strategy_vocabulary(Strategy, SVoc),
+	vocab_member(SourceConcept, scheme(SVoc)),
+	strategy_vocabulary(Strategy, TVoc),
+	vocab_member(TargetConcept, scheme(TVoc)),
+	!.
+
+have_vocab_sources(_S,_T, undef, undef) :-
+	!.
+
 
 vocab_source(V, Strategy, S) :-
 	rdf_has(V, amalgame:wasGeneratedBy, Process, RealProp1),
