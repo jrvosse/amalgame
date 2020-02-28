@@ -2,7 +2,7 @@
 	      exact_label_match/3
 	  ]).
 
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(amalgame/vocabulary)).
 :- use_module(string_match_util).
 
@@ -29,24 +29,21 @@ exact_label_match(align(Source, Target, Prov0),
 	;   SourceLang = Lang
 	),
 
-	(   CaseSensitive
-	->  SearchTarget=literal(lang(TargetLang, SourceLabel)),
-	    TargetLabel = SourceLabel
-	;   SearchTarget=literal(exact(SourceLabel), lang(TargetLang, TargetLabel))
-	),
+	skos_has(Source, MatchPropS, SourceLabel@SourceLang, SourceProp, Options),
+	SourceLabel \= '',
 
-        % If we cannot match across languages, set target language to source language
 	(   MatchAcross == false
 	->  TargetLang = SourceLang
 	;   true
 	),
 
-	skos_has(Source, MatchPropS,
-		   literal(lang(SourceLang, SourceLabel)),
-		   SourceProp, Options),
-	SourceLabel \= '',
-	skos_has(Target, MatchPropT, SearchTarget,
-		TargetProp, Options),
+	SearchTarget = TargetLabel@TargetLang,
+	(   CaseSensitive
+	->  TargetLabel = SourceLabel
+	;   rdf11:rdf_where(icase(TargetLabel, SourceLabel))
+	),
+
+	skos_has(Target, MatchPropT, SearchTarget, TargetProp, Options),
 	Source \= Target,
 
 	(   option(target_scheme(TargetScheme), Options)
@@ -61,13 +58,13 @@ exact_label_match(align(Source, Target, Prov0),
 
 	% if matching label has no lang tag, these are still not grounded:
 	(   var(SourceLang)
-	->  SourceTerm = literal(SourceLabel)
-	;   SourceTerm = literal(lang(SourceLang, SourceLabel))
+	->  SourceTerm = SourceLabel^^xsd:string
+	;   SourceTerm = SourceLabel@SourceLang
 	),
 
 	(   var(TargetLang)
-	->  TargetTerm = literal(TargetLabel)
-	;   TargetTerm = literal(lang(TargetLang, TargetLabel))
+	->  TargetTerm = TargetLabel^^xsd:string
+	;   TargetTerm = TargetLabel@TargetLang
 	),
 
 	Prov = [method(exact_label),
