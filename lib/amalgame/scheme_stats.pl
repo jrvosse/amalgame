@@ -163,7 +163,7 @@ concept_stat(C, Skos, SkosXLa, SkosXLp) :-
 fcplp(Format, Concept, Prop, RealProp, Lang, Label) :-
 	skos_has(Concept, Prop,  Literal, RealProp, [format(Format)]),
 	(   var(Label)
-	->  (   Literal = literal(lang(Lang, Label))
+	->  (   rdf_lexical_form(Literal, Label@Lang)
 	    ->  true
 	    ;   literal_text(Literal, Label), Lang = no_lang
 	    )
