@@ -265,7 +265,7 @@ html_image_examples([E|Tail]) -->
 image_examples(R, Es) :-
 	% hack: assume non-literal examples to be image urls ...
 	findall(E, ( rdf(R, skos:example, E),
-		     \+ E =.. [literal|_]
+		     \+ rdf_is_literal(E)
 		   ),
 		List),
 	sort(List, Es).
@@ -416,6 +416,11 @@ evidence_shape(Resource, Shape, _Options) :-
 %	Defines graph node shape for different types of evidence
 %	resources.
 
+evidence_shape(_@_,
+	       [shape(box),
+		style(filled),
+		fontsize(10)]) :-
+	!.
 evidence_shape(literal(_),
 	       [shape(box),
 		style(filled),
