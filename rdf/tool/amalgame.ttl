@@ -1,6 +1,7 @@
 @prefix amalgame: <http://purl.org/vocabularies/amalgame#> .
 @prefix evaluator:<http://purl.org/vocabularies/amalgame/evaluator#> .
 @prefix     skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix   skosxl:  <http://www.w3.org/2008/05/skos-xl#> .
 @prefix    align: <http://knowledgeweb.semanticweb.org/heterogeneity/alignment#> .
 @prefix     prov: <http://www.w3.org/ns/prov#> .
 @prefix      owl: <http://www.w3.org/2002/07/owl#> .
@@ -177,6 +178,14 @@ amalgame:DerivedConceptScheme a rdfs:Class;
 	rdfs:subClassOf skos:ConceptScheme;
 	rdfs:label "Derived concept scheme"@en ;
 	rdfs:comment "A SKOS Concept Scheme which has been derived from another scheme"@en .
+
+amalgame:label a rdf:Property ;
+	rdfs:label "super property of all label properties"@en .
+
+rdfs:label rdfs:subPropertyOf amalgame:label .
+skosxl:altLabel rdfs:subPropertyOf amalgame:label .
+skosxl:prefLabel rdfs:subPropertyOf amalgame:label .
+skosxl:hiddenLabel rdfs:subPropertyOf amalgame:label .
 
 amalgame:member a rdf:Property ;
 	rdfs:label "overlap member"@en ;

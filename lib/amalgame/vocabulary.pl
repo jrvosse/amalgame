@@ -2,6 +2,7 @@
 	  [ vocab_member/2,
 	    all_vocab_members/2,
 	    amalgame_alignable_schemes/1,
+	    amalgame_alignable_scheme/1,
 	    amalgame_vocabulary_languages/1,
 	    materialize_scheme_graph/2
 	  ]).
@@ -29,7 +30,7 @@
 %
 %	True if C is part of Vocabulary.
 %
-%	@param VocabDef is a URI of a skos:ConceptScheme or a definition
+%	@param VocabDef is a URI of a skos:ConceptScheme or a definitionamlgame_alignable_schemeamlgame_alignable_schemeamlgame_alignable_scheme
 %	of a subset thereof.
 
 vocab_member(C, vocspec(Spec)) :-
@@ -211,28 +212,50 @@ materialize_scheme_graph(Assoc, Options) :-
 materialize_concept(Concept, Graph) :-
 	rdf_assert(Concept, skos:inScheme, Graph, Graph).
 
+%!	amalgame_alignable_scheme(Scheme) is nondet.
+%
+%	Scheme is unified with a derived (implicitly) defined
+%	skos:ConceptScheme or an explicitly defined, non-empty
+%	skos:ConceptScheme.
+
+amalgame_alignable_scheme(S) :-
+	explicit_scheme(S).
+
+amalgame_alignable_scheme(S) :-
+	derived_scheme(S).
+
+amalgame_non_empty_scheme(S) :-
+	amalgame_alignable_scheme(S),
+	skos_in_scheme_chk(S,_).
 
 %%	amalgame_alignable_schemes(-Schemes) is det.
 %
 %	Schemes is unified with a sorted list of urls of
-%	skos:ConceptSchemes or other alignable objects.
+%       alignable objects.
 %
 %	Sorting is based on case insensitive scheme labels.
 
 amalgame_alignable_schemes(Schemes) :-
-	findall(S, alignable_scheme(S), All),
+	findall(S, amalgame_non_empty_scheme(S), All0),
+	sort(All0, All),
 	maplist(scheme_label, All, Labeled),
 	keysort(Labeled, Sorted),
 	pairs_values(Sorted, Schemes).
 
-alignable_scheme(S) :-
-        skos_is_vocabulary(S),
-	skos_in_scheme_chk(S, _).
+derived_scheme(Scheme) :-
+	skos_in_scheme(Scheme, _Concept),
+	\+ skos_is_vocabulary(Scheme).
+
+explicit_scheme(S) :-
+        skos_is_vocabulary(S).
+
 skos_in_scheme_chk(Scheme, Concept) :-
 	skos_in_scheme(Scheme, Concept), !.
 scheme_label(URI, Key-URI) :-
 	rdf_graph_label(URI, CasedKey),
 	downcase_atom(CasedKey, Key).
+
+
 
 amalgame_vocabulary_languages(Languages) :-
 	findall(Strategy-Schemes,

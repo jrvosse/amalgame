@@ -20,9 +20,7 @@
 
 :- use_module(user(user_db)).
 :- use_module(library(version)).
-:- use_module(library(prov_schema)).
-:- use_module(library(skos/util)).
-
+:- use_module(vocabulary).
 :- use_module(ag_stats).
 :- use_module(util).
 
@@ -80,7 +78,7 @@ prov_ensure_entity(_S, Entity, Graph) :-
 	rdf(Entity, 'http://usefulinc.com/ns/doap#revision' , _, Graph),
 	!. % prov already recorded
 prov_ensure_entity(Strategy, Entity, Graph) :-
-	skos_is_vocabulary(Entity),
+	amalgame_alignable_scheme(Entity),
 	node_stats(Strategy, Entity, Stats, []),
 	option(revision(Revision), Stats),
 	prov_named_graphs(Repo, Graph),
@@ -389,7 +387,7 @@ assert_counts([URI|Tail], Strategy, ProvGraph) :-
 	assert_counts(Tail, Strategy, ProvGraph).
 
 assert_count(VocUri, Strategy, ProvGraph) :-
-	skos_is_vocabulary(VocUri),
+	amalgame_alignable_scheme(VocUri),
 	node_stats(Strategy, VocUri, Stats, []),
 	option(totalCount(Count), Stats),
 	rdf_retractall(VocUri, amalgame:totalCount, _, ProvGraph),

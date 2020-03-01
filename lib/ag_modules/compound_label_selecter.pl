@@ -18,11 +18,11 @@ parameter(type,
 
 parameter(sourcelabel, oneof(LabelProps), Default,
 	  '(Super)Property to get label of the source by') :-
-	rdf_equal(Default, rdfs:label),
+	rdf_equal(Default, amalgame:label),
 	label_list(LabelProps).
 parameter(targetlabel, oneof(LabelProps), Default,
 	  '(Super)Property to get the label of the target by') :-
-	rdf_equal(Default, rdfs:label),
+	rdf_equal(Default, amalgame:label),
 	label_list(LabelProps).
 parameter(source_language, oneof(['any'|L]), 'any',
 	  'Language of source label') :-

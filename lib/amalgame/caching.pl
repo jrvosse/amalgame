@@ -22,10 +22,9 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 
-:- use_module(library(skos/util)).
-
 :- use_module(ag_provenance).
 :- use_module(map).
+:- use_module(vocabulary).
 :- use_module(ag_stats).
 :- use_module(scheme_stats).
 
@@ -89,7 +88,7 @@ cache_result(_ExecTime, Id, Strategy, Result) :-
 	assert(stats_cache(Id-Strategy, Stats)).
 
 cache_result(_ExecTime, Id, Strategy, Result) :-
-	skos_is_vocabulary(Id),
+	amalgame_alignable_scheme(Id),
 	!,
 	flush_expand_cache(Id, Strategy),
 	assert(expand_cache(Id-Strategy, Result)),
@@ -346,7 +345,7 @@ mapping_to_delete(Id, Strategy) :-
 
 del_materialized_vocs(Strategy) :-
 	findall(Voc,
-		(   skos_is_vocabulary(Voc),
+		(   amalgame_alignable_scheme(Voc),
 		    rdf_graph(Voc),
 		    rdf_has(Voc, amalgame:wasGeneratedBy, Process, RP),
 		    rdf(Voc, RP, Process, Strategy)

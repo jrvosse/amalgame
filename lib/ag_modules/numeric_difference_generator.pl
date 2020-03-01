@@ -16,11 +16,11 @@ amalgame_module(amalgame:'NumericDifferenceMatcher').
 
 parameter(sourcelabel, oneof(LiteralProps), Default,
 	  '(Super)Property to get label of the source by') :-
-	rdf_equal(Default, rdfs:label),
+	rdf_equal(Default, amalgame:label),
 	rdf_literal_predicates(LiteralProps).
 parameter(targetlabel, oneof(LiteralProps), Default,
 	  '(Super)Property to get the label of the target by') :-
-	rdf_equal(Default, rdfs:label),
+	rdf_equal(Default, amalgame:label),
 	rdf_literal_predicates(LiteralProps).
 
 parameter(threshold, float, 0.05,

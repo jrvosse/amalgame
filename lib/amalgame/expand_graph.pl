@@ -17,6 +17,7 @@
 
 :- use_module(library(amalgame/caching)).
 :- use_module(library(amalgame/map)).
+:- use_module(library(amalgame/vocabulary)).
 :- use_module(library(amalgame/ag_provenance)).
 :- use_module(library(amalgame/amalgame_modules)).
 
@@ -113,7 +114,7 @@ expand_node_(Strategy, Id, Result) :-
 
 	(   rdfs_individual_of(Id, amalgame:'Mapping')
 	->  select_result_mapping(Id, ProcessResult, OutputType, Result)
-	;   skos_is_vocabulary(Id)
+	;   amalgame_alignable_scheme(Id)
 	->  select_result_scheme(Id, ProcessResult, OutputType, Result)
 	;   Result = error(Id)
 	).
@@ -123,7 +124,7 @@ expand_node_(Strategy, Id, Result) :-
 	% Cache miss, we need to do the work ...
 	(   rdfs_individual_of(Id, amalgame:'Mapping')
 	->  expand_mapping(Strategy, Id, Result)
-	;   skos_is_vocabulary(Id)
+	;   amalgame_alignable_scheme(Id)
 	->  expand_vocab(Strategy, Id, Result)
 	;   Result=error(Id)
 	).

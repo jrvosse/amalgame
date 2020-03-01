@@ -11,7 +11,7 @@
 
 snowball_label_match(align(Source, Target, Prov0),
 		     align(Source, Target, [Prov|Prov0]), Options) :-
-	rdf_equal(rdfs:label,DefaultP),
+	rdf_equal(amalgame:label,DefaultP),
 	option(snowball_language(Snowball_Language), Options, english),
 	option(prefix(PrefixLength), Options, 4),
 	option(sourcelabel(MatchProp1), Options, DefaultP),

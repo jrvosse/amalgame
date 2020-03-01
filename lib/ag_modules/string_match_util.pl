@@ -4,7 +4,7 @@
 	   matching_types/2
 	  ]).
 
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_label)).
 
@@ -14,6 +14,7 @@
 label_list(LabelProps) :-
 	findall(LP,
 		(   label_property(LP)
+		;   rdf_equal(LP, amalgame:label)
 		;   rdfs_subproperty_of(LP, skos:note)
 		;   rdfs_subproperty_of(LP, skos:notation)
 		;   rdfs_subproperty_of(LP, rdfs:label)
@@ -33,12 +34,19 @@ label_list(LabelProps) :-
 %	** via skosxl:literalForm if no amalgame:qualifier
 
 skos_has(Concept, MatchProp, Literal, RealProp, _Options) :-
+	var(Literal),
+	rdf_has(Concept, MatchProp, Literal, RealProp),
+        rdf_is_literal(Literal).
+
+skos_has(Concept, MatchProp, Literal, RealProp, _Options) :-
+	nonvar(Literal),
+	% Literal = literal(_Query, lang(_Lang, _Result)),
 	rdf_has(Concept, MatchProp, Literal, RealProp).
 
 skos_has(Concept, MatchProp, Literal, RealProp, Options) :-
 	nonvar(Concept),
 	rdf_has(Concept, MatchProp, LiteralObject, RealProp),
-	rdf_subject(LiteralObject),
+	rdf_is_subject(LiteralObject),
 	(   ( rdf_has(LiteralObject, amalgame:qualifier, _),
 	      option(match_qualified_only(true), Options, false)
             )

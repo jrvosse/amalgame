@@ -14,10 +14,12 @@
 :- use_module(library(http/http_multipart_plugin)).
 :- use_module(library(http/http_client)).
 
-:- use_module(library(semweb/rdf_db)).
-
+:- use_module(library(semweb/rdf11)).
+:- use_module(library(semweb/rdf_label)).
 :- use_module(library(semweb/rdf_file_type)).
+
 :- use_module(user(user_db)).
+:- use_module(user(preferences)).
 
 :- use_module(library(amalgame/rdf_util)).
 :- use_module(library(amalgame/ag_strategy)).
@@ -136,7 +138,7 @@ load_file_into_named_graph(InStream, file(FileName, NamedGraph), Options) :-
 	now_xsd(TS),
 	rdf_equal(amalgame:'LoadedMapping', LMGraph),
 	rdf_assert(NamedGraph, amalgame:uploadedFrom, FileURL,  LMGraph),
-	rdf_assert(NamedGraph, prov:generatedAtTime, literal(type(xsd:dateTime, TS)), LMGraph),
+	rdf_assert(NamedGraph, prov:generatedAtTime, TS^^xsd:dateTime, LMGraph),
 	rdf_assert(NamedGraph, rdf:type, amalgame:'LoadedMapping', LMGraph).
 
 is_multipart_post_request(Request) :-
@@ -223,7 +225,9 @@ new_strategy(S, Options) :-
 	;   true),
 
 	(   option(comment(C), Options)
-	->  rdf_assert(S, rdfs:comment, literal(C), S)
+	->  user_preference(user:lang, LangLiteral),
+	    literal_text(LangLiteral, Lang),
+	    rdf_assert(S, rdfs:comment, C@Lang, S)
 	;   true
 	).
 
