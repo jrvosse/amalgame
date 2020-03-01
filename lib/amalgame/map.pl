@@ -16,6 +16,8 @@
 	   mapping_relation/2,
 	   materialize_mapping_graph/2, % +List, +Options
 	   merge_provenance/2,     % +List, -Merged
+
+	   sort_align/3,	   % +Type, +In, -Sorted
 	   compare_align/4,        % +Type, ?Order, A1, A2
 	   same_source/4,          % +List, +Source, -Same, -Rest
 	   same_target/4,          % +List, +Target, -Same, -Rest
@@ -291,6 +293,16 @@ prolog:message(map(occurs_min(Min, MappingList))) -->
 	[ 'Occurs in min ~w mapping graphs: ~w'-[Min, MLL] ].
 
 
+%!	sort_align(Type, In, Out) is det.
+%
+
+sort_align(source, In, Out) :-
+	sort(In, Out).
+
+sort_align(target, In, Out) :-
+	sort(In, In0),
+	sort(2, @=<, In0, Out).
+%
 %%      compare_align(Type, Order, A1, A2) is det.
 %
 %       compare alignment A1 and A2 on the standard order of the url of
