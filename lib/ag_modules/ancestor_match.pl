@@ -9,14 +9,14 @@
 ancestor_match(align(S, T, Prov0), BackgroundMatches,
 	       align(S, T, [Prov|Prov0]), Options) :-
 	option(steps(MaxSteps), Options),
-	ancestor(S, MaxSteps, AncS, R1, Steps1),
-	ancestor(T, MaxSteps, AncT, R2, Steps2),
+	ancestor(S, MaxSteps, AncS, RS, StepsS),
+	ancestor(T, MaxSteps, AncT, RT, StepsT),
 	get_assoc(AncS-AncT, BackgroundMatches, _),
 	Prov = [method(ancestor_match),
 		source(AncS),
 		target(AncT),
-		steps(Steps1/Steps2),
-		graph([R1,R2])
+		steps((StepsS, StepsT)),
+		graph([RS,RT])
 	       ].
 
 ancestor(R, MaxSteps, Parent, rdf(R, Prop, Parent), Steps) :-

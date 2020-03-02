@@ -172,12 +172,16 @@ html_evidences([E|Es],Source,Target) -->
 	  (   option(comment(Comment), E)
 	  ->  Cm = span([class(comment)], [' with comment: ', Comment])
 	  ;   Cm = ''
+	  ),
+	  (   option(steps((StepsS, StepsT)), E)
+	  ->  St = span([class(steps)], [' source/target hier. steps: ', StepsS, '/', StepsT])
+	  ;   St = ''
 	  )
 	},
 	html(div(class(evidence),
 		 [ div(class(method),
 		       ['match: ',
-			Method, By, Gr, Re, At, Mt, Src, Trg, Ss, Ts, Scs, Cm]),
+			Method, By, Gr, Re, At, Mt, Src, Trg, Ss, Ts, Scs, Cm, St]),
 		   div(class('graph yui3-g'),
 		       [ div(class('source yui3-u-1-2'),
 			     \html_evidence_graph(Graph, Source, 'LR')),
