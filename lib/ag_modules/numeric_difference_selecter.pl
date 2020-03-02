@@ -5,7 +5,7 @@
 :- public selecter/5.
 :- public parameter/4.
 
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf11)).
 
 :- use_module(library(amalgame/rdf_util)).
 :- use_module(numeric_difference_match).

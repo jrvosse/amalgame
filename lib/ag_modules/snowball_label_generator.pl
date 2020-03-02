@@ -1,7 +1,7 @@
 :- module(snowball_label_generator,
 	  []).
 
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(snowball)).
 :- use_module(library(amalgame/vocabulary)).
 
