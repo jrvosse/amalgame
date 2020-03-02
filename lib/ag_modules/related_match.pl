@@ -3,19 +3,19 @@
 
 :- use_module(library(assoc)).
 :- use_module(library(option)).
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(skos/util)).
 
 related_match(align(S, T, Prov0), BackgroundMatches, align(S, T, [Prov|Prov0]), Options) :-
 	option(steps(MaxSteps), Options),
-	related(S, MaxSteps, AncS, R1, Steps1),
-	related(T, MaxSteps, AncT, R2, Steps2),
+	related(S, MaxSteps, AncS, RS, StepsS),
+	related(T, MaxSteps, AncT, RT, StepsT),
 	get_assoc(AncS-AncT, BackgroundMatches, _),
 	Prov = [method(related_match),
 		source(AncS),
 		target(AncT),
-		steps(Steps1/Steps2),
-		graph([R1,R2])
+		steps((StepsS,StepsT)),
+		graph([RS,RT])
 	       ].
 
 related(R, MaxSteps, Related, rdf(R, Prop, Related), Steps) :-
