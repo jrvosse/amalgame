@@ -70,6 +70,6 @@ snowball_label_match(align(Source, Target, Prov0),
 		target_stem(TargetStem),
 		match(Match),
 		graph([rdf(Source, SourceProp, SourceLabel@SourceLang),
-		       rdf(Target, TargetProp, TargetLabel@TargetLabel)])
+		       rdf(Target, TargetProp, TargetLabel@TargetLang)])
 	       ],
 	debug(align_result, 'snowball match: ~p ~p', [Source,Target]).
