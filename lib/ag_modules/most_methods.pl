@@ -4,7 +4,6 @@
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(pairs)).
-:- use_module(library(sort)).
 
 :- use_module(library(amalgame/map)).
 
@@ -28,11 +27,11 @@ selecter(Mapping, S, D, U, Options) :-
 	partition_(target, Mapping, S, D, U).
 selecter(Mapping, S, D, U, Options) :-
 	option(type(source), Options, target),!,
-	predsort(ag_map:compare_align(target), Mapping, TSorted),
+	sort_align(target, Mapping, TSorted),
 	partition_(source, TSorted, Sel0, Disc0, Und0),
-	predsort(ag_map:compare_align(source), Sel0,  S),
-	predsort(ag_map:compare_align(source), Disc0, D),
-	predsort(ag_map:compare_align(source), Und0,  U).
+	sort_align(source, Sel0,  S),
+	sort_align(source, Disc0, D),
+	sort_align(source, Und0,  U).
 
 ap(Type, Result, align(S,T,P), align(S,T,Pnew)) :-
 	append([[method(most_methods),
