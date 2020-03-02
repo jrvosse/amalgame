@@ -1,5 +1,8 @@
 :- module(best_numeric, []).
 
+:- use_module(library(lists)).
+:- use_module(library(option)).
+:- use_module(library(pairs)).
 :- use_module(library(amalgame/map)).
 
 :- public amalgame_module/1.
@@ -8,7 +11,7 @@
 
 parameter(type,
 	  oneof([source,target]), target,
-	  'source = best source for each target, target = best target for each source').
+	  'source = best matching source for each target, target = best matching target for each source').
 
 amalgame_module(amalgame:'BestNumeric').
 
@@ -21,11 +24,11 @@ selecter(Mapping, Sel, Disc, Und, Options) :-
 	option(type(SourceOrTarget), Options, target),
 	(   SourceOrTarget = target
 	->  partition_(SourceOrTarget, Mapping, Sel, Disc, Und)
-	;   predsort(ag_map:compare_align(target), Mapping, TSorted),
+	;   sort_align(target, Mapping, TSorted),
 	    partition_(SourceOrTarget, TSorted, Sel0, Disc0, Und0),
-	    predsort(ag_map:compare_align(source), Sel0,  Sel),
-	    predsort(ag_map:compare_align(source), Disc0, Disc),
-	    predsort(ag_map:compare_align(source), Und0,  Und)
+	    sort_align(source, Sel0,  Sel),
+	    sort_align(source, Disc0, Disc),
+	    sort_align(source, Und0,  Und)
 	).
 
 
@@ -61,7 +64,11 @@ group_match([], []).
 group_match([Align|As], [Match-Align|Ts]) :-
 	Align = align(_,_,Provenance),
 	member(P, Provenance),
-	% memberchk(method(M), P),
-	% memberchk(M, [jaccard, isub]),
 	memberchk(match(Match), P),
 	group_match(As, Ts).
+
+
+
+
+
+
