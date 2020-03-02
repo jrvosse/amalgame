@@ -3,7 +3,6 @@
 :- use_module(library(apply)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
-:- use_module(library(sort)).
 :- use_module(library(skos/util)).
 :- use_module(library(amalgame/map)).
 :- use_module(library(semweb/rdf_label)).
@@ -31,10 +30,10 @@ selecter(SSorted, Sel, [], Und, Options) :-
 	option(type(SourceOrTarget), Options, source),
 	(   SourceOrTarget = target
 	->  partition_(SourceOrTarget, SSorted, MaxDepth, Sel, Und)
-	;   predsort(ag_map:compare_align(target), SSorted, TSorted),
+	;   sort_align(target, SSorted, TSorted),
 	    partition_(SourceOrTarget, TSorted, MaxDepth, Sel0, Und0),
-	    predsort(ag_map:compare_align(source), Sel0,  Sel),
-	    predsort(ag_map:compare_align(source), Und0,  Und)
+	    sort_align(source, Sel0,  Sel),
+	    sort_align(source, Und0,  Und)
 	).
 ac(Result, Type, Length, align(S,T,P), align(S,T,Pnew)) :-
 	append(P, [[method(sibling_select),

@@ -25,11 +25,11 @@ selecter(Mapping, Sel, Disc, Und, Options) :-
 	option(most_least(Most), Options, most),
 	(   SourceOrTarget = target
 	->  partition_(SourceOrTarget, Most, Mapping, Sel, Disc, Und)
-	;   predsort(ag_map:compare_align(target), Mapping, TSorted),
+	;   sort_align(target, Mapping, TSorted),
 	    partition_(SourceOrTarget, Most, TSorted, Sel0, Disc0, Und0),
-	    predsort(ag_map:compare_align(source), Sel0,  Sel),
-	    predsort(ag_map:compare_align(source), Disc0, Disc),
-	    predsort(ag_map:compare_align(source), Und0,  Und)
+	    sort_align(source, Sel0,  Sel),
+	    sort_align(source, Disc0, Disc),
+	    sort_align(source, Und0,  Und)
 	).
 
 method_name(most, most_generic).
@@ -128,5 +128,7 @@ hierarchy_related([A|As], L, source, Most, G0, G, [A2|Rest]) :-
 	),
 	ap(target, discarded, Most, L, A1, A2),
 	hierarchy_related(As, L, source, Most, G1, G, Rest).
+
+
 
 
