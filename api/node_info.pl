@@ -88,15 +88,17 @@ html_row(Prefix, Key, Value) -->
 		])).
 
 html_cell([]) --> !.
+html_cell(@(V, _Lang)) -->
+    !,
+    html(V).
+html_cell(^^(V, _Type)) -->
+    !,
+    html(V).
 html_cell(Vs) -->
 	{ is_list(Vs)
 	},
 	!,
 	html_cell_list(Vs).
-html_cell(@(V, _Lang)) -->
-    !,
-    html(V).
-
 html_cell(V) -->
 	html(V).
 
