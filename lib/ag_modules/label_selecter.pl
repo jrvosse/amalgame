@@ -10,7 +10,6 @@
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(pairs)).
-:- use_module(library(sort)).
 :- use_module(library(amalgame/map)).
 
 :- meta_predicate label_selecter(3, +, -, -, -, +).
@@ -19,11 +18,11 @@ label_selecter(Matcher, In, Sel, Dis, Und, Options) :-
 	option(type(SourceOrTarget), Options, all),
 	(   SourceOrTarget \= source
 	->  label_selecter(SourceOrTarget, Matcher, In, Sel, Dis, Und, Options)
-	;   predsort(ag_map:compare_align(target), In, InT),
+	;   sort_align(target, In, InT),
 	    label_selecter(SourceOrTarget, Matcher, InT, Sel0, Dis0, Und0, Options),
-	    predsort(ag_map:compare_align(source), Sel0,  Sel),
-	    predsort(ag_map:compare_align(source), Dis0,  Dis),
-	    predsort(ag_map:compare_align(source), Und0,  Und)
+	    sort_align(source, Sel0,  Sel),
+	    sort_align(source, Dis0,  Dis),
+	    sort_align(source, Und0,  Und)
 	).
 
 label_selecter(  _, _, [],  [],  [],  [], _).
