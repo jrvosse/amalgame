@@ -189,10 +189,6 @@ expand_vocab(Strategy, Id, Concepts) :-
 	select_result_scheme(Id, Result, OutputType, Concepts),
 	debug(mutex, 'Releasing mutex: ~w', [Mutex]).
 
-%expand_vocab(_Strategy, Vocab, vocspec(alignable(Vocab))) :-
-%	rdfs_individual_of(Vocab, amalgame:'Alignable'),
-%	!.
-
 expand_vocab(Strategy, Vocab, Assoc) :-
 	findall(C-t, skos_in_scheme(Vocab, C), Pairs),
 	debug(ag_expand, 'Concepts of ~p computed and cached', [Vocab]),
