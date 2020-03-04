@@ -5,7 +5,7 @@
 :- use_module(library(debug)).
 :- use_module(library(lists)).
 :- use_module(library(pairs)).
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(amalgame/expand_graph)).
 :- use_module(library(amalgame/map)).
@@ -47,9 +47,9 @@ overlap(MappingList, Overlaps) :-
 	group_pairs_by_key(TransposedPairsSorted, Overlaps).
 
 my_transpose_pairs([], []).
-my_transpose_pairs([(S:T)-L|Tail], [IDsAtom-Es|Result]) :-
+my_transpose_pairs([(S:T)-L|Tail], [IDsString-Es|Result]) :-
 	findall(Id, member((Id:align(S,T,_)), L), IDs),
-	term_to_atom(IDs, IDsAtom),
+	term_string(IDs, IDsString),
 	findall(align(S,T,E),  member((_I:align(S,T,E)), L), Es),
 	my_transpose_pairs(Tail, Result).
 create_pairs([], []).
