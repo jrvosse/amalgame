@@ -156,6 +156,7 @@ mapping_relation(narrower,  skos:narrowMatch).
 mapping_relation(broader,   skos:broadMatch).
 mapping_relation(related,   skos:relatedMatch).
 mapping_relation(replaces,  dcterms:replaces).
+mapping_relation(isreplby,  dcterms:isReplacedBy).
 mapping_relation(unrelated, evaluator:unrelated).
 mapping_relation(unsure,    evaluator:unsure).
 
