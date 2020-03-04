@@ -9,7 +9,7 @@
 :- use_module(library(assoc)).
 :- use_module(library(lists)).
 
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(amalgame/expand_graph)).
 :- use_module(library(amalgame/map)).
@@ -82,7 +82,7 @@ select_result_scheme(_Id, vocspec(Scheme), OutputType, vocspec(Scheme)) :-
 	rdf_equal(amalgame:wasGeneratedBy, OutputType).
 
 collect_snd_input(Process, Strategy, SecInput):-
-	findall(S, rdf(Process, amalgame:secondary_input, S), SecInputs),
+	findall(S, rdf(Process, amalgame:secondary_input, S, Strategy), SecInputs),
 	maplist(expand_node(Strategy), SecInputs, SecInputNF),
 	merger(SecInputNF, SecInput, []).
 
