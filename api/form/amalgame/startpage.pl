@@ -113,7 +113,7 @@ http_ag_form_upload_strategy_resource(Request) :-
 
 %%	http_ag_form_upload_reference(+Request) is det.
 %
-%	Handle form to upload an existing strategy
+%	Handle form to upload an existing reference mapping
 http_ag_form_upload_reference(Request) :-
 	authorized(write(default, _)),
 	is_multipart_post_request(Request), !,
