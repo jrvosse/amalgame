@@ -2,7 +2,7 @@
 	  [numeric_difference_match/3]).
 
 :- use_module(library(option)).
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdf_label)).
 
 numeric_difference_match(align(Source, Target, Prov0),
@@ -12,10 +12,11 @@ numeric_difference_match(align(Source, Target, Prov0),
 	option(sourcelabel(MatchProp1), Options, DefaultProp),
 	option(targetlabel(MatchProp2), Options, DefaultProp),
 
-	SearchTarget=literal(TargetLit),
 
-	(   rdf_has(Source, MatchProp1,  literal(SourceLit), SourceProp),
-	    rdf_has(Target, MatchProp2, SearchTarget, TargetProp),
+	(   rdf_has(Source, MatchProp1, SourceLit, SourceProp),
+	    rdf_is_literal(SourceLit),
+	    rdf_has(Target, MatchProp2, TargetLit, TargetProp),
+	    rdf_is_literal(TargetLit),
 	    Source \== Target
 	->  literal_text(SourceLit, SourceTxt),
 	    atom_number(SourceTxt, SourceNumber),
