@@ -24,11 +24,11 @@ selecter(Mapping, Sel, Disc, Und, Options) :-
 	option(type(SourceOrTarget), Options, target),
 	(   SourceOrTarget = target
 	->  partition_(SourceOrTarget, Mapping, Sel, Disc, Und)
-	;   predsort(ag_map:compare_align(target), Mapping, TSorted),
+	;   sort_align(target, Mapping, TSorted),
 	    partition_(SourceOrTarget, TSorted, Sel0, Disc0, Und0),
-	    predsort(ag_map:compare_align(source), Sel0,  Sel),
-	    predsort(ag_map:compare_align(source), Disc0, Disc),
-	    predsort(ag_map:compare_align(source), Und0,  Und)
+	    sort_align(source, Sel0,  Sel),
+	    sort_align(source, Disc0, Disc),
+	    sort_align(source, Und0,  Und)
 	).
 
 %%	partition(+Input, -Output, +Options)
