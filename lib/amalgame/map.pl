@@ -18,7 +18,6 @@
 	   merge_provenance/2,     % +List, -Merged
 
 	   sort_align/3,	   % +Type, +In, -Sorted
-	   compare_align/4,        % +Type, ?Order, A1, A2
 	   same_source/4,          % +List, +Source, -Same, -Rest
 	   same_target/4,          % +List, +Target, -Same, -Rest
 	   supported_map_relations/1, % ?URIList
@@ -41,8 +40,9 @@ align(Source,Target,EvidenceList) terms.
 :- use_module(library(lists)).
 :- use_module(library(option)).
 
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdfs)).
+:- use_module(library(semweb/rdf_label)).
 
 :- use_module(library(amalgame/edoal)).
 :- use_module(library(amalgame/rdf_util)).
@@ -156,6 +156,7 @@ mapping_relation(narrower,  skos:narrowMatch).
 mapping_relation(broader,   skos:broadMatch).
 mapping_relation(related,   skos:relatedMatch).
 mapping_relation(replaces,  dcterms:replaces).
+mapping_relation(isreplby,  dcterms:isReplacedBy).
 mapping_relation(unrelated, evaluator:unrelated).
 mapping_relation(unsure,    evaluator:unsure).
 
@@ -262,8 +263,8 @@ prop_to_term(Prop, Value, Term) :-
 	    term_to_atom(RealValue, LRealValue)
 	;   NS:Local = align:relation
 	->  atom_to_skos_relation(Value, RealValue)
-	;   literal(Literal) = Value,
-	    catch(term_to_atom(RealValue, Literal), _, fail)
+	;   rdf_is_literal(Value),
+	    rdf_lexical_form(Value, RealValue^^_Type)
 	->  true
 	;   literal(RealValue) = Value
 	->  true
@@ -295,6 +296,7 @@ prolog:message(map(occurs_min(Min, MappingList))) -->
 
 %!	sort_align(Type, In, Out) is det.
 %
+%	Sort list of correspondences on source or target.
 
 sort_align(source, In, Out) :-
 	sort(In, Out).
@@ -302,27 +304,6 @@ sort_align(source, In, Out) :-
 sort_align(target, In, Out) :-
 	sort(In, In0),
 	sort(2, @=<, In0, Out).
-%
-%%      compare_align(Type, Order, A1, A2) is det.
-%
-%       compare alignment A1 and A2 on the standard order of the url of
-%       their source or target concept, depending on Type.
-
-compare_align(source, Order, align(S1,T1,P1), align(S2,T2,P2)) :-
-        (   compare(FirstOrder, S1, S2), FirstOrder \== '='
-        ->  FirstOrder = Order
-        ;   compare(SecondOrder, T1, T2), SecondOrder \== '='
-        ->  SecondOrder = Order
-        ;   compare(Order, P1, P2)
-        ).
-compare_align(target, Order, align(S1,T1,P1), align(S2,T2,P2)) :-
-        (   compare(FirstOrder, T1, T2), FirstOrder \== '='
-        ->  FirstOrder = Order
-        ;   compare(SecondOrder, S1, S2), SecondOrder \== '='
-        ->  SecondOrder = Order
-        ;   compare(Order, P1, P2)
-        ).
-
 
 %%      merge_provenance(+AlignIn, -AlignOut)
 %
@@ -376,7 +357,7 @@ mat_alignment_graph([align(S,T,P)|As], Options) :-
 %	Creates Nickname if Graph does not have one yet.
 
 map_nickname(Strategy, Graph, Nick) :-
-	rdf(Graph,  amalgame:nickname, literal(Nick), Strategy),!.
+	rdf(Graph,  amalgame:nickname, Nick^^xsd:string, Strategy),!.
 map_nickname(Strategy, Graph, Nick) :-
 	nickname_cache(Strategy, Graph, Nick), !.
 map_nickname(Strategy, Graph, Nick) :-
@@ -391,11 +372,11 @@ create_nickname(Strategy, Graph, Postfix, Nickname) :-
 	char_type(Nick, alpha),
 	char_type(Nick, ascii),
 	format(atom(Nickname), '~w~w', [Nick, Postfix]),
-	\+ rdf(_,  amalgame:nickname, literal(Nickname), Strategy),
+	\+ rdf(_,  amalgame:nickname, Nickname^^xsd:string, Strategy),
 	\+ nickname_cache(Strategy, _, Nickname),
 	!,
 	assert(nickname_cache(Strategy, Graph, Nickname)),
-	rdf_assert(Graph, amalgame:nickname, literal(Nickname), Strategy).
+	rdf_assert(Graph, amalgame:nickname, Nickname^^xsd:string, Strategy).
 
 create_nickname(Strategy, Graph, _Postfix, Nickname) :-
 	% all nicknames with or without Postfix are taken, generate new prefix:
@@ -431,8 +412,10 @@ augment_relation(Mappings, Reference, NewResults, Options) :-
 	compare(Comp, align(S,T), align(SR,TR)),
 	(   Comp == =
 	->  member(Manual, RProv),
-	    (	member(method(manual_evaluation), Manual)
-	    ;	member(method(preloaded), Manual)
+	    member(method(MethodL), Manual),
+	    literal_text(MethodL, Method),
+	    (	Method == "manual_evaluation"
+	    ;	Method == "preloaded"
 	    ),
 	    option(relation(_Rel), Manual),
 	    NProv0 = [Manual|Prov], sort(NProv0, NProv),

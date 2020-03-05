@@ -11,7 +11,6 @@
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(pairs)).
-:- use_module(library(sort)).
 
 :- use_module(library(amalgame/map)).
 
@@ -25,11 +24,11 @@ selecter(Matcher, In, Sel, Dis, Und, Options) :-
 	ord_list_to_assoc(Deduped, BackgroundMatches),
 	(   SourceOrTarget \= source
 	->  selecter_(SourceOrTarget, Matcher, In, BackgroundMatches, Sel, Dis, Und, Options)
-	;   predsort(ag_map:compare_align(target), In, InT),
+	;   sort_align(target, In, InT),
 	    selecter_(SourceOrTarget, Matcher, InT, BackgroundMatches, Sel0, Dis0, Und0, Options),
-	    predsort(ag_map:compare_align(source), Sel0,  Sel),
-	    predsort(ag_map:compare_align(source), Dis0,  Dis),
-	    predsort(ag_map:compare_align(source), Und0,  Und)
+	    sort_align(source, Sel0,  Sel),
+	    sort_align(source, Dis0,  Dis),
+	    sort_align(source, Und0,  Und)
 	).
 
 selecter_(_, _, [], _, [], [], [], _).

@@ -89,7 +89,7 @@ http_ag_form_upload_strategy_data(Request) :-
 			       [ description('RDF data to be loaded')
 			       ])
 			]),
-	rdf_bnode(TmpGraph),
+	rdf_create_bnode(TmpGraph),
 	atom_to_memory_file(Data, MemFile),
 	setup_call_cleanup(open_memory_file(MemFile, read, Stream),
 			   rdf_guess_format_and_load(Stream, [graph(TmpGraph)]),
@@ -107,13 +107,13 @@ http_ag_form_upload_strategy_resource(Request) :-
 	http_parameters(Request,
 			[ url(URL, [])
 			]),
-	rdf_bnode(TmpGraph),
+	rdf_create_bnode(TmpGraph),
 	rdf_load(URL, [graph(TmpGraph)]),
 	cp_strategy_from_tmp(Request, TmpGraph).
 
 %%	http_ag_form_upload_reference(+Request) is det.
 %
-%	Handle form to upload an existing strategy
+%	Handle form to upload an existing reference mapping
 http_ag_form_upload_reference(Request) :-
 	authorized(write(default, _)),
 	is_multipart_post_request(Request), !,
