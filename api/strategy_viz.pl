@@ -109,8 +109,8 @@ amalgame_graph_triple(Graph,Graph,P,Scheme) :-
 	strategy_vocabulary(Graph, Scheme).
 amalgame_graph_triple(Graph,O,P,S) :-
 	rdf(S,P,O,Graph),
-	is_amalgame_property(P),
-	\+ empty_result(Graph, S).
+	is_amalgame_property(P).
+	% \+ empty_result(Graph, S).
 
 
 is_amalgame_property(P) :-
