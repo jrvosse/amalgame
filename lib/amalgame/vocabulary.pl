@@ -13,6 +13,7 @@
 :- use_module(library(lists)).
 :- use_module(library(ordsets)).
 :- use_module(library(option)).
+:- use_module(library(pairs)).
 :- use_module(library(settings)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
@@ -225,7 +226,7 @@ amalgame_alignable_scheme(S) :-
 	derived_scheme(S).
 
 amalgame_non_empty_scheme(S) :-
-	amalgame_alignable_scheme(S),
+	explicit_scheme(S),   %TODO: make option to allow expensive derived scheme check
 	skos_in_scheme_chk(S,_).
 
 %%	amalgame_alignable_schemes(-Schemes) is det.
