@@ -19,7 +19,8 @@
 :- rdf_meta
 	rdf_has(r,r,o,r,r),
 	rdf_lang(r,r,-),
-	rdf_lang(r,r,+,-).
+	rdf_lang(r,r,+,-),
+	rdf_cp_graph(r,r,+).
 
 %%	rdf_has(S,P,O,RP,G) is nondet
 %
