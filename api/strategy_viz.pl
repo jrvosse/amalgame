@@ -10,7 +10,6 @@
 :- use_module(library(semweb/rdf_label)).
 :- use_module(components(label)).
 :- use_module(components(graphviz)).
-:- use_module(library(skos/util)).
 :- use_module(library(amalgame/ag_strategy)).
 :- use_module(library(amalgame/ag_stats)).
 :- use_module(library(amalgame/ag_evaluation)).
@@ -109,8 +108,9 @@ amalgame_graph_triple(Graph,Graph,P,Scheme) :-
 	strategy_vocabulary(Graph, Scheme).
 amalgame_graph_triple(Graph,O,P,S) :-
 	rdf(S,P,O,Graph),
-	is_amalgame_property(P).
-	% \+ empty_result(Graph, S).
+	is_amalgame_property(P),
+	\+ empty_result(Graph, S),
+	true.
 
 
 is_amalgame_property(P) :-
@@ -137,16 +137,18 @@ empty_result(Strategy, E) :-
 	node_stats(Strategy, E, Stats, [compute(false)]),
 	option(totalCount(0), Stats),
 	non_empty_sibling(Strategy, E),
+	\+ rdf(_NextProcess, amalgame:input, E, Strategy),
 	!.
 
 empty_result(_Strategy,M) :-
-	is_empty_eval_graph(M).
+	is_empty_eval_graph(M),
+	!.
 
 % and processes resulting in empty evals
-empty_result(Strategy,Process) :-
-	rdfs_individual_of(Process, amalgame:'EvaluationProcess'),
-	rdf(Empty, amalgame:wasGeneratedBy, Process, Strategy),
-	empty_result(Strategy, Empty).
+% empty_result(Strategy,Process) :-
+%	rdfs_individual_of(Process, amalgame:'EvaluationProcess'),
+%	rdf(Empty, amalgame:wasGeneratedBy, Process, Strategy),
+%	empty_result(Strategy, Empty), !.
 
 non_empty_sibling(Strategy, E) :-
 	rdf_has(E, amalgame:wasGeneratedBy, Process, RP),
