@@ -8,12 +8,14 @@
 
 related_match(align(S, T, Prov0), BackgroundMatches, align(S, T, [Prov|Prov0]), Options) :-
 	option(steps(MaxSteps), Options),
-	related(S, MaxSteps, AncS, RS, StepsS),
-	related(T, MaxSteps, AncT, RT, StepsT),
-	get_assoc(AncS-AncT, BackgroundMatches, _),
+	related(S, MaxSteps, RelS, RS, StepsS),
+	related(T, MaxSteps, RelT, RT, StepsT),
+	(   RelS == RelT
+	;   get_assoc(RelS-RelT, BackgroundMatches, _)
+	),
 	Prov = [method(related_match),
-		source(AncS),
-		target(AncT),
+		source(RelS),
+		target(RelT),
 		steps((StepsS,StepsT)),
 		graph([RS,RT])
 	       ].

@@ -11,7 +11,9 @@ ancestor_match(align(S, T, Prov0), BackgroundMatches,
 	option(steps(MaxSteps), Options),
 	ancestor(S, MaxSteps, AncS, RS, StepsS),
 	ancestor(T, MaxSteps, AncT, RT, StepsT),
-	get_assoc(AncS-AncT, BackgroundMatches, _),
+	(   AncS == AncT
+	;   get_assoc(AncS-AncT, BackgroundMatches, _)
+	),
 	Prov = [method(ancestor_match),
 		source(AncS),
 		target(AncT),
