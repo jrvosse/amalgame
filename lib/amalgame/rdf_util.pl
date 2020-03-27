@@ -1,16 +1,16 @@
 :- module(ag_rdf_util, [
+	      rdf_has/5,
+	      rdf_graph_label/2,
 	      rdf_cp_graphs/2,
 	      rdf_cp_graph/3,
 	      rdf_remove_resource/2,
-	      rdf_has/5,
 	      rdf_lang/3,
 	      rdf_lang/4,
-	      rdf_graph_label/2,
 	      rdf_literal_predicates/1
 	  ]).
 
 :- use_module(library(lists)).
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdf_label)).
 :- use_module(user(preferences)).
 :- use_module(library(amalgame/caching)).
@@ -28,11 +28,14 @@
 %	named graph G.
 rdf_has(S,P,O,RP,G) :-
 	(   ground(G)
-	->  rdf(S,RP,O,G:_),
+	->  rdf(S,RP,O,G),
 	    rdf_has(S,P,O,RP)
 	;   rdf_has(S,P,O,RP),
-	    rdf(S,RP,O,G:_)
+	    rdf(S,RP,O,G)
 	).
+
+rdf_graph_label(Graph, Label) :-
+	rdf_display_label(Graph, Label).
 
 rdf_literal_predicates(L) :-
 	rdf_literal_predicates_cache(L),!.
@@ -43,8 +46,8 @@ rdf_literal_predicates(L) :-
 	assert(rdf_literal_predicates_cache(L)).
 
 rdf_is_literal_predicate(P) :-
-	rdf_current_predicate(P),
-	once(rdf(_, P, literal(_))).
+	rdf_predicate(P),
+	once((rdf(_, P, Literal), rdf_is_literal(Literal))).
 
 %%	rdf_cp_graphs(+GraphList, Target) is det.
 %
@@ -92,6 +95,7 @@ rdf_remove_resource(R, G) :-
 	rdf_retractall(R,_,_,G),
 	rdf_retractall(_,R,_,G),
 	rdf_retractall(_,_,R,G).
+
 %%	rdf_lang(+Subject, +Predicate, ?Text, +Default) is det.
 %
 %	Text is unified with the "preferred" textual value of literal
@@ -109,11 +113,11 @@ rdf_lang(Subject, Predicate, Text, Default) :-
 
 rdf_lang(Subject, Predicate, Text) :-
 	user_preference(user:lang, literal(Lang)),
-	(   rdf_has(Subject, Predicate, literal(lang(Lang, Text)))
+	(   rdf_has(Subject, Predicate, Text@Lang)
 	->  true
-	;   rdf_has(Subject, Predicate, literal(lang(en, Text)))
+	;   rdf_has(Subject, Predicate, Text@en)
 	->  true
-	;   rdf_has(Subject, Predicate, literal(lang(_, Text)))
+	;   rdf_has(Subject, Predicate, Text@_)
 	),!.
 
 rdf_lang(Subject, Predicate, Text) :-
@@ -121,22 +125,18 @@ rdf_lang(Subject, Predicate, Text) :-
 	findall(Literal,
 		literal_object_lit(Subject, Predicate, Literal),
 		Literals),
-	(   member(literal(lang(Lang, Text)), Literals)
-	;   member(literal(lang(en, Text)), Literals)
-	;   member(literal(lang(_, Text)), Literals)
-	;   member(literal(Text), Literals)
+	(   member(Text@Lang, Literals)
+	;   member(Text@en, Literals)
+	;   member(Text@_, Literals)
+	;   member(Text^_, Literals)
 	),
 	!.
 
 literal_object_lit(Subject, Predicate, Literal) :-
 	rdf(Subject, Predicate, Object),
-	rdf_is_resource(Object),
+	rdf_is_object(Object),
 	(   rdf_has(Object, rdf:value, Literal)
 	;   rdf_has(Object, skosxl:literalForm, Literal)
 	),
 	rdf_is_literal(Literal).
 
-rdf_graph_label(Graph, Label) :-
-	rdf_display_label(Graph, Lit),
-	literal_text(Lit, Label),!.
-rdf_graph_label(Graph, Graph).
