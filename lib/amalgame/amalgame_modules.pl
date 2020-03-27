@@ -1,5 +1,5 @@
 :- module(amalgame_modules,
-	  [ current_amalgame_module/2,    % ?URI, ?Module
+	  [
 	    amalgame_module_id/2,         % +URI, -Module
 	    amalgame_modules_of_type/2,   % +Class, -Modules
 	    amalgame_module_parameters/2, % +Module, -Parameters
@@ -8,7 +8,7 @@
 	    expand_options/2
 	  ]).
 
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(http/http_path)).
