@@ -39,7 +39,7 @@ backward_compatibility_fixes(Strategy) :-
 fix_vocab_selecters(Strategy) :-
 	findall(rdf(S,P,O,Strategy), is_old_vocab_selecter_triple(S,P,O,Strategy), OldTriples),
 	maplist(old_vocab_selecter_to_new, OldTriples),
-	rdf_retract_list(OldTriples).
+	rdf_retract_triples(OldTriples).
 
 fix_old_mapping_filters(Strategy) :-
 	findall(P-E-T, is_old_mapping_filter(Strategy, P,E,T), Filters),
@@ -53,10 +53,10 @@ old_filter_to_new(Strategy, Process-Entity-OldType) :-
 	rdf_assert(Process, rdf:type, NewType, Strategy),
 	ag_strategy:assert_output(Process, amalgame:'MappingPartitioner', Strategy, _, _, Entity).
 
-rdf_retract_list([]).
-rdf_retract_list([rdf(S,P,O,G)|T]) :-
+rdf_retract_triples([]).
+rdf_retract_triples([rdf(S,P,O,G)|T]) :-
 	rdf_retractall(S,P,O,G),
-	rdf_retract_list(T).
+	rdf_retract_triples(T).
 
 is_old_vocab_selecter_triple(S,amalgame:wasGeneratedBy,O, G) :-
 	rdf(S,amalgame:wasGeneratedBy,O, G),

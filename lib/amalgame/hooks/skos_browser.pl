@@ -1,9 +1,9 @@
 :- module(skos_browser_hooks, []).
 
 :- use_module(library(option)).
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(skos/util)).
-:- use_module(library(amalgame/expand_graph)).
+
 
 cliopatria:concept_property(class, Concept, Graphs0, Class, Options) :-
 	graph_mappings(Graphs0, Graphs),
