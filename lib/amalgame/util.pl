@@ -63,30 +63,6 @@ assert_user_provenance(R, Graph) :-
 	rdf_assert(R, dcterms:date, Time^^xsd:dateTime, Graph).
 
 
-
-
-
-
-%%	http:convert_parameter(+Type, +In, -URI) is semidet.
-%
-%	HTTP parameter conversion for the following types:
-%
-%	    * uri
-%	    This  conversion  accepts NS:Local and absolute URIs.
-
-http:convert_parameter(uri, In, URI) :-
-	(   sub_atom(In, B, _, A, :),
-	    sub_atom(In, _, A, 0, Local),
-	    xml_name(Local)
-	->  ( (sub_atom(In, 0, B, _, NS), rdf_db:ns(NS,_))
-	    ->  rdf_global_id(NS:Local, URI)
-	    ;   URI=In
-	    )
-	;   uri_is_global(In)
-	->  URI = In
-	).
-
-
 %%	now_xsd(-Text:atom)
 %
 %	Text is the current time in xsd:dateTime format.
