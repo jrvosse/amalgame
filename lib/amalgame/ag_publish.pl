@@ -7,7 +7,7 @@
 :- use_module(library(lists)).
 :- use_module(library(option)).
 
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(semweb/rdf_turtle_write)).
@@ -114,7 +114,7 @@ assert_master_void(Strategy, URI, Graph) :-
 	atom_concat(NS, VoidHash, URI),
 	rdf_assert(URI, rdf:type, void:'Linkset', Graph),
 	rdf_assert(URI, amalgame:hasPlan,  Strategy, Graph),
-	rdf_assert(URI, dcterms:title, literal(Title), Graph),
+	rdf_assert(URI, dcterms:title, Title@en, Graph),
 	(   rdf_has(Strategy, rdfs:comment, Comment)
 	->  rdf_assert(URI, dcterms:description, Comment, Graph)
 	;   true
@@ -127,7 +127,6 @@ assert_void(Id,Options) :-
 	option(all_mappings(All), Options, []),
 	option(type(Type), Options, amalgame:'Mapping'),
 
-	rdf_equal(xsd:int, Int),
 	void_graph(Strategy, Void),
 	(   rdf_statistics(triples_by_graph(Id, NrOfTriples)) -> true; NrOfTriples=0),
 	assert_metadata(Id, Strategy, Void),
@@ -142,7 +141,7 @@ assert_void(Id,Options) :-
 	;   true
 	),
 	rdf_assert(Id, rdf:type,          Type,  Void),
-	rdf_assert(Id, void:triples,      literal(type(Int,NrOfTriples)), Void),
+	rdf_assert(Id, void:triples,      NrOfTriples^^xsd:int, Void),
 
 	rdf_assert(Id, amalgame:hasPlan,  Strategy, Void),
 	rdf_assert(Id, amalgame:prov,	  ProvGraph, Void).
@@ -250,11 +249,11 @@ is_metadata_triple(S,P,O,Graph) :-
 	rdf(S,RP,Process,Graph),
 	rdf(Process, prov:wasAssociatedWith, O),
 	rdf_equal(dcterms:creator, P).
-is_metadata_triple(S,P,literal(type(T,N)), _Graph) :-
-	rdf_has(S, amalgame:mappedSourceConcepts, literal(type(T,N))),
+is_metadata_triple(S,P,N^^T, _Graph) :-
+	rdf_has(S, amalgame:mappedSourceConcepts, N^^T),
 	rdf_equal(P, void:distinctSubjects).
-is_metadata_triple(S,P,literal(type(T,N)), _Graph) :-
-	rdf_has(S, amalgame:mappedTargetConcepts, literal(type(T,N))),
+is_metadata_triple(S,P,N^^T, _Graph) :-
+	rdf_has(S, amalgame:mappedTargetConcepts, N^^T),
 	rdf_equal(P, void:distinctObjects).
 is_metadata_triple(S,P,O,Graph) :-
 	rdf_has(S, rdfs:label, O, RP),

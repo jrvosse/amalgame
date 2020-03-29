@@ -15,7 +15,7 @@
 :- use_module(library(option)).
 :- use_module(library(http/http_host)).
 :- use_module(library(http/http_session)).
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdfs)).
 
 :- use_module(user(user_db)).
@@ -59,7 +59,7 @@ create_prov_graph(Strategy, Graph) :-
 	format(atom(Label), 'Provenance graph for strategy ~p', [Strategy]),
 	rdf_assert(Graph, rdf:type, prov:'Bundle', Graph),
 	rdf_assert(Graph, amalgame:hasPlan, Strategy, Graph),
-	rdf_assert(Graph, rdfs:label, literal(lang(en,Label)), Graph),
+	rdf_assert(Graph, rdfs:label, Label@en, Graph),
 	% Copy Strategy triples to empty prov graph:
 	findall(rdf(Strategy,P,O), rdf(Strategy,P,O,Strategy), STriples),
 	forall(member(rdf(S,P,O), STriples), rdf_assert(S,P,O,Graph)).
@@ -83,8 +83,7 @@ prov_ensure_entity(Strategy, Entity, Graph) :-
 	option(revision(Revision), Stats),
 	prov_named_graphs(Repo, Graph),
 	rdf_assert(Entity, amalgame:loadedInto, Repo, Graph),
-	rdf_assert(Entity, 'http://usefulinc.com/ns/doap#revision',
-		   literal(Revision), Graph),
+	rdf_assert(Entity, 'http://usefulinc.com/ns/doap#revision', Revision^^xsd:string, Graph),
 	findall(rdf(Entity, P, O), rdf(Entity, P, O), Triples),
 	forall(member(rdf(S,P,O), Triples), rdf_assert(S,P,O,Graph)),
 	!.
@@ -199,7 +198,7 @@ prov_was_generated_by(Process, Artifacts, Graph, Options) :-
 	rdf_assert(Process, prov:qualifiedAssociation,  PersonAssociation,  Graph),
 
 	now_xsd(NowXML),
-	rdf_assert(Process, prov:endedAtTime,   literal(type(xsd:dateTime, NowXML)) , Graph),
+	rdf_assert(Process, prov:endedAtTime,  NowXML^^xsd:dateTime, Graph),
 
 	(   memberchk(was_derived_from(Sources), Options)
 	->  forall(member(Source, Sources),
@@ -257,21 +256,21 @@ prov_program(Graph, Program)  :-
 	variant_sha1(All, Hash),
 	atomic_list_concat(['http://localhost/ns/amalgame/version/x', Hash], Program),
 	assert(current_prov_uri(Graph, program(Program))),
-	rdf_assert(Program, rdfs:label, literal('Amalgame alignment platform'), Graph),
+	rdf_assert(Program, rdfs:label, 'Amalgame alignment platform'@en, Graph),
 	rdf_assert(Program, rdf:type,   prov:'SoftwareAgent', Graph),
 	rdf_assert(Program, amalgame:cwd, CWDF, Graph),
-	rdf_assert(Program, amalgame:host, literal(LocalHost), Graph),
+	rdf_assert(Program, amalgame:host, LocalHost^^xsd:string, Graph),
 	forall(member(M-U-V-D, All),
 	       (   rdf_bnode(B),
 	           rdf_assert(Program, amalgame:component, B, Graph),
 		   rdf_assert(B, 'http://usefulinc.com/ns/doap#revision',
-			      literal(V), Graph),
+			      V^^xsd:string, Graph),
 		   rdf_assert(B, 'http://usefulinc.com/ns/doap#name',
-			      literal(M), Graph),
+			      M^^xsd:string, Graph),
 		   rdf_assert(B, rdfs:seeAlso,
-			      literal(D), Graph),
+			      D^^xsd:string, Graph),
 		   rdf_assert(B, rdfs:seeAlso,
-			      literal(U), Graph)
+			      U^^xsd:string, Graph)
 	       )
 	      ),
 	!.
@@ -296,7 +295,7 @@ prov_person(Graph, Person) :-
 	 UserName = 'anonymous user (not logged in)'
 	),
 	assert(current_prov_uri(Graph, person(Person))),
-	rdf_assert(Person, rdfs:label, literal(UserName),  Graph),
+	rdf_assert(Person, rdfs:label, UserName^^xsd:string,  Graph),
 	rdf_assert(Person, rdf:type,   prov:'Person',	  Graph).
 
 prov_association(Agent, _Strategy, _Graph, Association):-
@@ -346,16 +345,15 @@ prov_named_graph(NG, Repo, Graph) :-
 	),
 	(   rdf_graph_property(NG, source_last_modified(NGsource_lm0))
 	->  xsd_timestamp(NGsource_lm0, NGsource_lm),
-	    rdf_assert(NG, amalgame:source_last_modified,
-		       literal(type(xsd:dateTime, NGsource_lm)), Graph)
+	    rdf_assert(NG, amalgame:source_last_modified, NGsource_lm^^xsd:dateTime, Graph)
 	;   true
 	),
 	rdf_assert(Repo, amalgame:loaded, NG, Graph),
 
-	rdf_assert(NG, amalgame:hash, literal(NGHash), Graph),
-	rdf_assert(NG, amalgame:modified_after_loading, literal(NGModified), Graph),
-	rdf_assert(NG, amalgame:triples, literal(type(xsd:int, NGCount)), Graph),
-	rdf_assert(NG, rdfs:comment, literal(lang(en, 'This named graph was loaded into the triple store during the alignment process. It may or may not have influenced the results.')), Graph).
+	rdf_assert(NG, amalgame:hash, NGHash^^xsd:string, Graph),
+	rdf_assert(NG, amalgame:modified_after_loading, NGModified^^xsd:string, Graph),
+	rdf_assert(NG, amalgame:triples, NGCount^^xsd:int, Graph),
+	rdf_assert(NG, rdfs:comment, "This named graph was loaded into the triple store during the alignment process. It may or may not have influenced the results."@en, Graph).
 
 
 %%	prov_get_entity_version(+Entity,+SourceGraph,Version)
@@ -391,7 +389,7 @@ assert_count(VocUri, Strategy, ProvGraph) :-
 	node_stats(Strategy, VocUri, Stats, []),
 	option(totalCount(Count), Stats),
 	rdf_retractall(VocUri, amalgame:totalCount, _, ProvGraph),
-	rdf_assert(VocUri, amalgame:totalCount, literal(type(xsd:int, Count)), ProvGraph).
+	rdf_assert(VocUri, amalgame:totalCount, Count^^xsd:int, ProvGraph).
 
 assert_count(MapUri, Strategy, ProvGraph) :-
 	rdfs_individual_of(MapUri, amalgame:'Mapping'),!,
@@ -403,12 +401,10 @@ assert_count(MapUri, Strategy, ProvGraph) :-
 	rdf_retractall(MapUri, amalgame:mappedSourceConcepts, _, ProvGraph),
 	rdf_retractall(MapUri, amalgame:mappedTargetConcepts, _, ProvGraph),
 
-	rdf_assert(MapUri, amalgame:totalCount,
-		   literal(type('http://www.w3.org/2001/XMLSchema#int', Count)), ProvGraph),
-	rdf_assert(MapUri, amalgame:mappedSourceConcepts,
-		   literal(type('http://www.w3.org/2001/XMLSchema#int', SN)), ProvGraph),
-	rdf_assert(MapUri, amalgame:mappedTargetConcepts,
-		   literal(type('http://www.w3.org/2001/XMLSchema#int', TN)), ProvGraph).
+	rdf_assert(MapUri, amalgame:totalCount,       Count^^xsd:int, ProvGraph),
+	rdf_assert(MapUri, amalgame:mappedSourceConcepts, SN^^xsd:int, ProvGraph),
+	rdf_assert(MapUri, amalgame:mappedTargetConcepts, TN^^xsd:int, ProvGraph).
+
 
 %%	is_amalgame_graph(?G) is nondet
 %

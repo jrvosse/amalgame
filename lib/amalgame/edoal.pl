@@ -17,7 +17,7 @@ http://alignapi.gforge.inria.fr/edoal.html
 */
 
 
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(map).
 :- use_module(ag_provenance).
 
@@ -50,13 +50,12 @@ assert_alignment(URI, Options) :-
 
 	rdf_assert(URI, align:onto1, O1, Graph),
         rdf_assert(URI, align:onto2, O2, Graph),
-        rdf_assert(URI, align:method, literal(Method), Graph),
-	rdf_assert(URI, align:type, literal(Type), Graph),
+        rdf_assert(URI, align:method, Method^^xsd:string, Graph),
+	rdf_assert(URI, align:type,     Type^^xsd:string, Graph),
 
-	rdf_assert(O1, align:location, literal(L1), Graph),
-	rdf_assert(O2, align:location, literal(L2), Graph),
+	rdf_assert(O1, align:location, L1^^xsd:string, Graph),
+	rdf_assert(O2, align:location, L2^^xsd:string, Graph).
 
-	true.
 
 %%	assert_cell(+C1,+C2,+OptionList) is det.
 %
@@ -90,10 +89,10 @@ assert_cell(C1, C2, Options) :-
 	->  rdf_equal(skos:closeMatch, CloseMatch),
 	    option(measure(M),   Options, 0.00001),
 	    option(relation(R),  Options, CloseMatch),
-	    rdf_assert(Cell, align:measure, literal(M), Graph),
-	    rdf_assert(Cell, align:relation, literal(R), Graph)
+	    rdf_assert(Cell, align:measure,  M^^xsd:float, Graph),
+	    rdf_assert(Cell, align:relation, R^^xsd:string, Graph)
 	;   (   option(measure(M), Options)
-	    ->	rdf_assert(Cell, align:measure, literal(M), Graph)
+	    ->	rdf_assert(Cell, align:measure, M^^xsd:float, Graph)
 	    ;	true
 	    ),
 	    (	option(relation(R), Options)
@@ -156,7 +155,7 @@ assert_prov_elem(user, User, Subject, Graph, _Options) :-
 assert_prov_elem(Key, Value, Subject, Graph, _Options) :-
 	rdf_global_id(amalgame:Key, Property),
 	format(atom(Atom), '~w', [Value]),
-	rdf_assert(Subject, Property, literal(Atom), Graph).
+	rdf_assert(Subject, Property, Atom^^xsd:string, Graph).
 
 rdf_assert_triples([], _).
 rdf_assert_triples([rdf(S,P,O)|Tail], Graph) :-
