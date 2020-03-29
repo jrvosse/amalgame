@@ -1,7 +1,7 @@
 :- module(conf_ag_lod, []).
 
 :- use_module(library(http/http_dispatch)).
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdf_describe)).
 :- use_module(cliopatria(hooks)).
 :- use_module(api(lod)).
@@ -59,9 +59,7 @@ cliopatria:redirect_uri(html, URI, SeeOther) :-
 
 % Redirect HTML requests for wordnet to Princeton
 cliopatria:redirect_uri(html, URI, SeeOther) :-
-	rdf(URI,
-	    'http://www.w3.org/2006/03/wn/wn20/schema/senseLabel',
-	    literal(lang(_, SL))),
+	rdf(URI, 'http://www.w3.org/2006/03/wn/wn20/schema/senseLabel', SL@_),
 
 	atomic_list_concat(TokenList, -, URI),
 	last(TokenList, IndexAtom),
