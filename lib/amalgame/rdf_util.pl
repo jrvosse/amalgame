@@ -47,7 +47,8 @@ rdf_literal_predicates(L) :-
 
 rdf_is_literal_predicate(P) :-
 	rdf_predicate(P),
-	once((rdf(_, P, Literal), rdf_is_literal(Literal))).
+	once(rdf(_, P, Literal)),
+        rdf_is_literal(Literal).
 
 %%	rdf_cp_graphs(+GraphList, Target) is det.
 %
