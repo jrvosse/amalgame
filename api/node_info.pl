@@ -222,7 +222,8 @@ amalgame_info(Scheme, Strategy, Stats) :-
 	option(totalCount(Total), NStats, 0),
 	option(virtual(V), NStats),
 
-	(   option(formats(Formats), NStats),
+	(   Total>0,
+	    option(formats(Formats), NStats),
 	    option(totalLabelCount(TotalLabelCount), NStats, 0)
 	->  ExtraStats = [
 		'formats:'   - Formats,
