@@ -102,13 +102,13 @@ fix_opmv_ns(Strategy) :-
 fix_arity_params(Strategy) :-
 	rdf_equal(amalgame:parameters, ParamProp),
 	findall(rdf(S,ParamProp,O),
-		(   rdf(S,ParamProp, literal(O), Strategy),
+		(   rdf(S,ParamProp, O^^xsd:string, Strategy),
 		    rdfs_individual_of(S, amalgame:'AritySelect')
 		), ToBeFixed),
 	forall(member(rdf(S,P,O), ToBeFixed),
-	       (   rdf_retractall(S,P,literal(O),Strategy),
+	       (   rdf_retractall(S,P,O^^xsd:string,Strategy),
 		   arity_param_convert(O,NewO),
-		   rdf_assert(S,P,literal(NewO), Strategy)
+		   rdf_assert(S,P,NewO^^xsd:string, Strategy)
 	       )
 	      ).
 

@@ -19,13 +19,14 @@
 :- use_module(library(option)).
 :- use_module(library(oset)).
 :- use_module(library(uri)).
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(amalgame/util)).
 :- use_module(library(amalgame/map)).
 :- use_module(library(amalgame/ag_provenance)).
 :- use_module(library(amalgame/ag_stats)).
+:- use_module(user(preferences)).
 
 
 :- rdf_meta
@@ -124,7 +125,7 @@ strategy_update_process_parameters(Strategy, Process, SecInputs, Params) :-
 	rdf(Process, rdf:type, Type, Strategy),
 	assert_secondary_inputs(SecInputs, Process, Type, Strategy),
 	rdf_transaction((rdf_retractall(Process, amalgame:parameters, _),
-			 rdf_assert(Process, amalgame:parameters, literal(Search), Strategy)
+			 rdf_assert(Process, amalgame:parameters, Search^^xsd:string, Strategy)
 			)).
 
 
@@ -151,6 +152,7 @@ assert_output(Process, Type, Graph, Input, _, MainOutput) :-
 assert_output(Process, Type, Strategy, Input, SecInputs, Strategy) :-
 	rdfs_subclass_of(Type, amalgame:'OverlapComponent'),
 	!,
+	user_preference(user:lang, literal(Lang)),
 	output_type(Type, OutputClass),
 	oset_power(SecInputs, [[]|PowSet]),
 	forall(member(InSet0, PowSet),
@@ -165,9 +167,9 @@ assert_output(Process, Type, Strategy, Input, SecInputs, Strategy) :-
 		   atomic_list_concat(Nicks, AllNicks),
 		   format(atom(Comment), 'Mappings found only in: ~p', [InSet]),
 		   format(atom(Label), 'Intersect: ~w', [AllNicks]),
-		   rdf_assert(OutputUri, amalgame:overlap_set, literal(InSetAtom), Strategy),
-		   rdf_assert(OutputUri, rdfs:comment, literal(Comment), Strategy),
-		   rdf_assert(OutputUri, rdfs:label, literal(Label), Strategy)
+		   rdf_assert(OutputUri, amalgame:overlap_set, InSetAtom^^xsd:string, Strategy),
+		   rdf_assert(OutputUri, rdfs:comment, Comment@Lang, Strategy),
+		   rdf_assert(OutputUri, rdfs:label, Label@Lang, Strategy)
 	       )
 	      ).
 
@@ -217,7 +219,7 @@ assert_process(Process, Type, Graph, Params) :-
 	uri_query_components(Search, Params),
 	rdf_assert(Process, rdf:type, Type, Graph),
 	rdf_assert(Process, rdfs:label, Label, Graph),
-	rdf_assert(Process, amalgame:parameters, literal(Search), Graph).
+	rdf_assert(Process, amalgame:parameters, Search^^xsd:string, Graph).
 
 new_output(Type, Process, P, Input, Strategy, OutputURI) :-
 	mint_node_uri(Strategy, dataset, OutputURI),
