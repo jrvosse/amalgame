@@ -12,7 +12,7 @@
 amalgame:AlignmentStrategy
     a prov:Plan ;
     rdfs:label "Alignment strategy"@en ;
-    rdfs:comment "RDF representation of an alignment strategy that can be loaded into, and executed by, Amalgame"@en.
+    rdfs:comment "RDF representation of an alignment strategy that can be loaded into, and executed by, amalgame"@en.
 
 amalgame:Entity
     rdfs:label "Entity"@en ;
@@ -32,7 +32,7 @@ amalgame:Partitioner
 amalgame:CandidateGenerator
     rdfs:label "Candidate generator"@en ;
     rdfs:comment "A process that generates a mapping with candidate correspondences."@en ;
-    rdfs:subClassOf amalgame:Process . 
+    rdfs:subClassOf amalgame:Process .
 
 amalgame:MappingPartitioner
     rdfs:label "Mapping partitioner"@en ;
@@ -44,7 +44,7 @@ amalgame:VocabPartitioner
     skos:definition "Component that creates subsets from an existing concept scheme"@en ;
     rdfs:subClassOf amalgame:Partitioner .
 
-amalgame:VirtualVocabPartitioner 
+amalgame:VirtualVocabPartitioner
     rdfs:label "Virtual vocabulary partitioner"@en ;
     skos:definition "Component that creates virtual subsets from an existing concept scheme"@en ;
     skos:note "A virtual scheme is defined intentionally, not materialized in the store. Amalgame can iterate over all its 'inScheme' members and test whether a concept is inScheme or not."@en ;
@@ -89,7 +89,7 @@ amalgame:need_secondary_inputs
 	rdfs:domain amalgame:Process ;
 	rdfs:range xsd:boolean ;
 	rdfs:comment 'True for processes that need more than the standard primary inputs associated to their type.'@en.
-amalgame:wasGeneratedBy 
+amalgame:wasGeneratedBy
 	a rdf:Property ;
 	rdfs:domain amalgame:Entity ;
 	rdfs:range amalgame:Process ;
@@ -202,15 +202,15 @@ amalgame:totalCount a rdf:Property, owl:FunctionalProperty ;
 	rdfs:label "total count" ;
 	rdfs:comment "The number of items in this dataset" ;
 	rdfs:domain amalgame:Entity ;
-	rdfs:range xsd:int .
+	rdfs:range xsd:integer .
 
 amalgame:mappedSourceConcepts a rdf:Property, owl:FunctionalProperty ;
 	rdfs:domain amalgame:Mapping ;
-	rdfs:range xsd:int .
+	rdfs:range xsd:integer .
 
 amalgame:mappedTargetConcepts a rdf:Property, owl:FunctionalProperty ;
 	rdfs:domain amalgame:Mapping ;
-	rdfs:range xsd:int .
+	rdfs:range xsd:integer .
 
 amalgame:nickname a rdf:Property , owl:FunctionalProperty ;
 	rdfs:domain amalgame:Mapping ;
@@ -229,17 +229,17 @@ amalgame:target a rdf:Property ;
 amalgame:numberOfPrefLabels a rdf:Property , owl:FunctionalProperty ;
 	rdfs:label "# pref. labels"@en;
 	rdfs:domain skos:ConceptScheme ;
-	rdfs:range xsd:int .
+	rdfs:range xsd:integer .
 
 amalgame:numberOfAltLabels a rdf:Property , owl:FunctionalProperty ;
 	rdfs:label "# alt. labels"@en;
 	rdfs:domain skos:ConceptScheme ;
-	rdfs:range xsd:int .
+	rdfs:range xsd:integer .
 
 amalgame:numberOfMappedConcepts a rdf:Property , owl:FunctionalProperty ;
 	rdfs:label "# mapped Concepts"@en;
 	rdfs:domain skos:ConceptScheme ;
-	rdfs:range xsd:int .
+	rdfs:range xsd:integer .
 
 amalgame:hasPlan a rdf:Property ;
         rdfs:label "hasPlan"@en;
@@ -266,7 +266,7 @@ amalgame:sampleMethod a rdf:Property;
 amalgame:sampleSize a rdf:Property, owl:FunctionalProperty ;
 	rdfs:label "sample size used create this sample graph"@en ;
 	rdfs:domain amalgame:Provenance ;
-	rdfs:range xsd:int .
+	rdfs:range xsd:integer .
 
 amalgame:minimalConfidence a rdf:Property, owl:FunctionalProperty ;
 	rdfs:comment "Mappings with confidence below this level have not been exported to this graph"@en ;
@@ -301,7 +301,7 @@ amalgame:intermediate a amalgame:Status ;
 amalgame:discarded a amalgame:Status ;
 	rdfs:comment "Status indicating that a Mapping has not insufficient quality to be useful, even for further processing, and can be discarded from the further analysis."@en .
 
-amalgame:publish_ns 
+amalgame:publish_ns
 	a rdf:Property ;
 	rdfs:domain amalgame:AlignmentStrategy ;
 	rdfs:comment "Namespace prefix to publish results of the strategy in"@en .

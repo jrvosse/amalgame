@@ -352,7 +352,7 @@ prov_named_graph(NG, Repo, Graph) :-
 
 	rdf_assert(NG, amalgame:hash, NGHash^^xsd:string, Graph),
 	rdf_assert(NG, amalgame:modified_after_loading, NGModified^^xsd:string, Graph),
-	rdf_assert(NG, amalgame:triples, NGCount^^xsd:int, Graph),
+	rdf_assert(NG, amalgame:triples, NGCount, Graph),
 	rdf_assert(NG, rdfs:comment, "This named graph was loaded into the triple store during the alignment process. It may or may not have influenced the results."@en, Graph).
 
 
@@ -389,7 +389,7 @@ assert_count(VocUri, Strategy, ProvGraph) :-
 	node_stats(Strategy, VocUri, Stats, []),
 	option(totalCount(Count), Stats),
 	rdf_retractall(VocUri, amalgame:totalCount, _, ProvGraph),
-	rdf_assert(VocUri, amalgame:totalCount, Count^^xsd:int, ProvGraph).
+	rdf_assert(VocUri, amalgame:totalCount, Count, ProvGraph).
 
 assert_count(MapUri, Strategy, ProvGraph) :-
 	rdfs_individual_of(MapUri, amalgame:'Mapping'),!,
@@ -401,9 +401,9 @@ assert_count(MapUri, Strategy, ProvGraph) :-
 	rdf_retractall(MapUri, amalgame:mappedSourceConcepts, _, ProvGraph),
 	rdf_retractall(MapUri, amalgame:mappedTargetConcepts, _, ProvGraph),
 
-	rdf_assert(MapUri, amalgame:totalCount,       Count^^xsd:int, ProvGraph),
-	rdf_assert(MapUri, amalgame:mappedSourceConcepts, SN^^xsd:int, ProvGraph),
-	rdf_assert(MapUri, amalgame:mappedTargetConcepts, TN^^xsd:int, ProvGraph).
+	rdf_assert(MapUri, amalgame:totalCount,       Count, ProvGraph),
+	rdf_assert(MapUri, amalgame:mappedSourceConcepts, SN, ProvGraph),
+	rdf_assert(MapUri, amalgame:mappedTargetConcepts, TN, ProvGraph).
 
 
 %%	is_amalgame_graph(?G) is nondet

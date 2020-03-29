@@ -141,7 +141,7 @@ assert_void(Id,Options) :-
 	;   true
 	),
 	rdf_assert(Id, rdf:type,          Type,  Void),
-	rdf_assert(Id, void:triples,      NrOfTriples^^xsd:int, Void),
+	rdf_assert(Id, void:triples,      NrOfTriples, Void),
 
 	rdf_assert(Id, amalgame:hasPlan,  Strategy, Void),
 	rdf_assert(Id, amalgame:prov,	  ProvGraph, Void).
