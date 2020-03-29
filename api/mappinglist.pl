@@ -2,7 +2,7 @@
 	  [
 	  ]).
 
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).

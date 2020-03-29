@@ -2,7 +2,7 @@
 
 
 :- use_module(cliopatria(hooks)).
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_abstract)).
 

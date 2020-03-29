@@ -8,7 +8,7 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_json)).
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(user(user_db)).
 
@@ -183,12 +183,12 @@ change_namespace(Old, New, Strategy, NewStrategy) :-
 		       ).
 
 tainted_s_ns(S,P,O,Old,Strategy) :-
-	rdf(S,P,O,Strategy:_),
+	rdf(S,P,O,Strategy),
 	sub_atom(S, 0,_,_,Old).
 
 tainted_o_ns(S,P,O,Old,Strategy) :-
-	rdf(S,P,O,Strategy:_),
-	rdf_is_resource(O),
+	rdf(S,P,O,Strategy),
+	rdf_is_object(O),
 	sub_atom(O, 0,_,_,Old).
 
 

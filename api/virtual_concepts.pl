@@ -5,7 +5,7 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_json)).
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdf_label)).
 
 :- use_module(library(amalgame/ag_stats)).
@@ -88,7 +88,9 @@ concept(related, Parent, Concept) :-
 %	True if Query matches a literal value of R.
 
 label_prefix(Query, R, Lit) :-
-	rdf_has(R, rdfs:label, literal(prefix(Query), Lit)).
+	{ prefix(Lit, Query) },
+	rdf_has(R, rdfs:label, Lit).
 label_prefix(Query, R, Lit) :-
-	rdf_has(O, rdf:value, literal(prefix(Query), Lit)),
+	{ prefix(Lit, Query) },
+	rdf_has(O, rdf:value, Lit),
 	rdf_has(R, rdfs:label, O).
