@@ -15,8 +15,6 @@
 :- use_module(library(apply)).
 :- use_module(library(gensym)).
 :- use_module(library(pairs)).
-:- use_module(library(sgml)).
-:- use_module(library(uri)).
 :- use_module(library(semweb/rdf11)).
 
 :- use_module(user(user_db)).
