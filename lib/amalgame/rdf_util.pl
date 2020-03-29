@@ -128,7 +128,7 @@ rdf_lang(Subject, Predicate, Text) :-
 	(   member(Text@Lang, Literals)
 	;   member(Text@en, Literals)
 	;   member(Text@_, Literals)
-	;   member(Text^_, Literals)
+	;   member(Text^^_, Literals)
 	),
 	!.
 
