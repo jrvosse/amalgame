@@ -8,7 +8,7 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(semweb/rdf11)).
 
-:- use_module(library(amalgame/map)).
+:- use_module(library(amalgame/mapping_graph)).
 :- use_module(library(amalgame/expand_graph)).
 :- use_module(components(amalgame/correspondence)).
 

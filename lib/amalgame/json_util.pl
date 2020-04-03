@@ -11,7 +11,7 @@
 
 :- use_module(library(amalgame/ag_strategy)).
 :- use_module(library(amalgame/ag_stats)).
-:- use_module(library(amalgame/map)).
+:- use_module(library(amalgame/mapping_graph)).
 :- use_module(library(amalgame/ag_stats)).
 :- use_module(library(amalgame/ag_reference)).
 :- use_module(library(amalgame/ag_evaluation)).

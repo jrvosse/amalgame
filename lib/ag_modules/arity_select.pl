@@ -1,6 +1,6 @@
 :- module(arity_select,[]).
 
-:- use_module(library(amalgame/map)).
+:- use_module(library(amalgame/correspondence)).
 
 :- public amalgame_module/1.
 :- public selecter/5.

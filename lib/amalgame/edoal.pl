@@ -18,7 +18,6 @@ http://alignapi.gforge.inria.fr/edoal.html
 
 
 :- use_module(library(semweb/rdf11)).
-:- use_module(map).
 :- use_module(ag_provenance).
 
 %%	assert_alignment(+URI, +OptionList) is det.

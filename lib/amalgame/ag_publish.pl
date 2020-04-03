@@ -18,7 +18,7 @@
 :- use_module(library(amalgame/vocabulary)).
 
 :- use_module(library(amalgame/expand_graph)).
-:- use_module(library(amalgame/map)).
+:- use_module(library(amalgame/mapping_graph)).
 :- use_module(library(amalgame/edoal)).
 
 save_results(Strategy, Dir, Options) :-

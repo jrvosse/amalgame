@@ -1,7 +1,7 @@
 :- module(most_generic,[]).
 
 :- use_module(library(skos/util)).
-:- use_module(library(amalgame/map)).
+:- use_module(library(amalgame/correspondence)).
 
 :- public amalgame_module/1.
 :- public selecter/5.

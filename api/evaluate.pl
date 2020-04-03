@@ -20,7 +20,7 @@
 :- use_module(library(amalgame/ag_evaluation)).
 :- use_module(library(amalgame/ag_stats)).
 :- use_module(library(amalgame/edoal)).
-:- use_module(library(amalgame/map)).
+:- use_module(library(amalgame/mapping_graph)).
 :- use_module(library(amalgame/expand_graph)).
 :- use_module(library(amalgame/util)).
 

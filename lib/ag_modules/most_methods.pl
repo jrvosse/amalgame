@@ -5,7 +5,7 @@
 :- use_module(library(option)).
 :- use_module(library(pairs)).
 
-:- use_module(library(amalgame/map)).
+:- use_module(library(amalgame/correspondence)).
 
 :- public amalgame_module/1.
 :- public selecter/5.

@@ -13,7 +13,7 @@
 :- use_module(library(amalgame/ag_strategy)).
 :- use_module(library(amalgame/ag_stats)).
 :- use_module(library(amalgame/ag_evaluation)).
-:- use_module(library(amalgame/map)).
+:- use_module(library(amalgame/mapping_graph)).
 :- use_module(library(amalgame/vocabulary)).
 
 :- http_handler(amalgame(api/strategy_viz), http_strategy_viz, []).

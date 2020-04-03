@@ -12,7 +12,7 @@
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(amalgame/expand_graph)).
-:- use_module(library(amalgame/map)).
+:- use_module(library(amalgame/correspondence)).
 :- use_module(library(ag_modules/map_merger)).
 
 :- multifile

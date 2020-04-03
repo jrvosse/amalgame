@@ -8,7 +8,7 @@
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(amalgame/expand_graph)).
-:- use_module(library(amalgame/map)).
+:- use_module(library(amalgame/correspondence)).
 
 :- public amalgame_module/1.
 :- public analyzer/5.

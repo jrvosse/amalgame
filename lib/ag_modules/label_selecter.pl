@@ -10,7 +10,7 @@
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(pairs)).
-:- use_module(library(amalgame/map)).
+:- use_module(library(amalgame/correspondence)).
 
 :- meta_predicate label_selecter(3, +, -, -, -, +).
 

@@ -9,7 +9,7 @@
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(amalgame/ag_strategy)).
 :- use_module(library(amalgame/ag_stats)).
-:- use_module(library(amalgame/map)).
+:- use_module(library(amalgame/mapping_graph)).
 
 :- http_handler(amalgame(data/hint), http_json_hint, []).
 

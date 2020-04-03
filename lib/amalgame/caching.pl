@@ -23,7 +23,7 @@
 :- use_module(library(semweb/rdfs)).
 
 :- use_module(ag_provenance).
-:- use_module(map).
+:- use_module(mapping_graph).
 :- use_module(vocabulary).
 :- use_module(ag_stats).
 :- use_module(scheme_stats).

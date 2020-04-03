@@ -23,7 +23,7 @@
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(amalgame/util)).
-:- use_module(library(amalgame/map)).
+:- use_module(library(amalgame/mapping_graph)).
 :- use_module(library(amalgame/ag_provenance)).
 :- use_module(library(amalgame/ag_stats)).
 :- use_module(user(preferences)).

@@ -9,7 +9,7 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(amalgame/ag_publish)).
-:- use_module(library(amalgame/map)).
+:- use_module(library(amalgame/mapping_graph)).
 :- use_module(components(amalgame/util)).
 
 :- setting(amalgame:default_publish_namespace, atom, 'http://localhost/ns/',

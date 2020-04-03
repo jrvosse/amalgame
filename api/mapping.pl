@@ -17,7 +17,7 @@
 :- use_module(library(skos/util)).
 
 :- use_module(library(amalgame/ag_stats)).
-:- use_module(library(amalgame/map)).
+:- use_module(library(amalgame/mapping_graph)).
 :- use_module(library(amalgame/expand_graph)).
 :- use_module(library(amalgame/util)).
 

@@ -4,7 +4,7 @@
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(skos/util)).
-:- use_module(library(amalgame/map)).
+:- use_module(library(amalgame/correspondence)).
 :- use_module(library(semweb/rdf_label)).
 
 :- public amalgame_module/1.
