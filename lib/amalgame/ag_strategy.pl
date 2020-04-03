@@ -109,7 +109,7 @@ strategy_new_process(Strategy, Type, Source, Target, Input, SecInputs, Params, F
 	% hack needed till we have nested rdf transactions:
 	retractall(ag_map:nickname_cache(Strategy,_,_)),
 
-	rdf_bnode(URI),
+	rdf_create_bnode(URI),
 	rdf_transaction( % this rdf_transaction is to make it MT safe
 	    (	assert_process(URI, Type, Strategy, Params),
 		assert_user_provenance(URI, Strategy),

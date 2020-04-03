@@ -261,7 +261,7 @@ prov_program(Graph, Program)  :-
 	rdf_assert(Program, amalgame:cwd, CWDF, Graph),
 	rdf_assert(Program, amalgame:host, LocalHost^^xsd:string, Graph),
 	forall(member(M-U-V-D, All),
-	       (   rdf_bnode(B),
+	       (   rdf_create_bnode(B),
 	           rdf_assert(Program, amalgame:component, B, Graph),
 		   rdf_assert(B, 'http://usefulinc.com/ns/doap#revision',
 			      V^^xsd:string, Graph),
@@ -291,7 +291,7 @@ prov_person(Graph, Person) :-
 	   ;   UserName = Person
 	   )
 	;
-	 rdf_bnode(Person),
+	 rdf_create_bnode(Person),
 	 UserName = 'anonymous user (not logged in)'
 	),
 	assert(current_prov_uri(Graph, person(Person))),
@@ -305,7 +305,7 @@ prov_association(Agent, Strategy, Graph, Association):-
 	->  rdf_equal(Role, amalgame:user_executing_strategy)
 	;   rdf_equal(Role, amalgame:program_executing_strategy)
 	),
-	rdf_bnode(Association),
+	rdf_create_bnode(Association),
 	rdf_assert(Association, rdf:type, prov:'Association', Graph),
 	rdf_assert(Association, prov:agent, Agent, Graph),
 	rdf_assert(Association, prov:hadPlan, Strategy, Graph),

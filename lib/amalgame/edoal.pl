@@ -19,6 +19,7 @@ http://alignapi.gforge.inria.fr/edoal.html
 
 :- use_module(library(semweb/rdf11)).
 :- use_module(ag_provenance).
+:- use_module(library(amalgame/mapping_graph)). %has_correspondence
 
 %%	assert_alignment(+URI, +OptionList) is det.
 %
@@ -79,7 +80,7 @@ assert_alignment(URI, Options) :-
 
 assert_cell(C1, C2, Options) :-
 	option(graph(Graph), Options, align),
-	rdf_bnode(Cell),
+	rdf_create_bnode(Cell),
 	rdf_assert(Cell, rdf:type, align:'Cell', Graph),
 	(var(C1) -> true; rdf_assert(Cell, align:entity1, C1, Graph)),
 	(var(C2) -> true; rdf_assert(Cell, align:entity2, C2, Graph)),
@@ -129,7 +130,7 @@ assert_provlist([[]|ProvList], Cell, Graph, Options) :-
 	assert_provlist(ProvList, Cell, Graph, Options).
 
 assert_provlist([P|ProvList], Cell, Graph, Options) :-
-	rdf_bnode(B),
+	rdf_create_bnode(B),
 	rdf_assert(Cell, amalgame:evidence, B, Graph),
 	forall(member(ProvElem, P),
 	       (   ProvElem =.. [Key, Value],
@@ -182,7 +183,7 @@ edoal_to_triples(EdoalGraph, TargetGraph, Options) :-
 			       assert_as_single_triple(align(C1,C2,MatchOptions), Options, TargetGraph)
 			      )
 		       ),
-	rdf_bnode(Process),
+	rdf_create_bnode(Process),
 	prov_was_generated_by(Process, TargetGraph, TargetGraph,
 			     [was_derived_from([EdoalGraph])
 			     |Options]).
