@@ -18,11 +18,11 @@ label_selecter(Matcher, In, Sel, Dis, Und, Options) :-
 	option(type(SourceOrTarget), Options, all),
 	(   SourceOrTarget \= source
 	->  label_selecter(SourceOrTarget, Matcher, In, Sel, Dis, Und, Options)
-	;   sort_align(target, In, InT),
+	;   sort_correspondences(target, In, InT),
 	    label_selecter(SourceOrTarget, Matcher, InT, Sel0, Dis0, Und0, Options),
-	    sort_align(source, Sel0,  Sel),
-	    sort_align(source, Dis0,  Dis),
-	    sort_align(source, Und0,  Und)
+	    sort_correspondences(source, Sel0,  Sel),
+	    sort_correspondences(source, Dis0,  Dis),
+	    sort_correspondences(source, Und0,  Und)
 	).
 
 label_selecter(  _, _, [],  [],  [],  [], _).

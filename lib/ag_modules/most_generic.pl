@@ -25,11 +25,11 @@ selecter(Mapping, Sel, Disc, Und, Options) :-
 	option(most_least(Most), Options, most),
 	(   SourceOrTarget = target
 	->  partition_(SourceOrTarget, Most, Mapping, Sel, Disc, Und)
-	;   sort_align(target, Mapping, TSorted),
+	;   sort_correspondences(target, Mapping, TSorted),
 	    partition_(SourceOrTarget, Most, TSorted, Sel0, Disc0, Und0),
-	    sort_align(source, Sel0,  Sel),
-	    sort_align(source, Disc0, Disc),
-	    sort_align(source, Und0,  Und)
+	    sort_correspondences(source, Sel0,  Sel),
+	    sort_correspondences(source, Disc0, Disc),
+	    sort_correspondences(source, Und0,  Und)
 	).
 
 method_name(most, most_generic).

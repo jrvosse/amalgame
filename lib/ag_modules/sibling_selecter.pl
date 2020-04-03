@@ -30,10 +30,10 @@ selecter(SSorted, Sel, [], Und, Options) :-
 	option(type(SourceOrTarget), Options, source),
 	(   SourceOrTarget = target
 	->  partition_(SourceOrTarget, SSorted, MaxDepth, Sel, Und)
-	;   sort_align(target, SSorted, TSorted),
+	;   sort_correspondences(target, SSorted, TSorted),
 	    partition_(SourceOrTarget, TSorted, MaxDepth, Sel0, Und0),
-	    sort_align(source, Sel0,  Sel),
-	    sort_align(source, Und0,  Und)
+	    sort_correspondences(source, Sel0,  Sel),
+	    sort_correspondences(source, Und0,  Und)
 	).
 ac(Result, Type, Length, align(S,T,P), align(S,T,Pnew)) :-
 	append(P, [[method(sibling_select),

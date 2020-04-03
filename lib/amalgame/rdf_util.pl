@@ -6,6 +6,7 @@
 	      rdf_remove_resource/2,
 	      rdf_lang/3,
 	      rdf_lang/4,
+	      rdf_expand_uri_values/2,
 	      rdf_literal_predicates/1
 	  ]).
 
@@ -141,3 +142,16 @@ literal_object_lit(Subject, Predicate, Literal) :-
 	),
 	rdf_is_literal(Literal).
 
+
+%%	rdf_expand_uri_values(Pairs, ExpandedPairs) is det.
+%
+%	Expand values using rdf_global_id if not already expanded.
+
+rdf_expand_uri_values([''],[]).
+rdf_expand_uri_values([],[]).
+rdf_expand_uri_values([Key=Value|Tail], [Key=FixedValue|Results]):-
+	atomic_list_concat([NS,L], :, Value),
+	catch(rdf_global_id(NS:L,FixedValue),_,fail),
+	rdf_expand_uri_values(Tail, Results).
+rdf_expand_uri_values([Key=Value|Tail], [Key=Value|Results]) :-
+	rdf_expand_uri_values(Tail, Results).

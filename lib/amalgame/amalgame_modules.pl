@@ -4,8 +4,7 @@
 	    amalgame_modules_of_type/2,   % +Class, -Modules
 	    amalgame_module_parameters/2, % +Module, -Parameters
 	    amalgame_module_property/2,	  % +URI, ?Term,
-	    process_options/3,
-	    expand_options/2
+	    process_options/3
 	  ]).
 
 :- use_module(library(semweb/rdf11)).
@@ -13,6 +12,7 @@
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(http/http_path)).
 :- use_module(library(http/http_parameters)).
+:- use_module(library(amalgame/rdf_util)).
 
 :- rdf_meta
 	amalgame_module_property(r,?),
@@ -115,23 +115,10 @@ process_options(Process, Module, Options) :-
 	!,
 	module_options(Module, Options, Parameters),
 	parse_url_search(ParamText, Search0),
-	expand_options(Search0, Search),
+	rdf_expand_uri_values(Search0, Search),
 	Request = [search(Search)] ,
 	http_parameters(Request, Parameters).
 process_options(_, _, []).
-
-%%	expand_options(Pairs, ExpandedPairs) is det.
-%
-%	Expand values using rdf_global_id if not already expanded.
-
-expand_options([''],[]).
-expand_options([],[]).
-expand_options([Key=Value|Tail], [Key=FixedValue|Results]):-
-	atomic_list_concat([NS,L], :, Value),
-	catch(rdf_global_id(NS:L,FixedValue),_,fail),
-	expand_options(Tail, Results).
-expand_options([Key=Value|Tail], [Key=Value|Results]) :-
-	expand_options(Tail, Results).
 
 
 %%	module_options(+Module, -Options, -Parameters)

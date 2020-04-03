@@ -24,11 +24,11 @@ selecter(Matcher, In, Sel, Dis, Und, Options) :-
 	ord_list_to_assoc(Deduped, BackgroundMatches),
 	(   SourceOrTarget \= source
 	->  selecter_(SourceOrTarget, Matcher, In, BackgroundMatches, Sel, Dis, Und, Options)
-	;   sort_align(target, In, InT),
+	;   sort_correspondences(target, In, InT),
 	    selecter_(SourceOrTarget, Matcher, InT, BackgroundMatches, Sel0, Dis0, Und0, Options),
-	    sort_align(source, Sel0,  Sel),
-	    sort_align(source, Dis0,  Dis),
-	    sort_align(source, Und0,  Und)
+	    sort_correspondences(source, Sel0,  Sel),
+	    sort_correspondences(source, Dis0,  Dis),
+	    sort_correspondences(source, Und0,  Und)
 	).
 
 selecter_(_, _, [], _, [], [], [], _).

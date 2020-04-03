@@ -17,7 +17,7 @@
 :- use_module(library(amalgame/ag_provenance)).
 :- use_module(library(amalgame/ag_strategy)).
 :- use_module(library(amalgame/json_util)).
-:- use_module(library(amalgame/amalgame_modules)).
+:- use_module(library(amalgame/rdf_util)).
 
 
 :- setting(amalgame:precompute, boolean, true,
@@ -65,7 +65,7 @@ http_add_process(Request) :-
 	subtract(Params0, [input=_,source=_,target=_,process=_,strategy=_,update=_,graphic=_], Params1),
 	findall(secondary_input=S,member(secondary_input=S, Params1), SecParams),
 	subtract(Params1, SecParams, Params),
-	expand_options(Params, ExpandedParams),
+	rdf_expand_uri_values(Params, ExpandedParams),
 	flush_refs_cache_if_needed(Process),
 	(   Update == true
 	->  rdf_retractall(Process, amalgame:secondary_input, _, Strategy),
