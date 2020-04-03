@@ -3,7 +3,7 @@
 :- use_module(library(option)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdfs)).
-:- use_module(library(amalgame/correspondence)).
+:- use_module(library(amalgame/mapping_graph)).
 :- use_module(library(amalgame/vocabulary)).
 
 :- public amalgame_module/1.

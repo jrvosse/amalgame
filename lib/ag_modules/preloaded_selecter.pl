@@ -2,7 +2,7 @@
 
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdfs)).
-:- use_module(library(amalgame/correspondence)).
+:- use_module(library(amalgame/mapping_graph)).
 
 :- public amalgame_module/1.
 :- public selecter/5.

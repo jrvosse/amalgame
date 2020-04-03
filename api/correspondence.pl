@@ -10,6 +10,7 @@
 
 :- use_module(library(amalgame/mapping_graph)).
 :- use_module(library(amalgame/expand_graph)).
+:- use_module(library(amalgame/correspondence)).
 :- use_module(components(amalgame/correspondence)).
 
 % http handlers
@@ -65,7 +66,7 @@ find_correspondences(Mapping, Strategy, Source, Target, true, true, Cs):-
 	    findall(At, member(At, Ms), Ts)
 	),
 	append(Ss, Ts, Cs0),
-	sort(Cs0, Cs).
+	sort_correspondences(source, Cs0, Cs).
 
 find_correspondences(Mapping, Strategy, Source, Target, AllSource, AllTarget, Cs):-
 % Other 3 cases:
