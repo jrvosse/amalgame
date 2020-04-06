@@ -6,11 +6,11 @@
 	   map_nickname/3,             % +Strategy, +MappingGraph, ?Nickname
 	   map_localname/3,             % +Strategy, +MappingGraph, ?Localname
 	   nickname_clear_cache/0,
-
+	   mapping_vocab_sources/4,    % +MappingURI, +Strategy, -Source, -Target
 	   augment_relations/4,
 
 	   mapping_relation/2,
-	   materialize_mapping_graph/2, % +List, +Optios
+	   materialize_mapping_graph/3, % Strategy, +List, +Optios
 	   supported_map_relations/1, % ?URIList
 	   status_option/1
 	  ]
@@ -35,6 +35,8 @@ an rdf amed graph.
 :- use_module(library(amalgame/edoal)).
 :- use_module(library(amalgame/rdf_util)).
 :- use_module(library(amalgame/ag_reference)).
+:- use_module(library(amalgame/ag_strategy)).
+:- use_module(library(amalgame/vocabulary)).
 
 :- dynamic
 	nickname_cache/3.
@@ -235,15 +237,18 @@ prolog:message(map(found, What, From, Number)) -->
 
 %%      materialize_alignment_graph(+Mappings, +Options)
 %
-%       Assert Mappings as triples in the store.
+%       Assert Mappings as (EDOAL) triples in the store.
 
-materialize_mapping_graph(Input, Options) :-
+materialize_mapping_graph(Strategy, Input, Options) :-
         option(graph(Graph), Options, test),
+	mapping_vocab_sources(Graph, Strategy, SourceVocab, TargetVocab),
 
         (   rdf_graph(Graph)
         ->  rdf_unload_graph(Graph)
         ;   true
         ),
+
+	assert_alignment(Graph, [method(Strategy), ontology1(SourceVocab), ontology2(TargetVocab)|Options]),
         (   memberchk(align(_,_,_), Input)
         ->  mat_alignment_graph(Input, Options)
         ;   true
@@ -346,3 +351,49 @@ augment_relation(Mappings, Reference, NewResults, Options) :-
 	    NewRef = RTail
 	),
 	augment_relation(NewMappings ,NewRef, Results, Options).
+
+
+%%	mapping_vocab_sources(+MappingURI, +Strategy, -Source, -Target)
+%
+%	Source and Target are the recursive source and target
+%	vocabularies of Mapping.
+
+mapping_vocab_sources(Manual, Strategy, SV, TV) :-
+	(   rdf_has(Manual, amalgame:evaluationOf, Strategy)
+	;   rdfs_individual_of(Manual, amalgame:'LoadedMapping')
+	),
+	!,
+	has_correspondence_chk(align(SC,TC,_), Manual),
+        have_vocab_sources(SC, TC, SV, TV).
+
+mapping_vocab_sources(URL, Strategy, S, T) :-
+	rdf_has(URL, amalgame:wasGeneratedBy, Process, RealProp),
+	rdf(URL, RealProp, Process, Strategy),
+	!,
+	(   rdf(Process, amalgame:source, S0, Strategy),
+	    rdf(Process, amalgame:target, T0, Strategy)
+	->  vocab_source(S0, Strategy, S),
+	    vocab_source(T0, Strategy, T)
+	;   rdf(Process, amalgame:input, Input, Strategy)
+	->  mapping_vocab_sources(Input, Strategy, S, T)
+	).
+
+have_vocab_sources(SourceConcept, TargetConcept, SVoc, TVoc) :-
+	strategy_vocabulary(Strategy, SVoc),
+	vocab_member(SourceConcept, scheme(SVoc)),
+	strategy_vocabulary(Strategy, TVoc),
+	vocab_member(TargetConcept, scheme(TVoc)),
+	!.
+
+have_vocab_sources(_S,_T, undef, undef) :-
+	!.
+
+
+vocab_source(V, Strategy, S) :-
+	rdf_has(V, amalgame:wasGeneratedBy, Process, RealProp1),
+	rdf(V, RealProp1, Process, Strategy),
+	rdf_has(Process, amalgame:input, Input, RealProp2),
+	rdf(Process, RealProp2, Input, Strategy),
+	!,
+	vocab_source(Input, Strategy, S).
+vocab_source(V, _S, V).

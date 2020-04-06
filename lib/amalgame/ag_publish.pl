@@ -162,7 +162,7 @@ prepare_mapping(Id, Strategy, Options) :-
 	    (	Mapping = [_|_]
 	    ->	default_mapping_relation(Id, Default, Options),
 		augment_relations(Strategy, Mapping, Augmented, [default_relation(Default)]),
-		materialize_mapping_graph(Augmented, [graph(Id) | Options])
+		materialize_mapping_graph(Strategy, Augmented, [graph(Id) | Options])
 	    ;	true % empty mapping, do nothing
 	    )
 	;   true % already materialized in a previous run, do nothing

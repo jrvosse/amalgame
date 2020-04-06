@@ -14,7 +14,6 @@
 
 :- use_module(library(stat_lists)).
 
-:- use_module(library(amalgame/ag_strategy)).
 :- use_module(library(amalgame/expand_graph)).
 :- use_module(library(amalgame/scheme_stats)).
 :- use_module(library(amalgame/caching)).
@@ -201,53 +200,6 @@ has_mapping_input(URL, Strategy, Input) :-
 	rdf(URL, RP, Process, Strategy),
 	rdf_has(Process, amalgame:input, Input),
 	rdfs_individual_of(Input, amalgame:'Mapping').
-
-
-%%	mapping_vocab_sources(+MappingURI, +Strategy, -Source, -Target)
-%
-%	Source and Target are the recursive source and target
-%	vocabularies of Mapping.
-
-mapping_vocab_sources(Manual, Strategy, SV, TV) :-
-	(   rdf_has(Manual, amalgame:evaluationOf, Strategy)
-	;   rdfs_individual_of(Manual, amalgame:'LoadedMapping')
-	),
-	!,
-	has_correspondence_chk(align(SC,TC,_), Manual),
-        have_vocab_sources(SC, TC, SV, TV).
-
-mapping_vocab_sources(URL, Strategy, S, T) :-
-	rdf_has(URL, amalgame:wasGeneratedBy, Process, RealProp),
-	rdf(URL, RealProp, Process, Strategy),
-	!,
-	(   rdf(Process, amalgame:source, S0, Strategy),
-	    rdf(Process, amalgame:target, T0, Strategy)
-	->  vocab_source(S0, Strategy, S),
-	    vocab_source(T0, Strategy, T)
-	;   rdf(Process, amalgame:input, Input, Strategy)
-	->  mapping_vocab_sources(Input, Strategy, S, T)
-	).
-
-have_vocab_sources(SourceConcept, TargetConcept, SVoc, TVoc) :-
-	strategy_vocabulary(Strategy, SVoc),
-	vocab_member(SourceConcept, scheme(SVoc)),
-	strategy_vocabulary(Strategy, TVoc),
-	vocab_member(TargetConcept, scheme(TVoc)),
-	!.
-
-have_vocab_sources(_S,_T, undef, undef) :-
-	!.
-
-
-vocab_source(V, Strategy, S) :-
-	rdf_has(V, amalgame:wasGeneratedBy, Process, RealProp1),
-	rdf(V, RealProp1, Process, Strategy),
-	rdf_has(Process, amalgame:input, Input, RealProp2),
-	rdf(Process, RealProp2, Input, Strategy),
-	!,
-	vocab_source(Input, Strategy, S).
-vocab_source(V, _S, V).
-
 
 compute_reference_counts(Id, Strategy, RefStats) :-
 	reference_mappings(Strategy, References),

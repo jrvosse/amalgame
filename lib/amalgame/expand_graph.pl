@@ -262,7 +262,7 @@ materialize_results_if_needed(Strategy, Process, Results) :-
 		needs_materialization(Id, Process, Strategy)
 	    ),
 	    (   select_result_mapping(Id, Results, P, Mapping),
-		materialize(Id, Mapping)
+		materialize(Strategy, Id, Mapping)
 	    )
 	).
 
@@ -271,13 +271,13 @@ needs_materialization(_Id, Process, _Strategy) :-
 	rdf(ProcessType, amalgame:materialize, amalgame:always),
 	!.
 
-materialize(Id, Mapping) :-
+materialize(Strategy, Id, Mapping) :-
 	(   rdf_has(Id, amalgame:recordEvidence, amalgame:enabled)
 	->  Enabled = enabled
 	;   Enabled = disabled
 	),
 	% voc_clear_stats(all),
-	materialize_mapping_graph(Mapping, [graph(Id), evidence_graphs(Enabled)]).
+	materialize_mapping_graph(Strategy, Mapping, [graph(Id), evidence_graphs(Enabled)]).
 
 run_strategy :-
 	run_strategy(_).
