@@ -14,8 +14,8 @@
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdf_label)).
 :- use_module(user(preferences)).
-:- use_module(library(amalgame/caching)).
 
+:- table(rdf_literal_predicates/1).
 
 :- rdf_meta
 	rdf_has(r,r,o,r,r),
@@ -38,13 +38,10 @@ rdf_has(S,P,O,RP,G) :-
 rdf_graph_label(Graph, Label) :-
 	rdf_display_label(Graph, Label).
 
-rdf_literal_predicates(L) :-
-	rdf_literal_predicates_cache(L),!.
 
 rdf_literal_predicates(L) :-
 	findall(P, rdf_is_literal_predicate(P), Ps),
-	sort(Ps, L),
-	assert(rdf_literal_predicates_cache(L)).
+	sort(Ps, L).
 
 rdf_is_literal_predicate(P) :-
 	rdf_predicate(P),
