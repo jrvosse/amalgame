@@ -149,6 +149,7 @@ rdf_expand_uri_values([],[]).
 rdf_expand_uri_values([Key=Value|Tail], [Key=FixedValue|Results]):-
 	atomic_list_concat([NS,L], :, Value),
 	catch(rdf_global_id(NS:L,FixedValue),_,fail),
+	!,
 	rdf_expand_uri_values(Tail, Results).
 rdf_expand_uri_values([Key=Value|Tail], [Key=Value|Results]) :-
 	rdf_expand_uri_values(Tail, Results).
