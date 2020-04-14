@@ -2,6 +2,8 @@
 	  [
 	      get_stats_cache/3,
 	      set_stats_cache/3,
+	      handle_scheme_stats/4,
+	      cache_result_stats/3,
 	      get_expand_cache/3,
 	      cache_result/4,
 	      cache_mapped_concepts/4,
@@ -80,6 +82,7 @@ flush_refs_cache(Mapping, Strategy) :-
 cache_result(_ExecTime, Id, Strategy, Result) :-
 	rdfs_individual_of(Id, amalgame:'Mapping'),
 	!,
+	gtrace,
 	flush_stats_cache(Id, Strategy),
 	mapping_stats(Id, Result, Strategy, Stats),
 	assert(stats_cache(Id-Strategy, Stats)).
@@ -87,12 +90,14 @@ cache_result(_ExecTime, Id, Strategy, Result) :-
 cache_result(_ExecTime, Id, Strategy, Result) :-
 	amalgame_alignable_scheme(Id),
 	!,
+	gtrace,
 	flush_expand_cache(Id, Strategy),
 	assert(expand_cache(Id-Strategy, Result)),
 	handle_scheme_stats(Strategy, _Process, Id, Result).
 
 cache_result(ExecTime, Process, Strategy, Result) :-
 	cache_expand_result(ExecTime, Process, Strategy, Result),
+	gtrace,
 	cache_result_stats(Process, Strategy, Result).
 
 handle_scheme_stats(Strategy, Process, Scheme, Result) :-
