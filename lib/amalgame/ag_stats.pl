@@ -24,6 +24,10 @@
 :- use_module(library(amalgame/util)).
 :- use_module(library(amalgame/json_util)).
 
+% :- table node_stats/4 as shared.
+% :- table reference_counts/3 as shared.
+% :- table mapping_stats/4 as shared.
+
 node_stats(Strategy, Node, Stats, Options) :-
 	nonvar(Node), nonvar(Options),
 	!,
