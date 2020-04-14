@@ -15,7 +15,7 @@
 :- use_module(library(semweb/rdf_label)).
 :- use_module(user(preferences)).
 
-:- table(rdf_literal_predicates/1).
+:- table rdf_literal_predicates/1 as shared.
 
 :- rdf_meta
 	rdf_has(r,r,o,r,r),
