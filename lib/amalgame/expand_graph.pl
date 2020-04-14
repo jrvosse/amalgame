@@ -16,6 +16,7 @@
 :- use_module(library(skos/util)).
 
 :- use_module(library(amalgame/caching)).
+:- use_module(library(amalgame/ag_stats)).
 :- use_module(library(amalgame/correspondence)).
 :- use_module(library(amalgame/mapping_graph)).
 :- use_module(library(amalgame/vocabulary)).
@@ -24,6 +25,7 @@
 
 :- use_module(library(ag_drivers/exec_amalgame_process)).
 
+:- table expand_node/3 as shared.
 
 %%	expand_node(+StrategyURL, +NodeURL, -Result) is det.
 %
@@ -146,8 +148,11 @@ expand_mapping(Strategy, Id, Mapping) :-
 	(   rdf_has(Id, amalgame:wasGeneratedBy, Process, OutputType),
 	    rdf(Id, OutputType, Process, Strategy)
 	->  select_result_mapping(Id, MapSpec, OutputType, Mapping),
-	    cache_result(0.1, Process, Strategy, MapSpec)
-	;   cache_result(0.1, Id, Strategy, Mapping)
+	    cache_result_stats(Process, Strategy, MapSpec)
+	    % cache_result(0.1, Process, Strategy, MapSpec)
+	;   mapping_stats(Id, Mapping, Strategy, MapStats),
+	    set_stats_cache(Strategy, Id,  MapStats)
+	    % cache_result(0.1, Id, Strategy, Mapping)
 	).
 
 expand_mapping(Strategy, Id, Mapping) :-
@@ -195,7 +200,9 @@ expand_vocab(Strategy, Vocab, Assoc) :-
 	debug(ag_expand, 'Concepts of ~p computed and cached', [Vocab]),
 	sort(Pairs, Sorted),
 	ord_list_to_assoc(Sorted,Assoc),
-	cache_result(_, Vocab, Strategy, Assoc).
+	handle_scheme_stats(Strategy, _Process, Vocab, Assoc).
+
+	% cache_result(_, Vocab, Strategy, Assoc).
 
 vocab_spec(Strategy, Id, Spec) :-
 	rdf_has(Id, amalgame:wasGeneratedBy, Process, OutputType),
@@ -242,7 +249,9 @@ expand_process(Strategy, Process, Result) :-
 	;   throw(error(instantiation_error, 'Mappings results not grounded'))
 	),
 
-	cache_result(Time, Process, Strategy, Result),
+
+	cache_result_stats(Process, Strategy, Result),
+	% cache_result(Time, Process, Strategy, Result),
 
 	% Provenance admin:
 	findall(URI, ( rdf_has(URI, amalgame:wasGeneratedBy, Process, OutputType),
