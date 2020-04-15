@@ -1,5 +1,10 @@
 :- module(arity_select,[]).
 
+:- use_module(library(apply)).
+:- use_module(library(lists)).
+:- use_module(library(option)).
+:- use_module(library(ordsets)).
+
 :- use_module(library(amalgame/correspondence)).
 
 :- public amalgame_module/1.
@@ -25,11 +30,12 @@ selecter(Mapping, Sel, Dis, [], Options) :-
 	->  select_1_n(Mapping, Sel, Dis)
 	).
 
-ap(Result, Arity, align(S,T,P), align(S,T,NP)) :-
-	NP = [NewP|P],
-	NewP = [method(ambiguity_remover),
+ap(Result, Arity, In, Out) :-
+	Prov = [method(ambiguity_remover),
 		score([result(Result), type(Arity)])
-	       ].
+	       ],
+	correspondence_add_prov(In, Prov, Out).
+
 
 %%	select_1_1(+Mapping, -Mapping_1_1, -Rest)
 %
@@ -68,23 +74,23 @@ select_1_n_raw(Mapping, Sel, Dis) :-
 	sort_correspondences(source, Dis0, Dis).
 
 select_n_1_raw([], [], []).
-select_n_1_raw([align(S,T,P)|As], A1, A2) :-
-	same_source(As, S, Same, Rest),
+select_n_1_raw([Head|As], A1, A2) :-
+	same_source(As, Head, Same, Rest),
 	(   Same = []
-	->  A1 = [align(S,T,P)|A1Rest],
+	->  A1 = [Head|A1Rest],
 	    A2 = A2Rest
-	;   append([align(S,T,P)|Same], A2Rest, A2),
+	;   append([Head|Same], A2Rest, A2),
 	    A1 = A1Rest
 	),
 	select_n_1_raw(Rest, A1Rest, A2Rest).
 
 select_1_n_no_sort([], [], []).
-select_1_n_no_sort([align(S,T,P)|As], A1, A2) :-
-	same_target(As, T, Same, Rest),
+select_1_n_no_sort([Head|As], A1, A2) :-
+	same_target(As, Head, Same, Rest),
 	(   Same = []
-	->  A1 = [align(S,T,P)|A1Rest],
+	->  A1 = [Head|A1Rest],
 	    A2 = A2Rest
-	;   append([align(S,T,P)|Same], A2Rest, A2),
+	;   append([Head|Same], A2Rest, A2),
 	    A1 = A1Rest
 	),
 	select_1_n_no_sort(Rest, A1Rest, A2Rest).
