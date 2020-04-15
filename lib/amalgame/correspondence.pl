@@ -8,6 +8,8 @@
 	      sort_correspondences/3, % +Type, +In, -Sorted
 	      same_source/4,          % +List, +Source, -Same, -Rest
 	      same_target/4,          % +List, +Target, -Same, -Rest
+
+	      correspondence_add_prov/3,
 	      merge_provenance/2      % +List, -Merged
 
 	  ]
@@ -104,3 +106,8 @@ group_provenance(As, S, T, P, [align(S, T, Psorted)|Gs]) :-
         sort(P, Psorted),
         merge_provenance(As, Gs).
 
+%!	correspondence_add_prov(In, Prov, Out) is det.
+%
+%	Add Prov to the provenance of In to form out.
+
+correspondence_add_prov(align(S,T,P0), PNew, align(S,T, [PNew|P0])).
