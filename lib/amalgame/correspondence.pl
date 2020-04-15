@@ -56,6 +56,8 @@ correspondence_element(evidence, C, E) :- correspondence_evidence(C,E).
 %	List, Same and Rest are assumed to be the usual lists of
 %	amalgame's align(S,T,P), sorted on S.
 
+same_source([align(S,T,P)|As], align(S,T0,P0), [align(S,T,P)|Same], Rest) :-
+	!,  same_source(As, align(S, T0, P0), Same, Rest).
 same_source([align(S,T,P)|As], S, [align(S,T,P)|Same], Rest) :-
 	!,  same_source(As, S, Same, Rest).
 same_source(As, _S, [], As).
@@ -67,6 +69,8 @@ same_source(As, _S, [], As).
 %	List, Same and Rest are assumed to be the usual lists of
 %	amalgame's align(S,T,P), sorted on T.
 
+same_target([align(S,T,P)|As], align(S0,T,P0), [align(S,T,P)|Same], Rest) :-
+	!,  same_target(As, align(S0,T,P0), Same, Rest).
 same_target([align(S,T,P)|As], T, [align(S,T,P)|Same], Rest) :-
 	!,  same_target(As, T, Same, Rest).
 same_target(As, _S, [], As).
