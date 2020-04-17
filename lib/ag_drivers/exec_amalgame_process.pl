@@ -24,7 +24,7 @@
 :- meta_predicate
 	timed_call(5, -).
 
-:- table timed_call/2 as shared.
+:- table exec_amalgame_process/7 as shared.
 
 %%	select_result_mapping(+Id, +MapSpec, +Type, -Mapping) is det.
 %%	select_result_mapping(+Id, -MapSpec, +Type, +Mapping) is det.
