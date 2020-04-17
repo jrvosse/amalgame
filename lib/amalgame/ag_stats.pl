@@ -30,11 +30,17 @@
 
 node_stats(Strategy, Node, Stats, Options) :-
 	nonvar(Node), nonvar(Options),
+	(   var(Strategy)
+	->  (rdf(Node,_,_, Strategy); rdf(_,_,Node,Strategy))
+	;   true
+	), % nonvar(Strategy)
+	atomic_list_concat([node_stats, Node, Strategy], Mutex),
+	debug(mutex, 'waiting for node_stats mutex ~w', [Mutex]),
 	!,
 	(   rdfs_individual_of(Node, amalgame:'Mapping')
-	->  node_counts(mapping, Node, Strategy, Stats, Options)
+	->  with_mutex(Mutex, node_counts(mapping, Node, Strategy, Stats, Options))
 	;   amalgame_alignable_scheme(Node)
-	->  node_counts(scheme, Node, Strategy, Stats, Options)
+	->  with_mutex(Mutex, node_counts(scheme, Node, Strategy, Stats, Options))
 	;   Stats = []
 	).
 
@@ -43,31 +49,16 @@ node_stats(Strategy, Node, Stats, Options) :-
 %
 %	Counts for the items in the set denoted by URI.
 
-node_counts(_, URL, Strategy, Stats, Options) :-
-	option(compute(false), Options, true),
-	!,
-	get_stats_cache(Strategy, URL, Stats).
-
-node_counts(scheme, Scheme, Strategy, Stats, Options) :-
-	select_option(compute(deep), Options, Options1, true),
-	node_counts(scheme, Scheme, Strategy, _Stats, [compute(labelprop)|Options1]),
-	node_counts(scheme, Scheme, Strategy, Stats, [compute(depth)|Options1]).
-
-node_counts(scheme, Scheme, Strategy, Stats, Options) :-
-	select_option(compute(Level), Options, Options1, true),
-	(   Level == depth; Level == labelprop),
-	!,
-	expand_node(Strategy, Scheme, _),
-	atomic_list_concat([Level, '_stats_cache_',Scheme], Mutex),
-	debug(mutex, 'waiting for deep stats mutex ~w', [Mutex]),
-	with_mutex(Mutex, node_counts(scheme, Scheme, Strategy, Stats, Options1)).
-
 node_counts(_, URL, Strategy, Stats, _Options) :-
 	get_stats_cache(Strategy, URL, Stats),
 	!.
 
-node_counts(_, URL, Strategy, Stats, Options) :-
-	option(compute(true), Options, true),
+node_counts(_, _URL, _Strategy, _Stats, Options) :-
+	option(compute(false), Options, true),
+	!,
+	fail.
+
+node_counts(_, URL, Strategy, Stats, _Options) :-
 	!,
 	atomic_concat(node_counts, URL, Mutex),
 	debug(mutex, 'Locking mutex: ~w', [Mutex]),
@@ -75,9 +66,9 @@ node_counts(_, URL, Strategy, Stats, Options) :-
 	debug(mutex, 'Releasing mutex: ~w', [Mutex]).
 
 node_counts_(URL, Strategy, Stats) :-
-	expand_node(Strategy, URL, _Result), % this should fill the cache
+	expand_node(Strategy, URL, _Results),
 	get_stats_cache(Strategy, URL, Stats),
-	is_dict(Stats).
+	!.
 
 reference_counts(Id, Strategy, Stats) :-
 	atom_concat(reference_counts, Id, Mutex),
@@ -97,6 +88,8 @@ reference_counts_(Id, Strategy, RefStats) :-
 
 mapping_stats(URL, Mapping, Strategy, Stats) :-
 	BasicStats = [
+	    plain-true,
+	    '@id'-URL,
 	    totalCount-MN
 	],
 	length(Mapping, MN),

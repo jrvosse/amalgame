@@ -25,7 +25,7 @@
 
 :- use_module(library(ag_drivers/exec_amalgame_process)).
 
-:- table expand_node/3 as shared.
+:- table expand_skos_scheme/3 as shared.
 
 %%	expand_node(+StrategyURL, +NodeURL, -Result) is det.
 %
@@ -48,7 +48,7 @@ expand_node(Strategy, Id, Result) :-
 %%	precompute_process(+Strategy, +Process) is det.
 %
 %	Process is precomputed in the background in a separate thread.
-%	Subsequent expand_node/3 calls will use the cached results
+%	Subsequent expand_node/3 calls will use the tabled results
 %	computed here.
 precompute_process(Strategy, Process) :-
 	rdf_has(Mapping, amalgame:wasGeneratedBy, Process, RP),
@@ -58,7 +58,7 @@ precompute_process(Strategy, Process) :-
 %%	precompute_node(+Strategy, +Mapping) is det.
 %
 %	Mapping is precomputed in the background in a separate thread.
-%	Subsequent expand_node/3 calls will use the cached results
+%	Subsequent expand_node/3 calls will use the tabled results
 %	computed here.
 
 precompute_node(Strategy, Mapping) :-
@@ -102,29 +102,8 @@ all_mapped(Strategy, Type, Mappings, Concepts, Sorted) :-
 my_correspondence_element(Type, Align3, E-t) :-
 	correspondence_element(Type, Align3, E).
 
-expand_node_(Strategy, Id, Result) :-
-	% Try if we get this result from the expand_cache (on node id) first:
-	get_expand_cache(Strategy, Id, Result),!.
 
 expand_node_(Strategy, Id, Result) :-
-	% Try if we get this result from the expand_cache (on process id):
-	rdf_has(Id, amalgame:wasGeneratedBy, Process, OutputType),
-	rdf(Id, OutputType, Process, Strategy),
-	get_expand_cache(Strategy, Process, ProcessResult),
-	!,
-	debug(ag_expand, 'Output ~p of process ~p taken from cache',
-	      [Id, Process]),
-
-	(   rdfs_individual_of(Id, amalgame:'Mapping')
-	->  select_result_mapping(Id, ProcessResult, OutputType, Result)
-	;   amalgame_alignable_scheme(Id)
-	->  select_result_scheme(Id, ProcessResult, OutputType, Result)
-	;   Result = error(Id)
-	).
-
-
-expand_node_(Strategy, Id, Result) :-
-	% Cache miss, we need to do the work ...
 	(   rdfs_individual_of(Id, amalgame:'Mapping')
 	->  expand_mapping(Strategy, Id, Result)
 	;   amalgame_alignable_scheme(Id)
@@ -140,20 +119,9 @@ expand_node_(Strategy, Id, Result) :-
 expand_mapping(Strategy, Id, Mapping) :-
 	exploit_materialized_graph(Strategy, Id),
 	!,
-	debug(ag_expand, 'Using & caching already materialized mapping ~p', [Id]),
-
+	debug(ag_expand, 'Using & already materialized mapping ~p', [Id]),
 	findall(C, has_correspondence(C,Id), Mapping0),
-	sort(Mapping0, Mapping),
-
-	(   rdf_has(Id, amalgame:wasGeneratedBy, Process, OutputType),
-	    rdf(Id, OutputType, Process, Strategy)
-	->  select_result_mapping(Id, MapSpec, OutputType, Mapping),
-	    cache_result_stats(Process, Strategy, MapSpec)
-	    % cache_result(0.1, Process, Strategy, MapSpec)
-	;   mapping_stats(Id, Mapping, Strategy, MapStats),
-	    set_stats_cache(Strategy, Id,  MapStats)
-	    % cache_result(0.1, Id, Strategy, Mapping)
-	).
+	sort(Mapping0, Mapping).
 
 expand_mapping(Strategy, Id, Mapping) :-
 	rdf_has(Id, amalgame:wasGeneratedBy, Process, OutputType),
@@ -185,6 +153,12 @@ exploit_materialized_graph(Strategy, Id) :-
 %	@param VocSpec is a specification of the concept scheme.
 
 expand_vocab(Strategy, Id, Concepts) :-
+    expand_generated_vocab(Strategy, Id, Concepts),!.
+
+expand_vocab(Strategy, Id, Concepts) :-
+    expand_skos_scheme(Strategy, Id, Concepts).
+
+expand_generated_vocab(Strategy, Id, Concepts) :-
 	rdf_has(Id, amalgame:wasGeneratedBy, Process, OutputType),
 	rdf(Id, OutputType, Process, Strategy),
 	!,
@@ -195,13 +169,16 @@ expand_vocab(Strategy, Id, Concepts) :-
 	select_result_scheme(Id, Result, OutputType, Concepts),
 	debug(mutex, 'Releasing mutex: ~w', [Mutex]).
 
-expand_vocab(Strategy, Vocab, Assoc) :-
+expand_skos_scheme(Strategy, Vocab, Assoc) :-
 	findall(C-t, skos_in_scheme(Vocab, C), Pairs),
-	debug(ag_expand, 'Concepts of ~p computed and cached', [Vocab]),
+	debug(ag_expand, 'Concepts of ~p collected', [Vocab]),
 	sort(Pairs, Sorted),
 	ord_list_to_assoc(Sorted,Assoc),
 	handle_scheme_stats(Strategy, _Process, Vocab, Assoc).
 
+
+
+	% handle_scheme_stats(Strategy, _Process, Vocab, Assoc).
 	% cache_result(_, Vocab, Strategy, Assoc).
 
 vocab_spec(Strategy, Id, Spec) :-

@@ -4,13 +4,9 @@
 	      set_stats_cache/3,
 	      handle_scheme_stats/4,
 	      cache_result_stats/3,
-	      get_expand_cache/3,
-	      cache_result/4,
 	      cache_mapped_concepts/4,
 	      clean_repository/0,
 	      flush_dependent_caches/2,
-	      flush_expand_cache/1,     % ?Strategy
-	      flush_expand_cache/2,     % +Id, +Strategy
 	      flush_refs_cache/1,       % ?Strategy
 	      flush_refs_cache/2
 	  ]).
@@ -30,7 +26,6 @@
 :- use_module(scheme_stats).
 
 :- dynamic
-	expand_cache/2,
 	mapped_concepts_cache/4,
 	stats_cache/2.
 
@@ -39,11 +34,16 @@
 	   results, defaults to 0.0, caching everything').
 
 user:message_hook(make(done(_)), _, _) :-
-	flush_expand_cache(_),
 	nickname_clear_cache,
 	fail.
 user:message_hook(make(done(_)), _, _) :-
 	flush_prov_cache,
+	fail.
+user:message_hook(make(done(_)), _, _) :-
+	abolish_all_tables,
+	fail.
+user:message_hook(make(done(_)), _, _) :-
+	flush_stats_cache,
 	fail.
 
 get_stats_cache(Strategy, Node, Value) :-
@@ -55,8 +55,6 @@ get_stats_cache(Strategy, Node, Value) :-
 set_stats_cache(Strategy, Node, Value) :-
 	retractall(stats_cache(Node-Strategy,_)),
 	assert(stats_cache(Node-Strategy, Value)).
-get_expand_cache(Strategy, Node, Value) :-
-	expand_cache(Node-Strategy, Value).
 
 
 flush_mapped_concepts_cache(Id, Strategy) :-
@@ -72,6 +70,9 @@ flush_stats_cache(Id, Strategy) :-
 	    retractall(stats_cache(Id-Strategy,_))
 	;   true
 	).
+flush_stats_cache:-
+	debug(ag_expand, 'Flushing entire stats cache', []),
+	retractall(stats_cache(_,_)).
 
 flush_refs_cache(Strategy) :-
 	flush_refs_cache(_Mapping,Strategy).
@@ -79,26 +80,10 @@ flush_refs_cache(Strategy) :-
 flush_refs_cache(Mapping, Strategy) :-
 	retractall(stats_cache(Mapping-Strategy, refs(_))).
 
-cache_result(_ExecTime, Id, Strategy, Result) :-
-	rdfs_individual_of(Id, amalgame:'Mapping'),
-	!,
-	gtrace,
-	flush_stats_cache(Id, Strategy),
-	mapping_stats(Id, Result, Strategy, Stats),
-	assert(stats_cache(Id-Strategy, Stats)).
-
-cache_result(_ExecTime, Id, Strategy, Result) :-
-	amalgame_alignable_scheme(Id),
-	!,
-	gtrace,
-	flush_expand_cache(Id, Strategy),
-	assert(expand_cache(Id-Strategy, Result)),
-	handle_scheme_stats(Strategy, _Process, Id, Result).
-
-cache_result(ExecTime, Process, Strategy, Result) :-
-	cache_expand_result(ExecTime, Process, Strategy, Result),
-	gtrace,
-	cache_result_stats(Process, Strategy, Result).
+handle_scheme_stats(Strategy, _Process, Scheme, _Result) :-
+	stats_cache(Scheme-Strategy, Stats),
+	Stats.get(plain) == true,
+	!.
 
 handle_scheme_stats(Strategy, Process, Scheme, Result) :-
 	atomic_list_concat([stats_cache_,Scheme], Mutex),
@@ -160,27 +145,6 @@ amalgame_computed_node(Strategy, Id) :-
 	rdf(Id, rdf:type, skos:'ConceptScheme'),
 	rdf(Strategy, amalgame:includes, Id, Strategy).
 
-%%	flush_expand_cache(+Strategy)
-%
-%	Retract all cached mappings.
-
-flush_expand_cache(Strategy) :-
-	del_prov_graphs(Strategy),
-	del_materialized_vocs(Strategy),
-	del_materialized_mappings(Strategy),
-	forall(amalgame_computed_node(Strategy ,Id),
-	       (   flush_expand_cache(Id, Strategy),
-		   flush_stats_cache(Id, Strategy),
-		   flush_mapped_concepts_cache(Id, Strategy)
-	       )
-	      ).
-
-flush_expand_cache(Id, Strategy) :-
-	(   expand_cache(Id-Strategy, _) % make sure Id is bounded to something in the cache
-	->  retractall(expand_cache(Id-Strategy, _)),
-	    debug(ag_expand, 'Flushed expand mapping cache for results of process ~p', [Id])
-	;   true
-	).
 
 flush_dependent_caches(Id, Strategy) :-
 	(   rdf_has(Id, amalgame:wasGeneratedBy, Process, RP0),
@@ -203,8 +167,7 @@ flush_dependent_caches(Id, Strategy) :-
 
 flush_process_dependent_caches(Process, Strategy, Options) :-
 	(   option(expand(flush), Options)
-	->  flush_expand_cache(Process, Strategy),
-	    provenance_graph(Strategy, ProvGraph),
+	->  provenance_graph(Strategy, ProvGraph),
 	    remove_old_prov(Process, ProvGraph)
 	;   true
 	),
@@ -242,6 +205,10 @@ cache_result_stats(_Process, Strategy, mapspec(overlap(List))) :-
 		   assert(stats_cache(Id-Strategy, Stats))
 	       )
 	      ).
+cache_result_stats(Process, Strategy, mapspec(select(_,_,_))) :-
+    rdf(S, amalgame:selectedBy, Process, Strategy),
+    stats_cache(S-Strategy, _),
+    !.
 
 cache_result_stats(Process, Strategy, mapspec(select(Sel, Disc, Undec))) :-
 	rdf(S, amalgame:selectedBy, Process, Strategy),
@@ -277,9 +244,11 @@ cache_result_stats(Process, Strategy, mapspec(mapping(Result))) :-
 	rdf_has(D, amalgame:wasGeneratedBy, Process, RP),
 	rdf(D, RP, Process, Strategy),
 	!,
-	mapping_stats(D, Result, Strategy, Dstats),
-	flush_stats_cache(D, Strategy),
-	assert(stats_cache(D-Strategy, Dstats)).
+	(   stats_cache(D-Strategy, _Stats)
+	->  true
+	;   mapping_stats(D, Result, Strategy, Dstats),
+	    assert(stats_cache(D-Strategy, Dstats))
+	).
 
 
 cache_result_stats(Process, Strategy, vocspec(Result)) :-
@@ -291,14 +260,6 @@ cache_result_stats(Process, Strategy, vocspec(Result)) :-
 cache_result_stats(Process, _Strategy, _Result) :-
 	debug(ag_caching, 'Error: do not know how to cache stats of ~p', [Process]),
 	fail.
-
-cache_expand_result(ExecTime, Process, Strategy, Result) :-
-	setting(amalgame:cache_time, CacheTime),
-	ExecTime > CacheTime,
-	!,
-	assert(expand_cache(Process-Strategy, Result)).
-
-cache_expand_result(_, _, _, _).
 
 
 del_prov_graphs(S) :-
