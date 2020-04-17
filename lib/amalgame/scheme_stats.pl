@@ -27,6 +27,7 @@
 scheme_stats(Strategy, Scheme, ConceptAssoc, Stats) :-
 	Stats = scheme_stats_dict{
 		    '@id': Scheme,
+		    plain: true,
 		    strategy: Strategy,
 		    totalCount: TotalCount,
 		    virtual: Virtual,
@@ -55,14 +56,16 @@ scheme_stats_deep_(_Strategy, _Scheme, ConceptAssoc, Stats, labelprop) :-
 
 scheme_stats_deep_(_Strategy, Scheme, ConceptAssoc, Stats, depth) :-
 	Stats = scheme_stats_dict{
-			 '@private': Private,
-			  structure: DStatsPub
+		    depth: true,
+		    '@private': Private,
+		    structure: DStatsPub
 		     },
 	compute_depth_stats(Scheme, ConceptAssoc, DStatsPub, Private).
 
 
 compute_label_stats(Concepts, Stats) :-
 	Stats = scheme_stats_dict{
+		    labelprop: true,
 		    formats: Formats,
 		    languages: Languages,
 		    '@properties': LanguagesDict,
