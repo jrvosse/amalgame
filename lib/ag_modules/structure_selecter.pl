@@ -29,7 +29,8 @@ selecter(Matcher, In, Sel, Dis, Und, Options) :-
 	    sort_correspondences(source, Sel0,  Sel),
 	    sort_correspondences(source, Dis0,  Dis),
 	    sort_correspondences(source, Und0,  Und)
-	).
+	),
+	!.
 
 selecter_(_, _, [], _, [], [], [], _).
 selecter_(all, Matcher, [Head|Tail], BackgroundMatches, Sel, Dis, [], Options) :-

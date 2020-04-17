@@ -24,14 +24,16 @@ amalgame_module(amalgame:'MostMethods').
 
 selecter(Mapping, S, D, U, Options) :-
 	option(type(target), Options, target),!,
-	partition_(target, Mapping, S, D, U).
+	partition_(target, Mapping, S, D, U),
+	!.
 selecter(Mapping, S, D, U, Options) :-
 	option(type(source), Options, target),!,
 	sort_correspondences(target, Mapping, TSorted),
 	partition_(source, TSorted, Sel0, Disc0, Und0),
 	sort_correspondences(source, Sel0,  S),
 	sort_correspondences(source, Disc0, D),
-	sort_correspondences(source, Und0,  U).
+	sort_correspondences(source, Und0,  U),
+	!.
 
 ap(Type, Result, align(S,T,P), align(S,T,Pnew)) :-
 	append([[method(most_methods),
