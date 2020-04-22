@@ -117,8 +117,8 @@ YUI.add('evaluater', function(Y) {
 			if (e.isReference) this.set('editmode', "edit"); else this.set('editmode', "eval");
 			this.set("focus", focus);
 			this.detailOverlay.set("visible", false);
-			this._fetchInfo(e.uri);
-			this.mappingtable.set("mapping", e.uri);
+			this._fetchInfo(focus);
+			this.mappingtable.set("focus", focus);
 		},
 
 		_onCorrespondenceSelect : function(e) {
