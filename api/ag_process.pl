@@ -158,7 +158,6 @@ change_ns_if_needed(NS, URI, Strategy, NewStrategy) :-
 	    rdf_unload_graph(Prov),
 	    rdf_retractall(URI, amalgame:publish_ns, OldNS, Strategy),
 	    rdf_assert(URI, amalgame:publish_ns, NS, Strategy),
-	    flush_expand_cache(Strategy),
 	    change_namespace(OldNS, NS, Strategy, NewStrategy)
 	).
 
@@ -168,19 +167,22 @@ change_namespace(Old, New, Strategy, NewStrategy) :-
 	    atom_concat(New, Local, NewStrategy)
 	;   NewStrategy = Strategy
 	),
-	% fix subjects:
-	findall(rdf(S,P,O), tainted_s_ns(S,P,O, Old, Strategy), SResults),
-	forall(member(T, SResults), fix_s_ns(T, Old, New)),
-
-	% fix objects:
-	findall(rdf(S,P,O), tainted_o_ns(S,P,O, Old, Strategy), OResults),
-	forall(member(T, OResults), fix_o_ns(T, Old, New)),
-
+	fix_subjects_ns(Old, New, Strategy),
+	fix_objects_ns(Old, New, Strategy),
 	% fix graphs
 	rdf_transaction(forall(rdf(S,P,O,Strategy),
-			       rdf_update(S,P,O,graph(NewStrategy))
+			       rdf_update(S,P,O, Strategy, graph(NewStrategy))
 			      )
 		       ).
+
+fix_subjects_ns(Old, New, Strategy) :-
+	findall(rdf(S,P,O), tainted_s_ns(S,P,O, Old, Strategy), SResults),
+	forall(member(T, SResults), fix_s_ns(T, Old, New)).
+
+fix_objects_ns(Old, New, Strategy) :-
+	findall(rdf(S,P,O), tainted_o_ns(S,P,O, Old, Strategy), OResults),
+	forall(member(T, OResults), fix_o_ns(T, Old, New)).
+
 
 tainted_s_ns(S,P,O,Old,Strategy) :-
 	rdf(S,P,O,Strategy),
@@ -188,7 +190,7 @@ tainted_s_ns(S,P,O,Old,Strategy) :-
 
 tainted_o_ns(S,P,O,Old,Strategy) :-
 	rdf(S,P,O,Strategy),
-	rdf_is_object(O),
+	rdf_is_iri(O),
 	sub_atom(O, 0,_,_,Old).
 
 
