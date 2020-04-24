@@ -278,24 +278,26 @@ strategy_update_props(Strategy, [_|Ts], URI) :-
 
 
 update_node_prop(label=Label, URI, Strategy) :-
+	user_preference(user:lang, literal(Lang)),
 	rdf_retractall(URI, rdfs:label, _, Strategy),
 	(   Label == ''
 	->  true
-	;   rdf_assert(URI, rdfs:label, literal(Label), Strategy)
+	;   rdf_assert(URI, rdfs:label, Label@Lang, Strategy)
 	).
 
 update_node_prop(abbrev=Abbrev, URI, Strategy) :-
 	rdf_retractall(URI, amalgame:nickname, _, Strategy),
 	(   Abbrev == ''
 	->  true
-	;   rdf_assert(URI, amalgame:nickname, literal(Abbrev), Strategy)
+	;   rdf_assert(URI, amalgame:nickname, Abbrev^^xsd:string, Strategy)
 	).
 
 update_node_prop(comment=Comment, URI, Strategy) :-
+	user_preference(user:lang, literal(Lang)),
 	rdf_retractall(URI, rdfs:comment, _, Strategy),
 	(   Comment == ''
 	->  true
-	;   rdf_assert(URI, rdfs:comment, literal(Comment), Strategy)
+	;   rdf_assert(URI, rdfs:comment, Comment@Lang, Strategy)
 	).
 update_node_prop(status=Status, URI, Strategy) :-
 	rdf_retractall(URI, amalgame:status, _, Strategy),
