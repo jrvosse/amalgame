@@ -121,7 +121,11 @@ expand_mapping(Strategy, Id, Mapping) :-
 	!,
 	debug(ag_expand, 'Using & already materialized mapping ~p', [Id]),
 	findall(C, has_correspondence(C,Id), Mapping0),
-	sort(Mapping0, Mapping).
+	sort(Mapping0, Mapping),
+	rdf_has(Id, amalgame:wasGeneratedBy, Process, RP),
+	rdf(Id, RP, Process, Strategy),
+	cache_result_stats(Process, Strategy, mapspec(mapping(Mapping))).
+
 
 expand_mapping(Strategy, Id, Mapping) :-
 	rdf_has(Id, amalgame:wasGeneratedBy, Process, OutputType),
