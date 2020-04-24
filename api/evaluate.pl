@@ -16,7 +16,6 @@
 :- use_module(library(skos/util)).
 
 :- use_module(library(amalgame/caching)).
-:- use_module(library(amalgame/ag_strategy)).
 :- use_module(library(amalgame/ag_evaluation)).
 :- use_module(library(amalgame/ag_stats)).
 :- use_module(library(amalgame/edoal)).
@@ -67,8 +66,8 @@ http_data_evaluate(Request) :-
 	->  evaluation_graph(Strategy, Mapping, Graph)
 	;   Graph = Mapping
 	),
-	strategy_process_entity(Strategy, EvalProcess,  Graph),
-	flush_expand_cache(EvalProcess, Strategy),  % graph cache is now outdated
+	% strategy_process_entity(Strategy, EvalProcess,  Graph),
+	% flush_expand_cache(EvalProcess, Strategy),  % graph cache is now outdated
 	flush_refs_cache(Strategy),                 % to recompute all reference stats
 
 	user_property(User0, url(User)),
@@ -174,7 +173,6 @@ assert_new__correspondence(C, JSON, Options) :-
 			 prov([NewProv|Prov])
 			],
 	merge_options(AssertOptions, Options, NewOptions),
-	debug(ag_expand, 'assert cell options: ~w', NewOptions),
 	assert_cell(C.source.uri, C.target.uri, NewOptions),
 	mapping_relation(RLabel, Relation),
 	JSON = json{add:correspondence{source:C.source,
