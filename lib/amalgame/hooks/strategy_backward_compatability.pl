@@ -112,7 +112,7 @@ fix_arity_params(Strategy) :-
 	       )
 	      ).
 
-arity_param_convert('type=11', 'type=both'):- !.
-arity_param_convert('type=1N', 'type=target'):- !.
-arity_param_convert('type=N1', 'type=source'):- !.
+arity_param_convert("type=11", "type=both"):- !.
+arity_param_convert("type=1N", "type=target"):- !.
+arity_param_convert("type=N1", "type=source"):- !.
 arity_param_convert(X,X):- !.
