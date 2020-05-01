@@ -124,7 +124,7 @@ expand_mapping(Strategy, Id, Mapping) :-
 	sort(Mapping0, Mapping),
 	rdf_has(Id, amalgame:wasGeneratedBy, Process, RP),
 	rdf(Id, RP, Process, Strategy),
-	cache_result_stats(Process, Strategy, mapspec(mapping(Mapping))).
+	set_cache_result_stats(Process, Strategy, mapspec(mapping(Mapping))).
 
 
 expand_mapping(Strategy, Id, Mapping) :-
@@ -180,11 +180,6 @@ expand_skos_scheme(Strategy, Vocab, Assoc) :-
 	ord_list_to_assoc(Sorted,Assoc),
 	handle_scheme_stats(Strategy, _Process, Vocab, Assoc).
 
-
-
-	% handle_scheme_stats(Strategy, _Process, Vocab, Assoc).
-	% cache_result(_, Vocab, Strategy, Assoc).
-
 vocab_spec(Strategy, Id, Spec) :-
 	rdf_has(Id, amalgame:wasGeneratedBy, Process, OutputType),
 		rdf(Id, OutputType, Process, Strategy),
@@ -231,8 +226,7 @@ expand_process(Strategy, Process, Result) :-
 	),
 
 
-	cache_result_stats(Process, Strategy, Result),
-	% cache_result(Time, Process, Strategy, Result),
+	set_cache_result_stats(Process, Strategy, Result),
 
 	% Provenance admin:
 	findall(URI, ( rdf_has(URI, amalgame:wasGeneratedBy, Process, OutputType),

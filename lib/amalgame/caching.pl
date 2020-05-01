@@ -1,10 +1,11 @@
 :- module(ag_caching,
 	  [
+	      cache_mapped_concepts/4,
+	      set_cache_result_stats/3,
+
 	      get_stats_cache/3,
 	      set_stats_cache/3,
 	      handle_scheme_stats/4,
-	      cache_result_stats/3,
-	      cache_mapped_concepts/4,
 	      clean_repository/0,
 	      flush_dependent_caches/2,
 	      flush_refs_cache/1,       % ?Strategy
@@ -44,6 +45,9 @@ user:message_hook(make(done(_)), _, _) :-
 	fail.
 user:message_hook(make(done(_)), _, _) :-
 	flush_stats_cache,
+	fail.
+user:message_hook(make(done(_)), _, _) :-
+	flush_mapped_concepts_cache(_,_),
 	fail.
 
 get_stats_cache(Strategy, Node, Value) :-
@@ -198,19 +202,20 @@ flush_process_dependent_caches(Process, Strategy, Options) :-
 	forall(member(Dep, Deps),
 	       flush_process_dependent_caches(Dep, Strategy, Options)).
 
-cache_result_stats(_Process, Strategy, mapspec(overlap(List))) :-
+set_cache_result_stats(_Process, Strategy, mapspec(overlap(List))) :-
 	forall(member(Id-Mapping, List),
 	       (   mapping_stats(Id, Mapping, Strategy, Stats),
 		   flush_stats_cache(Id, Strategy),
 		   assert(stats_cache(Id-Strategy, Stats))
 	       )
 	      ).
-cache_result_stats(Process, Strategy, mapspec(select(_,_,_))) :-
-    rdf(S, amalgame:selectedBy, Process, Strategy),
-    stats_cache(S-Strategy, _),
-    !.
 
-cache_result_stats(Process, Strategy, mapspec(select(Sel, Disc, Undec))) :-
+set_cache_result_stats(Process, Strategy, mapspec(select(_,_,_))) :-
+	rdf(S, amalgame:selectedBy, Process, Strategy),
+	stats_cache(S-Strategy, _),
+	!.
+
+set_cache_result_stats(Process, Strategy, mapspec(select(Sel, Disc, Undec))) :-
 	rdf(S, amalgame:selectedBy, Process, Strategy),
 	!,
 	mapping_stats(S, Sel, Strategy,  Sstats),
@@ -230,7 +235,8 @@ cache_result_stats(Process, Strategy, mapspec(select(Sel, Disc, Undec))) :-
 	    assert(stats_cache(U-Strategy, Ustats))
 	;   true
 	).
-cache_result_stats(Process, Strategy, vocspec(select(Sel, Dis, Und))) :-
+
+set_cache_result_stats(Process, Strategy, vocspec(select(Sel, Dis, Und))) :-
 	!,
 	rdf(S, amalgame:selectedBy,  Process, Strategy),
 	rdf(D, amalgame:discardedBy, Process, Strategy),
@@ -240,7 +246,7 @@ cache_result_stats(Process, Strategy, vocspec(select(Sel, Dis, Und))) :-
 	handle_scheme_stats(Strategy, Process, D, Dis),
 	handle_scheme_stats(Strategy, Process, U, Und).
 
-cache_result_stats(Process, Strategy, mapspec(mapping(Result))) :-
+set_cache_result_stats(Process, Strategy, mapspec(mapping(Result))) :-
 	rdf_has(D, amalgame:wasGeneratedBy, Process, RP),
 	rdf(D, RP, Process, Strategy),
 	!,
@@ -251,13 +257,13 @@ cache_result_stats(Process, Strategy, mapspec(mapping(Result))) :-
 	).
 
 
-cache_result_stats(Process, Strategy, vocspec(Result)) :-
+set_cache_result_stats(Process, Strategy, vocspec(Result)) :-
 	rdf_has(Vocab, amalgame:wasGeneratedBy, Process, RP),
 	rdf(Vocab, RP, Process, Strategy),
 	!,
 	handle_scheme_stats(Strategy, Process, Vocab, Result).
 
-cache_result_stats(Process, _Strategy, _Result) :-
+set_cache_result_stats(Process, _Strategy, _Result) :-
 	debug(ag_caching, 'Error: do not know how to cache stats of ~p', [Process]),
 	fail.
 
