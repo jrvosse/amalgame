@@ -142,7 +142,10 @@ html_reference -->
 				'or to use as reference (ground truth)' ]),
 			     input([type(file), name(data),
 				    size(50), autocomplete(off)
-				   ]),
+				   ]), br([]),
+                             input([type(url), name(graph), value('graph_name'),
+				    size(80), autocomplete(on)
+				   ]), br([]),
 			     input([type(submit), value('Upload')])
 			   ]),
 		      [inactive]

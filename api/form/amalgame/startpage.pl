@@ -120,7 +120,15 @@ http_ag_form_upload_reference(Request) :-
 	http_read_data(Request, Parts,
                        [ on_filename(load_file_into_named_graph)
                        ]),
-	memberchk(data=file(_FileName, NamedGraph), Parts),
+	memberchk(data=file(_FileName, FileURL, TmpGraph), Parts),
+	memberchk(graph=NamedGraph, Parts),
+	rdf_cp_graph(TmpGraph, NamedGraph, true),
+	rdf_unload_graph(TmpGraph),
+	now_xsd(TS),
+	rdf_equal(amalgame:'LoadedMapping', LMGraph),
+	rdf_assert(NamedGraph, amalgame:uploadedFrom, FileURL,  LMGraph),
+	rdf_assert(NamedGraph, prov:generatedAtTime, TS^^xsd:dateTime, LMGraph),
+	rdf_assert(NamedGraph, rdf:type, amalgame:'LoadedMapping', LMGraph),
 	http_link_to_id(list_graph, [graph(NamedGraph)], ListGraph),
 	http_redirect(moved, ListGraph, Request).
 
@@ -129,17 +137,12 @@ http_ag_form_upload_reference(_Request) :-
 
 :- public load_file_into_named_graph/3.
 
-load_file_into_named_graph(InStream, file(FileName, NamedGraph), Options) :-
+load_file_into_named_graph(InStream, file(FileName, FileURL, TmpGraph), Options) :-
 	option(filename(FileName), Options),
 	format(atom(FileURL), 'file://~w', [FileName]),
-	new_reference_name(NamedGraph),
-	% atom_to_memory_file(Data, MemFile),
-	rdf_guess_format_and_load(InStream, [graph(NamedGraph), base_uri(FileURL)]),
-	now_xsd(TS),
-	rdf_equal(amalgame:'LoadedMapping', LMGraph),
-	rdf_assert(NamedGraph, amalgame:uploadedFrom, FileURL,  LMGraph),
-	rdf_assert(NamedGraph, prov:generatedAtTime, TS^^xsd:dateTime, LMGraph),
-	rdf_assert(NamedGraph, rdf:type, amalgame:'LoadedMapping', LMGraph).
+	new_reference_name(TmpGraph),
+	rdf_guess_format_and_load(InStream, [graph(TmpGraph), base_uri(FileURL)]).
+
 
 is_multipart_post_request(Request) :-
         memberchk(method(post), Request),
