@@ -77,6 +77,10 @@ prebuilder_hook(_Strategy).
 amalgame:prebuilder(Strategy) :-
 	precalc_voc_stats(Strategy).
 
+amalgame:prebuilder(_Strategy) :-
+	forall(setting(prolog_flag:Flag, Value), set_prolog_flag(Flag, Value)).
+
+
 precalc_voc_stats(Strategy) :-
 	% handy to know how many concepts etc are in each vocab,
 	% both for the user as for the hints system etc.
