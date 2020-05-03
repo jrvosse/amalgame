@@ -26,6 +26,11 @@
 
 :- table exec_amalgame_process/7 as shared.
 
+:- setting(prolog_flag:stack_limit, integer, 2_147_483_648,
+	   'Limits the combined sizes of the Prolog stacks for the current thread.').
+:- setting(prolog_flag:shared_table_space, integer, 2_147_483_648,
+	   'Space reserved for storing shared answer tables.').
+
 %%	select_result_mapping(+Id, +MapSpec, +Type, -Mapping) is det.
 %%	select_result_mapping(+Id, -MapSpec, +Type, +Mapping) is det.
 %
