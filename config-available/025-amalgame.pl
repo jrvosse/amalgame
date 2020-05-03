@@ -4,8 +4,8 @@
 */
 
 :- current_prolog_flag(version, Version),
-   (   Version < 70330
-   ->  format('Warning: amalgame needs SWI-Prolog version 7.3.30 or higher~n', [])
+   (   Version < 80130
+   ->  format('Warning: amalgame needs SWI-Prolog version 8.1.30 or higher~n', [])
    ;   true
    ).
 
