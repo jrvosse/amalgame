@@ -14,7 +14,6 @@ isub_match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Op
 	option(sourcelabel(MatchPropS), Options, DefaultProp),
 	option(targetlabel(MatchPropT), Options, DefaultProp),
 	option(matchacross_lang(MatchAcross), Options, true),
-	option(normalize(Normalize), Options, false),
 	option(source_language(Lang), Options, 'any'),
 
 	(   Lang == 'any'
@@ -34,7 +33,7 @@ isub_match(align(Source, Target, Prov0), align(Source, Target, [Prov|Prov0]), Op
 	Source \== Target,
 	literal_text(SourceLit, SourceTxt),
 	literal_text(TargetLit, TargetTxt),
-	isub(SourceTxt, TargetTxt, Normalize, Similarity),
+	isub(SourceTxt, TargetTxt, Similarity, Options),
 	Similarity > Threshold,
 	Prov = [method(isub),
 		match(Similarity),
