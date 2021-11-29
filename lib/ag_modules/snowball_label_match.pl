@@ -17,7 +17,7 @@ snowball_label_match(align(Source, Target, Prov0),
 	option(sourcelabel(MatchPropS), Options, DefaultP),
 	option(targetlabel(MatchPropT), Options, DefaultP),
 	option(matchacross_lang(MatchAcross), Options, true),
-	option(language(Lang),Options, any),
+	option(source_language(Lang),Options, any),
 	option(edit_distance(Edit_Distance), Options, 0),
 
 	(   Lang == 'any'
