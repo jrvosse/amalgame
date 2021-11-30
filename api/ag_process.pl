@@ -177,10 +177,9 @@ change_namespace(Old, New, Strategy, NewStrategy) :-
 	forall(member(T, OResults), fix_o_ns(T, Old, New)),
 
 	% fix graphs
-	rdf_transaction(forall(rdf(S,P,O,Strategy),
-			       rdf_update(S,P,O,graph(NewStrategy))
-			      )
-		       ).
+	rdf_transaction(rdf_cp_graph(Strategy, NewStrategy, false)),
+	rdf_unload_graph(Strategy).
+
 
 tainted_s_ns(S,P,O,Old,Strategy) :-
 	rdf(S,P,O,Strategy),
@@ -188,7 +187,7 @@ tainted_s_ns(S,P,O,Old,Strategy) :-
 
 tainted_o_ns(S,P,O,Old,Strategy) :-
 	rdf(S,P,O,Strategy),
-	rdf_is_object(O),
+	atom(O),
 	sub_atom(O, 0,_,_,Old).
 
 
