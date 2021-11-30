@@ -117,7 +117,7 @@ strategy_new_process(Strategy, Type, Source, Target, Input, SecInputs, Params, F
 		assert_secondary_inputs(SecInputs, URI, Type, Strategy),
 		assert_output(URI, Type, Strategy, Input, SecInputs, Focus)
 	    )).
-%%	update_process(+Process, +Strategy, +SecInputs, +Params) is det.
+%%	strategy_update_process_parameters(+Process, +Strategy, +SecInputs, +Params) is det.
 %
 %	Update the parameters of Process.
 strategy_update_process_parameters(Strategy, Process, SecInputs, Params) :-
