@@ -162,7 +162,7 @@ assert_new__correspondence(C, JSON, Options) :-
 	option(prov(Prov), Options, []),
 
 	now_xsd(Now),
-	NewProv = [ method(manual_evaluation),
+	NewProv = [ method("manual_evaluation"),
 		    user(User),
 		    date(Now),
 		    comment(Comment),

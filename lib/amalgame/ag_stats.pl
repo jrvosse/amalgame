@@ -257,8 +257,8 @@ compare_against_ref([align(S,T,P)|MT],[align(SR,TR,PR)|RT], Rel,
 	->  compare_against_ref([align(S,T,P)|MT], RT, Rel,
 				partition(Matches,Conflicts, Unknown, [align(SR,TR,PR)|Missing]), Stats)
 	;   member(Manual, PR),
-	    (	member(method(manual_evaluation), Manual)
-	    ;	member(method(preloaded), Manual)
+	    (	member(method("manual_evaluation"), Manual)
+	    ;	member(method("preloaded"), Manual)
 	    ),
 	    option(relation(Rel), Manual)
 	->  compare_against_ref(MT, RT, Rel,
