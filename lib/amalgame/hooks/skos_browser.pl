@@ -1,26 +1,30 @@
 :- module(skos_browser_hooks, []).
 
+:- use_module(library(assoc)).
 :- use_module(library(option)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(skos/util)).
-
+:- use_module(library(amalgame/expand_graph)).
 
 cliopatria:concept_property(class, Concept, Graphs0, Class, Options) :-
-	graph_mappings(Graphs0, Graphs),
+	graph_mappings(Graphs0, Graphs, Options),
 	(   is_mapped(Concept, Graphs, Options)
 	->  Class = mapped
 	;   Class = unmapped
 	).
 cliopatria:concept_property(count, Concept, Graphs0, Count, Options) :-
-	graph_mappings(Graphs0, Graphs),
+	graph_mappings(Graphs0, Graphs, Options),
 	mapped_descendant_count(Concept, Graphs, Count, Options).
 
+graph_mappings([], Graphs, Options) :-
+	option(strategy(Strategy), Options), !,
+	graph_mappings([Strategy], Graphs, Options).
 
-graph_mappings([Strategy], Graphs) :-
+graph_mappings([Strategy], Graphs, _Options) :-
 	rdf(Strategy, rdf:type, amalgame:'AlignmentStrategy'),
 	!,
 	findall(Mapping, rdf(Mapping, rdf:type, amalgame:'Mapping', Strategy), Graphs).
-graph_mappings(Graphs, Graphs).
+graph_mappings(Graphs, Graphs, _Options).
 
 
 mapped_descendant_count(Concept, Graphs, Count, Options) :-
@@ -42,7 +46,8 @@ mapped_chk([C|T], Graphs, [C|Rest], Options) :-
 mapped_chk([_|T], Graphs, Rest, Options) :-
 	mapped_chk(T, Graphs, Rest, Options).
 
-is_mapped(_Concept, _Mappings, Options) :-
-	option(strategy(_Strategy), Options),
-	fail.
-
+is_mapped(Concept, Mappings, Options) :-
+	option(strategy(Strategy), Options),
+	Type=source,
+	all_mapped(Strategy, Type, Mappings, Concepts, _Sorted),
+	get_assoc(Concept, Concepts, _Value),!.
