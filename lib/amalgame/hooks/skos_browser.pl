@@ -6,19 +6,19 @@
 :- use_module(library(skos/util)).
 :- use_module(library(amalgame/expand_graph)).
 
-cliopatria:concept_property(class, Concept, Graphs0, Class, Options) :-
-	graph_mappings(Graphs0, Graphs, Options),
+cliopatria:concept_property(Prop, Concept, [], Value, Options) :-
+	option(strategy(Strategy), Options), !,
+	graph_mappings([Strategy], Graphs, Options),
+	cliopatria:concept_property(Prop, Concept, Graphs, Value, Options).
+
+cliopatria:concept_property(class, Concept, Graphs, Class, Options) :-
 	(   is_mapped(Concept, Graphs, Options)
 	->  Class = mapped
 	;   Class = unmapped
 	).
-cliopatria:concept_property(count, Concept, Graphs0, Count, Options) :-
-	graph_mappings(Graphs0, Graphs, Options),
+cliopatria:concept_property(count, Concept, Graphs, Count, Options) :-
 	mapped_descendant_count(Concept, Graphs, Count, Options).
 
-graph_mappings([], Graphs, Options) :-
-	option(strategy(Strategy), Options), !,
-	graph_mappings([Strategy], Graphs, Options).
 
 graph_mappings([Strategy], Graphs, _Options) :-
 	rdf(Strategy, rdf:type, amalgame:'AlignmentStrategy'),
@@ -48,6 +48,10 @@ mapped_chk([_|T], Graphs, Rest, Options) :-
 
 is_mapped(Concept, Mappings, Options) :-
 	option(strategy(Strategy), Options),
-	Type=source,
+	(   is_mapped(source, Strategy, Concept, Mappings, Options)
+	;   is_mapped(target, Strategy, Concept, Mappings, Options)
+	).
+
+is_mapped(Type, Strategy, Concept, Mappings, _Options) :-
 	all_mapped(Strategy, Type, Mappings, Concepts, _Sorted),
 	get_assoc(Concept, Concepts, _Value),!.
