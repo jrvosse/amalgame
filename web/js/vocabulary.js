@@ -41,7 +41,7 @@ YUI.add('vocabulary', function(Y) {
 			var titleBox = mappingHeader.appendChild(Y.Node.create('<div class="title-box" title="click to show options"></div>'));
 			this.title = titleBox.appendChild(Y.Node.create('<span class="title"></span>'));
 			var mappingSelect = mappingHeader.appendChild(Y.Node.create('<div class="mapping-select"></div>'));
-			mappingSelect.appendChild('<span>highlight mappings from: </span>');
+			mappingSelect.appendChild('<span>(not yet implmemented) highlight mappings from: </span>');
 			mappingList = mappingSelect.appendChild(Y.Node.create('<ul class="mappings"></ul>'));
 
 
