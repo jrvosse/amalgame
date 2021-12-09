@@ -68,7 +68,7 @@ has_correspondence(align(E1, E2, P), Graph) :-
 	(   memberchk(method(_), Pflat)
 	->  P = Properties1
 	;   Properties1 = [P1|Rest],
-	    append([method(preloaded), graph(Graph)], P1, P2),
+	    append([method("preloaded"), graph(Graph)], P1, P2),
 	    P = [P2|Rest]
 	).
 
@@ -150,7 +150,7 @@ has_map([E1, E2], edoal, Properties, Graph) :-
 		),
 		Properties).
 
-has_map([E1, E2], Format, [[method(preloaded),
+has_map([E1, E2], Format, [[method("preloaded"),
 			    relation(RealProp),
 			    graph(Graph)]], Graph) :-
 	mapping_relation(Format,MappingProp),
@@ -350,8 +350,13 @@ augment_relation(Mappings, Reference, NewResults, Options) :-
 	    NewMappings = Mappings,
 	    NewRef = RTail
 	),
-	augment_relation(NewMappings ,NewRef, Results, Options).
+	augment_relation(NewMappings ,NewRef, Results, Options), !.
 
+
+augment_relation(NewMappings ,NewRef, Results, Options) :-
+	gtrace,
+	NewRef = NewMappings,
+	Results = Options.
 
 %%	mapping_vocab_sources(+MappingURI, +Strategy, -Source, -Target)
 %
