@@ -1,0 +1,13 @@
+# Assuming you want to read/write from the container in the 
+# $PWD of the host fs, so start with:
+#   shell> UID=$(id -u) GID=$(id -g) docker-compose up
+
+services:
+  amalgame:
+      image: jrvosse/amalgame
+      user: "${UID}:${GID}"
+      volumes:
+        - "./:/opt/project"
+      ports:
+        - "3020:3020"
+
