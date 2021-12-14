@@ -47,12 +47,12 @@
 	border-color: #BBB;
 }
 .control-set .hd {
-	background: url("http://yui.yahooapis.com/3.0.0/build/assets/skins/sam/sprite.png") repeat-x scroll 0 -1500px transparent;
+	background: url("https://yui-s.yahooapis.com/3.0.0/build/assets/skins/sam/sprite.png") repeat-x scroll 0 -1500px transparent;
 	line-height: 1.4em;
 	padding: 5px 10px 5px 0;
 }
 .control-set .hd .trigger {
-	background: url("http://yui.yahooapis.com/3.0.0/build/assets/skins/sam/sprite.png") no-repeat scroll 108% -347px transparent;
+	background: url("https://yui-s.yahooapis.com/3.0.0/build/assets/skins/sam/sprite.png") no-repeat scroll 108% -347px transparent;
     color: #222;
 	font-weight: bold;
     cursor: default;
@@ -62,7 +62,7 @@
     width: auto;
 }
 .control-set.active .hd .trigger {
-	background: url("http://yui.yahooapis.com/3.0.0/build/assets/skins/sam/sprite.png") no-repeat scroll 108% -397px transparent;
+	background: url("https://yui-s.yahooapis.com/3.0.0/build/assets/skins/sam/sprite.png") no-repeat scroll 108% -397px transparent;
 }
 .control-set .bd {
 	display: none;

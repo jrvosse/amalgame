@@ -10,7 +10,7 @@
 .yui3-mappinglist-content {
 }
 .yui3-mappinglist .hd {
-	background: url("http://yui.yahooapis.com/3.0.0/build/assets/skins/sam/sprite.png") repeat-x scroll 0 0 transparent;
+	background: url("https://yui-s.yahooapis.com/3.0.0/build/assets/skins/sam/sprite.png") repeat-x scroll 0 0 transparent;
     padding: 5px;
 }
 .yui3-mappinglist li {
@@ -31,6 +31,6 @@
  padding: .2em;
 }
 .hd {
-    background: url("http://yui.yahooapis.com/3.0.0/build/assets/skins/sam/sprite.png") repeat-x scroll 0 0 transparent;
+    background: url("https://yui-s.yahooapis.com/3.0.0/build/assets/skins/sam/sprite.png") repeat-x scroll 0 0 transparent;
     padding: 5px;
 }
