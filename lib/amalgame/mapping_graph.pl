@@ -354,7 +354,6 @@ augment_relation(Mappings, Reference, NewResults, Options) :-
 
 
 augment_relation(NewMappings ,NewRef, Results, Options) :-
-	gtrace,
 	NewRef = NewMappings,
 	Results = Options.
 
