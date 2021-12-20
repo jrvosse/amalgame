@@ -1,5 +1,5 @@
 #!/bin/bash
-VERSION=latest
+VERSION=arm64v8
 APP=amalgame
 REPO=jrvosse
 SUDO=
