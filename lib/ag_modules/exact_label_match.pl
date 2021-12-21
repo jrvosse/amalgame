@@ -24,6 +24,7 @@ exact_label_match(align(Source, Target, Prov0),
 	option(matchacross_type(IgnoreType),  Options, true),
 	option(case_sensitive(CaseSensitive), Options, false),
 	option(source_language(Lang), Options, 'any'),
+        debug(exact_label_match, 'Source ~p', [Source]),
 	(   Lang == 'any'
 	->  SourceLang = _UnBound
 	;   SourceLang = Lang
