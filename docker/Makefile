@@ -1,7 +1,7 @@
 IMAGE=jrvosse/amalgame
 CONTAINER=amalgame
-# ARCH=amd64
-ARCH=arm64v8
+ARCH=amd64
+# ARCH=arm64v8
 PORT=3020
 PUBLISH=--publish=${PORT}:3020
 VOLUME=$(shell pwd)
