@@ -140,10 +140,10 @@ cheapest_edit_path(Toks1, Toks2, Distance, Path) :-
 	get_array(Array, M, N, c(Distance, Path0)),
 	reverse(Path0, Path).
 
-ins_cost((,), 1) :- !.
+ins_cost((','), 1) :- !.
 ins_cost(_, 8).
 
-del_cost((,), 1) :- !.
+del_cost((','), 1) :- !.
 del_cost(_, 10).
 
 same_stem(T1, T2) :-
