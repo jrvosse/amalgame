@@ -38,7 +38,8 @@ exact_label_match(align(Source, Target, Prov0),
 	;   true
 	),
 
-	SearchTarget = TargetLabel@TargetLang,
+	(    SearchTarget = TargetLabel@TargetLang; SearchTarget = TargetLabel^^xsd:string ),
+
 	(   CaseSensitive
 	->  TargetLabel = SourceLabel
 	;   rdf11:rdf_where(icase(TargetLabel, SourceLabel))
