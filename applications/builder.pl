@@ -83,8 +83,9 @@ precalc_voc_stats(Strategy) :-
 	forall(strategy_vocabulary(Strategy, Vocab),
 	       (   node_stats(Strategy, Vocab, Stats, [compute(false)])
 	       ->  option(totalCount(N), Stats),
+		   atom_number(Natom, N),
 		   print_message(informational,
-				 map(found, 'SKOS Concepts for ', Vocab, N))
+				 map(found, 'SKOS Concepts for ', Vocab, Natom))
 	       ;   ( setting(amalgame:precompute, true)
 		   ->  precompute_node(Strategy, Vocab)
 		   ;   true
