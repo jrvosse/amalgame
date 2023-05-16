@@ -82,6 +82,7 @@ prov_ensure_entity(Strategy, Entity, Graph) :-
 	node_stats(Strategy, Entity, Stats, []),
 	option(revision(Revision), Stats),
 	prov_named_graphs(Repo, Graph),
+        rdf_assert(Entity, rdf:type, prov:'Entity', Graph),
 	rdf_assert(Entity, amalgame:loadedInto, Repo, Graph),
 	rdf_assert(Entity, 'http://usefulinc.com/ns/doap#revision', Revision^^xsd:string, Graph),
 	findall(rdf(Entity, P, O), rdf(Entity, P, O), Triples),
