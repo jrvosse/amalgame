@@ -11,6 +11,11 @@ release tag V1.0.0 has been archived as
 amalgame provides a web-based interactive platform for creating, analyzing and evaluating vocabulary alignments.  It aims to support domain experts to make alignments interactively.  To realize this it focuses on simple alignment techniques which the user understands and knows how to use, and which are sufficiently fast to be used in an interactive session.  amalgame keeps track of all the provenance related information, so that mapping experiments can be replicated later, and other users can explore the context that played a role in creating the mappings.  amalgame is implemented by using common web technology on the client (e.g. HTML,CSS,AJAX and the YUI toolkit) and SWI-Prolog's ClioPatria platform on the server.
 
 ## Installation
+
+Amalgame can be installed from sources or with Docker.
+
+### From sources
+
 Amalgame is a web application build as a package in the ClioPatria semantic web server. To install, make sure you have:
 
 1. The latest development release of SWI Prolog, at least version 7.3.30. See http://www.swi-prolog.org/Download.html
@@ -19,6 +24,14 @@ Amalgame is a web application build as a package in the ClioPatria semantic web 
         :- cpack_install(amalgame).
 4. Done!
 
+### With Docker
+
+Download the Docker image <https://hub.docker.com/r/jrvosse/amalgame> and run a new container with web interface at <http://localhost:3020/>:
+
+~~~sh
+docker pull jrvosse/amalgame
+docker run -p 3020:3020 jrvosse/amalgame
+~~~
 
 ## amalgame-specific terminology:
 
