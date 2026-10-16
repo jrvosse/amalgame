@@ -1,0 +1,64 @@
+{
+    "@context": [
+        "https://doi.org/10.5063/schema/codemeta-2.0",
+        "https://w3id.org/software-iodata",
+        "https://raw.githubusercontent.com/jantman/repostatus.org/master/badges/latest/ontology.jsonld",
+        "https://schema.org",
+        "https://w3id.org/software-types"
+    ],
+    "@type": "SoftwareSourceCode",
+    "codeRepository": "https://github.com/jrvosse/amalgame.git",
+    "maintainer": [
+        {
+            "@id": "https://orcid.org/0000-0002-7748-4715",
+            "@type": "Person",
+            "affiliation": {
+                "@type": "Organization",
+                "@id": "https://ror.org/008xxew50",
+                "name": "VU Amsterdam"
+            },
+            "email": "jacco.van.ossenbruggen@vu.nl",
+            "familyName": "van Ossenbruggen",
+            "givenName": "Jacco"
+        }
+    ],
+    "author": [
+        {
+            "@id": "https://orcid.org/0000-0002-7748-4715",
+            "@type": "Person",
+            "affiliation": {
+                "@type": "Organization",
+                "@id": "https://ror.org/008xxew50",
+                "name": "VU Amsterdam"
+            },
+            "email": "jacco.van.ossenbruggen@vu.nl",
+            "familyName": "van Ossenbruggen",
+            "givenName": "Jacco"
+        },
+        {
+            "@type": "Person",
+            "email": "michiel.hildebrand@gmail.com",
+            "familyName": "Hildebrand",
+            "givenName": "Michiel"
+        },
+        {
+            "@type": "Person",
+            "email": "jan@swi-prolog.org",
+            "familyName": "Wielemaker",
+            "givenName": "Jan"
+        }
+    ],
+    "contributor": [
+        {
+            "@type": "Person",
+            "email": "v.de.boer@vu.nl",
+            "familyName": "de Boer",
+            "givenName": "Victor"
+        }
+    ],
+    "dateCreated": "2010-06-15T12:03:05Z+0200",
+    "dateModified": "2026-10-16T17:10:22Z+0000",
+    "developmentStatus": "https://www.repostatus.org/#suspended",
+    "identifier": "amalgame",
+    "readme": "https://github.com/jrvosse/ClioPatriaDocker/blob/master/README.md"
+}
