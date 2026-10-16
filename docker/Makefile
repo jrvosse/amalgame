@@ -25,11 +25,14 @@ daemon:
 	docker run --detach ${DOPTS} ${IMAGE}:${ARCH}
 
 run:
-	docker run -it ${DOPTS} ${IMAGE} run
+	docker run -it ${DOPTS} ${IMAGE}:${ARCH} run
 
 stop:
 	docker stop -t2 ${CONTAINER}
 	docker rm       ${CONTAINER}
+
+push:
+	docker push ${IMAGE}:${ARCH}	
 
 manifest:
 	# docker manifest rm ${IMAGE}
