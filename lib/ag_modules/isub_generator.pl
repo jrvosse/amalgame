@@ -38,10 +38,10 @@ parameter(normalize,
 %       Target.
 
 matcher(Source, Target, Mappings, Options) :-
-        findall(M, align(Source, Target, M, Options), Mappings0),
+	findall(M, align(Source, Target, M, Options), Mappings0),
 	sort(Mappings0, Mappings).
 
 align(Source, Target, Match, Options) :-
-        vocab_member(S, Source),
-        vocab_member(T, Target),
-        isub_match(align(S,T,[]), Match, Options).
+	vocab_member(S, Source),
+	vocab_member(T, Target),
+	isub_match(align(S,T,[]), Match, Options).
