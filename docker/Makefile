@@ -19,10 +19,10 @@ all:
 	@echo "manifest         Build and push a multiarch manifest for ${IMAGE}"
 
 image::
-	docker build -t ${IMAGE}:${ARCH} .
+	docker build --no-cache -t ${IMAGE}:${ARCH} .
 
 daemon:
-	docker run --detach ${DOPTS} ${IMAGE}
+	docker run --detach ${DOPTS} ${IMAGE}:${ARCH}
 
 run:
 	docker run -it ${DOPTS} ${IMAGE} run
