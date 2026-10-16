@@ -12,7 +12,7 @@ amalgame provides a web-based interactive platform for creating, analyzing and e
 
 ## Installation
 
-Amalgame can be installed from sources or with Docker.
+Amalgame can be installed from sources or run with Docker.
 
 ### From sources
 
@@ -26,11 +26,20 @@ Amalgame is a web application build as a package in the ClioPatria semantic web 
 
 ### With Docker
 
-Download the Docker image <https://hub.docker.com/r/jrvosse/amalgame> and run a new container with web interface at <http://localhost:3020/>:
+To run a new container with web interface at <http://localhost:3020/>:
 
 ~~~sh
+# Fetch container image
 docker pull jrvosse/amalgame
+
+# simple run, you will need to load all data over the web interface
 docker run -p 3020:3020 jrvosse/amalgame
+
+# Alternative: Give your container access to your current working 
+# directory, and load, for example, skosfile.ttl and skosfile2.rdf 
+# from your local folder:
+docker run -p 3020:3020 --volume $PWD:/opt/project jrvosse/amalgame rdf_load skosfile1.ttl skosfile2.rdf
+
 ~~~
 
 ## amalgame-specific terminology:
